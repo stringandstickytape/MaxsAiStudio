@@ -1,10 +1,10 @@
 ﻿// AiStudio4.Web/src/commands/coreCommands.ts
 import { v4 as uuidv4 } from 'uuid';
-import { useCommandStore } from '@/stores/useCommandStore';
 import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal } from 'lucide-react';
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { createApiRequest } from '@/utils/apiUtils';
+import { commandRegistry } from '@/services/commandRegistry';
 
 export function initializeCoreCommands(handlers: {
   toggleSidebar: () => void;
@@ -12,12 +12,10 @@ export function initializeCoreCommands(handlers: {
   toggleSettings: () => void;
   openNewWindow: () => void;
 }) {
-  const { createConv } = useConvStore.getState();
   const mac = navigator.platform.indexOf('Mac') !== -1;
   const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
-  const { registerGroup } = useCommandStore.getState();
 
-  registerGroup({
+  commandRegistry.registerGroup({
     id: 'conv',
     name: 'Conv',
     priority: 100,
@@ -32,7 +30,7 @@ export function initializeCoreCommands(handlers: {
         () => {
           const convId = `conv_${uuidv4()}`;
           const messageId = `msg_${Date.now()}`;
-          createConv({
+          useConvStore.getState().createConv({
             id: convId,
             rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
           });
@@ -88,7 +86,7 @@ export function initializeCoreCommands(handlers: {
     })),
   });
 
-  registerGroup({
+  commandRegistry.registerGroup({
     id: 'view',
     name: 'View',
     priority: 90,

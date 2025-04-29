@@ -1,4 +1,4 @@
-﻿// AiStudio4.Web\src\components\InputBar.tsx
+﻿// AiStudio4.Web/src/components/InputBar.tsx
 import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { useModalStore } from '@/stores/useModalStore';
@@ -22,13 +22,13 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
-import { Server } from 'lucide-react'; // Added Server icon
+import { Server } from 'lucide-react';
 import { webSocketService } from '@/services/websocket/WebSocketService';
-import { useMcpServerStore } from '@/stores/useMcpServerStore'; // Import MCP server store
+import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import { StatusMessage } from './StatusMessage';
 import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
-// Add file header comment for clarity and traceability.
 /*
  * InputBar.tsx
  * React component for user input, attachments, and controls in AI Studio Web.
@@ -242,14 +242,14 @@ export function InputBar({
         if (isLoading && currentRequest) {
             setIsCancelling(true);
             // --- Immediately clear stream and ignore tokens ---
-            window.dispatchEvent(new CustomEvent('stream:ignore'));
+            windowEventService.emit(WindowEvents.STREAM_IGNORE);
             (async () => {
                 const result = await cancelMessage({
                     convId: currentRequest.convId,
                     messageId: currentRequest.messageId
                 });
                 if (result) {
-                    window.dispatchEvent(new CustomEvent('request:cancelled'));
+                    windowEventService.emit(WindowEvents.REQUEST_CANCELLED);
                 } else {
                     // Optionally show a toast or error message here
                     console.error('Cancellation failed.');
@@ -268,7 +268,7 @@ export function InputBar({
         // Normal sending flow
         if (!isLoading) {
             // --- Allow stream tokens again on new send ---
-            window.dispatchEvent(new CustomEvent('stream:allow'));
+            windowEventService.emit(WindowEvents.STREAM_ALLOW);
             console.log("hs3");
             // Enable auto-scrolling when sending a message
             window.scrollChatToBottom && window.scrollChatToBottom();
@@ -316,31 +316,30 @@ export function InputBar({
             }, 0);
         };
 
-        const handleAppendToPrompt = (event: CustomEvent<{ text: string }>) => {
-            setInputText(text => text + event.detail.text);
+        const handleAppendToPrompt = (data: { text: string }) => {
+            setInputText(text => text + data.text);
             focusTextarea(null);
         };
 
-        const handleSetPrompt = (event: CustomEvent<{ text: string }>) => {
-            setInputText(event.detail.text);
+        const handleSetPrompt = (data: { text: string }) => {
+            setInputText(data.text);
             focusTextarea(null);
         };
 
-        window.addEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
-        window.addEventListener('set-prompt', handleSetPrompt as EventListener);
+        const unsubAppend = windowEventService.on(WindowEvents.APPEND_TO_PROMPT, handleAppendToPrompt);
+        const unsubSet = windowEventService.on(WindowEvents.SET_PROMPT, handleSetPrompt);
 
         return () => {
-            window.removeEventListener('append-to-prompt', handleAppendToPrompt as EventListener);
-            window.removeEventListener('set-prompt', handleSetPrompt as EventListener);
+            unsubAppend();
+            unsubSet();
         };
     }, [setInputText]); // Added setInputText dependency
 
     const handlePrimaryModelClick = () =>
-        window.dispatchEvent(new CustomEvent('select-primary-model'));
-
+        windowEventService.emit(WindowEvents.SELECT_PRIMARY_MODEL);
 
     const handleSecondaryModelClick = () =>
-        window.dispatchEvent(new CustomEvent('select-secondary-model'));
+        windowEventService.emit(WindowEvents.SELECT_SECONDARY_MODEL);
 
     return (
         <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
@@ -360,7 +359,7 @@ export function InputBar({
                 <div className="mb-2 rounded-lg flex-shrink-0 flex justify-between items-center">
                     <SystemPromptComponent
                         convId={activeConvId || undefined}
-                        onOpenLibrary={() => window.dispatchEvent(new CustomEvent('open-system-prompt-library'))}
+                        onOpenLibrary={() => windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY)}
                     />
                     <div className="flex items-center gap-2">
                         <TooltipProvider>
@@ -529,7 +528,7 @@ export function InputBar({
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={onManageTools || (() => window.dispatchEvent(new CustomEvent('open-tool-library')))}
+                                onClick={onManageTools || (() => windowEventService.emit(WindowEvents.OPEN_TOOL_LIBRARY))}
                                 onMouseDown={(e) => {
                                     if (e.button === 1) { // Middle mouse button
                                         e.preventDefault(); // Prevent default middle-click behavior (e.g., autoscroll)
@@ -551,7 +550,7 @@ export function InputBar({
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => window.dispatchEvent(new CustomEvent('open-server-list'))}
+                                onClick={() => windowEventService.emit(WindowEvents.OPEN_SERVER_LIST)}
                                 className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0 relative"
                                 disabled={disabled}
                             >
@@ -573,7 +572,7 @@ export function InputBar({
 }
 
 window.appendToPrompt = text => {
-    window.dispatchEvent(new CustomEvent('append-to-prompt', { detail: { text } }));
+    windowEventService.emit(WindowEvents.APPEND_TO_PROMPT, { text });
     console.log(`Appended to prompt: "${text}"`);
     return true;
 };
@@ -618,7 +617,7 @@ export const themeableProps = {
 };
 
 window.setPrompt = text => {
-    window.dispatchEvent(new CustomEvent('set-prompt', { detail: { text } }));
+    windowEventService.emit(WindowEvents.SET_PROMPT, { text });
     console.log(`Set prompt to: "${text}"`);
     return true;
 };

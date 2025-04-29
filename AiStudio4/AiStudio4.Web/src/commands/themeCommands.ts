@@ -1,14 +1,15 @@
-﻿import { useCommandStore } from '@/stores/useCommandStore';
+﻿// AiStudio4.Web/src/commands/themeCommands.ts
 import { useThemeStore } from '@/stores/useThemeStore';
 import { Palette } from 'lucide-react';
 import React from 'react';
 import ThemeManager from '@/lib/ThemeManager';
+import { commandRegistry } from '@/services/commandRegistry';
 
 // The selectTheme function should setActiveThemeId and (optionally) persist to backend.
 // The command's execute will also apply the theme visually.
 export function registerThemeCommands(selectTheme: (themeGuid: string) => void) {
   try {
-    useCommandStore.getState().unregisterGroup('theme-selection');
+    commandRegistry.unregisterGroup('theme-selection');
   } catch (e) {}
 
   const { themes, activeThemeId } = useThemeStore.getState();
@@ -32,7 +33,7 @@ export function registerThemeCommands(selectTheme: (themeGuid: string) => void) 
 
   console.log('[themeCommands] themeCommands array:', themeCommands);
 
-  useCommandStore.getState().registerGroup({
+  commandRegistry.registerGroup({
     id: 'theme-selection',
     name: 'Theme Selection',
     priority: 79,

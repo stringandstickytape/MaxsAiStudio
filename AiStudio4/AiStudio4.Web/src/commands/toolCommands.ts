@@ -1,8 +1,8 @@
-
+﻿// AiStudio4.Web/src/commands/toolCommands.ts
 import React from 'react';
-import { useCommandStore } from '@/stores/useCommandStore';
 import { Tool } from '@/types/toolTypes';
-
+import { commandRegistry } from '@/services/commandRegistry';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 interface ToolCommandsConfig {
   openToolLibrary: () => void;
@@ -12,9 +12,7 @@ interface ToolCommandsConfig {
 }
 
 export function initializeToolCommands(config: ToolCommandsConfig) {
-  const { registerGroup } = useCommandStore.getState();
-
-  registerGroup({
+  commandRegistry.registerGroup({
     id: 'tools',
     name: 'Tools',
     priority: 80,
@@ -46,12 +44,13 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
     })),
   });
 }
+
 export function registerToolsAsCommands(
   tools: Tool[],
   activeTools: string[],
   toggleTool: (toolId: string, activate: boolean) => void,
 ) {
-  useCommandStore.getState().unregisterGroup('tools-list');
+  commandRegistry.unregisterGroup('tools-list');
 
   const toolCommands = tools.map((tool) => ({
     id: `tool-${tool.guid}`,
@@ -60,7 +59,6 @@ export function registerToolsAsCommands(
     keywords: ['tool', ...tool.name.toLowerCase().split(' '), ...tool.description.toLowerCase().split(' ').slice(0, 5)],
     section: 'tools',
     icon: () => {
-      
       return React.createElement('div', { className: 'text-blue-500 font-bold' }, 'T');
     },
     active: activeTools.includes(tool.guid),
@@ -70,11 +68,10 @@ export function registerToolsAsCommands(
     },
   }));
 
-  useCommandStore.getState().registerGroup({
+  commandRegistry.registerGroup({
     id: 'tools-list',
     name: 'Available Tools',
     priority: 75, 
     commands: toolCommands,
   });
 }
-

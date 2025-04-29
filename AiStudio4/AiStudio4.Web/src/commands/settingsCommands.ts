@@ -1,21 +1,21 @@
-
-import { useCommandStore } from '@/stores/useCommandStore';
+﻿// AiStudio4.Web/src/commands/settingsCommands.ts
 import { Book, Database, Edit, Server, Settings } from 'lucide-react';
 import React from 'react';
 import { useModalStore } from '@/stores/useModalStore';
-
+import { commandRegistry } from '@/services/commandRegistry';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 type CommandEvent = 'edit-model' | 'edit-provider' | 'settings-tab';
+
+// Legacy commandEvents API - maintained for backward compatibility
 export const commandEvents = {
   emit: (event: CommandEvent, data: any) => {
-    const customEvent = new CustomEvent(`command:${event}`, { detail: data });
-    window.dispatchEvent(customEvent);
-    console.log(`Emitted command:${event} with data:`, data);
+    const eventName = `command:${event}`;
+    windowEventService.emit(eventName, data);
   },
   on: (event: CommandEvent, handler: (data: any) => void) => {
     const eventName = `command:${event}`;
-    window.addEventListener(eventName, (e: any) => handler(e.detail));
-    return () => window.removeEventListener(eventName, (e: any) => handler(e.detail));
+    return windowEventService.on(eventName, handler);
   },
 };
 
@@ -27,9 +27,7 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
   const mac = navigator.platform.indexOf('Mac') !== -1;
   const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
 
-  const { registerGroup } = useCommandStore.getState();
-
-  registerGroup({
+  commandRegistry.registerGroup({
     id: 'settings',
     name: 'Settings',
     priority: 85,
@@ -70,7 +68,7 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
       section: 'settings',
       icon,
       execute: () => {
-        commandEvents.emit('settings-tab', tabName);
+        windowEventService.emit(WindowEvents.COMMAND_SETTINGS_TAB, tabName);
         // config.openSettings(); // Original call using passed function
         useModalStore.getState().openModal('settings'); // Directly open the modal
       },
@@ -78,15 +76,12 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
   });
 }
 
-
 export function registerModelCommands(
   models: { guid: string; friendlyName: string; modelName: string }[],
   openSettings: () => void,
 ) {
-  
   try {
-    
-    useCommandStore.getState().unregisterGroup('edit-models-list');
+    commandRegistry.unregisterGroup('edit-models-list');
   } catch (e) {}
 
   const modelCommands = models.map((model) => ({
@@ -97,15 +92,14 @@ export function registerModelCommands(
     section: 'settings',
     icon: React.createElement(Edit, { size: 16 }),
     execute: () => {
-      
-      commandEvents.emit('settings-tab', 'models');
-      commandEvents.emit('edit-model', model.guid);
+      windowEventService.emit(WindowEvents.COMMAND_SETTINGS_TAB, 'models');
+      windowEventService.emit(WindowEvents.COMMAND_EDIT_MODEL, model.guid);
       // openSettings(); // Original call using passed function
       useModalStore.getState().openModal('settings'); // Directly open the modal
     },
   }));
 
-  useCommandStore.getState().registerGroup({
+  commandRegistry.registerGroup({
     id: 'edit-models-list',
     name: 'Edit Models',
     priority: 50,
@@ -113,15 +107,12 @@ export function registerModelCommands(
   });
 }
 
-
 export function registerProviderCommands(
   providers: { guid: string; friendlyName: string; serviceName: string }[],
   openSettings: () => void,
 ) {
-  
   try {
-    
-    useCommandStore.getState().unregisterGroup('edit-providers-list');
+    commandRegistry.unregisterGroup('edit-providers-list');
   } catch (e) {}
 
   const providerCommands = providers.map((provider) => ({
@@ -132,19 +123,17 @@ export function registerProviderCommands(
     section: 'settings',
     icon: React.createElement(Database, { size: 16 }),
     execute: () => {
-      
-      commandEvents.emit('settings-tab', 'providers');
-      commandEvents.emit('edit-provider', provider.guid);
+      windowEventService.emit(WindowEvents.COMMAND_SETTINGS_TAB, 'providers');
+      windowEventService.emit(WindowEvents.COMMAND_EDIT_PROVIDER, provider.guid);
       // openSettings(); // Original call using passed function
       useModalStore.getState().openModal('settings'); // Directly open the modal
     },
   }));
 
-  useCommandStore.getState().registerGroup({
+  commandRegistry.registerGroup({
     id: 'edit-providers-list',
     name: 'Edit Providers',
     priority: 49,
     commands: providerCommands,
   });
 }
-

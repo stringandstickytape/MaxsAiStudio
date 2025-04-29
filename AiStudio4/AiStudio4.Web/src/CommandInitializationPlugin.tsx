@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from 'react';
+﻿// AiStudio4.Web/src/CommandInitializationPlugin.tsx
+import { useEffect, useState } from 'react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -8,7 +9,8 @@ import { registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { SystemPrompt } from '@/types/systemPrompt';
-
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
+import { commandRegistry } from '@/services/commandRegistry';
 
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
@@ -40,23 +42,22 @@ export function CommandInitializationPlugin() {
       registerUserPromptsAsCommands(() => useModalStore.getState().openModal('userPrompt'));
     };
     
-    window.addEventListener('system-prompts-updated', handleSystemPromptsUpdate);
-    window.addEventListener('user-prompts-updated', handleUserPromptsUpdate);
-    
+    const unsubSystemPrompts = windowEventService.on(WindowEvents.SYSTEM_PROMPTS_UPDATED, handleSystemPromptsUpdate);
+    const unsubUserPrompts = windowEventService.on(WindowEvents.USER_PROMPTS_UPDATED, handleUserPromptsUpdate);
     
     if (systemPrompts.length > 0) handleSystemPromptsUpdate();
     if (userPrompts.length > 0) handleUserPromptsUpdate();
     
     return () => {
-      window.removeEventListener('system-prompts-updated', handleSystemPromptsUpdate);
-      window.removeEventListener('user-prompts-updated', handleUserPromptsUpdate);
+      unsubSystemPrompts();
+      unsubUserPrompts();
     };
   }, [systemPrompts.length, userPrompts.length]);
   
   // Handle system prompt selection and apply associated tools and user prompt
   useEffect(() => {
-    const handleSystemPromptSelected = (event: CustomEvent<{ promptId: string }>) => {
-      const promptId = event.detail.promptId;
+    const handleSystemPromptSelected = (data: { promptId: string }) => {
+      const promptId = data.promptId;
       const selectedPrompt = systemPrompts.find(p => p.guid === promptId);
       
       if (selectedPrompt) {
@@ -70,31 +71,27 @@ export function CommandInitializationPlugin() {
         if (selectedPrompt.associatedUserPromptId) {
           const userPrompt = userPrompts.find(p => p.guid === selectedPrompt.associatedUserPromptId);
           if (userPrompt && userPrompt.content) {
-            // Use the global function to set the prompt content
-            if (window.setPrompt) {
-              window.setPrompt(userPrompt.content);
-              console.log(`Applied associated user prompt: ${userPrompt.title}`);
-            }
+            // Use the windowEventService to set the prompt content
+            windowEventService.emit(WindowEvents.SET_PROMPT, { text: userPrompt.content });
+            console.log(`Applied associated user prompt: ${userPrompt.title}`);
           }
         }
       }
     };
     
-    // Listen for system prompt selection events
-    window.addEventListener('system-prompt-selected', handleSystemPromptSelected as EventListener);
+    // Listen for system prompt selection events using windowEventService
+    const unsubscribe = windowEventService.on(WindowEvents.SYSTEM_PROMPT_SELECTED, handleSystemPromptSelected);
     
     return () => {
-      window.removeEventListener('system-prompt-selected', handleSystemPromptSelected as EventListener);
+      unsubscribe();
     };
   }, [systemPrompts, userPrompts, setActiveTools]);
   
   
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const { commands } = useCommandStore.getState();
-      const commandsArray = Array.from(commands.values());
+      const commandsArray = commandRegistry.getAllCommands();
 
-      
       if (
         ['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName) ||
         (e.ctrlKey && ['c', 'v', 'x', 'a', 'z', 'f'].includes(e.key.toLowerCase()))
@@ -102,35 +99,29 @@ export function CommandInitializationPlugin() {
         return;
       }
 
-      
       const shortcutKey = [];
       if (e.ctrlKey) shortcutKey.push('Ctrl');
       if (e.altKey) shortcutKey.push('Alt');
       if (e.shiftKey) shortcutKey.push('Shift');
       if (e.metaKey) shortcutKey.push('⌘');
 
-      
       if (e.key === ' ') {
         shortcutKey.push('Space');
       } else if (e.key.length === 1) {
         shortcutKey.push(e.key.toUpperCase());
       } else {
-        
         shortcutKey.push(e.key);
       }
 
       const shortcut = shortcutKey.join('+');
 
-      
       for (const command of commandsArray) {
         if (!command.shortcut) continue;
 
-        
         const normalizedCommandShortcut = command.shortcut
           .replace('⌘', 'Meta')
           .replace('?', 'Alt'); 
 
-        
         const shortcutVariations = [
           shortcut,
           shortcutKey.join('+')
@@ -141,7 +132,7 @@ export function CommandInitializationPlugin() {
           s.toLowerCase() === command.shortcut.toLowerCase()
         )) {
           e.preventDefault();
-          useCommandStore.getState().executeCommand(command.id);
+          commandRegistry.executeCommand(command.id);
           break;
         }
       }

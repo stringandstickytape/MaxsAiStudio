@@ -1,11 +1,12 @@
-﻿import React from 'react';
-import { useCommandStore } from '@/stores/useCommandStore';
+﻿// AiStudio4.Web/src/commands/systemPromptCommands.ts
+import React from 'react';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { selectSystemPromptStandalone } from '@/hooks/useSystemPromptSelection';
-
 import { useModalStore } from '@/stores/useModalStore';
+import { commandRegistry } from '@/services/commandRegistry';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 interface SystemPromptCommandsConfig {
     toggleLibrary: () => void;
@@ -17,9 +18,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
     const mac = navigator.platform.indexOf('Mac') !== -1;
     const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
 
-    const { registerGroup } = useCommandStore.getState();
-
-    registerGroup({
+    commandRegistry.registerGroup({
         id: 'system-prompts',
         name: 'System Prompts',
         priority: 85,
@@ -42,7 +41,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 React.createElement(PlusCircle, { size: 16 }),
                 () => {
                     window.localStorage.setItem('systemPrompt_action', 'create');
-                    window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
+                    windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY);
                 },
             ],
             [
@@ -82,7 +81,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
 }
 
 export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
-    useCommandStore.getState().unregisterGroup('system-prompts-list');
+    commandRegistry.unregisterGroup('system-prompts-list');
 
     const { prompts, defaultPromptId, setCurrentPrompt } = useSystemPromptStore.getState();
     
@@ -126,13 +125,10 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
         };
     });
 
-    
-    useCommandStore.getState().registerGroup({
+    commandRegistry.registerGroup({
         id: 'system-prompts-list',
         name: 'Available System Prompts',
         priority: 95, 
         commands: promptCommands,
     });
-
-    
 }

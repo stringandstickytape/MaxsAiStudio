@@ -1,10 +1,10 @@
-
+﻿// AiStudio4.Web/src/commands/userPromptCommands.ts
 import React from 'react';
-import { useCommandStore } from '@/stores/useCommandStore';
 import { BookMarked, Pencil, PlusCircle } from 'lucide-react';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
-
 import { useModalStore } from '@/stores/useModalStore';
+import { commandRegistry } from '@/services/commandRegistry';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 interface UserPromptCommandsConfig {
   toggleLibrary: () => void;
@@ -16,9 +16,7 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
   const mac = navigator.platform.indexOf('Mac') !== -1;
   const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
 
-  const { registerGroup } = useCommandStore.getState();
-
-  registerGroup({
+  commandRegistry.registerGroup({
     id: 'user-prompts',
     name: 'User Prompts',
     priority: 85,
@@ -71,7 +69,7 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
 }
 
 export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
-  useCommandStore.getState().unregisterGroup('user-prompts-list');
+  commandRegistry.unregisterGroup('user-prompts-list');
 
   const { prompts, setCurrentPrompt } = useUserPromptStore.getState();
 
@@ -103,20 +101,15 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
       }),
       execute: () => {
         setCurrentPrompt(prompt);
-        
-        window.setPrompt(prompt.content);
-        
+        windowEventService.emit(WindowEvents.SET_PROMPT, { text: prompt.content });
       },
     };
   });
 
-  
-  useCommandStore.getState().registerGroup({
+  commandRegistry.registerGroup({
     id: 'user-prompts-list',
     name: 'Available User Prompts',
     priority: 96, 
     commands: promptCommands,
   });
-  
-  
 }
