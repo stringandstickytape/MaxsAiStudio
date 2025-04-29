@@ -38,12 +38,12 @@ namespace AiStudio4.Core.Tools.CodeDiff
         /// <returns>True if all changes were applied successfully, false otherwise</returns>
         public bool TryApplyModifications(string filePath, string originalContent, List<JObject> changes, out string modifiedContent, out string failureReason)
         {
-            modifiedContent = originalContent;
+            
             failureReason = null;
             
             // Normalize the original content line endings for comparison
             string normalizedOriginalContent = NormalizeLineEndings(originalContent);
-            
+            modifiedContent = normalizedOriginalContent;
             foreach (var change in changes)
             {
                 string oldContent = change["oldContent"]?.ToString();
@@ -132,7 +132,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
             }
             
             return true;
-        }pattern in a text
+        }
         /// </summary>
         private int CountOccurrences(string text, string pattern)
         {
