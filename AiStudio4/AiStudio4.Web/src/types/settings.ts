@@ -20,4 +20,5 @@ export interface Model {
   friendlyName: string;
   supportsPrefill: boolean;
   requires1fTemp: boolean;
+  reasoningEffort: 'none' | 'low' | 'medium' | 'high';
 }

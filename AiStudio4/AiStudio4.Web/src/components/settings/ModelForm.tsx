@@ -65,6 +65,21 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
       'This model requires a temperature setting of 1.0 to function properly',
       2,
     ],
+    [
+      'reasoningEffort',
+      'Reasoning Effort',
+      'select',
+      undefined,
+      [
+        { value: 'none', label: 'None' },
+        { value: 'low', label: 'Low' },
+        { value: 'medium', label: 'Medium' },
+        { value: 'high', label: 'High' },
+      ],
+      undefined,
+      'Set the reasoning effort level for this model (if supported by backend)',
+      2,
+    ],
   ];
 
   const fields: FormFieldDefinition[] = fieldDefinitions.map(
@@ -94,6 +109,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     starred: false,
     supportsPrefill: false,
     requires1fTemp: false,
+    reasoningEffort: 'none',
   };
 
   return (

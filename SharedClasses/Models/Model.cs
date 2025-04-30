@@ -64,6 +64,9 @@ namespace SharedClasses.Providers
 
         public bool Requires1fTemp { get; set; }
 
+        // ReasoningEffort: none, low, medium, high
+        public string ReasoningEffort { get; set; } = "none";
+
         public override string ToString()
         {
             return FriendlyName;

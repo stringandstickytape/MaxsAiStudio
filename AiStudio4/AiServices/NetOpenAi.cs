@@ -94,6 +94,26 @@ namespace AiStudio4.AiServices
                    Temperature = temp
                 };
 
+                // Set ReasoningEffortLevel if Model.ReasoningEffort is not 'none'
+                if (!string.IsNullOrEmpty(options.Model.ReasoningEffort) && options.Model.ReasoningEffort != "none")
+                {
+                    switch (options.Model.ReasoningEffort)
+                    {
+                        case "low":
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Low;
+                            break;
+                        case "medium":
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
+                            break;
+                        case "high":
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.High;
+                            break;
+                        default:
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
+                            break;
+                    }
+                }
+
                 // Add tools if specified or if using MCP service tools
                 if (!forceNoTools)
                 {
