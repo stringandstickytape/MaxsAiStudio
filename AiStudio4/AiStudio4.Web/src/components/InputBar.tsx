@@ -52,6 +52,7 @@ declare global {
         appendToPrompt?: (text: string) => boolean;
         setPrompt?: (text: string) => boolean;
         scrollConversationToBottom?: () => void;
+        getScrollBottomState?: () => boolean;
     }
 }
 
@@ -71,6 +72,7 @@ export function InputBar({
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [visibleToolCount, setVisibleToolCount] = useState(3);
     const [localInputText, setLocalInputText] = useState('');
+    const [isAtBottom, setIsAtBottom] = useState(true);
 
     const {
         attachments,
@@ -111,6 +113,23 @@ export function InputBar({
             onAttachmentChange(attachments);
         }
     }, [attachments, onAttachmentChange]);
+    
+    // Check scroll position periodically to update button visibility
+    useEffect(() => {
+        const checkScrollPosition = () => {
+            if (window.getScrollBottomState) {
+                setIsAtBottom(window.getScrollBottomState());
+            }
+        };
+        
+        // Check immediately
+        checkScrollPosition();
+        
+        // Set up interval to check periodically
+        const intervalId = setInterval(checkScrollPosition, 500);
+        
+        return () => clearInterval(intervalId);
+    }, []);
 
     // Fetch MCP servers once on mount to populate enabled count badge
     useEffect(() => {
@@ -351,29 +370,31 @@ export function InputBar({
                 ...(window?.theme?.InputBar?.style || {})
             }}
         >
-            {/* Scroll to Bottom Button - Fixed Position */}
-            <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                    // Set jumpToEndEnabled to true
-                    useJumpToEndStore.getState().setJumpToEndEnabled(true);
-                    
-                    // Try to use the global function if available
-                    if (window.scrollConversationToBottom) {
-                        window.scrollConversationToBottom();
-                    }
-                    
-                    // Also emit the event as a fallback
-                    windowEventService.emit(WindowEvents.SCROLL_TO_BOTTOM);
-                }}
-                className="absolute left-1/2 transform -translate-x-1/2 -top-10 z-10 h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
-                title="Scroll to bottom of conversation"
-                disabled={disabled}
-            >
-                <ArrowDown className="h-3 w-3 mr-1" />
-                <span>Scroll to Bottom</span>
-            </Button>
+            {/* Scroll to Bottom Button - Fixed Position - Only shown when not at bottom */}
+            {!isAtBottom && (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                        // Set jumpToEndEnabled to true
+                        useJumpToEndStore.getState().setJumpToEndEnabled(true);
+                        
+                        // Try to use the global function if available
+                        if (window.scrollConversationToBottom) {
+                            window.scrollConversationToBottom();
+                        }
+                        
+                        // Also emit the event as a fallback
+                        windowEventService.emit(WindowEvents.SCROLL_TO_BOTTOM);
+                    }}
+                    className="absolute left-1/2 transform -translate-x-1/2 -top-10 z-10 h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                    title="Scroll to bottom of conversation"
+                    disabled={disabled}
+                >
+                    <ArrowDown className="h-3 w-3 mr-1" />
+                    <span>Scroll to Bottom</span>
+                </Button>
+            )}
 
 
             <div className="flex flex-col h-full">

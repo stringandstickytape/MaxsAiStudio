@@ -322,7 +322,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         // Use a ref to track the last isAtBottom value to reduce state updates
         const lastIsAtBottomRef = useRef(isAtBottom);
         
-        // Expose the scrollToBottom function globally for the SCROLL_TO_BOTTOM event
+        // Expose the scrollToBottom function and isAtBottom state globally
         useEffect(() => {
             // Define a global function to handle scroll to bottom requests
             window.scrollConversationToBottom = () => {
@@ -332,11 +332,17 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 return true;
             };
             
-            return () => {
-                // Clean up the global function when component unmounts
-                delete window.scrollConversationToBottom;
+            // Define a global function to check if we're at the bottom
+            window.getScrollBottomState = () => {
+                return isAtBottom;
             };
-        }, [scrollToBottom, setJumpToEndEnabled]);
+            
+            return () => {
+                // Clean up the global functions when component unmounts
+                delete window.scrollConversationToBottom;
+                delete window.getScrollBottomState;
+            };
+        }, [scrollToBottom, setJumpToEndEnabled, isAtBottom]);
         
         // Update jumpToEndEnabled when user manually scrolls, but with debouncing
         useEffect(() => {
