@@ -110,18 +110,6 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         handleFocusOnLatest(messages);
     }, [handleFocusOnLatest, messages]);
 
-    // Auto-focus on latest message when a new message is added
-    useEffect(() => {
-        // We need a slight delay to let the tree render after message changes
-        const timer = setTimeout(() => {
-            if (messages.length > 0) {
-                focusOnLatest();
-            }
-        }, 300);
-
-        return () => clearTimeout(timer);
-    }, [messages.length, focusOnLatest]);
-
     // Render empty state if no messages
     if (!messages.length) {
         return <EmptyTreeView />;
