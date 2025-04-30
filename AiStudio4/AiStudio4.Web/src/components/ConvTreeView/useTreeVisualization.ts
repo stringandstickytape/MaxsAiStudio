@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Web\src\components\ConvTreeView\useTreeVisualization.ts
-import { useEffect, useRef, RefObject, useCallback } from 'react';
+import { useEffect, useRef, RefObject, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import { TreeNode } from './types';
 import { getModelFriendlyName } from '@/utils/modelUtils';
@@ -377,6 +377,48 @@ export const useTreeVisualization = ({
       updateSelectedNode(selectedMessageId);
     }
   }, [selectedMessageId, updateSelectedNode, updateKey]);
+
+  // Track previous hierarchicalData to detect new messages
+  const [prevHierarchicalData, setPrevHierarchicalData] = useState<TreeNode | null>(null);
+
+  // Focus on newly added messages
+  useEffect(() => {
+    if (!hierarchicalData) {
+      setPrevHierarchicalData(null);
+      return;
+    }
+
+    // Function to count total nodes in a tree
+    const countNodes = (node: TreeNode): number => {
+      return 1 + (node.children?.reduce((sum, child) => sum + countNodes(child), 0) || 0);
+    };
+
+    // Function to find the most recently added node
+    const findLatestMessages = (node: TreeNode): TreeNode[] => {
+      const messages: TreeNode[] = [node];
+      if (node.children) {
+        node.children.forEach(child => {
+          messages.push(...findLatestMessages(child));
+        });
+      }
+      return messages;
+    };
+
+    // If we have previous data to compare with
+    if (prevHierarchicalData) {
+      const prevCount = countNodes(prevHierarchicalData);
+      const currentCount = countNodes(hierarchicalData);
+
+      // If new nodes were added
+      if (currentCount > prevCount) {
+        const messages = findLatestMessages(hierarchicalData);
+        handleFocusOnLatest(messages);
+      }
+    }
+
+    // Update previous data reference
+    setPrevHierarchicalData(hierarchicalData);
+  }, [hierarchicalData, handleFocusOnLatest]);
 
   return {
     zoomRef,
