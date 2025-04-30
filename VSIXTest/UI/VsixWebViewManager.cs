@@ -37,34 +37,8 @@ namespace VSIXTest.UI
             _webView.CoreWebView2.NavigationCompleted += CoreWebView2_NavigationCompleted;
 
 
-            if(VsixChat.NewUi)
-            {
                 _webView.Source = new Uri("https://localhost:35005");
-            }
-            else
-            {
-                foreach (var resource in AssemblyHelper.GetResourceDetails())
-                {
-                    _webView.CoreWebView2.AddWebResourceRequestedFilter(resource.Uri, CoreWebView2WebResourceContext.All);
-                }
 
-                _webView.NavigateToString(AssemblyHelper.GetEmbeddedResource("SharedClasses", "SharedClasses.HTML.ChatWebView2.html"));
-
-                string[] scriptResources = new[]
-                {
-                    "SharedClasses.JavaScriptViewers.JsonViewer.js",
-                    "SharedClasses.JavaScriptViewers.ThemeEditor.js",
-                    "SharedClasses.JavaScriptViewers.SvgViewer.js",
-                    "SharedClasses.JavaScriptViewers.MermaidViewer.js",
-                    "SharedClasses.JavaScriptViewers.DotViewer.js",
-                    "SharedClasses.JavaScriptViewers.FindAndReplacer.js"
-                };
-
-                foreach (var resource in scriptResources)
-                {
-                    await _webView.ExecuteScriptAsync(AssemblyHelper.GetEmbeddedResource("SharedClasses", resource));
-                }
-            }
                 
             _webViewInitialized = true;
         }
