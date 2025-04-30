@@ -369,29 +369,8 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
             return () => clearTimeout(timeoutId);
         }, [isAtBottom, jumpToEndEnabled, setJumpToEndEnabled, isStreaming, streamTokens.length]);
         
-        // Memoize the button to prevent unnecessary re-renders
-        const scrollButton = useMemo(() => {
-            if (isAtBottom) return null;
-            
-            return (
-                <button
-                    className="absolute i-ph-arrow-circle-down-fill text-4xl rounded-lg left-[50%] translate-x-[-50%] bottom-4 z-10 p-2 bg-gray-800/80 hover:bg-gray-700/80 transition-all duration-200"
-                    onClick={() => {
-                        scrollToBottom();
-                        // When user clicks to scroll to bottom, also enable auto-scrolling
-                        console.log('click!');
-                        setJumpToEndEnabled(true);
-                    }}
-                    style={{
-                        color: 'var(--convview-accent-color, #2563eb)',
-                    }}
-                >
-                    <ArrowDown size={24} />
-                </button>
-            );
-        }, [isAtBottom, scrollToBottom, setJumpToEndEnabled]);
-        
-        return scrollButton;
+        // Return null instead of a button - we'll use the InputBar button instead
+        return null;
     };
     
     return (
@@ -741,6 +720,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                 
             </StickToBottom.Content>
             
+            {/* ScrollToBottom component is still used for state management but doesn't render a button */}
             <ScrollToBottom />
         </StickToBottom>
     );
