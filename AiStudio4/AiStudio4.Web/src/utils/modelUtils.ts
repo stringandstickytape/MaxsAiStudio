@@ -16,7 +16,6 @@ export function clearModelNameCache() {
 export function getModelFriendlyName(modelGuid?: string): string {
   // Enable this flag to see detailed logging
     const enableLogging = false;
-    debugger;
   
   if (!modelGuid) {
     if (enableLogging) console.log('🔍 getModelFriendlyName: No modelGuid provided');

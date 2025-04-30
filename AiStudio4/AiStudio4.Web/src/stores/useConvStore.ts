@@ -28,11 +28,12 @@ interface ConvState {
 export const useConvStore = create<ConvState>((set, get) => {
     console.log('useConvStore');
     if (typeof window !== 'undefined') {
-        listenToWebSocketEvent('conv:new', ({ content }) => {
+        listenToWebSocketEvent('conv:upd', ({ content }) => {
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             
             if (activeConvId) {
+                console.log('UCS 1');
                 const conv = getConv(activeConvId);
                 let parentId = content.parentId;
 
@@ -70,32 +71,33 @@ export const useConvStore = create<ConvState>((set, get) => {
                         costInfo: content.costInfo || null,
                         attachments: attachments || undefined
                     },
-                    slctdMsgId: isAiMessage ? content.id : undefined, // Explicitly pass message ID for AI messages
+                    slctdMsgId: false, /// ?!
                 });
                 
                 // Special handling for AI messages: ensure they're selected in the UI
-                if (isAiMessage) {
-                    // 1. Directly update the store state to select this message
-                    set(state => ({
-                        ...state,
-                        slctdMsgId: content.id
-                    }));
-
-                    // don't think we need these:
-                    // 2. Use a small delay to ensure selection persists even if other operations
-                    // might interfere with state updates
-                    //setTimeout(() => {
-                    //    set(state => ({
-                    //        ...state,
-                    //        slctdMsgId: content.id
-                    //    }));
-                    //}, 10);
-                    
-                    // 3. Also update via the standard setActiveConv method for completeness
-                    //setActiveConv({ convId: activeConvId, slctdMsgId: content.id });
-                }
+                //if (isAiMessage) {
+                //    // 1. Directly update the store state to select this message
+                //    //set(state => ({
+                //    //    ...state,
+                //    //    slctdMsgId: content.id
+                //    //}));
+                //
+                //    // don't think we need these:
+                //    // 2. Use a small delay to ensure selection persists even if other operations
+                //    // might interfere with state updates
+                //    //setTimeout(() => {
+                //    //    set(state => ({
+                //    //        ...state,
+                //    //        slctdMsgId: content.id
+                //    //    }));
+                //    //}, 10);
+                //    
+                //    // 3. Also update via the standard setActiveConv method for completeness
+                //    //setActiveConv({ convId: activeConvId, slctdMsgId: content.id });
+                //}
                 
             } else {
+                console.log('UCS 2');
                 const convId = `conv_${Date.now()}`;
                 createConv({
                     id: convId,

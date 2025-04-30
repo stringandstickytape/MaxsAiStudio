@@ -140,7 +140,6 @@ export function useModelManagement() {
     const handleModelSelect = useCallback(async (modelType: ModelType, modelIdentifier: string, isGuid: boolean = true) =>
         executeApiCall(async () => {
             if (modelType === 'primary') {
-                debugger;
                 selectPrimaryModel(modelIdentifier, isGuid);
                 const payload = isGuid ? { modelGuid: modelIdentifier } : { modelName: modelIdentifier };
                 await createApiRequest('/api/setDefaultModel', 'POST')(payload);

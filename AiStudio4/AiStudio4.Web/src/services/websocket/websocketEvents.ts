@@ -4,7 +4,7 @@ export type WebSocketEventType =
   | 'message:received'
   | 'stream:token'
   | 'stream:end'
-  | 'conv:new'
+  | 'conv:upd'
   | 'conv:load'
   | 'historical:update'
   | 'request:cancelled';

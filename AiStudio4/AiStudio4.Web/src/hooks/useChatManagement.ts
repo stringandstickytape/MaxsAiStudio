@@ -129,7 +129,6 @@ export function useChatManagement() {
             return (
                 executeApiCall(async () => {
                     console.log("123");
-                    debugger;
                     const setDefaultModelRequest = createApiRequest('/api/setDefaultModel', 'POST');
                     
                     // If isGuid is true, send as modelGuid, otherwise as modelName for backward compatibility
@@ -147,7 +146,6 @@ export function useChatManagement() {
         async (modelIdentifier: string, isGuid: boolean = true) => {
             return (
                 executeApiCall(async () => {
-                    debugger;
                     const setSecondaryModelRequest = createApiRequest('/api/setSecondaryModel', 'POST');
                     // If isGuid is true, send as modelGuid, otherwise as modelName for backward compatibility
                     const payload = isGuid ? { modelGuid: modelIdentifier } : { modelName: modelIdentifier };
