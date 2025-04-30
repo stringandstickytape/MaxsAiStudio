@@ -47,9 +47,9 @@ export const useTreeVisualization = ({
     
       if (rootNode) {
         const centerX = containerWidth / 2;
-        svg.transition().call(zoomRef.current.transform, d3.zoomIdentity.translate(centerX, 50));
+        svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(centerX, 50));
       } else {
-        svg.transition().call(zoomRef.current.transform, d3.zoomIdentity.translate(containerWidth / 2, 50));
+        svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(containerWidth / 2, 50));
       }
     }
   };
@@ -75,9 +75,7 @@ export const useTreeVisualization = ({
           const containerHeight = containerRef.current.clientHeight;
           
           // Calculate the center position of the viewport
-          svg.transition()
-            .duration(750)
-            .call(
+          svg.call(
               zoomRef.current.transform,
               d3.zoomIdentity
                 .translate(containerWidth / 2, containerHeight / 2)
