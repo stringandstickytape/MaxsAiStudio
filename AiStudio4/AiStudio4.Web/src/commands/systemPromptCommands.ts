@@ -30,7 +30,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 shortcut('P'),
                 ['system', 'prompt', 'library', 'collection', 'manage', 'browse'],
                 React.createElement(MessageSquare, { size: 16 }),
-                () => useModalStore.getState().openModal('systemPrompt'),
+                () => windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY),
             ],
             [
                 'create-new-system-prompt',
