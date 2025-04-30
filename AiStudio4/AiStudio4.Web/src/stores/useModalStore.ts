@@ -3,9 +3,12 @@ import { create } from 'zustand';
 
 // Define all possible modal types and their props
 export interface ModalRegistry {
-  settings: {};
+  // Removed settings modal and added individual settings modals
+  models: {};
+  providers: {};
+  appearance: {};
   systemPrompt: { convId?: string; editPromptId?: string; createNew?: boolean };
-  userPrompt: {};
+  userPrompt: { editPromptId?: string; createNew?: boolean };
   tool: {}; // Tool library modal props
   toolEditor: { // New tool editor modal props
     tool: any | null;

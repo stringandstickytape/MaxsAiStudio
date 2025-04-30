@@ -1,4 +1,4 @@
-﻿// AiStudio4.Web/src/components/modals/SettingsModal.tsx
+﻿// AiStudio4.Web/src/components/modals/AppearanceModal.tsx
 import React from 'react';
 import { useModalStore } from '@/stores/useModalStore';
 import {
@@ -6,11 +6,11 @@ import {
   UnifiedModalHeader,
   UnifiedModalContent,
 } from '@/components/ui/unified-modal-dialog';
-import { SettingsPanel } from '@/components/SettingsPanel'; // Assuming this holds the content
+import { AppearanceTab } from '@/components/settings/AppearanceTab';
 
-export function SettingsModal() {
+export function AppearanceModal() {
   const { openModalId, closeModal } = useModalStore();
-  const isOpen = openModalId === 'settings';
+  const isOpen = openModalId === 'appearance';
 
   if (!isOpen) return null;
 
@@ -19,15 +19,14 @@ export function SettingsModal() {
       open={isOpen}
       onOpenChange={(open) => !open && closeModal()}
       variant="settings"
+      size="lg"
     >
       <UnifiedModalHeader>
-        <h2 className="text-xl font-semibold">Settings</h2>
+        <h2 className="text-xl font-semibold">Appearance Settings</h2>
       </UnifiedModalHeader>
       <UnifiedModalContent>
-        {/* Render the actual settings content */} 
-        <SettingsPanel />
+        <AppearanceTab />
       </UnifiedModalContent>
-      {/* Footer/actions might be part of SettingsPanel or added here */} 
     </UnifiedModalDialog>
   );
 }

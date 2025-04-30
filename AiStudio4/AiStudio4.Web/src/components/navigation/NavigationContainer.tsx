@@ -3,7 +3,6 @@ import { useState, useEffect, useMemo, useCallback, ReactNode } from 'react';
 import { PanelManager, type PanelConfig } from '@/components/PanelManager';
 import { PanelContainerLayout } from '@/components/PanelContainerLayout';
 import { Sidebar } from '../Sidebar';
-import { SettingsPanel } from '@/components/SettingsPanel';
 import { useWebSocket } from '@/hooks/useWebSocket';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useConvStore } from '@/stores/useConvStore';

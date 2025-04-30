@@ -37,7 +37,9 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
         '',
         ['user', 'prompt', 'create', 'new', 'custom', 'template', 'snippet'],
         React.createElement(PlusCircle, { size: 16 }),
-        () => config.createNewPrompt(),
+        () => {
+          useModalStore.getState().openModal('userPrompt', { createNew: true });
+        },
       ],
       [
         'edit-current-user-prompt',
@@ -52,7 +54,11 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
 
           if (!promptToEdit && prompts.length > 0) promptToEdit = prompts[0];
 
-          promptToEdit ? config.editPrompt(promptToEdit.guid) : config.createNewPrompt();
+          if (promptToEdit) {
+            useModalStore.getState().openModal('userPrompt', { editPromptId: promptToEdit.guid });
+          } else {
+            useModalStore.getState().openModal('userPrompt', { createNew: true });
+          }
         },
       ],
     ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({

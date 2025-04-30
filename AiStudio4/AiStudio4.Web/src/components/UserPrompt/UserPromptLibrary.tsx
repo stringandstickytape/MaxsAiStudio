@@ -1,4 +1,4 @@
-
+﻿
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,14 +13,22 @@ import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 
 interface UserPromptLibraryProps {
   onInsertPrompt?: (prompt: UserPrompt) => void;
+  initialEditPromptId?: string; // Add prop to receive initial edit ID
+  initialShowEditor?: boolean; // Add prop to show editor immediately
+  onEditorClosed?: () => void; // Add prop to handle editor close
 }
 
-export function UserPromptLibrary({ onInsertPrompt }: UserPromptLibraryProps) {
+export function UserPromptLibrary({ 
+  onInsertPrompt, 
+  initialEditPromptId, 
+  initialShowEditor, 
+  onEditorClosed 
+}: UserPromptLibraryProps) {
   
   const { prompts, favoritePromptIds, isLoading, fetchUserPrompts } = useUserPromptManagement();
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [showEditor, setShowEditor] = useState(false);
+  const [showEditor, setShowEditor] = useState(initialShowEditor || false);
   const [promptToEdit, setPromptToEdit] = useState<UserPrompt | null>(null);
   const [activeTab, setActiveTab] = useState('all');
 
@@ -28,6 +36,21 @@ export function UserPromptLibrary({ onInsertPrompt }: UserPromptLibraryProps) {
   useEffect(() => {
     fetchUserPrompts();
   }, [fetchUserPrompts]);
+  
+  // Effect to handle initialEditPromptId
+  useEffect(() => {
+    if (initialEditPromptId && prompts.length > 0) {
+      const promptToEditOnInit = prompts.find(p => p.guid === initialEditPromptId);
+      if (promptToEditOnInit) {
+        setPromptToEdit(promptToEditOnInit);
+        setShowEditor(true);
+      } else {
+        console.warn(`UserPromptLibrary: Prompt with initialEditPromptId=${initialEditPromptId} not found.`);
+      }
+    }
+    // Intentionally only run when the component mounts or the specific ID changes,
+    // and prompts are loaded.
+  }, [initialEditPromptId, prompts]);
 
   const handleCreatePrompt = () => {
     setPromptToEdit(null);
@@ -42,6 +65,9 @@ export function UserPromptLibrary({ onInsertPrompt }: UserPromptLibraryProps) {
   const handleCloseEditor = () => {
     setShowEditor(false);
     setPromptToEdit(null);
+    if (onEditorClosed) {
+      onEditorClosed();
+    }
   };
 
   const handleApplyPrompt = (prompt: UserPrompt) => {

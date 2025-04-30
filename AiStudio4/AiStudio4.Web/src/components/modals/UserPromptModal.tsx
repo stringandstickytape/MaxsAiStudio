@@ -1,16 +1,20 @@
 ﻿// AiStudio4.Web/src/components/modals/UserPromptModal.tsx
 import React from 'react';
-import { useModalStore } from '@/stores/useModalStore';
+import { useModalStore, ModalRegistry } from '@/stores/useModalStore';
 import {
   UnifiedModalDialog,
   UnifiedModalHeader,
   UnifiedModalContent,
 } from '@/components/ui/unified-modal-dialog';
 import { UserPromptLibrary } from '@/components/UserPrompt/UserPromptLibrary'; // Assuming this holds the content
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
+
+type UserPromptProps = ModalRegistry['userPrompt'];
 
 export function UserPromptModal() {
-  const { openModalId, closeModal } = useModalStore();
+  const { openModalId, modalProps, closeModal } = useModalStore();
   const isOpen = openModalId === 'userPrompt';
+  const props = isOpen ? (modalProps as UserPromptProps) : null;
 
   if (!isOpen) return null;
 
@@ -26,10 +30,13 @@ export function UserPromptModal() {
       <UnifiedModalContent>
         {/* Render the actual user prompt library content */} 
         <UserPromptLibrary
+          initialEditPromptId={props?.editPromptId}
+          initialShowEditor={props?.createNew}
+          onEditorClosed={closeModal}
           onInsertPrompt={(prompt) => {
             if (prompt?.content) {
-              // Assuming window.setPrompt exists and is the correct way to insert
-              window.setPrompt(prompt.content);
+              // Use the window event service to set the prompt
+              windowEventService.emit(WindowEvents.SET_PROMPT, { text: prompt.content });
               closeModal();
             }
           }}

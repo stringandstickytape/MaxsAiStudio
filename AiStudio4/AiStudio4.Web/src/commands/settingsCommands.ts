@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Web/src/commands/settingsCommands.ts
-import { Book, Database, Edit, Server, Settings } from 'lucide-react';
+import { Book, Database, Edit, Server, Settings, Palette } from 'lucide-react';
 import React from 'react';
 import { useModalStore } from '@/stores/useModalStore';
 import { commandRegistry } from '@/services/commandRegistry';
@@ -33,32 +33,33 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
     priority: 85,
     commands: [
       [
-        'toggle-settings-panel',
-        'Settings Panel',
-        'Open the settings panel',
-        shortcut(','),
-        ['settings', 'options', 'preferences', 'configure', 'setup', 'panel'],
-        React.createElement(Settings, { size: 16 }),
-        'models',
-      ],
-      [
-        'edit-models',
-        'Edit Models',
+        'open-models-dialog',
+        'Models',
         'Manage AI models',
-        shortcut('M'),
-        ['models', 'edit', 'manage', 'AI', 'GPT', 'configure', 'model', 'settings'],
+        shortcut(','),
+        ['models', 'settings', 'options', 'preferences', 'configure', 'setup'],
         React.createElement(Book, { size: 16 }),
         'models',
       ],
       [
-        'edit-providers',
-        'Edit Providers',
+        'open-providers-dialog',
+        'Service Providers',
         'Manage service providers',
-        shortcut('P'),
-        ['providers', 'edit', 'manage', 'service', 'API', 'configure', 'settings'],
+        '',
+        ['providers', 'settings', 'options', 'preferences', 'configure', 'setup'],
         React.createElement(Server, { size: 16 }),
         'providers',
       ],
+      [
+        'open-appearance-dialog',
+        'Appearance',
+        'Customize appearance settings',
+        '',
+        ['appearance', 'theme', 'settings', 'options', 'preferences', 'configure', 'setup'],
+        React.createElement(Palette, { size: 16 }),
+        'appearance',
+      ],
+      // Removed duplicate commands since we now have the main commands above
     ].map(([id, name, description, shortcut, keywords, icon, tabName]) => ({
       id,
       name,
@@ -68,9 +69,14 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
       section: 'settings',
       icon,
       execute: () => {
-        windowEventService.emit(WindowEvents.COMMAND_SETTINGS_TAB, tabName);
-        // config.openSettings(); // Original call using passed function
-        useModalStore.getState().openModal('settings'); // Directly open the modal
+        // Open the specific modal based on the tab name
+        if (tabName === 'models') {
+          useModalStore.getState().openModal('models', {});
+        } else if (tabName === 'providers') {
+          useModalStore.getState().openModal('providers', {});
+        } else if (tabName === 'appearance') {
+          useModalStore.getState().openModal('appearance', {});
+        }
       },
     })),
   });
@@ -92,10 +98,9 @@ export function registerModelCommands(
     section: 'settings',
     icon: React.createElement(Edit, { size: 16 }),
     execute: () => {
-      windowEventService.emit(WindowEvents.COMMAND_SETTINGS_TAB, 'models');
+      // Open the models modal and emit the edit model event
       windowEventService.emit(WindowEvents.COMMAND_EDIT_MODEL, model.guid);
-      // openSettings(); // Original call using passed function
-      useModalStore.getState().openModal('settings'); // Directly open the modal
+      useModalStore.getState().openModal('models', {});
     },
   }));
 
@@ -123,10 +128,9 @@ export function registerProviderCommands(
     section: 'settings',
     icon: React.createElement(Database, { size: 16 }),
     execute: () => {
-      windowEventService.emit(WindowEvents.COMMAND_SETTINGS_TAB, 'providers');
+      // Open the providers modal and emit the edit provider event
       windowEventService.emit(WindowEvents.COMMAND_EDIT_PROVIDER, provider.guid);
-      // openSettings(); // Original call using passed function
-      useModalStore.getState().openModal('settings'); // Directly open the modal
+      useModalStore.getState().openModal('providers', {});
     },
   }));
 

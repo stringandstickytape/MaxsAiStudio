@@ -2,7 +2,9 @@
 import React from 'react';
 
 // Import all specialized modal components
-import { SettingsModal } from './SettingsModal';
+import { ModelsModal } from './ModelsModal';
+import { ProvidersModal } from './ProvidersModal';
+import { AppearanceModal } from './AppearanceModal';
 import { SystemPromptModal } from './SystemPromptModal';
 import { UserPromptModal } from './UserPromptModal';
 import { ToolModal } from './ToolModal';
@@ -17,7 +19,9 @@ export function ModalManager() {
   // and renders itself if its corresponding modal ID is active.
   return (
     <>
-      <SettingsModal />
+      <ModelsModal />
+      <ProvidersModal />
+      <AppearanceModal />
       <SystemPromptModal />
       <UserPromptModal />
       <ToolModal />
