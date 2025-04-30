@@ -17,32 +17,6 @@ export function SystemPromptSection({ activeConvId }: SystemPromptSectionProps) 
                 convId={activeConvId || undefined}
                 onOpenLibrary={() => windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY)}
             />
-            <div className="flex items-center gap-2">
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <div 
-                                className="flex items-center cursor-pointer" 
-                                onClick={() => {
-                                    const newState = !useJumpToEndStore.getState().jumpToEndEnabled;
-                                    console.log(`[JumpToEnd] Button clicked, setting to: ${newState}`);
-                                    useJumpToEndStore.getState().setJumpToEndEnabled(newState);
-                                }}
-                            >
-                                <ArrowDownToLine 
-                                    size={16} 
-                                    className={`ml-2 ${useJumpToEndStore(state => {
-                                        return state.jumpToEndEnabled;
-                                    }) ? 'text-blue-400' : 'text-gray-300'}`} 
-                                />
-                            </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom">
-                            <p>Auto-scroll to end</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
-            </div>
         </div>
     );
 }
