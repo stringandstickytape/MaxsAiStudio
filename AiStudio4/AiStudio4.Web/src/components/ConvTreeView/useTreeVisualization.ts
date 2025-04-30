@@ -474,6 +474,17 @@ export const useTreeVisualization = ({
     setPrevHierarchicalData(hierarchicalData);
   }, [hierarchicalData, handleFocusOnLatest]);
 
+  // Center view when a new conversation is loaded
+  useEffect(() => {
+    // If hierarchicalData changes from null to a value, it means a new conversation was loaded
+    if (hierarchicalData && !prevHierarchicalData) {
+      // Use setTimeout to ensure the tree is fully rendered before centering
+      setTimeout(() => {
+        handleCenter();
+      }, 100);
+    }
+  }, [hierarchicalData, prevHierarchicalData, handleCenter]);
+
   return {
     zoomRef,
     handleZoomIn,
