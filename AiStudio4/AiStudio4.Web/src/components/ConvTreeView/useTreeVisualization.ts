@@ -50,9 +50,8 @@ export const useTreeVisualization = ({
         // Get all nodes data to calculate bounds
         const nodesData = nodes.data() as any[];
         
-        // If we have too many nodes, just focus on the top 5 levels
-        const topLevelNodes = nodesData.filter((d: any) => d.depth < 5);
-        const nodesToUse = topLevelNodes.length > 0 ? topLevelNodes : nodesData;
+        // Always use all nodes to show the entire tree
+        const nodesToUse = nodesData;
         
         // Calculate bounds of the selected nodes
         let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
@@ -92,7 +91,7 @@ export const useTreeVisualization = ({
         const centerY = (minY + maxY) / 2;
         
         // Apply transform to center and scale the view
-        svg.transition().duration(750).call(
+        svg.call(
           zoomRef.current.transform,
           d3.zoomIdentity
             .translate(containerWidth / 2, containerHeight / 2)
@@ -101,7 +100,7 @@ export const useTreeVisualization = ({
         );
       } else {
         // Fallback if no nodes found
-        svg.transition().duration(750).call(
+        svg.call(
           zoomRef.current.transform,
           d3.zoomIdentity.translate(containerWidth / 2, containerHeight / 2).scale(1)
         );
