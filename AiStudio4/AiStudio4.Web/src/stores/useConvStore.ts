@@ -54,9 +54,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
                     : undefined;
-                
-                // Always select AI messages when they arrive
-                const newSelectedMsgId = isAiMessage ? content.id : undefined;
 
                 // First add the message to the conversation
                 addMessage({
@@ -71,7 +68,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         costInfo: content.costInfo || null,
                         attachments: attachments || undefined
                     },
-                    slctdMsgId: false, /// ?!
+                    slctdMsgId: isAiMessage ? content.id : false,
                 });
                 
                 // Special handling for AI messages: ensure they're selected in the UI

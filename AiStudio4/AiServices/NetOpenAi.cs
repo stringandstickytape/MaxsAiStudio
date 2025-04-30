@@ -22,6 +22,7 @@ using System.ClientModel;
 using AiStudio4.Core.Models;
 using AiStudio4.Services;
 using static System.Windows.Forms.DataFormats;
+using Azure.Core;
 
 namespace AiStudio4.AiServices
 {
