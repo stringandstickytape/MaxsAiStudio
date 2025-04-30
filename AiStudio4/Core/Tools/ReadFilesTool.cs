@@ -20,7 +20,7 @@ namespace AiStudio4.Core.Tools
     {
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
 
-        public ReadFilesTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public ReadFilesTool(ILogger<ReadFilesTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

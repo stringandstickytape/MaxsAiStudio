@@ -23,7 +23,7 @@ namespace AiStudio4.Core.Tools
     {
         private readonly HttpClient _httpClient;
 
-        public RetrieveTextFromUrlTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public RetrieveTextFromUrlTool(ILogger<RetrieveTextFromUrlTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
             _httpClient = new HttpClient();
             // Set reasonable default timeout

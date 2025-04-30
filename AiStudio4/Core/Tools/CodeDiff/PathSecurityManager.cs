@@ -117,5 +117,32 @@ namespace AiStudio4.Core.Tools.CodeDiff
                 return false;
             }
         }
+        
+        /// <summary>
+        /// Simplified method to check if a path is safe (within the project root).
+        /// This is a convenience wrapper around IsPathWithinProjectRoot.
+        /// </summary>
+        /// <param name="path">The path to check</param>
+        /// <returns>True if the path is within the project root, false otherwise</returns>
+        public bool IsPathSafe(string path)
+        {
+            if (string.IsNullOrEmpty(path))
+            {
+                _logger.LogWarning("Received an empty path for IsPathSafe check");
+                return false;
+            }
+            
+            try
+            {
+                string normalizedPath = Path.GetFullPath(path);
+                var errorMessages = new StringBuilder(); // Temporary StringBuilder for errors
+                return IsPathWithinProjectRoot(normalizedPath, errorMessages, path);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in IsPathSafe check for path '{Path}'", path);
+                return false;
+            }
+        }
     }
 }

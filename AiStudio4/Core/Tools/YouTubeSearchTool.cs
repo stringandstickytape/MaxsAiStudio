@@ -25,7 +25,7 @@ namespace AiStudio4.Core.Tools
         private readonly HttpClient _httpClient;
         private readonly IGeneralSettingsService _generalSettingsService;
 
-        public YouTubeSearchTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public YouTubeSearchTool(ILogger<YouTubeSearchTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
             _generalSettingsService = generalSettingsService;
             _httpClient = new HttpClient();

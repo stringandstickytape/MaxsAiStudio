@@ -24,7 +24,7 @@ namespace AiStudio4.Core.Tools
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
 
 
-        public FileSearchTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public FileSearchTool(ILogger<FileSearchTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

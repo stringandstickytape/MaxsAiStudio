@@ -14,7 +14,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class ThinkTool : BaseToolImplementation
     {
-        public ThinkTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public ThinkTool(ILogger<ThinkTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

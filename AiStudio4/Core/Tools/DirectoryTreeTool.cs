@@ -19,7 +19,7 @@ namespace AiStudio4.Core.Tools
     public class DirectoryTreeTool : BaseToolImplementation
     {
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
-        public DirectoryTreeTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public DirectoryTreeTool(ILogger<DirectoryTreeTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

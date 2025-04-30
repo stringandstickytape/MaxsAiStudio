@@ -14,7 +14,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class StopTool : BaseToolImplementation
     {
-        public StopTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public StopTool(ILogger<StopTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

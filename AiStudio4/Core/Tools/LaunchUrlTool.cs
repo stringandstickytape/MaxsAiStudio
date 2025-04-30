@@ -19,7 +19,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class LaunchUrlTool : BaseToolImplementation
     {
-        public LaunchUrlTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public LaunchUrlTool(ILogger<LaunchUrlTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

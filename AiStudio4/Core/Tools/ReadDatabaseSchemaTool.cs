@@ -16,7 +16,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class ReadDatabaseSchemaTool : BaseToolImplementation
     {
-        public ReadDatabaseSchemaTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public ReadDatabaseSchemaTool(ILogger<ReadDatabaseSchemaTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

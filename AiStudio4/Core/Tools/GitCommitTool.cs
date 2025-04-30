@@ -132,12 +132,12 @@ namespace AiStudio4.Core.Tools
                                 overallSuccess = false;
                                 continue;
                             }
-                            if (!File.Exists(normalizedPath))
-                            {
-                                errors.Add($"File '{filePath}' does not exist.");
-                                overallSuccess = false;
-                                continue;
-                            }
+                            //if (!File.Exists(normalizedPath))
+                            //{
+                            //    errors.Add($"File '{filePath}' does not exist.");
+                            //    overallSuccess = false;
+                            //    continue;
+                            //}
                             filesToCommit.Add(normalizedPath);
                         }
                     }

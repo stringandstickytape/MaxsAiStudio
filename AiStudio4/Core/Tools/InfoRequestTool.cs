@@ -14,7 +14,7 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class InfoRequestTool : BaseToolImplementation
     {
-        public InfoRequestTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public InfoRequestTool(ILogger<InfoRequestTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
         }
 

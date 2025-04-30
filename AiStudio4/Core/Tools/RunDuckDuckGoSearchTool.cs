@@ -21,7 +21,7 @@ namespace AiStudio4.Core.Tools
     {
         private readonly HttpClient _httpClient;
 
-        public RunDuckDuckGoSearchTool(ILogger<CodeDiffTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public RunDuckDuckGoSearchTool(ILogger<RunDuckDuckGoSearchTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
             _httpClient = new HttpClient();
             // Set reasonable default timeout
