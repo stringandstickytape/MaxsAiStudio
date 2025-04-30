@@ -59,11 +59,12 @@ const formatTimestamp = (timestamp?: number | null) => {
   if (!timestamp) return null;
   
   const date = new Date(timestamp);
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + 
+         date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
 export const MessageMetadata = ({ message }: MessageMetadataProps) => {
-  if (!message.costInfo?.tokenUsage && !message.costInfo && !message.timestamp && !message.durationMs) {
+  if (!message.costInfo?.tokenUsage && !message.costInfo && !message.timestamp && !message.durationMs && !message.id) {
     return null;
   }
   
@@ -72,12 +73,13 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
       color: 'var(--convview-text-color, #9ca3af)'
     }}>
       <div className="ConvView flex flex-wrap items-center gap-x-4 text-[0.75rem]">
+        
         {/* Timestamp and duration info */}
         {(typeof message.timestamp === 'number' || typeof message.durationMs === 'number') && (
           <div className="flex items-center gap-x-2">
             {typeof message.timestamp === 'number' && message.timestamp > 0 && (
               <span title={new Date(message.timestamp).toLocaleString()}>
-                Time: {formatTimestamp(message.timestamp)}
+                {formatTimestamp(message.timestamp)}
               </span>
             )}
             {typeof message.durationMs === 'number' && message.durationMs > 0 && (
@@ -90,6 +92,16 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
 
         {message.tokenUsage && (
           <div className="flex items-center gap-x-2">
+            <span>
+              Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out
+            </span>
+            {(message.tokenUsage.cacheCreationInputTokens > 0 ||
+              message.tokenUsage.cacheReadInputTokens > 0) && (
+                <span>
+                  (Cache: {message.tokenUsage.cacheCreationInputTokens} created,{' '}
+                  {message.tokenUsage.cacheReadInputTokens} read)
+                </span>
+              )}
           </div>
         )}
         {message.costInfo && (
