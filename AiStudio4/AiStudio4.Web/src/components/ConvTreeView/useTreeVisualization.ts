@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Web\src\components\ConvTreeView\useTreeVisualization.ts
-import { useEffect, useRef, RefObject, useCallback, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, RefObject, useCallback, useState } from 'react';
 import * as d3 from 'd3';
 import { TreeNode } from './types';
 import { getModelFriendlyName } from '@/utils/modelUtils';
@@ -478,12 +478,25 @@ export const useTreeVisualization = ({
   useEffect(() => {
     // If hierarchicalData changes from null to a value, it means a new conversation was loaded
     if (hierarchicalData && !prevHierarchicalData) {
-      // Use setTimeout to ensure the tree is fully rendered before centering
-      setTimeout(() => {
-        handleCenter();
-      }, 100);
+      // Use requestAnimationFrame to ensure the tree is fully rendered before centering
+      // This will schedule the centering to happen after the next paint
+      const checkAndCenter = () => {
+        if (svgRef.current) {
+          const nodes = d3.select(svgRef.current).selectAll('.node');
+          if (nodes.size() > 0) {
+            // Nodes are available, we can center
+            handleCenter();
+          } else {
+            // Nodes not ready yet, try again in the next frame
+            requestAnimationFrame(checkAndCenter);
+          }
+        }
+      };
+      
+      // Start the check and center process
+      requestAnimationFrame(checkAndCenter);
     }
-  }, [hierarchicalData, prevHierarchicalData, handleCenter]);
+  }, [hierarchicalData, prevHierarchicalData, handleCenter, svgRef]);
 
   return {
     zoomRef,
