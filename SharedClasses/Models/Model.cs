@@ -62,6 +62,8 @@ namespace SharedClasses.Providers
 
         public bool SupportsPrefill { get; set; }
 
+        public bool Requires1fTemp { get; set; }
+
         public override string ToString()
         {
             return FriendlyName;

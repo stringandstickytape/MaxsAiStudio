@@ -19,4 +19,5 @@ export interface Model {
   starred: boolean;
   friendlyName: string;
   supportsPrefill: boolean;
+  requires1fTemp: boolean;
 }

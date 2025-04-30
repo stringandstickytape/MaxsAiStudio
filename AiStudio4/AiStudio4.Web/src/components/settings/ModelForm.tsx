@@ -1,4 +1,4 @@
-
+﻿
 import React from 'react';
 import { Model, ServiceProvider } from '@/types/settings';
 import { GenericForm, FormFieldDefinition } from '@/components/common/GenericForm';
@@ -55,6 +55,16 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
       'This model supports prefilling content',
       2,
     ],
+    [
+      'requires1fTemp',
+      'Requires 1.0 Temperature',
+      'checkbox',
+      undefined,
+      undefined,
+      undefined,
+      'This model requires a temperature setting of 1.0 to function properly',
+      2,
+    ],
   ];
 
   const fields: FormFieldDefinition[] = fieldDefinitions.map(
@@ -83,6 +93,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     color: '#4f46e5',
     starred: false,
     supportsPrefill: false,
+    requires1fTemp: false,
   };
 
   return (

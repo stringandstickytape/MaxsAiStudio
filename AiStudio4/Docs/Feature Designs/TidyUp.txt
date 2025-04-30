@@ -1,6 +1,6 @@
 ﻿**Code Smells & Inconsistencies Found:**
 
-1.  **Inconsistent State Management Access:**
+DONE: 1.  **Inconsistent State Management Access:**
     *   Direct `Store.getState()` calls used in `CommandInitializer.tsx`, `settingsCommands.ts`, `appearanceCommands.ts`, `coreCommands.ts`, `systemPromptCommands.ts`, `themeCommands.ts`, `toolCommands.ts`, `userPromptCommands.ts`, `voiceInputCommand.ts` instead of hooks within React components.
     *   Hooks (`useXStore`) are used correctly in most components.
     *   **Recommendation:** Prefer using Zustand hooks within React components. Use `getState` only where necessary (e.g., outside React components, in command execution logic if hooks aren't feasible).
@@ -32,7 +32,7 @@
     *   Inconsistent error handling approaches across the codebase.
     *   **Recommendation:** Remove empty catches. Log errors or use a consistent error display mechanism (like toasts or dedicated error components). Utilize `useApiCallState` more consistently.
 
-7.  **API Call Consistency:**
+DONE: 7.  **API Call Consistency:**
     *   Mix of direct `fetch` (`coreCommands.ts`), `apiClient` (`settingsCommands.ts`, stores), and `createApiRequest` utility (`useResourceFactory`, hooks).
     *   **Recommendation:** Standard    *   **Recommendation:** Standardize on using `apiClient` and the `createApiRequest` utility for all backend interactions.
     *   **Status (2025-04-29):** Step 7 API call consistency migration is complete. All direct fetch calls have been replaced. The codebase now uses createApiRequest for hooks/components and apiClient for shared logic/utilities, as designed.
