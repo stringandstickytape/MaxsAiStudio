@@ -124,22 +124,14 @@ export function useModelManagement() {
                     }));
                 useModelStore.getState().setModels(modelObjects);
             }
-
-            // Prefer GUIDs if available, fall back to names for backward compatibility
             if (data.defaultModelGuid?.length > 0) {
                 console.log('Setting primary model to GUID:', data.defaultModelGuid);
-                selectPrimaryModel(data.defaultModelGuid, true);
-            } else if (data.defaultModel?.length > 0) {
-                console.log('Setting primary model to name:', data.defaultModel);
-                selectPrimaryModel(data.defaultModel, false);
+                selectPrimaryModel(data.defaultModelGuid);
             }
             
             if (data.secondaryModelGuid?.length > 0) {
                 console.log('Setting secondary model to GUID:', data.secondaryModelGuid);
-                selectSecondaryModel(data.secondaryModelGuid, true);
-            } else if (data.secondaryModel?.length > 0) {
-                console.log('Setting secondary model to name:', data.secondaryModel);
-                selectSecondaryModel(data.secondaryModel, false);
+                selectSecondaryModel(data.secondaryModelGuid);
             }
 
             return data;

@@ -6,8 +6,8 @@ import { Model } from '@/types/settings';
 
 interface ModelCommandsConfig {
   getAvailableModels: () => Model[];
-  selectPrimaryModel: (modelName: string) => void;
-  selectSecondaryModel: (modelName: string) => void;
+  selectPrimaryModel: (guid: string) => void;
+    selectSecondaryModel: (guid: string) => void;
 }
 
 export function initializeModelCommands(config: ModelCommandsConfig) {

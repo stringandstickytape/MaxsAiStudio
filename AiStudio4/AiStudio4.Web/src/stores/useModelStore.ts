@@ -16,8 +16,8 @@ interface ModelStore {
   
   setModels: (models: Model[]) => void;
   setProviders: (providers: ServiceProvider[]) => void;
-  selectPrimaryModel: (modelGuidOrName: string, isGuid?: boolean) => void;
-  selectSecondaryModel: (modelGuidOrName: string, isGuid?: boolean) => void;
+  selectPrimaryModel: (modelGuid: string) => void;
+  selectSecondaryModel: (modelGuid: string) => void;
 
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -39,42 +39,26 @@ export const useModelStore = create<ModelStore>((set, get) => ({
 
   setProviders: (providers) => set({ providers }),
 
-  selectPrimaryModel: (modelGuidOrName, isGuid = true) => {
+    selectPrimaryModel: (modelGuid) => {
     const state = get();
-    if (isGuid) {
       // Find the model by GUID to get its name
-      const model = state.models.find(m => m.guid === modelGuidOrName);
+      const model = state.models.find(m => m.guid === modelGuid);
       set({ 
-        selectedPrimaryModelGuid: modelGuidOrName,
-        selectedPrimaryModel: model ? model.modelName : modelGuidOrName // Fallback to using the GUID as name
+        selectedPrimaryModelGuid: modelGuid,
+          selectedPrimaryModel: model ? model.modelName : modelGuid // Fallback to using the GUID as name
       });
-    } else {
-      // Find the model by name to get its GUID
-      const model = state.models.find(m => m.modelName === modelGuidOrName);
-      set({ 
-        selectedPrimaryModel: modelGuidOrName,
-        selectedPrimaryModelGuid: model ? model.guid : '' // Empty GUID if model not found
-      });
-    }
   },
 
-  selectSecondaryModel: (modelGuidOrName, isGuid = true) => {
+  selectSecondaryModel: (modelGuid) => {
     const state = get();
-    if (isGuid) {
+
       // Find the model by GUID to get its name
-      const model = state.models.find(m => m.guid === modelGuidOrName);
+      const model = state.models.find(m => m.guid === modelGuid);
       set({ 
-        selectedSecondaryModelGuid: modelGuidOrName,
-        selectedSecondaryModel: model ? model.modelName : modelGuidOrName // Fallback to using the GUID as name
+        selectedSecondaryModelGuid: modelGuid,
+        selectedSecondaryModel: model ? model.modelName : modelGuid // Fallback to using the GUID as name
       });
-    } else {
-      // Find the model by name to get its GUID
-      const model = state.models.find(m => m.modelName === modelGuidOrName);
-      set({ 
-        selectedSecondaryModel: modelGuidOrName,
-        selectedSecondaryModelGuid: model ? model.guid : '' // Empty GUID if model not found
-      });
-    }
+
   },
 
   setLoading: (loading) => set({ loading }),
