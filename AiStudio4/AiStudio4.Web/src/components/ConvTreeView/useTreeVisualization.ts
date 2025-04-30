@@ -42,14 +42,69 @@ export const useTreeVisualization = ({
   const handleCenter = () => {
     if (svgRef.current && zoomRef.current && containerRef.current) {
       const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
       const svg = d3.select(svgRef.current);
-      const rootNode = svg.select('.node').datum() as any;
-    
-      if (rootNode) {
-        const centerX = containerWidth / 2;
-        svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(centerX, 50));
+      const nodes = svg.selectAll('.node');
+      
+      if (nodes.size() > 0) {
+        // Get all nodes data to calculate bounds
+        const nodesData = nodes.data() as any[];
+        
+        // If we have too many nodes, just focus on the top 5 levels
+        const topLevelNodes = nodesData.filter((d: any) => d.depth < 5);
+        const nodesToUse = topLevelNodes.length > 0 ? topLevelNodes : nodesData;
+        
+        // Calculate bounds of the selected nodes
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        
+        nodesToUse.forEach((d: any) => {
+          // Account for node width and height
+          const nodeWidth = containerWidth < 400 ? 200 : 240;
+          const nodeHeight = containerWidth < 400 ? 85 : 110;
+          
+          const left = d.x - (nodeWidth / 2);
+          const right = d.x + (nodeWidth / 2);
+          const top = d.y - (nodeHeight / 2);
+          const bottom = d.y + (nodeHeight / 2);
+          
+          minX = Math.min(minX, left);
+          maxX = Math.max(maxX, right);
+          minY = Math.min(minY, top);
+          maxY = Math.max(maxY, bottom);
+        });
+        
+        // Add padding
+        const padding = 50;
+        minX -= padding;
+        maxX += padding;
+        minY -= padding;
+        maxY += padding;
+        
+        // Calculate scale to fit the nodes
+        const width = maxX - minX;
+        const height = maxY - minY;
+        const scaleX = containerWidth / width;
+        const scaleY = containerHeight / height;
+        const scale = Math.min(scaleX, scaleY, 1.5); // Limit max zoom
+        
+        // Calculate center point of the bounds
+        const centerX = (minX + maxX) / 2;
+        const centerY = (minY + maxY) / 2;
+        
+        // Apply transform to center and scale the view
+        svg.transition().duration(750).call(
+          zoomRef.current.transform,
+          d3.zoomIdentity
+            .translate(containerWidth / 2, containerHeight / 2)
+            .scale(scale)
+            .translate(-centerX, -centerY)
+        );
       } else {
-        svg.call(zoomRef.current.transform, d3.zoomIdentity.translate(containerWidth / 2, 50));
+        // Fallback if no nodes found
+        svg.transition().duration(750).call(
+          zoomRef.current.transform,
+          d3.zoomIdentity.translate(containerWidth / 2, containerHeight / 2).scale(1)
+        );
       }
     }
   };
