@@ -86,12 +86,9 @@ namespace AiStudio4.AiServices
                     messages.Add(chatMessage);
                 }
 
-                float temp = 0.2f;
+                float temp = options.Model.Requires1fTemp ? 1f : 0.2f;
 
-                if (ApiModel == "o3" || ApiModel == "o4-mini")
-                    temp = 1f;
-
-                // Configure chat completion options
+                // for o3, o4 mini and possibly others
                 ChatCompletionOptions chatOptions = new ChatCompletionOptions
                 {
                    Temperature = temp
@@ -381,6 +378,32 @@ namespace AiStudio4.AiServices
                 return new AiResponse
                 {
                     ResponseText = responseBuilder.ToString().TrimEnd(),
+                    Success = true, // Still consider it a success, just partial
+                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
+                    ChosenTool = chosenTool,
+                    ToolResponseSet = ToolResponseSet,
+                };
+            }
+            catch (ClientResultException ex)
+            {
+                // Return partial results when cancellation occurs
+                onStreamingComplete?.Invoke(); // Still invoke completion callback
+
+                // Trim any tool response text
+                if (ToolResponseSet.Tools.Count > 0 && !string.IsNullOrEmpty(chosenTool))
+                {
+                    var lastToolResponse = ToolResponseSet.Tools.LastOrDefault(t => t.ToolName == chosenTool);
+                    if (lastToolResponse != null)
+                    {
+                        lastToolResponse.ResponseText = lastToolResponse.ResponseText.Trim();
+                    }
+                }
+
+                responseBuilder.AppendLine("\n\n<Error>\n");
+
+                return new AiResponse
+                {
+                    ResponseText = responseBuilder.ToString().TrimEnd() + "\n" + ex.ToString(),
                     Success = true, // Still consider it a success, just partial
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
                     ChosenTool = chosenTool,
