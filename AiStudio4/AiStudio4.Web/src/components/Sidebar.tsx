@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { ConvTreeView } from '@/components/ConvTreeView';
 import { useConvStore } from '@/stores/useConvStore';
 import { Separator } from '@/components/ui/separator';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 
 interface SidebarProps {
   wsState: WebSocketState;
@@ -29,6 +29,11 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
       setCurrentConvId(activeConvId);
     }
   }, [activeConvId]);
+  
+  // Memoize the messages array to prevent unnecessary re-renders
+  const currentMessages = useMemo(() => {
+    return currentConvId && convs[currentConvId] ? convs[currentConvId].messages : [];
+  }, [currentConvId, convs[currentConvId]?.messages]);
 
   return (
     <div className="Sidebar flex flex-col h-full border-r" 
@@ -85,7 +90,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
             <ConvTreeView
               key={`sidebar-tree-${currentConvId}`}
               convId={currentConvId}
-              messages={convs[currentConvId]?.messages || []}
+              messages={currentMessages}
             />
           ) : (
             <div className="Sidebar text-center p-4" 

@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Web\src\components\ConvTreeView\ConvTreeView.tsx
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { cn } from '@/lib/utils';
 import { Message } from '@/types/conv';
 import { useConvStore } from '@/stores/useConvStore';
@@ -10,9 +10,10 @@ import { useTreeVisualization } from './useTreeVisualization';
 import { EmptyTreeView } from './EmptyTreeView';
 import { TreeControls } from './TreeControls';
 
-export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
+// Use React.memo to prevent unnecessary re-renders
+const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const [updateKey, setUpdateKey] = useState(0);
-    const { setActiveConv, convs } = useConvStore();
+    const { setActiveConv, convs, slctdMsgId } = useConvStore();
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     
@@ -35,15 +36,16 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const activeThemeId = useThemeStore(state => state.activeThemeId);
 
     // Update the key when convId or theme changes to force re-render
+    // But NOT when only slctdMsgId changes
     useEffect(() => {
         setUpdateKey((prev) => prev + 1);
     }, [convId, activeThemeId]);
 
-    // Convert messages to hierarchical tree data
+    // Convert messages to hierarchical tree data - memoized in useMessageTree
     const hierarchicalData = useMessageTree(messages);
 
     // Handle node click to set active conversation and message
-    const handleNodeClick = (nodeId: string, nodeSource: string, nodeContent: string) => {
+    const handleNodeClick = useCallback((nodeId: string, nodeSource: string, nodeContent: string) => {
         if (nodeSource === 'user') {
             window.setPrompt(nodeContent);
             const conv = convs[convId];
@@ -67,10 +69,10 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         });
         // Scroll to the last message after a brief delay
         setTimeout(() => scrollToMessage(), 100);
-    };
+    }, [convId, convs, setActiveConv]);
 
     // Handle middle-click to delete a message and its descendants
-    const handleNodeMiddleClick = (event: any, nodeId: string) => {
+    const handleNodeMiddleClick = useCallback((event: any, nodeId: string) => {
         // Middle mouse button is button 1
         if (event.button === 1) {
             event.preventDefault();
@@ -87,7 +89,7 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
                 });
             }
         }
-    };
+    }, [convId]);
 
     // Use the tree visualization hook
     const {
@@ -95,15 +97,24 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         handleZoomIn,
         handleZoomOut,
         handleCenter,
-        handleFocusOnLatest
+        handleFocusOnLatest,
+        updateSelectedNode
     } = useTreeVisualization({
         svgRef,
         containerRef,
         hierarchicalData,
         onNodeClick: handleNodeClick,
         onNodeMiddleClick: handleNodeMiddleClick,
-        updateKey
+        updateKey,
+        selectedMessageId: slctdMsgId
     });
+    
+    // Update selected node when slctdMsgId changes without full re-initialization
+    useEffect(() => {
+        if (svgRef.current && slctdMsgId) {
+            updateSelectedNode(slctdMsgId);
+        }
+    }, [slctdMsgId, updateSelectedNode]);
 
     // Create a memoized version of handleFocusOnLatest that uses the current messages
     const focusOnLatest = useCallback(() => {
@@ -159,6 +170,9 @@ export const ConvTreeView: React.FC<TreeViewProps> = ({ convId, messages }) => {
         </div>
     );
 };
+
+// Export the memoized component
+export const ConvTreeView = memo(ConvTreeViewComponent);
 
 // Export themeable properties for ThemeManager
 export const themeableProps = {

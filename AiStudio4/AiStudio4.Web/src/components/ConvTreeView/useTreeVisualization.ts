@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Web\src\components\ConvTreeView\useTreeVisualization.ts
-import { useEffect, useRef, RefObject } from 'react';
+import { useEffect, useRef, RefObject, useCallback } from 'react';
 import * as d3 from 'd3';
 import { TreeNode } from './types';
 import { getModelFriendlyName } from '@/utils/modelUtils';
@@ -11,6 +11,7 @@ interface UseTreeVisualizationParams {
   onNodeClick: (nodeId: string, nodeSource: string, nodeContent: string) => void;
   onNodeMiddleClick: (event: any, nodeId: string) => void;
   updateKey: number;
+  selectedMessageId?: string | null;
 }
 
 export const useTreeVisualization = ({
@@ -19,7 +20,8 @@ export const useTreeVisualization = ({
   hierarchicalData,
   onNodeClick,
   onNodeMiddleClick,
-  updateKey
+  updateKey,
+  selectedMessageId
 }: UseTreeVisualizationParams) => {
   // Ref to store the zoom behavior
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -42,7 +44,7 @@ export const useTreeVisualization = ({
       const containerWidth = containerRef.current.clientWidth;
       const svg = d3.select(svgRef.current);
       const rootNode = svg.select('.node').datum() as any;
-
+    
       if (rootNode) {
         const centerX = containerWidth / 2;
         svg.transition().call(zoomRef.current.transform, d3.zoomIdentity.translate(centerX, 50));
@@ -58,15 +60,15 @@ export const useTreeVisualization = ({
       const latestMessage = messages.reduce((latest, current) => {
         return !latest || (current.timestamp && latest.timestamp && current.timestamp > latest.timestamp) ? current : latest;
       }, messages[0]);
-
+    
       if (latestMessage) {
         // Find the node in the D3 visualization
         const svg = d3.select(svgRef.current);
         const nodes = svg.selectAll('.node');
-
+    
         // Find the node that corresponds to the latest message
         const latestNode = nodes.filter((d: any) => d.data.id === latestMessage.id);
-
+    
         if (!latestNode.empty()) {
           const nodeData = latestNode.datum() as any;
           const containerWidth = containerRef.current.clientWidth;
@@ -88,7 +90,7 @@ export const useTreeVisualization = ({
   };
 
   // D3 visualization effect
-  useEffect(() => {
+    useEffect(() => {
     if (!svgRef.current || !containerRef.current || !hierarchicalData) return;
     
     // Get theme values from CSS variables
@@ -239,7 +241,10 @@ export const useTreeVisualization = ({
               aiNodeBorderStyle === 'dotted' ? '1,1' : 
               'none';
       })
-      .attr('class', 'node-rect ConvTreeView');
+      .attr('class', (d) => {
+        // Add selected class if this node matches the selectedMessageId
+        return `node-rect ConvTreeView ${d.data.id === selectedMessageId ? 'selected' : ''}`;
+      });
 
     // Create label groups
     const nodeLabels = nodeGroups.append('g');
@@ -352,11 +357,35 @@ export const useTreeVisualization = ({
     };
   }, [hierarchicalData, updateKey, onNodeClick, onNodeMiddleClick]);
 
+  // Function to update the selected node without re-initializing the whole visualization
+  const updateSelectedNode = useCallback((messageId: string) => {
+    if (!svgRef.current) return;
+    
+    // Remove previous selection highlight
+    d3.select(svgRef.current).selectAll('.node-rect').classed('selected', false);
+    
+    // Find and highlight the new selected node
+    const nodes = d3.select(svgRef.current).selectAll('.node');
+    const selectedNode = nodes.filter((d: any) => d.data.id === messageId);
+    
+    if (!selectedNode.empty()) {
+      selectedNode.select('.node-rect').classed('selected', true);
+    }
+  }, [svgRef]);
+  
+  // Apply initial selection if selectedMessageId is provided
+  useEffect(() => {
+    if (selectedMessageId && svgRef.current) {
+      updateSelectedNode(selectedMessageId);
+    }
+  }, [selectedMessageId, updateSelectedNode, updateKey]);
+
   return {
     zoomRef,
     handleZoomIn,
     handleZoomOut,
     handleCenter,
-    handleFocusOnLatest
+    handleFocusOnLatest,
+    updateSelectedNode
   };
 };
