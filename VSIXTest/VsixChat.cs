@@ -50,7 +50,6 @@ namespace VSIXTest
         private readonly VsixMessageProcessor _messageProcessor;
         private readonly ButtonManager _buttonManager = new ButtonManager();
 
-        private Changeset CurrentChangeset { get; set; }
 
         private async void VsixChat_KeyDown(object sender, KeyEventArgs e)
         {

@@ -27,7 +27,6 @@ namespace VSIXTest
         private readonly ShortcutManager _shortcutManager;
         private readonly VsixChat _vsixChat; 
         private readonly ChangesetManager _changesetManager;
-        private Changeset CurrentChangeset { get; set; }
         private bool _changesetPaneInitted = false;
 
         public VsixMessageProcessor(
