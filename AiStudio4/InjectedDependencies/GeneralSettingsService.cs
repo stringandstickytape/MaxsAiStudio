@@ -72,17 +72,79 @@ namespace AiStudio4.InjectedDependencies
             SaveSettings();
         }
 
-        public void UpdateDefaultModel(string modelName)
+        public void UpdateDefaultModel(string modelNameOrGuid)
         {
-            CurrentSettings.DefaultModel = modelName;
+            // Check if the parameter is a GUID or a name
+            var model = CurrentSettings.ModelList.FirstOrDefault(m => m.Guid == modelNameOrGuid);
+            if (model == null)
+            {
+                // If not found by GUID, try to find by name (for backward compatibility)
+                model = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == modelNameOrGuid);
+                if (model == null)
+                {
+                    // If still not found, just store the value as is
+                    CurrentSettings.DefaultModel = modelNameOrGuid;
+                    CurrentSettings.DefaultModelGuid = string.Empty;
+                    SaveSettings();
+                    return;
+                }
+            }
+            
+            // Store both for backward compatibility
+            CurrentSettings.DefaultModel = model.ModelName;
+            CurrentSettings.DefaultModelGuid = model.Guid;
             SaveSettings();
         }
 
-        public void UpdateSecondaryModel(string modelName)
+        public void UpdateSecondaryModel(string modelNameOrGuid)
         {
-            // For now, treat same as default prompt id
-            CurrentSettings.SecondaryModel = modelName;
+            // Check if the parameter is a GUID or a name
+            var model = CurrentSettings.ModelList.FirstOrDefault(m => m.Guid == modelNameOrGuid);
+            if (model == null)
+            {
+                // If not found by GUID, try to find by name (for backward compatibility)
+                model = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == modelNameOrGuid);
+                if (model == null)
+                {
+                    // If still not found, just store the value as is
+                    CurrentSettings.SecondaryModel = modelNameOrGuid;
+                    CurrentSettings.SecondaryModelGuid = string.Empty;
+                    SaveSettings();
+                    return;
+                }
+            }
+            
+            // Store both for backward compatibility
+            CurrentSettings.SecondaryModel = model.ModelName;
+            CurrentSettings.SecondaryModelGuid = model.Guid;
             SaveSettings();
+        }
+        
+        /// <summary>
+        /// Simple implementation for single user - just sets GUIDs based on current model names if needed
+        /// </summary>
+        public void MigrateModelNamesToGuids()
+        {
+            // For a single user, we can just do a simple implementation
+            // If we have model names but no GUIDs, try to find the models and set the GUIDs
+            
+            if (!string.IsNullOrEmpty(CurrentSettings.DefaultModel) && string.IsNullOrEmpty(CurrentSettings.DefaultModelGuid))
+            {
+                var model = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.DefaultModel);
+                if (model != null)
+                {
+                    CurrentSettings.DefaultModelGuid = model.Guid;
+                }
+            }
+            
+            if (!string.IsNullOrEmpty(CurrentSettings.SecondaryModel) && string.IsNullOrEmpty(CurrentSettings.SecondaryModelGuid))
+            {
+                var model = CurrentSettings.ModelList.FirstOrDefault(m => m.ModelName == CurrentSettings.SecondaryModel);
+                if (model != null)
+                {
+                    CurrentSettings.SecondaryModelGuid = model.Guid;
+                }
+            }
         }
 
         public void AddModel(Model model)

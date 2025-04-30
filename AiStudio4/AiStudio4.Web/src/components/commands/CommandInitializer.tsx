@@ -115,8 +115,8 @@ export function CommandInitializer() {
 
     initializeModelCommands({
       getAvailableModels: () => models,
-      selectPrimaryModel: (modelName) => handleModelSelect('primary', modelName),
-      selectSecondaryModel: (modelName) => handleModelSelect('secondary', modelName),
+      selectPrimaryModel: (modelIdentifier, isGuid = true) => handleModelSelect('primary', modelIdentifier, isGuid),
+      selectSecondaryModel: (modelIdentifier, isGuid = true) => handleModelSelect('secondary', modelIdentifier, isGuid),
     });
 
     // Register theme commands initially and subscribe to theme changes

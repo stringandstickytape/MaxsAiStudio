@@ -8,9 +8,11 @@ import { createResourceHook } from './useResourceFactory';
 import { prepareAttachmentsForTransmission, isTextFile } from '@/utils/attachmentUtils';
 
 const useChatConfigResource = createResourceHook<{
-    models: string[];
+    models: Array<{guid: string; name: string; friendlyName: string}>;
     defaultModel: string;
+    defaultModelGuid: string;
     secondaryModel: string;
+    secondaryModelGuid: string;
 }>({
     endpoints: {
         fetch: '/api/getConfig',
@@ -23,7 +25,9 @@ const useChatConfigResource = createResourceHook<{
             {
                 models: data.models || [],
                 defaultModel: data.defaultModel || '',
+                defaultModelGuid: data.defaultModelGuid || '',
                 secondaryModel: data.secondaryModel || '',
+                secondaryModelGuid: data.secondaryModelGuid || '',
             },
         ],
     },
@@ -112,18 +116,25 @@ export function useChatManagement() {
             config?.[0] || {
                 models: [],
                 defaultModel: '',
+                defaultModelGuid: '',
                 secondaryModel: '',
+                secondaryModelGuid: '',
             }
         );
     }, [fetchConfigData]);
 
 
     const setDefaultModel = useCallback(
-        async (modelName: string) => {
+        async (modelIdentifier: string, isGuid: boolean = true) => {
             return (
                 executeApiCall(async () => {
+                    console.log("123");
+                    debugger;
                     const setDefaultModelRequest = createApiRequest('/api/setDefaultModel', 'POST');
-                    await setDefaultModelRequest({ modelName });
+                    
+                    // If isGuid is true, send as modelGuid, otherwise as modelName for backward compatibility
+                    const payload = isGuid ? { modelGuid: modelIdentifier } : { modelName: modelIdentifier };
+                    await setDefaultModelRequest(payload);
                     return true;
                 }) || false
             );
@@ -133,11 +144,14 @@ export function useChatManagement() {
 
 
     const setSecondaryModel = useCallback(
-        async (modelName: string) => {
+        async (modelIdentifier: string, isGuid: boolean = true) => {
             return (
                 executeApiCall(async () => {
+                    debugger;
                     const setSecondaryModelRequest = createApiRequest('/api/setSecondaryModel', 'POST');
-                    await setSecondaryModelRequest({ modelName });
+                    // If isGuid is true, send as modelGuid, otherwise as modelName for backward compatibility
+                    const payload = isGuid ? { modelGuid: modelIdentifier } : { modelName: modelIdentifier };
+                    await setSecondaryModelRequest(payload);
                     return true;
                 }) || false
             );

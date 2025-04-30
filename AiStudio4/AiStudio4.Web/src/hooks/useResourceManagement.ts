@@ -78,7 +78,7 @@ export function useModelManagement() {
     } = useProviderResource();
 
     const { executeApiCall } = useApiCallState();
-    const { models, providers, selectedPrimaryModel, selectedSecondaryModel, selectPrimaryModel, selectSecondaryModel } = useModelStore();
+    const { models, providers, selectedPrimaryModel, selectedSecondaryModel, selectedPrimaryModelGuid, selectedSecondaryModelGuid, selectPrimaryModel, selectSecondaryModel } = useModelStore();
 
     useEffect(() => {
         if (models.length === 0 || selectedPrimaryModel === 'Select Model' || selectedSecondaryModel === 'Select Model')
@@ -88,39 +88,74 @@ export function useModelManagement() {
     const fetchConfig = useCallback(async () =>
         executeApiCall(async () => {
             const data = await createApiRequest('/api/getConfig', 'POST')({});
+            console.log('Config data received:', data);
             console.log('Config loaded:', data);
 
             if (data.models?.length > 0 && models.length === 0) {
-                const modelObjects = data.models.map((modelName: string) => ({
-                    guid: crypto.randomUUID(),
-                    modelName,
-                    friendlyName: modelName,
-                    providerGuid: '',
-                    userNotes: '',
-                    additionalParams: '',
-                    input1MTokenPrice: 0,
-                    output1MTokenPrice: 0,
-                    color: '#4f46e5',
-                    starred: false,
-                    supportsPrefill: false
-                }));
+                // Handle both old format (array of strings) and new format (array of objects)
+                const modelObjects = Array.isArray(data.models) && typeof data.models[0] === 'string' ?
+                    // Old format: array of model names
+                    data.models.map((modelName: string) => ({
+                        guid: crypto.randomUUID(),
+                        modelName,
+                        friendlyName: modelName,
+                        providerGuid: '',
+                        userNotes: '',
+                        additionalParams: '',
+                        input1MTokenPrice: 0,
+                        output1MTokenPrice: 0,
+                        color: '#4f46e5',
+                        starred: false,
+                        supportsPrefill: false
+                    })) :
+                    // New format: array of model objects
+                    data.models.map((model: any) => ({
+                        guid: model.guid,
+                        modelName: model.name,
+                        friendlyName: model.friendlyName || model.name,
+                        providerGuid: '',
+                        userNotes: '',
+                        additionalParams: '',
+                        input1MTokenPrice: 0,
+                        output1MTokenPrice: 0,
+                        color: '#4f46e5',
+                        starred: false,
+                        supportsPrefill: false
+                    }));
                 useModelStore.getState().setModels(modelObjects);
             }
 
-            data.defaultModel?.length > 0 && (console.log('Setting primary model to:', data.defaultModel), selectPrimaryModel(data.defaultModel));
-            data.secondaryModel?.length > 0 && (console.log('Setting secondary model to:', data.secondaryModel), selectSecondaryModel(data.secondaryModel));
+            // Prefer GUIDs if available, fall back to names for backward compatibility
+            if (data.defaultModelGuid?.length > 0) {
+                console.log('Setting primary model to GUID:', data.defaultModelGuid);
+                selectPrimaryModel(data.defaultModelGuid, true);
+            } else if (data.defaultModel?.length > 0) {
+                console.log('Setting primary model to name:', data.defaultModel);
+                selectPrimaryModel(data.defaultModel, false);
+            }
+            
+            if (data.secondaryModelGuid?.length > 0) {
+                console.log('Setting secondary model to GUID:', data.secondaryModelGuid);
+                selectSecondaryModel(data.secondaryModelGuid, true);
+            } else if (data.secondaryModel?.length > 0) {
+                console.log('Setting secondary model to name:', data.secondaryModel);
+                selectSecondaryModel(data.secondaryModel, false);
+            }
 
             return data;
         }), [models.length, executeApiCall, selectPrimaryModel, selectSecondaryModel]);
 
-    const handleModelSelect = useCallback(async (modelType: ModelType, modelName: string) =>
+    const handleModelSelect = useCallback(async (modelType: ModelType, modelIdentifier: string, isGuid: boolean = true) =>
         executeApiCall(async () => {
             if (modelType === 'primary') {
-                selectPrimaryModel(modelName);
-                await createApiRequest('/api/setDefaultModel', 'POST')({ modelName });
+                debugger;
+                selectPrimaryModel(modelIdentifier, isGuid);
+                const payload = isGuid ? { modelGuid: modelIdentifier } : { modelName: modelIdentifier };
+                await createApiRequest('/api/setDefaultModel', 'POST')(payload);
             } else {
-                selectSecondaryModel(modelName);
-                await createApiRequest('/api/setSecondaryModel', 'POST')({ modelName });
+                selectSecondaryModel(modelIdentifier, isGuid);
+                const payload = isGuid ? { modelGuid: modelIdentifier } : { modelName: modelIdentifier };
+                await createApiRequest('/api/setSecondaryModel', 'POST')(payload);
             }
             return true;
         }), [selectPrimaryModel, selectSecondaryModel, executeApiCall]);

@@ -12,6 +12,7 @@ namespace AiStudio4.InjectedDependencies
         void UpdateSettings(GeneralSettings newSettings);
         void UpdateDefaultModel(string modelName);
         void UpdateSecondaryModel(string modelName);
+        void MigrateModelNamesToGuids();
         void AddModel(Model model);
         void UpdateModel(Model updatedModel);
         void DeleteModel(string modelGuid);

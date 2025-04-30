@@ -58,8 +58,22 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
 
         private async Task<string> SetModel(Action<string> updateAction, JObject requestObject)
         {
+            // Check for modelGuid first (new approach)
+            string modelGuid = requestObject["modelGuid"]?.ToString();
+            if (!string.IsNullOrEmpty(modelGuid))
+            {
+                // Verify the GUID exists in the model list
+                var model = _generalSettingsService.CurrentSettings.ModelList.FirstOrDefault(m => m.Guid == modelGuid);
+                if (model == null) return SerializeError($"Model with GUID {modelGuid} not found");
+                
+                updateAction(modelGuid);
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            
+            // Fall back to modelName for backward compatibility
             string modelName = requestObject["modelName"]?.ToString();
-            if (string.IsNullOrEmpty(modelName)) return SerializeError("Model name cannot be empty");
+            if (string.IsNullOrEmpty(modelName)) return SerializeError("Model identifier (GUID or name) cannot be empty");
+            
             updateAction(modelName);
             return JsonConvert.SerializeObject(new { success = true });
         }

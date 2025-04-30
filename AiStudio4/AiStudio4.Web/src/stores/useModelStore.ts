@@ -1,4 +1,4 @@
-
+﻿
 import { create } from 'zustand';
 import { Model, ServiceProvider } from '@/types/settings';
 
@@ -6,16 +6,18 @@ interface ModelStore {
   
   models: Model[];
   providers: ServiceProvider[];
-  selectedPrimaryModel: string;
-  selectedSecondaryModel: string;
+  selectedPrimaryModelGuid: string;
+  selectedSecondaryModelGuid: string;
+  selectedPrimaryModel: string; // Keep for backward compatibility
+  selectedSecondaryModel: string; // Keep for backward compatibility
   loading: boolean;
   error: string | null;
 
   
   setModels: (models: Model[]) => void;
   setProviders: (providers: ServiceProvider[]) => void;
-  selectPrimaryModel: (modelName: string) => void;
-  selectSecondaryModel: (modelName: string) => void;
+  selectPrimaryModel: (modelGuidOrName: string, isGuid?: boolean) => void;
+  selectSecondaryModel: (modelGuidOrName: string, isGuid?: boolean) => void;
 
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -25,8 +27,10 @@ export const useModelStore = create<ModelStore>((set, get) => ({
   
   models: [],
   providers: [],
-  selectedPrimaryModel: 'Select Model',
-  selectedSecondaryModel: 'Select Model',
+  selectedPrimaryModelGuid: '',
+  selectedSecondaryModelGuid: '',
+  selectedPrimaryModel: 'Select Model', // Keep for backward compatibility
+  selectedSecondaryModel: 'Select Model', // Keep for backward compatibility
   loading: false,
   error: null,
 
@@ -35,11 +39,43 @@ export const useModelStore = create<ModelStore>((set, get) => ({
 
   setProviders: (providers) => set({ providers }),
 
-  selectPrimaryModel: (modelName) => set({ selectedPrimaryModel: modelName }),
+  selectPrimaryModel: (modelGuidOrName, isGuid = true) => {
+    const state = get();
+    if (isGuid) {
+      // Find the model by GUID to get its name
+      const model = state.models.find(m => m.guid === modelGuidOrName);
+      set({ 
+        selectedPrimaryModelGuid: modelGuidOrName,
+        selectedPrimaryModel: model ? model.modelName : modelGuidOrName // Fallback to using the GUID as name
+      });
+    } else {
+      // Find the model by name to get its GUID
+      const model = state.models.find(m => m.modelName === modelGuidOrName);
+      set({ 
+        selectedPrimaryModel: modelGuidOrName,
+        selectedPrimaryModelGuid: model ? model.guid : '' // Empty GUID if model not found
+      });
+    }
+  },
 
-  selectSecondaryModel: (modelName) => set({ selectedSecondaryModel: modelName }),
-
-
+  selectSecondaryModel: (modelGuidOrName, isGuid = true) => {
+    const state = get();
+    if (isGuid) {
+      // Find the model by GUID to get its name
+      const model = state.models.find(m => m.guid === modelGuidOrName);
+      set({ 
+        selectedSecondaryModelGuid: modelGuidOrName,
+        selectedSecondaryModel: model ? model.modelName : modelGuidOrName // Fallback to using the GUID as name
+      });
+    } else {
+      // Find the model by name to get its GUID
+      const model = state.models.find(m => m.modelName === modelGuidOrName);
+      set({ 
+        selectedSecondaryModel: modelGuidOrName,
+        selectedSecondaryModelGuid: model ? model.guid : '' // Empty GUID if model not found
+      });
+    }
+  },
 
   setLoading: (loading) => set({ loading }),
 

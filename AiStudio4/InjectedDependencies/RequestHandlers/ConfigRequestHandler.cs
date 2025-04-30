@@ -44,12 +44,28 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
 
         private string HandleGetConfigRequest()
         {
+            // Since there's only one user, we don't need complex migration
+            // Just use the current settings directly
+            
+            // Get the model objects for default and secondary models
+            var defaultModelGuid = _generalSettingsService.CurrentSettings.DefaultModelGuid;
+            var secondaryModelGuid = _generalSettingsService.CurrentSettings.SecondaryModelGuid;
+            
+            // Return both model names and GUIDs for compatibility
             return JsonConvert.SerializeObject(new
             {
                 success = true,
-                models = _generalSettingsService.CurrentSettings.ModelList.Select(x => x.ModelName).ToArray(),
+                // Return full model objects instead of just names
+                models = _generalSettingsService.CurrentSettings.ModelList.Select(x => new {
+                    guid = x.Guid,
+                    name = x.ModelName,
+                    friendlyName = x.FriendlyName
+                }).ToArray(),
+                // Return both name and GUID for backward compatibility
                 defaultModel = _generalSettingsService.CurrentSettings.DefaultModel ?? "",
-                secondaryModel = _generalSettingsService.CurrentSettings.SecondaryModel ?? ""
+                defaultModelGuid = defaultModelGuid ?? "",
+                secondaryModel = _generalSettingsService.CurrentSettings.SecondaryModel ?? "",
+                secondaryModelGuid = secondaryModelGuid ?? ""
             });
         }
     }

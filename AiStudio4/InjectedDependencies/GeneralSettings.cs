@@ -1,6 +1,7 @@
 ﻿// InjectedDependencies/GeneralSettings.cs
 using AiStudio4.Core.Models;
 using SharedClasses.Providers;
+using System;
 using System.Collections.Generic;
 
 namespace AiStudio4.InjectedDependencies
@@ -20,7 +21,15 @@ namespace AiStudio4.InjectedDependencies
         public string YouTubeApiKey { get; set; }
         public string CondaPath { get; set; }
 
+        // New properties using GUIDs for model identification
+        public string DefaultModelGuid { get; set; } = string.Empty;
+        public string SecondaryModelGuid { get; set; } = string.Empty;
+        
+        // Keep old properties for backward compatibility
+        [Obsolete("Use DefaultModelGuid instead")]
         public string DefaultModel { get; set; } = string.Empty;
+        
+        [Obsolete("Use SecondaryModelGuid instead")]
         public string SecondaryModel { get; set; } = string.Empty;
 
         public ApiSettings ToApiSettings() => new()

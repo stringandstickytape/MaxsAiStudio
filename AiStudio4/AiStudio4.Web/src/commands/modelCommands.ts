@@ -16,22 +16,22 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
   const availableModels = getAvailableModels();
 
   const primaryModelCommands = availableModels.map((model) => ({
-    id: `select-primary-model-${model.modelName.toLowerCase().replace(/\s+/g, '-')}`,
+    id: `select-primary-model-${model.guid.toLowerCase().replace(/\s+/g, '-')}`,
     name: `${model.friendlyName} [Primary]`,
     description: `Set primary model to ${model.modelName}`,
     keywords: ['model', 'primary', 'set', 'change', ...model.friendlyName.toLowerCase().split(' ')],
     section: 'model',
-    execute: () => selectPrimaryModel(model.modelName),
+    execute: () => selectPrimaryModel(model.guid),
     icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' }),
   }));
 
   const secondaryModelCommands = availableModels.map((model) => ({
-    id: `select-secondary-model-${model.modelName.toLowerCase().replace(/\s+/g, '-')}`,
+      id: `select-secondary-model-${model.guid.toLowerCase().replace(/\s+/g, '-')}`,
     name: `${model.friendlyName} [Secondary]`,
       description: `Set secondary model to ${model.modelName}`,
     keywords: ['model', 'secondary', 'set', 'change', ...model.friendlyName.toLowerCase().split(' ')],
     section: 'model',
-    execute: () => selectSecondaryModel(model.modelName),
+      execute: () => selectSecondaryModel(model.guid),
     icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' }),
   }));
 
