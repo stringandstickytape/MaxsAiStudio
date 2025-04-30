@@ -264,10 +264,13 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                             // Apply theme visually
                                             window.applyLLMTheme(parsedContent);
                                             
+                                            // Get theme name from the theme-name property if available, otherwise use timestamp
+                                            const themeName = parsedContent['theme-name'] || `Theme from code block ${new Date().toLocaleTimeString()}`;
+                                            
                                             // Add theme to zustand store
                                             if (window.addThemeToStore) {
                                                 window.addThemeToStore({
-                                                    name: `Theme from code block ${new Date().toLocaleTimeString()}`,
+                                                    name: themeName,
                                                     description: 'Theme applied from markdown code block',
                                                     themeJson: parsedContent
                                                 });
@@ -294,8 +297,9 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                             const parsedContent = JSON.parse(content);
                                             console.log('[Theme Debug] Parsed content:', parsedContent);
                                             
-                                            // Create a theme name with timestamp
-                                            const themeName = `Theme from code block ${new Date().toLocaleTimeString()}`;
+                                            // Get theme name from the theme-name property if available, otherwise use timestamp
+                                            const themeName = parsedContent['theme-name'] || `Theme from code block ${new Date().toLocaleTimeString()}`;
+                                            console.log('[Theme Debug] Using theme name:', themeName);
                                             
                                             // Install the theme to the library
                                             if (typeof window.createTheme === 'function') {
