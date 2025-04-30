@@ -199,21 +199,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
             return () => clearTimeout(timeoutId);
         }
     }, [streamTokens, jumpToEndEnabled]);
-    
-    // Handle the actual scrolling based on the debounced trigger
-    useEffect(() => {
-        if (jumpToEndEnabled && stickToBottomRef.current) {
-            stickToBottomRef.current.scrollToBottom();
-        }
-    }, [debouncedScrollTrigger, jumpToEndEnabled]);
-    
-    // Update the StickToBottom component when the user toggles the jumpToEndEnabled setting
-    useEffect(() => {
-        // When jumpToEndEnabled changes to true, scroll to bottom
-        if (jumpToEndEnabled && stickToBottomRef.current) {
-            stickToBottomRef.current.scrollToBottom();
-        }
-    }, [jumpToEndEnabled]);
+
     
     const [editContent, setEditContent] = useState<string>('');
     const [visibleCount, setVisibleCount] = useState(20);
@@ -331,6 +317,7 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
                     onClick={() => {
                         scrollToBottom();
                         // When user clicks to scroll to bottom, also enable auto-scrolling
+                        console.log('click!');
                         setJumpToEndEnabled(true);
                     }}
                     style={{
