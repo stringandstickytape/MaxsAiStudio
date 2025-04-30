@@ -387,7 +387,7 @@ export function InputBar({
                         // Also emit the event as a fallback
                         windowEventService.emit(WindowEvents.SCROLL_TO_BOTTOM);
                     }}
-                    className="absolute left-1/2 transform -translate-x-1/2 -top-10 z-10 h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                    className="absolute left-1/2 transform -translate-x-1/2 -top-10 z-10 h-5 px-2 py-0 text-xs rounded-full bg-gray-600/50 border border-gray-700/70 text-gray-300 hover:bg-gray-600/90 hover:text-gray-100 transition-colors flex-shrink-0"
                     title="Scroll to bottom of conversation"
                     disabled={disabled}
                 >
