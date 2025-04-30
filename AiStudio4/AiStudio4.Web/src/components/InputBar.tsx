@@ -3,7 +3,7 @@ import React, { useState, KeyboardEvent, useCallback, useRef, useEffect, useMemo
 import { Button } from '@/components/ui/button';
 import { useModalStore } from '@/stores/useModalStore';
 import { v4 as uuidv4 } from 'uuid';
-import { Mic, Send, BookMarked, X, Wrench, ArrowDownToLine } from 'lucide-react';
+import { Mic, Send, BookMarked, X, Wrench, ArrowDownToLine, ArrowDown } from 'lucide-react';
 import { ModelStatusBar } from '@/components/ModelStatusBar';
 import { FileAttachment } from './FileAttachment';
 import { Attachment } from '@/types/attachment';
@@ -51,6 +51,7 @@ declare global {
         getScrollButtonState?: () => boolean;
         appendToPrompt?: (text: string) => boolean;
         setPrompt?: (text: string) => boolean;
+        scrollConversationToBottom?: () => void;
     }
 }
 
@@ -556,6 +557,30 @@ export function InputBar({
                                 )}
                             </Button>
                             <StatusMessage />
+                            
+                            {/* Scroll to Bottom Button */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => {
+                                    // Set jumpToEndEnabled to true
+                                    useJumpToEndStore.getState().setJumpToEndEnabled(true);
+                                    
+                                    // Try to use the global function if available
+                                    if (window.scrollConversationToBottom) {
+                                        window.scrollConversationToBottom();
+                                    }
+                                    
+                                    // Also emit the event as a fallback
+                                    windowEventService.emit(WindowEvents.SCROLL_TO_BOTTOM);
+                                }}
+                                className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0"
+                                title="Scroll to bottom of conversation"
+                                disabled={disabled}
+                            >
+                                <ArrowDown className="h-3 w-3 mr-1" />
+                                <span>Scroll to Bottom</span>
+                            </Button>
                         </div>
                     </div> {/* Close Tools & Servers Wrapper */}
                 </div>

@@ -14,6 +14,14 @@ import { Button } from '@/components/ui/button';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
 import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom';
+import { WindowEvents } from '@/services/windowEvents';
+
+// Extend Window interface to include our custom function
+declare global {
+    interface Window {
+        scrollConversationToBottom?: () => boolean;
+    }
+}
 
 // Define themeable properties for the ConvView component
 export const themeableProps = {
@@ -183,22 +191,54 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
     }, [activeConvId, slctdMsgId, convs]);
     
     // Get the stickToBottom context for programmatic scrolling
-    const stickToBottomRef = useRef<{ scrollToBottom: () => Promise<boolean> } | null>(null);
+    const stickToBottomRef = useRef<any>(null);
     
     // Use a debounced version of streamTokens to reduce re-renders
     const [debouncedScrollTrigger, setDebouncedScrollTrigger] = useState(0);
     
+    // Listen for scroll-to-bottom events from other components
+    useEffect(() => {
+        // Create a function that will be called when the SCROLL_TO_BOTTOM event is triggered
+        const handleScrollToBottom = () => {
+            console.log('SCROLL_TO_BOTTOM event received');
+            // Set jumpToEndEnabled to true
+            setJumpToEndEnabled(true);
+            
+            // Force scroll to bottom by updating the debouncedScrollTrigger
+            setDebouncedScrollTrigger(prev => prev + 1);
+            
+            // Try to use the ref if available, but don't rely on it
+            if (stickToBottomRef.current && typeof stickToBottomRef.current.scrollToBottom === 'function') {
+                try {
+                    stickToBottomRef.current.scrollToBottom();
+                } catch (e) {
+                    console.error('Error calling scrollToBottom:', e);
+                }
+            }
+        };
+        
+        window.addEventListener(WindowEvents.SCROLL_TO_BOTTOM, handleScrollToBottom);
+        return () => {
+            window.removeEventListener(WindowEvents.SCROLL_TO_BOTTOM, handleScrollToBottom);
+        };
+    }, [setJumpToEndEnabled]);
+    
+    
     // Trigger scroll on token changes, but debounced to improve performance
     useEffect(() => {
-        if (streamTokens.length > 0 && jumpToEndEnabled) {
+        if ((streamTokens.length > 0 && jumpToEndEnabled) || debouncedScrollTrigger > 0) {
             // Only update the scroll trigger occasionally to avoid overwhelming the browser
             const timeoutId = setTimeout(() => {
-                setDebouncedScrollTrigger(prev => prev + 1);
+                // Try to scroll using the ScrollToBottom component's scrollToBottom function
+                const scrollToBottomComponent = document.querySelector('.ConvView button');
+                if (scrollToBottomComponent) {
+                    scrollToBottomComponent.click();
+                }
             }, 300); // Adjust this value based on performance testing
             
             return () => clearTimeout(timeoutId);
         }
-    }, [streamTokens, jumpToEndEnabled]);
+    }, [streamTokens, jumpToEndEnabled, debouncedScrollTrigger]);
 
     
     const [editContent, setEditContent] = useState<string>('');
@@ -281,6 +321,22 @@ export const ConvView = ({ streamTokens, isCancelling = false, isStreaming = fal
         
         // Use a ref to track the last isAtBottom value to reduce state updates
         const lastIsAtBottomRef = useRef(isAtBottom);
+        
+        // Expose the scrollToBottom function globally for the SCROLL_TO_BOTTOM event
+        useEffect(() => {
+            // Define a global function to handle scroll to bottom requests
+            window.scrollConversationToBottom = () => {
+                console.log('scrollConversationToBottom called');
+                scrollToBottom();
+                setJumpToEndEnabled(true);
+                return true;
+            };
+            
+            return () => {
+                // Clean up the global function when component unmounts
+                delete window.scrollConversationToBottom;
+            };
+        }, [scrollToBottom, setJumpToEndEnabled]);
         
         // Update jumpToEndEnabled when user manually scrolls, but with debouncing
         useEffect(() => {

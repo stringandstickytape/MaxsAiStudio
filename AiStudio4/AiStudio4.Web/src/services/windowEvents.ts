@@ -37,6 +37,9 @@ export const WindowEvents = {
   STREAM_IGNORE: 'stream:ignore',
   STREAM_ALLOW: 'stream:allow',
   REQUEST_CANCELLED: 'request:cancelled',
+  
+  // Scroll events
+  SCROLL_TO_BOTTOM: 'scroll:to-bottom',
 };
 
 /**
