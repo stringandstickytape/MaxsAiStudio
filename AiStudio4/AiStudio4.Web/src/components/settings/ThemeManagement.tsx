@@ -40,6 +40,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
   // Handle internal/external state for editing
   const [internalEditingTheme, setInternalEditingTheme] = useState<Theme | null>(null);
   const [internalEditOpen, setInternalEditOpen] = useState(false);
+  const [currentThemeName, setCurrentThemeName] = useState<string>('Default');
 
   // Use external state if provided, otherwise use internal state
   const editingTheme = externalThemeToEdit !== undefined ? externalThemeToEdit : internalEditingTheme;
@@ -56,6 +57,27 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
 
   // Combined error from local state or store
   const displayError = error || storeError;
+
+  // Get current theme name from ThemeManager
+  useEffect(() => {
+    if (window.getCurrentThemeName) {
+      setCurrentThemeName(window.getCurrentThemeName());
+    }
+  }, []);
+
+  // Listen for theme changes
+  useEffect(() => {
+    const handleThemeChange = (event: CustomEvent) => {
+      if (event.detail && event.detail.themeName) {
+        setCurrentThemeName(event.detail.themeName);
+      }
+    };
+
+    window.addEventListener('themechange', handleThemeChange as EventListener);
+    return () => {
+      window.removeEventListener('themechange', handleThemeChange as EventListener);
+    };
+  }, []);
 
   // Clear errors when dialogs close
   useEffect(() => {
@@ -166,7 +188,10 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
   return (
     <>
       <div className="flex-between mb-4">
-        <h2 className="text-title">Themes</h2>
+        <div>
+          <h2 className="text-title">Themes</h2>
+          <div className="text-sm text-gray-400 mt-1">Current theme: <span className="text-blue-400">{currentThemeName}</span></div>
+        </div>
         <div className="flex gap-2">
           <Button
             variant="ghost"
@@ -222,6 +247,9 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
               <div className="p-3 flex flex-col flex-1">
                 <div className="flex items-start justify-between">
                   <h3 className="text-gray-100 text-lg font-medium truncate">{theme.name}</h3>
+                  {activeThemeId === theme.guid && (
+                    <span className="text-xs bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full">Active</span>
+                  )}
                 </div>
 
                 {theme.author && (
@@ -237,9 +265,9 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
                     size="sm"
                     className="w-full mt-2"
                     onClick={() => handleActivateTheme(theme.guid)}
-                    disabled={isProcessing}
+                    disabled={isProcessing || activeThemeId === theme.guid}
                   >
-                    Apply Theme
+                    {activeThemeId === theme.guid ? 'Current Theme' : 'Apply Theme'}
                   </Button>
                 </div>
 

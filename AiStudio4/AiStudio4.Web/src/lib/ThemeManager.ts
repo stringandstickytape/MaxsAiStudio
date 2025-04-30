@@ -17,6 +17,7 @@ interface ThemeSchema {
 }
 
 interface Theme {
+  name?: string; // Theme name for display in the theme library
   global?: {
     [propName: string]: string;
   };
@@ -28,10 +29,16 @@ interface Theme {
 class ThemeManager {
   private static instance: ThemeManager;
   private schema: ThemeSchema = {};
+  private currentThemeName: string = 'Default';
 
   private constructor() {
     // Initialize global schema section
     this.schema.global = {
+      themeName: {
+        cssVar: '--global-theme-name',
+        description: 'Name of the current theme',
+        default: 'Default'
+      },
       backgroundColor: {
         cssVar: '--global-background-color',
         description: 'Global background color for the application',
@@ -88,6 +95,13 @@ class ThemeManager {
   }
 
   /**
+   * Get the current theme name
+   */
+  public getCurrentThemeName(): string {
+    return this.currentThemeName;
+  }
+
+  /**
    * Discover themeable properties from all components dynamically.
    * Components should export either:
    * - `themeableProps` object
@@ -137,7 +151,9 @@ class ThemeManager {
    * Generate a default theme object based on schema defaults.
    */
   public generateDefaultTheme(): Theme {
-    const theme: Theme = {};
+    const theme: Theme = {
+      name: 'Default Theme'
+    };
     
     // Add global defaults
     if (this.schema.global) {
@@ -170,22 +186,37 @@ class ThemeManager {
     console.log('[ThemeManager] Applying theme:', theme);
     let css = '';
     
+    // Store theme name if provided
+    if (theme.name) {
+      this.currentThemeName = theme.name;
+    }
+    
     // Handle global properties - inject to :root
-    if (theme.global && this.schema.global) {
+    if (theme.global || theme.name) {
       css += ':root {\n';
-      for (const prop in theme.global) {
-        const value = theme.global[prop];
-        const cssVar = this.schema.global[prop]?.cssVar;
-        if (cssVar) {
-          css += `  ${cssVar}: ${value};\n`;
+      
+      // Add theme name as a CSS variable if provided
+      if (theme.name) {
+        css += `  --global-theme-name: "${theme.name}";\n`;
+      }
+      
+      // Add other global properties
+      if (theme.global && this.schema.global) {
+        for (const prop in theme.global) {
+          const value = theme.global[prop];
+          const cssVar = this.schema.global[prop]?.cssVar;
+          if (cssVar) {
+            css += `  ${cssVar}: ${value};\n`;
+          }
         }
       }
+      
       css += '}\n\n';
     }
     
     // Handle component-specific properties
     for (const component in theme) {
-      if (component === 'global') continue; // Skip global, already handled
+      if (component === 'global' || component === 'name') continue; // Skip global and name, already handled
       
       const compTheme = theme[component];
       const schemaProps = this.schema[component] || {};
@@ -202,6 +233,17 @@ class ThemeManager {
 
     console.log('[ThemeManager] Injecting CSS:', css);
     this.injectStyle(css);
+    
+    // Dispatch a custom event for theme change
+    if (typeof window !== 'undefined') {
+      const event = new CustomEvent('themechange', { 
+        detail: { 
+          themeName: this.currentThemeName,
+          theme: theme 
+        } 
+      });
+      window.dispatchEvent(event);
+    }
   }
 
   /**
@@ -221,11 +263,18 @@ class ThemeManager {
    * Generate an LLM-compatible JSON schema describing theme properties.
    */
   public generateLLMToolSchema(): object {
-    const properties: Record<string, any> = {};
+    const properties: Record<string, any> = {
+      'theme-name': {
+        type: 'string',
+        description: 'The name of the theme'
+      }
+    };
     
     // Add global properties
     if (this.schema.global) {
       for (const propName in this.schema.global) {
+        if (propName === 'themeName') continue; // Skip themeName, handled separately
+        
         const key = `global-${propName}`;
         properties[key] = {
           type: 'string',
@@ -276,14 +325,24 @@ class ThemeManager {
     const nestedTheme: Theme = {};
     let processedKeys = 0;
     
-    for (const flatKey in flatThemeObj) {
+    // First check for theme name
+    if ('theme-name' in flatThemeObj) {
+      nestedTheme.name = flatThemeObj['theme-name'];
       processedKeys++;
+    }
+    
+    // Process other properties
+    for (const flatKey in flatThemeObj) {
+      if (flatKey === 'theme-name') continue; // Skip theme name, already handled
+      
       const value = flatThemeObj[flatKey];
       const sepIndex = flatKey.indexOf('-');
       if (sepIndex === -1) {
         console.warn(`[ThemeManager] Invalid theme key (missing dash): ${flatKey}`);
         continue;
       }
+      
+      processedKeys++;
       const component = flatKey.substring(0, sepIndex);
       const prop = flatKey.substring(sepIndex + 1);
       
@@ -310,6 +369,7 @@ const themeManagerInstance = ThemeManager.getInstance();
 if (typeof window !== 'undefined') {
   (window as any).generateThemeLLMSchema = () => themeManagerInstance.generateLLMToolSchema();
   (window as any).applyLLMTheme = (json: Record<string, string>) => themeManagerInstance.applyLLMTheme(json);
+  (window as any).getCurrentThemeName = () => themeManagerInstance.getCurrentThemeName();
 }
 
 export default themeManagerInstance;

@@ -19,3 +19,12 @@ export interface ThemeCategory {
 export interface ThemeColors {
   [category: string]: Record<string, string>;
 }
+
+// Add this to the global Window interface
+declare global {
+  interface Window {
+    generateThemeLLMSchema: () => object;
+    applyLLMTheme: (json: Record<string, string>) => void;
+    getCurrentThemeName: () => string;
+  }
+}

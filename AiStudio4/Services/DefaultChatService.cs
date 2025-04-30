@@ -351,6 +351,7 @@ namespace AiStudio4.Services
 
         private async Task<string> GetSystemPrompt(ChatRequest request)
         {
+            
             // Get the appropriate system prompt
             string systemPromptContent = "You are a helpful chatbot.";
 
@@ -380,13 +381,18 @@ namespace AiStudio4.Services
 
             systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _generalSettingsService.CurrentSettings.ProjectPath);
 
-            //if (systemPromptContent.Contains("ProjectDirectoryTree"))
-            //{
-            //    var directoryTree = $"<current_directory_tree>\n{DirectoryTreeTool.GetDirectoryTree(10, false, _generalSettingsService.CurrentSettings.ProjectPath, _generalSettingsService.CurrentSettings.ProjectPath)}\n<\\current_directory_tree>\n";
-            //    systemPromptContent = systemPromptContent.Replace("{ProjectDirectoryTree}",
-            //
-            //        _generalSettingsService.CurrentSettings.ProjectPath);
-            //}
+            if(systemPromptContent.Contains("{ToolList}"))
+            {
+                StringBuilder sb = new StringBuilder();
+
+                foreach(var toolId in request.ToolIds)
+                {
+                    var tool = await _toolService.GetToolByIdAsync(toolId);
+                    sb.AppendLine($"{tool.Name} : {tool.Description}");
+                }
+
+                systemPromptContent = systemPromptContent.Replace("{ToolList}", sb.ToString());
+            }
 
             return systemPromptContent;
         }
