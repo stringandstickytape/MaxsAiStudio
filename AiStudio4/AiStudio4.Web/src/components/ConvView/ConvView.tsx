@@ -172,7 +172,7 @@ export const ConvView = ({
       initial="smooth"
       ref={stickToBottomRef}
       style={{
-        backgroundColor: 'var(--convview-bg, transparent)',
+        backgroundColor: 'var(--convview-bg, var(--global-background-color, transparent))',
         ...(window?.theme?.ConvView?.style || {})
       }}
       // Add throttle option to reduce ResizeObserver frequency during streaming

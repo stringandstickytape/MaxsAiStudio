@@ -8,6 +8,7 @@ This guide explains how to make any React component in AiStudio4 **extensively t
 
 - **Themes** are applied via CSS variables and inline styles.
 - **ThemeManager** discovers themeable properties and injects CSS variables **scoped to a CSS class matching the component name**.
+- **Global theme properties** are injected to the `:root` element and can be used across all components.
 - Components use these CSS variables (with sensible defaults) and can also accept **arbitrary style overrides**.
 - **All relevant elements must have the component class (e.g., `Sidebar`, `HistoricalConvTreeList`, `ConvTreeView`) for CSS vars to apply.**
 - **D3 or canvas-based visualizations should read theme CSS vars at render time and use them for drawing.**
@@ -74,9 +75,9 @@ In your component JSX:
 <div
   className="MyComponent"
   style={{
-    backgroundColor: 'var(--mycomponent-bg, #222)',
-    color: 'var(--mycomponent-text-color, #eee)',
-    borderRadius: 'var(--mycomponent-radius, 8px)',
+    backgroundColor: 'var(--mycomponent-bg, var(--global-background-color, #222))',
+    color: 'var(--mycomponent-text-color, var(--global-text-color, #eee))',
+    borderRadius: 'var(--mycomponent-radius, var(--global-border-radius, 8px))',
     ...(window?.theme?.MyComponent?.style || {})
   }}
 >
@@ -88,21 +89,21 @@ In your component JSX:
 <div
   className="MyComponent"
   style={{
-    backgroundColor: 'var(--mycomponent-popup-bg, #333)',
+    backgroundColor: 'var(--mycomponent-popup-bg, var(--global-background-color, #333))',
     ...(window?.theme?.MyComponent?.popupStyle || {})
   }}
 >
 
 <Button
   style={{
-    backgroundColor: 'var(--mycomponent-pill-bg, #444)',
+    backgroundColor: 'var(--mycomponent-pill-bg, var(--global-primary-color, #444))',
     ...(window?.theme?.MyComponent?.pillStyle || {})
   }}
 >
 
 <Textarea
   style={{
-    backgroundColor: 'var(--mycomponent-edit-bg, #555)',
+    backgroundColor: 'var(--mycomponent-edit-bg, var(--global-background-color, #555))',
     ...(window?.theme?.MyComponent?.editAreaStyle || {})
   }}
 />
@@ -128,6 +129,11 @@ createPortal(
 
 ```ts
 ThemeManager.applyTheme({
+  global: {
+    backgroundColor: '#f5f5f5',
+    textColor: '#333333',
+    primaryColor: '#007acc',
+  },
   MyComponent: {
     backgroundColor: '#123456',
     textColor: '#abcdef',
@@ -145,10 +151,17 @@ ThemeManager.applyTheme({
 ## 3. How ThemeManager Works
 
 - Discovers `themeableProps` exports dynamically.
-- Injects CSS variables **scoped to a class selector matching the component name**.
+- Injects global CSS variables to the `:root` element.
+- Injects component-specific CSS variables **scoped to a class selector matching the component name**.
 - Example:
 
 ```css
+:root {
+  --global-background-color: #f5f5f5;
+  --global-text-color: #333333;
+  --global-primary-color: #007acc;
+}
+
 .MyComponent {
   --mycomponent-bg: #222;
   --mycomponent-text-color: #eee;
@@ -156,17 +169,96 @@ ThemeManager.applyTheme({
 }
 ```
 
-- **Does NOT inject variables globally** (`:root`).
-- So **elements outside the component class (e.g., portals)** won't inherit vars **unless you add the class**.
+- Components can reference global variables as fallbacks in their styles.
+- This allows for consistent theming across the application while still allowing component-specific overrides.
 
 ---
 
-## 4. Lessons Learned & Best Practices
+## 4. Using Global Theme Properties
+
+Global theme properties provide application-wide styling that components can reference. The ThemeManager includes these default global properties:
+
+```ts
+global: {
+  backgroundColor: {
+    cssVar: '--global-background-color',
+    description: 'Global background color for the application',
+    default: '#ffffff'
+  },
+  textColor: {
+    cssVar: '--global-text-color',
+    description: 'Global text color for the application',
+    default: '#333333'
+  },
+  primaryColor: {
+    cssVar: '--global-primary-color',
+    description: 'Primary accent color for the application',
+    default: '#007acc'
+  },
+  secondaryColor: {
+    cssVar: '--global-secondary-color',
+    description: 'Secondary accent color for the application',
+    default: '#6e6e6e'
+  },
+  borderColor: {
+    cssVar: '--global-border-color',
+    description: 'Default border color for elements',
+    default: '#dddddd'
+  },
+  borderRadius: {
+    cssVar: '--global-border-radius',
+    description: 'Default border radius for elements',
+    default: '4px'
+  },
+  fontFamily: {
+    cssVar: '--global-font-family',
+    description: 'Default font family for text',
+    default: '"Segoe UI", "Noto Sans", sans-serif'
+  },
+  fontSize: {
+    cssVar: '--global-font-size',
+    description: 'Base font size for the application',
+    default: '14px'
+  },
+  boxShadow: {
+    cssVar: '--global-box-shadow',
+    description: 'Default box shadow for elevated elements',
+    default: '0 2px 5px rgba(0,0,0,0.1)'
+  }
+}
+```
+
+To use global properties in your components:
+
+1. **Reference them as fallbacks in your CSS variable usage:**
+
+```css
+background-color: var(--mycomponent-bg, var(--global-background-color, #default));
+color: var(--mycomponent-text-color, var(--global-text-color, #default));
+```
+
+2. **Set global properties in your theme:**
+
+```ts
+ThemeManager.applyTheme({
+  global: {
+    backgroundColor: '#f5f5f5',
+    textColor: '#333333',
+    primaryColor: '#007acc',
+  },
+  // Component-specific overrides
+  MyComponent: { ... }
+});
+```
+
+---
+
+## 5. Lessons Learned & Best Practices
 
 - **Always add `cssVar` keys** for all structured theme props.
 - **Explicitly set theme props** in `applyTheme()` to ensure CSS vars are generated.
 - **Add the component class to all portal content** to inherit CSS vars.
-- **Use CSS vars with sensible fallbacks** in inline styles.
+- **Use CSS vars with sensible fallbacks** in inline styles, referencing global variables when appropriate.
 - **Merge arbitrary style overrides** for maximum flexibility.
 - **Expose both structured props and arbitrary style objects** in `themeableProps`.
 - **Test themes with unusual styles** (gradients, filters, transforms) to verify flexibility.
@@ -190,11 +282,13 @@ ThemeManager.applyTheme({
 
 ---
 
-## 5. Summary
+## 6. Summary
 
 - Use CSS variables for common props.
 - Allow arbitrary style overrides.
 - Scope CSS vars to component class.
+- Use global CSS variables for application-wide styling.
+- Reference global variables as fallbacks in component styles.
 - Add class to portals and all relevant nested elements.
 - For D3/canvas/JS-rendered elements, read CSS vars in JS and apply them to drawing.
 - Explicitly set theme props to ensure vars are injected.
@@ -202,23 +296,26 @@ ThemeManager.applyTheme({
 
 ---
 
-## 6. Example: SystemPromptComponent
+## 7. Example: SystemPromptComponent
 
 See `SystemPromptComponent.tsx` and `main.tsx` for a full example of this approach.
 
 ---
 
-## 7. LLM Integration for Theming (2024)
+## 8. LLM Integration for Theming (2024)
 
 ### LLM Schema Generation
 
 - ThemeManager can generate an **LLM-compatible JSON schema** describing all themeable properties.
-- This schema flattens properties as keys like `ComponentName-propertyName`.
+- This schema flattens properties as keys like `ComponentName-propertyName` or `global-propertyName`.
 - Example output:
 
 ```json
 {
   "properties": {
+    "global-backgroundColor": "#f5f5f5",
+    "global-textColor": "#333333",
+    "global-primaryColor": "#007acc",
     "SystemPromptComponent-backgroundColor": "#f5f5f5",
     "SystemPromptComponent-borderColor": "#3498db",
     "SystemPromptComponent-borderRadius": "8px",
@@ -248,8 +345,8 @@ window.applyLLMTheme(json)
 ### How it works internally
 
 - The method `applyLLMTheme(flatThemeObj)`
-  - Parses keys like `ComponentName-propertyName`
-  - Builds nested theme object `{ ComponentName: { propertyName: value } }`
+  - Parses keys like `ComponentName-propertyName` or `global-propertyName`
+  - Builds nested theme object `{ global: { propertyName: value }, ComponentName: { propertyName: value } }`
   - Calls `applyTheme()` with the nested theme
 
 ### Summary
@@ -270,9 +367,8 @@ window.applyLLMTheme(yourJson)
 
 ---
 
-## 8. Future Improvements
+## 9. Future Improvements
 
-- Patch ThemeManager to optionally inject **global** CSS vars if needed.
 - Add runtime theme editing UI.
 - Support CSS animations and transitions via theme.
 - Add validation and error reporting for LLM theme inputs.
@@ -282,20 +378,22 @@ window.applyLLMTheme(yourJson)
 
 ### Important: LLM Theme Key Naming Constraints
 
-- The flattened keys used in LLM JSON (e.g., `ComponentName-propertyName`) **must only contain letters, digits, hyphens (`-`), and underscores (`_`)**.
+- The flattened keys used in LLM JSON (e.g., `ComponentName-propertyName` or `global-propertyName`) **must only contain letters, digits, hyphens (`-`), and underscores (`_`)**.
 - **No spaces or other special characters** are allowed.
 - The **total key length must be no longer than 64 characters**.
 - **Plan component and property names carefully** to avoid collisions or truncation.
-- Example of a valid key:
+- Example of valid keys:
 
 ```
 SystemPromptComponent-pillInactiveBg
+global-backgroundColor
 ```
 
-- Example of an **invalid** key:
+- Example of **invalid** keys:
 
 ```
 System Prompt Component-pill inactive bg
+global background-color
 ```
 
 Keep names concise, descriptive, and within these limits for maximum compatibility.

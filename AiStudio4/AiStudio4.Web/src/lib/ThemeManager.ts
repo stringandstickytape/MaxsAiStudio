@@ -12,10 +12,14 @@ interface ComponentThemeSchema {
 }
 
 interface ThemeSchema {
+  global?: ComponentThemeSchema;
   [componentName: string]: ComponentThemeSchema;
 }
 
 interface Theme {
+  global?: {
+    [propName: string]: string;
+  };
   [componentName: string]: {
     [propName: string]: string;
   };
@@ -25,7 +29,56 @@ class ThemeManager {
   private static instance: ThemeManager;
   private schema: ThemeSchema = {};
 
-  private constructor() {}
+  private constructor() {
+    // Initialize global schema section
+    this.schema.global = {
+      backgroundColor: {
+        cssVar: '--global-background-color',
+        description: 'Global background color for the application',
+        default: '#ffffff'
+      },
+      textColor: {
+        cssVar: '--global-text-color',
+        description: 'Global text color for the application',
+        default: '#333333'
+      },
+      primaryColor: {
+        cssVar: '--global-primary-color',
+        description: 'Primary accent color for the application',
+        default: '#007acc'
+      },
+      secondaryColor: {
+        cssVar: '--global-secondary-color',
+        description: 'Secondary accent color for the application',
+        default: '#6e6e6e'
+      },
+      borderColor: {
+        cssVar: '--global-border-color',
+        description: 'Default border color for elements',
+        default: '#dddddd'
+      },
+      borderRadius: {
+        cssVar: '--global-border-radius',
+        description: 'Default border radius for elements',
+        default: '4px'
+      },
+      fontFamily: {
+        cssVar: '--global-font-family',
+        description: 'Default font family for text',
+        default: '"Segoe UI", "Noto Sans", sans-serif'
+      },
+      fontSize: {
+        cssVar: '--global-font-size',
+        description: 'Base font size for the application',
+        default: '14px'
+      },
+      boxShadow: {
+        cssVar: '--global-box-shadow',
+        description: 'Default box shadow for elevated elements',
+        default: '0 2px 5px rgba(0,0,0,0.1)'
+      }
+    };
+  }
 
   public static getInstance(): ThemeManager {
     if (!ThemeManager.instance) {
@@ -85,7 +138,20 @@ class ThemeManager {
    */
   public generateDefaultTheme(): Theme {
     const theme: Theme = {};
+    
+    // Add global defaults
+    if (this.schema.global) {
+      theme.global = {};
+      for (const propName in this.schema.global) {
+        const defaultValue = this.schema.global[propName].default ?? '';
+        theme.global[propName] = defaultValue;
+      }
+    }
+    
+    // Add component defaults
     for (const component in this.schema) {
+      if (component === 'global') continue; // Skip global, already handled
+      
       theme[component] = {};
       const props = this.schema[component];
       for (const propName in props) {
@@ -98,23 +164,40 @@ class ThemeManager {
 
   /**
    * Apply a theme by injecting CSS variables into the document.
-   * Instead of global :root, inject component-scoped CSS vars for better specificity.
+   * Global properties are injected to :root, component properties to their respective classes.
    */
   public applyTheme(theme: Theme): void {
     console.log('[ThemeManager] Applying theme:', theme);
     let css = '';
+    
+    // Handle global properties - inject to :root
+    if (theme.global && this.schema.global) {
+      css += ':root {\n';
+      for (const prop in theme.global) {
+        const value = theme.global[prop];
+        const cssVar = this.schema.global[prop]?.cssVar;
+        if (cssVar) {
+          css += `  ${cssVar}: ${value};\n`;
+        }
+      }
+      css += '}\n\n';
+    }
+    
+    // Handle component-specific properties
     for (const component in theme) {
+      if (component === 'global') continue; // Skip global, already handled
+      
       const compTheme = theme[component];
       const schemaProps = this.schema[component] || {};
-      css += `.${component} {`;
+      css += `.${component} {\n`;
       for (const prop in compTheme) {
         const value = compTheme[prop];
         const cssVar = schemaProps[prop]?.cssVar;
         if (cssVar) {
-          css += `\n  ${cssVar}: ${value};`;
+          css += `  ${cssVar}: ${value};\n`;
         }
       }
-      css += '\n}\n';
+      css += '}\n';
     }
 
     console.log('[ThemeManager] Injecting CSS:', css);
@@ -139,7 +222,22 @@ class ThemeManager {
    */
   public generateLLMToolSchema(): object {
     const properties: Record<string, any> = {};
+    
+    // Add global properties
+    if (this.schema.global) {
+      for (const propName in this.schema.global) {
+        const key = `global-${propName}`;
+        properties[key] = {
+          type: 'string',
+          description: this.schema.global[propName].description || `Set global ${propName}`
+        };
+      }
+    }
+    
+    // Add component properties
     for (const component in this.schema) {
+      if (component === 'global') continue; // Skip global, already handled
+      
       const props = this.schema[component];
       for (const propName in props) {
         const key = `${component}-${propName}`;
@@ -152,7 +250,7 @@ class ThemeManager {
 
     return {
       name: 'set_theme_properties',
-      description: 'Sets theme properties for UI components.',
+      description: 'Sets theme properties for UI components and global application styles.',
       parameters: {
         type: 'object',
         properties,
@@ -162,7 +260,7 @@ class ThemeManager {
   }
 
   /**
-   * Accepts a flat LLM theme response (e.g., {"Component-prop": value, ...}),
+   * Accepts a flat LLM theme response (e.g., {"Component-prop": value, ...} or {"global-prop": value, ...}),
    * converts it into nested Theme object, and applies it.
    */
   public applyLLMTheme(flatThemeObj: Record<string, string>): void {
@@ -188,6 +286,7 @@ class ThemeManager {
       }
       const component = flatKey.substring(0, sepIndex);
       const prop = flatKey.substring(sepIndex + 1);
+      
       if (!nestedTheme[component]) {
         nestedTheme[component] = {};
       }
