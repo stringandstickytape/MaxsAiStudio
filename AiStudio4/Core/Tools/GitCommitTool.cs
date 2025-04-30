@@ -132,12 +132,10 @@ namespace AiStudio4.Core.Tools
                                 overallSuccess = false;
                                 continue;
                             }
-                            //if (!File.Exists(normalizedPath))
-                            //{
-                            //    errors.Add($"File '{filePath}' does not exist.");
-                            //    overallSuccess = false;
-                            //    continue;
-                            //}
+
+                            // Don't check the file exists.  It might be a delete we want to commit.
+                            //if (!File.Exists(normalizedPath))...
+                            
                             filesToCommit.Add(normalizedPath);
                         }
                     }
