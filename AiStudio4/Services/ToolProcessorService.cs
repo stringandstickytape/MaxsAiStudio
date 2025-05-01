@@ -245,7 +245,7 @@ namespace AiStudio4.Services
             }
 
             var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
-             
+              
             return new ToolExecutionResult
             {
                 ResponseText = collatedResponse.ToString(),
