@@ -196,7 +196,11 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
             const showRenderedOrRawButton = (
                 <button
                     onClick={toggleView}
-                    className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors"
+                    className="px-2 py-1 rounded transition-colors"
+                    style={{
+                        background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
+                        color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                    }}
                 >
                     {isRawView ? 'Show Rendered' : 'Show Raw'}
                 </button>
