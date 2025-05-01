@@ -270,19 +270,7 @@ namespace AiStudio4.Services
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
 
-                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                    {
-                        ConvId = request.BranchedConv.ConvId,
-                        MessageId = newAssistantMessageId,
-                        Content = $"{toolResult.ToolRequested}",
-                        ParentId = request.MessageId,
-                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                        Source = "assistant",
-                        Attachments = response.Attachments,
-                        DurationMs = 0,
-                        CostInfo = new TokenCost(response.TokenUsage, model),
-                        TokenUsage = response.TokenUsage
-                    });
+
 
 
 
@@ -307,8 +295,22 @@ namespace AiStudio4.Services
                     if (cont)
                     {
                         request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-                            userMessage: $"{response.ResponseText}\n", parentMessageId: request.MessageId,
+                            userMessage: response.ResponseText, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
+                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                        {
+                            ConvId = request.BranchedConv.ConvId,
+                            MessageId = newAssistantMessageId,
+                            Content = toolResult.ToolRequested,
+                            ParentId = request.MessageId,
+                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                            Source = "assistant",
+                            Attachments = response.Attachments,
+                            DurationMs = 0,
+                            CostInfo = new TokenCost(response.TokenUsage, model),
+                            TokenUsage = response.TokenUsage
+                        });
 
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
@@ -320,7 +322,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            Content = $"{response.ResponseText}\n{(cont ? "" : $"\n\n{toolResult.ToolResult}")}",
+                            Content = collatedResponse.ToString(),
                             ParentId = newAssistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
@@ -334,6 +336,20 @@ namespace AiStudio4.Services
                         request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: $"{response.ResponseText}\n{toolResult.ToolResult}", parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
+                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                        {
+                            ConvId = request.BranchedConv.ConvId,
+                            MessageId = newAssistantMessageId,
+                            Content = $"{response.ResponseText}\n{toolResult.ToolResult}",
+                            ParentId = request.MessageId,
+                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                            Source = "assistant",
+                            Attachments = response.Attachments,
+                            DurationMs = 0,
+                            CostInfo = new TokenCost(response.TokenUsage, model),
+                            TokenUsage = response.TokenUsage
+                        });
 
                         if (currentIteration >= MAX_ITERATIONS)
                         {
