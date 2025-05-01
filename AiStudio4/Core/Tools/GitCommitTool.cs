@@ -233,6 +233,7 @@ namespace AiStudio4.Core.Tools
             try
             {
                 string normalizedRoot = Path.GetFullPath(_projectRoot);
+                normalizedPath = normalizedPath.Replace("/", "\\");
                 string pathWithSep = normalizedPath.EndsWith(Path.DirectorySeparatorChar.ToString()) ? normalizedPath : normalizedPath + Path.DirectorySeparatorChar;
                 string rootWithSep = normalizedRoot.EndsWith(Path.DirectorySeparatorChar.ToString()) ? normalizedRoot : normalizedRoot + Path.DirectorySeparatorChar;
                 bool isWithin = pathWithSep.StartsWith(rootWithSep, StringComparison.OrdinalIgnoreCase);
