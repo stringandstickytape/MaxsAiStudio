@@ -295,11 +295,13 @@ export function InputBar({
     return (
         <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
             style={{
-                backgroundColor: "var(--inputbar-bg, #1f2937)",
-                color: "var(--inputbar-text-color, #e2e8f0)",
-                borderColor: "var(--inputbar-border-color, #4a5568)",
-                borderRadius: "8px",
-                boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+                backgroundColor: "var(--inputbar-bg, var(--global-backgroundColor, #1f2937))",
+                color: "var(--inputbar-text-color, var(--global-textColor, #e2e8f0))",
+                borderColor: "var(--inputbar-border-color, var(--global-borderColor, #4a5568))",
+                borderRadius: "var(--inputbar-border-radius, var(--global-borderRadius, 8px))",
+                boxShadow: "var(--inputbar-box-shadow, var(--global-boxShadow, 0 4px 12px rgba(0,0,0,0.3)))",
+                fontFamily: "var(--inputbar-font-family, var(--global-fontFamily, inherit))",
+                fontSize: "var(--inputbar-font-size, var(--global-fontSize, inherit))",
                 ...(window?.theme?.InputBar?.style || {})
             }}
         >

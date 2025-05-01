@@ -135,6 +135,7 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                 fontSize: 'var(--convtree-font-size, var(--global-fontSize, 0.875rem))',
                 borderRadius: 'var(--convtree-border-radius, var(--global-borderRadius, 0))',
                 boxShadow: 'var(--convtree-box-shadow, var(--global-boxShadow, none))',
+                borderColor: 'var(--convtree-border-color, var(--global-borderColor, #1f2937))',
                 ...(window?.theme?.ConvTreeView?.style || {})
             }}
         >

@@ -196,11 +196,13 @@ export const UnifiedModalDialog: React.FC<UnifiedModalDialogProps> = ({
               className // User-provided class for the main dialog box
             )}
             style={{
-              backgroundColor: 'var(--unifiedmodaldialog-bg, var(--background))',
-              color: 'var(--unifiedmodaldialog-text-color, var(--foreground))',
-              borderColor: 'var(--unifiedmodaldialog-border-color, var(--border))',
-              borderRadius: 'var(--unifiedmodaldialog-border-radius, 0.5rem)',
-              boxShadow: 'var(--unifiedmodaldialog-box-shadow, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05))',
+              backgroundColor: 'var(--unifiedmodaldialog-bg, var(--global-backgroundColor, var(--background)))',
+              color: 'var(--unifiedmodaldialog-text-color, var(--global-textColor, var(--foreground)))',
+              borderColor: 'var(--unifiedmodaldialog-border-color, var(--global-borderColor, var(--border)))',
+              borderRadius: 'var(--unifiedmodaldialog-border-radius, var(--global-borderRadius, 0.5rem))',
+              boxShadow: 'var(--unifiedmodaldialog-box-shadow, var(--global-boxShadow, 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)))',
+              fontFamily: 'var(--unifiedmodaldialog-font-family, var(--global-fontFamily, inherit))',
+              fontSize: 'var(--unifiedmodaldialog-font-size, var(--global-fontSize, inherit))',
               animationDuration: `${animationDuration ?? 150}ms`,
               ...themeStyle
             }}

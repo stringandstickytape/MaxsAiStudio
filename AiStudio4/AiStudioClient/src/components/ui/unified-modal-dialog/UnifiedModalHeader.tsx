@@ -57,12 +57,15 @@ export const UnifiedModalHeader: React.FC<UnifiedModalHeaderProps> = ({ classNam
     <div 
       className={cn('UnifiedModalHeader', variantConfig.headerClassName, className)} 
       style={{
-        backgroundColor: 'var(--unifiedmodalheader-bg, transparent)',
-        color: 'var(--unifiedmodalheader-text-color, var(--foreground))',
-        borderColor: 'var(--unifiedmodalheader-border-color, var(--border))',
-        fontSize: 'var(--unifiedmodalheader-font-size, 1.25rem)',
+        backgroundColor: 'var(--unifiedmodalheader-bg, var(--global-backgroundColor, transparent))',
+        color: 'var(--unifiedmodalheader-text-color, var(--global-textColor, var(--foreground)))',
+        borderColor: 'var(--unifiedmodalheader-border-color, var(--global-borderColor, var(--border)))',
+        fontSize: 'var(--unifiedmodalheader-font-size, var(--global-fontSize, 1.25rem))',
         fontWeight: 'var(--unifiedmodalheader-font-weight, 600)',
         padding: 'var(--unifiedmodalheader-padding, inherit)',
+        fontFamily: 'var(--unifiedmodalheader-font-family, var(--global-fontFamily, inherit))',
+        borderRadius: 'var(--unifiedmodalheader-border-radius, var(--global-borderRadius, inherit))',
+        boxShadow: 'var(--unifiedmodalheader-box-shadow, var(--global-boxShadow, none))',
         ...themeStyle
       }}
       {...props}

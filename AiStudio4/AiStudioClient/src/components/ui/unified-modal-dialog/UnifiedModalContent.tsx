@@ -55,13 +55,18 @@ export const UnifiedModalContent: React.FC<UnifiedModalContentProps> = ({ classN
     <div 
       className={cn('UnifiedModalContent', baseClasses, variantConfig.contentClassName, className)} 
       style={{
-        backgroundColor: 'var(--unifiedmodalcontent-bg, transparent)',
-        color: 'var(--unifiedmodalcontent-text-color, var(--foreground))',
+        backgroundColor: 'var(--unifiedmodalcontent-bg, var(--global-backgroundColor, transparent))',
+        color: 'var(--unifiedmodalcontent-text-color, var(--global-textColor, var(--foreground)))',
         padding: 'var(--unifiedmodalcontent-padding, inherit)',
         '--scrollbar-thumb': 'var(--unifiedmodalcontent-scrollbar-thumb, rgba(255, 255, 255, 0.2))',
         '--scrollbar-track': 'var(--unifiedmodalcontent-scrollbar-track, transparent)',
         scrollbarColor: 'var(--scrollbar-thumb) var(--scrollbar-track)',
         scrollbarWidth: 'thin',
+        fontFamily: 'var(--unifiedmodalcontent-font-family, var(--global-fontFamily, inherit))',
+        fontSize: 'var(--unifiedmodalcontent-font-size, var(--global-fontSize, inherit))',
+        borderRadius: 'var(--unifiedmodalcontent-border-radius, var(--global-borderRadius, inherit))',
+        borderColor: 'var(--unifiedmodalcontent-border-color, var(--global-borderColor, inherit))',
+        boxShadow: 'var(--unifiedmodalcontent-box-shadow, var(--global-boxShadow, none))',
         ...themeStyle
       }}
       {...props}

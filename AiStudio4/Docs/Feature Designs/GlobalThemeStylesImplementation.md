@@ -101,20 +101,23 @@ export const themeableProps = {
 
 Track progress by checking off components as they are updated:
 
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ConvTreeView.tsx
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ConvView.tsx
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\InputBar.tsx
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\InputBar\InputBar.tsx
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalContent.tsx
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalDialog.tsx
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalFooter.tsx
-C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalHeader.tsx
+✅ C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ConvTreeView\ConvTreeView.tsx
+✅ C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ConvView\ConvView.tsx
+✅ C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\InputBar\InputBar.tsx
+✅ C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalContent.tsx
+✅ C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalDialog.tsx
+✅ C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalFooter.tsx
+✅ C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalHeader.tsx
 
 ## Implementation Notes
 
 As you implement these changes, add notes here about any challenges, patterns, or insights discovered:
 
-- 
+- All components have been updated to use global theme properties with the correct fallback pattern
+- Fixed inconsistency in variable naming: changed `--global-background-color` to `--global-backgroundColor` to match the standard naming convention
+- Added missing global properties to all components (fontFamily, fontSize, borderRadius, borderColor, boxShadow)
+- Ensured component-specific styles still take precedence over global styles
+- Maintained existing default values for each component
 
 ## Testing
 
