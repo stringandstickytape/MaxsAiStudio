@@ -301,13 +301,15 @@ namespace AiStudio4.Services
 
                     bool cont = continueLoop && currentIteration < MAX_ITERATIONS;
 
-                    request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-                        userMessage: $"{response.ResponseText}\n{toolResult.ToolRequested}{(cont ? "" : $"\n\n{toolResult.ToolResult}")}", parentMessageId: request.MessageId,
-                        attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
 
                     // If the loop should continue, add a user message to prompt the next step
                     if (cont)
                     {
+                        request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                            userMessage: $"{response.ResponseText}\n", parentMessageId: request.MessageId,
+                            attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
                         request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
@@ -318,7 +320,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            Content = $"{response.ResponseText}\n{toolResult.ToolRequested}{(cont ? "" : $"\n\n{toolResult.ToolResult}")}",
+                            Content = $"{response.ResponseText}\n{(cont ? "" : $"\n\n{toolResult.ToolResult}")}",
                             ParentId = newAssistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
@@ -327,10 +329,17 @@ namespace AiStudio4.Services
                         });
 
                     }
-                    else if (currentIteration >= MAX_ITERATIONS)
+                    else 
                     {
-                        _logger.LogWarning("Maximum tool iteration limit ({MaxIterations}) reached.", MAX_ITERATIONS);
-                        continueLoop = false; // Ensure loop terminates
+                        request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                            userMessage: $"{response.ResponseText}\n{toolResult.ToolResult}", parentMessageId: request.MessageId,
+                            attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
+                        if (currentIteration >= MAX_ITERATIONS)
+                        {
+                            _logger.LogWarning("Maximum tool iteration limit ({MaxIterations}) reached.", MAX_ITERATIONS);
+                            continueLoop = false; // Ensure loop terminates
+                        }
 
  
                     }
