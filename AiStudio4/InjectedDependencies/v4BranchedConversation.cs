@@ -54,6 +54,32 @@ namespace AiStudio4.InjectedDependencies
                 Messages.Add(systemRoot);
             }
             
+            // Calculate cumulative cost for assistant messages
+            if (role == v4BranchedConvMessageRole.Assistant && costInfo != null)
+            {
+                // Start with the current message cost
+                decimal cumulativeCost = costInfo.TotalCost;
+                
+                // Find parent message
+                var parentMessage = Messages.FirstOrDefault(m => m.Id == parentMessageId);
+                
+                // Traverse up the message tree to accumulate costs
+                while (parentMessage != null)
+                {
+                    // Add cost of parent assistant messages
+                    if (parentMessage.Role == v4BranchedConvMessageRole.Assistant && parentMessage.CostInfo != null)
+                    {
+                        cumulativeCost += parentMessage.CostInfo.TotalCost;
+                    }
+                    
+                    // Move to next parent
+                    parentMessage = Messages.FirstOrDefault(m => m.Id == parentMessage.ParentId);
+                }
+                
+                // Set the cumulative cost
+                newMessage.CumulativeCost = cumulativeCost;
+            }
+            
             // Add the new message to our flat list
             Messages.Add(newMessage);
             

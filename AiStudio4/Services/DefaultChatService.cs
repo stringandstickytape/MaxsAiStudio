@@ -290,11 +290,12 @@ namespace AiStudio4.Services
                     bool cont = continueLoop && currentIteration < MAX_ITERATIONS;
 
 
+                    var costInfo = new TokenCost(response.TokenUsage, model);
 
                     // If the loop should continue, add a user message to prompt the next step
                     if (cont)
                     {
-                        request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                        var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: response.ResponseText, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
 
@@ -308,7 +309,8 @@ namespace AiStudio4.Services
                             Source = "assistant",
                             Attachments = response.Attachments,
                             DurationMs = 0,
-                            CostInfo = new TokenCost(response.TokenUsage, model),
+                            CostInfo = costInfo,
+                            CumulativeCost = msg.CumulativeCost,
                             TokenUsage = response.TokenUsage
                         });
 
@@ -333,7 +335,7 @@ namespace AiStudio4.Services
                     }
                     else 
                     {
-                        request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                        var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: $"{response.ResponseText}\n{toolResult.ToolResult}", parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
 
@@ -347,7 +349,8 @@ namespace AiStudio4.Services
                             Source = "assistant",
                             Attachments = response.Attachments,
                             DurationMs = 0,
-                            CostInfo = new TokenCost(response.TokenUsage, model),
+                            CostInfo = costInfo,
+                            CumulativeCost = msg.CumulativeCost,
                             TokenUsage = response.TokenUsage
                         });
 

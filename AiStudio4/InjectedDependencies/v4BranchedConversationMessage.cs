@@ -19,6 +19,9 @@ namespace AiStudio4.InjectedDependencies
         public string ParentId { get; set; }
 
         public TokenCost CostInfo { get; set; }
+        
+        // Cumulative cost of this message and all its parent messages
+        public decimal CumulativeCost { get; set; }
 
         // Add support for multiple attachments
         public List<Attachment> Attachments { get; set; } = new List<Attachment>();
@@ -43,6 +46,7 @@ namespace AiStudio4.InjectedDependencies
                 Role = this.Role,
                 ParentId = this.ParentId,
                 CostInfo = this.CostInfo, // Assuming TokenCost is immutable or a struct
+                CumulativeCost = this.CumulativeCost,
                 Attachments = new List<Attachment>(this.Attachments), // Create a new list wrapping the same attachment references
                 Timestamp = this.Timestamp,
                 DurationMs = this.DurationMs
