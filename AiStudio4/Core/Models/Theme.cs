@@ -39,6 +39,11 @@ namespace AiStudio4.Core.Models
         public object ThemeJson { get; set; }
 
         /// <summary>
+        /// URL to a web font CSS file (e.g., Google Fonts URL)
+        /// </summary>
+        public string FontCdnUrl { get; set; }
+
+        /// <summary>
         /// Creation timestamp (ISO format)
         /// </summary>
         public string Created { get; set; }

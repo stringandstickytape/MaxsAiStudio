@@ -30,6 +30,7 @@ class ThemeManager {
   private static instance: ThemeManager;
   private schema: ThemeSchema = {};
   private currentThemeName: string = 'Default';
+  private fontLinkElement: HTMLLinkElement | null = null;
 
   private constructor() {
     // Initialize global schema section
@@ -78,6 +79,11 @@ class ThemeManager {
         cssVar: '--global-font-size',
         description: 'Base font size for the application',
         default: '14px'
+      },
+      fontCdnUrl: {
+        cssVar: '--global-font-cdn-url',
+        description: 'URL to a web font CSS file (e.g., Google Fonts URL)',
+        default: ''
       },
       boxShadow: {
         cssVar: '--global-box-shadow',
@@ -179,6 +185,30 @@ class ThemeManager {
   }
 
   /**
+   * Load a font from a CDN URL by adding a link element to the document head
+   */
+  private loadFontFromCdn(cdnUrl: string): void {
+    // Remove any existing font link element
+    if (this.fontLinkElement) {
+      document.head.removeChild(this.fontLinkElement);
+      this.fontLinkElement = null;
+    }
+
+    // If URL is empty, just return without adding a new link
+    if (!cdnUrl) return;
+
+    // Create and add the new link element
+    const linkElement = document.createElement('link');
+    linkElement.rel = 'stylesheet';
+    linkElement.href = cdnUrl;
+    linkElement.id = 'theme-font-cdn';
+    document.head.appendChild(linkElement);
+    this.fontLinkElement = linkElement;
+
+    console.log(`[ThemeManager] Loaded font from CDN: ${cdnUrl}`);
+  }
+
+  /**
    * Apply a theme by injecting CSS variables into the document.
    * Both global and component-specific properties are injected into each component's class.
    */
@@ -189,6 +219,11 @@ class ThemeManager {
     // Store theme name if provided
     if (theme.name) {
       this.currentThemeName = theme.name;
+    }
+    
+    // Check for font CDN URL and load it if present
+    if (theme.global?.fontCdnUrl) {
+      this.loadFontFromCdn(theme.global.fontCdnUrl);
     }
     
     // Collect global variables
@@ -209,6 +244,13 @@ class ThemeManager {
         }
       }
     }
+    
+    // Add global variables to :root for document-wide access
+    css += `:root {\n`;
+    for (const [cssVar, value] of globalVars) {
+      css += `  ${cssVar}: ${value};\n`;
+    }
+    css += `}\n\n`;
     
     // Handle all components in the schema that have themeable properties
     for (const component in this.schema) {
@@ -281,6 +323,7 @@ class ThemeManager {
     
     // Add global properties
     if (this.schema.global) {
+      console.log('[ThemeManager] Global schema properties:', Object.keys(this.schema.global));
       for (const propName in this.schema.global) {
         if (propName === 'themeName') continue; // Skip themeName, handled separately
         
@@ -289,6 +332,7 @@ class ThemeManager {
           type: 'string',
           description: this.schema.global[propName].description || `Set global ${propName}`
         };
+        console.log(`[ThemeManager] Added global property to schema: ${key}`);
       }
     }
     

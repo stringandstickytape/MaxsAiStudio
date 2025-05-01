@@ -7,6 +7,7 @@ export interface Theme {
   author?: string;
   previewColors: string[];
   themeJson: Record<string, Record<string, string>>;
+  fontCdnUrl?: string;
   created: string;
   lastModified: string;
 }
