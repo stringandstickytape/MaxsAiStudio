@@ -117,7 +117,7 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
                   {message.costInfo.tokenUsage.cacheReadInputTokens} read)
                 </span>
               )}
-            <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(6)} (Cumulative: ${message.cumulativeCost?.toFixed(6)})</span>
+            <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(3)} (Cumulative: ${message.cumulativeCost?.toFixed(3)})</span>
             <span className="text-gray-500">
               (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
               {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
