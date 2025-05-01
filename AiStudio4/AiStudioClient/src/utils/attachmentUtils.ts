@@ -176,7 +176,7 @@ textAttachments.forEach(attachment => {
             case 'txt': default: language = '';
         }
 
-        formattedContent += `\n\n** File: ${ attachment.name}
+        formattedContent += `z${ attachment.name}
         **\n\`\`\`${ language}\n${ attachment.textContent}\n\`\`\`\n`;
     }
 });
