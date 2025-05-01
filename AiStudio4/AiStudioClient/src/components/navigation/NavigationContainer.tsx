@@ -156,13 +156,13 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
       <div 
         className="NavigationContainer"
         style={{
-          backgroundColor: 'var(--navigationcontainer-bg, var(--global-backgroundColor, transparent))',
-          color: 'var(--navigationcontainer-text-color, var(--global-textColor, inherit))',
-          borderColor: 'var(--navigationcontainer-border-color, var(--global-borderColor, transparent))',
-          fontFamily: 'var(--navigationcontainer-font-family, var(--global-fontFamily, inherit))',
-          fontSize: 'var(--navigationcontainer-font-size, var(--global-fontSize, inherit))',
-          borderRadius: 'var(--navigationcontainer-border-radius, var(--global-borderRadius, 0))',
-          boxShadow: 'var(--navigationcontainer-box-shadow, var(--global-boxShadow, none))',
+          backgroundColor: 'var(--navigationcontainer-bg, var(--global-background-color, transparent))',
+          color: 'var(--navigationcontainer-text-color, var(--global-text-color, inherit))',
+          borderColor: 'var(--navigationcontainer-border-color, var(--global-border-color, transparent))',
+          fontFamily: 'var(--navigationcontainer-font-family, var(--global-font-family, inherit))',
+          fontSize: 'var(--navigationcontainer-font-size, var(--global-font-size, inherit))',
+          borderRadius: 'var(--navigationcontainer-border-radius, var(--global-border-radius, 0))',
+          boxShadow: 'var(--navigationcontainer-box-shadow, var(--global-box-shadow, none))',
           ...(window?.theme?.NavigationContainer?.style || {})
         }}
       >
@@ -170,13 +170,13 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           <div 
             className="NavigationContainer h-full flex flex-col"
             style={{
-              backgroundColor: 'var(--navigationcontainer-bg, var(--global-backgroundColor, transparent))',
-              color: 'var(--navigationcontainer-text-color, var(--global-textColor, inherit))',
-              borderColor: 'var(--navigationcontainer-border-color, var(--global-borderColor, transparent))',
-              fontFamily: 'var(--navigationcontainer-font-family, var(--global-fontFamily, inherit))',
-              fontSize: 'var(--navigationcontainer-font-size, var(--global-fontSize, inherit))',
-              borderRadius: 'var(--navigationcontainer-border-radius, var(--global-borderRadius, 0))',
-              boxShadow: 'var(--navigationcontainer-box-shadow, var(--global-boxShadow, none))',
+              backgroundColor: 'var(--navigationcontainer-bg, var(--global-background-color, transparent))',
+              color: 'var(--navigationcontainer-text-color, var(--global-text-color, inherit))',
+              borderColor: 'var(--navigationcontainer-border-color, var(--global-border-color, transparent))',
+              fontFamily: 'var(--navigationcontainer-font-family, var(--global-font-family, inherit))',
+              fontSize: 'var(--navigationcontainer-font-size, var(--global-font-size, inherit))',
+              borderRadius: 'var(--navigationcontainer-border-radius, var(--global-border-radius, 0))',
+              boxShadow: 'var(--navigationcontainer-box-shadow, var(--global-box-shadow, none))',
               ...(window?.theme?.NavigationContainer?.style || {})
             }}
           >

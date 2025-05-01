@@ -217,9 +217,9 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 <div
                     className={`MarkdownPane flex items-center justify-between px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} text-sm`}
                     style={{
-                        background: 'var(--markdownpane-codeheader-bg, var(--global-backgroundColor, #181c20))',
-                        color: 'var(--markdownpane-codeheader-text, var(--global-textColor, #bfc7d5))',
-                        borderColor: 'var(--markdownpane-codeheader-border, var(--global-borderColor, #283040))',
+                        background: 'var(--markdownpane-codeheader-bg, var(--global-background-color, #181c20))',
+                        color: 'var(--markdownpane-codeheader-text, var(--global-text-color, #bfc7d5))',
+                        borderColor: 'var(--markdownpane-codeheader-border, var(--global-border-color, #283040))',
                         borderStyle: 'solid',
                         borderWidth: '1px 0 0 0', // Only top border for footer, bottom for header
                         ...(isFooter ? { borderTopWidth: '1px', borderBottomWidth: 0 } : { borderBottomWidth: '1px', borderTopWidth: 0 }),
@@ -241,8 +241,8 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                 onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
                                 className="px-2 py-1 rounded transition-colors"
                                 style={{
-                                    background: 'var(--markdownpane-codeheader-accent, var(--global-primaryColor, #4f8cff))',
-                                    color: 'var(--markdownpane-codeheader-bg, var(--global-backgroundColor, #181c20))',
+                                    background: 'var(--markdownpane-codeheader-accent, var(--global-primary-color, #4f8cff))',
+                                    color: 'var(--markdownpane-codeheader-bg, var(--global-background-color, #181c20))',
                                 }}
                             >
                                 Apply Diff

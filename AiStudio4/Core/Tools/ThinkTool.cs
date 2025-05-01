@@ -49,7 +49,7 @@ It will not obtain new information or make any changes to the repository, but ju
                 //    ""default"": false
                 //}
             },
-            ""required"": [""thought"", ""continueProcessing""],
+            ""required"": [""thought""],
             ""title"": ""thinkArguments"",
             ""type"": ""object""
   }

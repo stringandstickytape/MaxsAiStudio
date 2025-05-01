@@ -295,11 +295,17 @@ public partial class WebViewWindow : Window
 
             if (!File.Exists(condaPath))
             {
-                MessageBox.Show($"Conda activate script not found at {condaPath}{Environment.NewLine}You can set the path in Edit -> Settings.");
+                MessageBox.Show($"Conda activate script not found in the folder {condaPath}{Environment.NewLine}You can set the path in Edit -> Settings.");
+                return;
             }
 
+            var destPath = Path.GetDirectoryName(filename);
+            // remove trailing slash if there is one
+            if (destPath.EndsWith("/") || destPath.EndsWith("\\"))
+                destPath = destPath.Substring(0, destPath.Length - 1);
+
             // Command to activate the WhisperX environment and run Whisper
-            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\"  --language en --model  large-v3 --output_dir \"{Path.GetDirectoryName(filename)}\" ";
+            string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\"  --language en --model  large-v3 --output_dir \"{destPath}\" ";
 
             //if(!string.IsNullOrEmpty(hfToken))
             //{

@@ -324,13 +324,13 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{
-                backgroundColor: 'var(--systemprompt-bg, var(--global-backgroundColor, #2d3748))',
-                color: 'var(--systemprompt-text-color, var(--global-textColor, #e2e8f0))',
-                borderColor: 'var(--systemprompt-border-color, var(--global-borderColor, #4a5568))',
-                fontFamily: 'var(--systemprompt-font-family, var(--global-fontFamily, inherit))',
-                fontSize: 'var(--systemprompt-font-size, var(--global-fontSize, 0.875rem))',
-                borderRadius: 'var(--systemprompt-border-radius, var(--global-borderRadius, 8px))',
-                boxShadow: 'var(--systemprompt-box-shadow, var(--global-boxShadow, 0 4px 12px rgba(0,0,0,0.3)))',
+                backgroundColor: 'var(--systemprompt-bg, var(--global-background-color, #2d3748))',
+                color: 'var(--systemprompt-text-color, var(--global-text-color, #e2e8f0))',
+                borderColor: 'var(--systemprompt-border-color, var(--global-border-color, #4a5568))',
+                fontFamily: 'var(--systemprompt-font-family, var(--global-font-family, inherit))',
+                fontSize: 'var(--systemprompt-font-size, var(--global-font-size, 0.875rem))',
+                borderRadius: 'var(--systemprompt-border-radius, var(--global-border-radius, 8px))',
+                boxShadow: 'var(--systemprompt-box-shadow, var(--global-box-shadow, 0 4px 12px rgba(0,0,0,0.3)))',
                 ...(window?.theme?.SystemPromptComponent?.style || {})
             }}
         >

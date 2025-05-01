@@ -310,9 +310,9 @@ export function PinnedShortcuts({
                         className,
                     )}
                     style={{
-                        fontFamily: 'var(--pinnedshortcuts-font-family, var(--global-fontFamily, inherit))',
-                        fontSize: 'var(--pinnedshortcuts-font-size, var(--global-fontSize, inherit))',
-                        color: 'var(--pinnedshortcuts-text-color, var(--global-textColor, #e5e7eb))',
+                        fontFamily: 'var(--pinnedshortcuts-font-family, var(--global-font-family, inherit))',
+                        fontSize: 'var(--pinnedshortcuts-font-size, var(--global-font-size, inherit))',
+                        color: 'var(--pinnedshortcuts-text-color, var(--global-text-color, #e5e7eb))',
                         ...(window?.theme?.PinnedShortcuts?.style || {})
                     }}
                 >

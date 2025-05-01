@@ -114,7 +114,7 @@ Track progress by checking off components as they are updated:
 As you implement these changes, add notes here about any challenges, patterns, or insights discovered:
 
 - All components have been updated to use global theme properties with the correct fallback pattern
-- Fixed inconsistency in variable naming: changed `--global-background-color` to `--global-backgroundColor` to match the standard naming convention
+- Fixed inconsistency in variable naming: changed `--global-background-color` to `--global-background-color` to match the standard naming convention
 - Added missing global properties to all components (fontFamily, fontSize, borderRadius, borderColor, boxShadow)
 - Ensured component-specific styles still take precedence over global styles
 - Maintained existing default values for each component

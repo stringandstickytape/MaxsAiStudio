@@ -172,13 +172,13 @@ export const ConvView = ({
       initial="smooth"
       ref={stickToBottomRef}
       style={{
-        backgroundColor: 'var(--convview-bg, var(--global-backgroundColor, transparent))',
-        color: 'var(--convview-text-color, var(--global-textColor, #ffffff))',
-        borderColor: 'var(--convview-border-color, var(--global-borderColor, rgba(55, 65, 81, 0.3)))',
-        fontFamily: 'var(--convview-font-family, var(--global-fontFamily, inherit))',
-        fontSize: 'var(--convview-font-size, var(--global-fontSize, inherit))',
-        borderRadius: 'var(--convview-border-radius, var(--global-borderRadius, 0))',
-        boxShadow: 'var(--convview-box-shadow, var(--global-boxShadow, none))',
+        backgroundColor: 'var(--convview-bg, var(--global-background-color, transparent))',
+        color: 'var(--convview-text-color, var(--global-text-color, #ffffff))',
+        borderColor: 'var(--convview-border-color, var(--global-border-color, rgba(55, 65, 81, 0.3)))',
+        fontFamily: 'var(--convview-font-family, var(--global-font-family, inherit))',
+        fontSize: 'var(--convview-font-size, var(--global-font-size, inherit))',
+        borderRadius: 'var(--convview-border-radius, var(--global-border-radius, 0))',
+        boxShadow: 'var(--convview-box-shadow, var(--global-box-shadow, none))',
         ...(window?.theme?.ConvView?.style || {})
       }}
       // Add throttle option to reduce ResizeObserver frequency during streaming

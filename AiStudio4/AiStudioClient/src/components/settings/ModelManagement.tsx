@@ -2,7 +2,12 @@
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ModelForm } from './ModelForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  UnifiedModalDialog,
+  UnifiedModalHeader,
+  UnifiedModalContent,
+  UnifiedModalFooter
+} from '@/components/ui/unified-modal-dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
 import { Model } from '@/types/settings';
 import { useModelManagement } from '@/hooks/useResourceManagement';
@@ -270,29 +275,26 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
       )}
 
       
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="max-w-xl bg-gray-800 border-gray-700 text-gray-100" description="Add a new AI model">
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Add New Model</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={addOpen} onOpenChange={setAddOpen} size="xl" variant="settings">
+        <UnifiedModalHeader>
+          <h2 className="text-gray-100 text-xl font-semibold">Add New Model</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           {displayError && (
             <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
               {displayError}
             </div>
           )}
           <ModelForm providers={providers} onSubmit={handleAddModel} isProcessing={isProcessing} />
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+      </UnifiedModalDialog>
 
       
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent
-          className="max-w-xl bg-gray-800 border-gray-700 text-gray-100"
-          description="Edit an existing AI model"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Edit Model</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={editOpen} onOpenChange={setEditOpen} size="xl" variant="settings">
+        <UnifiedModalHeader>
+          <h2 className="text-gray-100 text-xl font-semibold">Edit Model</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           {displayError && (
             <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
               {displayError}
@@ -307,18 +309,15 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
               initialValues={editingModel}
             />
           )}
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+      </UnifiedModalDialog>
 
       
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent
-          className="bg-gray-800 border-gray-700 text-gray-100"
-          description="Confirm deletion of an AI model"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Confirm Deletion</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={deleteOpen} onOpenChange={setDeleteOpen} size="xl" variant="settings">
+        <UnifiedModalHeader>
+          <h2 className="text-gray-100 text-xl font-semibold">Confirm Deletion</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           <div className="py-4 text-gray-200">
             Are you sure you want to delete the model <strong>{modelToDelete?.friendlyName}</strong>? This action cannot
             be undone.
@@ -328,26 +327,26 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
               {displayError}
             </div>
           )}
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-              disabled={isProcessing}
-              className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteModelConfirm}
-              disabled={isProcessing}
-              className="bg-red-700 hover:bg-red-800 text-white border-red-900"
-            >
-              {isProcessing ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+        <UnifiedModalFooter className="flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setDeleteOpen(false)}
+            disabled={isProcessing}
+            className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteModelConfirm}
+            disabled={isProcessing}
+            className="bg-red-700 hover:bg-red-800 text-white border-red-900"
+          >
+            {isProcessing ? 'Deleting...' : 'Delete'}
+          </Button>
+        </UnifiedModalFooter>
+      </UnifiedModalDialog>
     </>
   );
 };

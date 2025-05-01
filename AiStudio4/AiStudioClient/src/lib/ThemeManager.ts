@@ -210,30 +210,34 @@ class ThemeManager {
       }
     }
     
-    // Handle component-specific properties
-    for (const component in theme) {
-      if (component === 'global' || component === 'name') continue; // Skip global and name
+    // Handle all components in the schema that have themeable properties
+    for (const component in this.schema) {
+      if (component === 'global') continue; // Skip global section
+        console.log("Applying to " + component);
+      // Get component-specific theme properties if they exist
+      const compTheme = theme[component] || {};
+      const schemaProps = this.schema[component];
       
-      const compTheme = theme[component];
-      const schemaProps = this.schema[component] || {};
-      
-      css += `.${component} {\n`;
-      
-      // Add global variables to each component
-      for (const [cssVar, value] of globalVars) {
-        css += `  ${cssVar}: ${value};\n`;
-      }
-      
-      // Add component-specific variables
-      for (const prop in compTheme) {
-        const value = compTheme[prop];
-        const cssVar = schemaProps[prop]?.cssVar;
-        if (cssVar) {
+      // Only generate CSS for components that have themeable properties defined in the schema
+      if (Object.keys(schemaProps).length > 0) {
+        css += `.${component} {\n`;
+        
+        // Add global variables to each component
+        for (const [cssVar, value] of globalVars) {
           css += `  ${cssVar}: ${value};\n`;
         }
+        
+        // Add component-specific variables if they exist in the theme
+        for (const prop in compTheme) {
+          const value = compTheme[prop];
+          const cssVar = schemaProps[prop]?.cssVar;
+          if (cssVar) {
+            css += `  ${cssVar}: ${value};\n`;
+          }
+        }
+        
+        css += '}\n';
       }
-      
-      css += '}\n';
     }
 
     console.log('[ThemeManager] Injecting CSS:', css);

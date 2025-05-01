@@ -129,13 +129,13 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
     return (
         <div className="ConvTreeView flex flex-col h-full w-full"
             style={{
-                backgroundColor: 'var(--convtree-bg, var(--global-backgroundColor, #111827))',
-                color: 'var(--convtree-text-color, var(--global-textColor, #e5e7eb))',
-                fontFamily: 'var(--convtree-font-family, var(--global-fontFamily, inherit))',
-                fontSize: 'var(--convtree-font-size, var(--global-fontSize, 0.875rem))',
-                borderRadius: 'var(--convtree-border-radius, var(--global-borderRadius, 0))',
-                boxShadow: 'var(--convtree-box-shadow, var(--global-boxShadow, none))',
-                borderColor: 'var(--convtree-border-color, var(--global-borderColor, #1f2937))',
+                backgroundColor: 'var(--convtree-bg, var(--global-background-color, #111827))',
+                color: 'var(--convtree-text-color, var(--global-text-color, #e5e7eb))',
+                fontFamily: 'var(--convtree-font-family, var(--global-font-family, inherit))',
+                fontSize: 'var(--convtree-font-size, var(--global-font-size, 0.875rem))',
+                borderRadius: 'var(--convtree-border-radius, var(--global-border-radius, 0))',
+                boxShadow: 'var(--convtree-box-shadow, var(--global-box-shadow, none))',
+                borderColor: 'var(--convtree-border-color, var(--global-border-color, #1f2937))',
                 ...(window?.theme?.ConvTreeView?.style || {})
             }}
         >
@@ -151,7 +151,7 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                     className="ConvTreeView w-full h-full"
                     key={`tree-${convId}-${updateKey}`}
                     style={{
-                        backgroundColor: 'var(--convtree-bg, var(--global-backgroundColor, #111827))'
+                        backgroundColor: 'var(--convtree-bg, var(--global-background-color, #111827))'
                     }}
                 />
 

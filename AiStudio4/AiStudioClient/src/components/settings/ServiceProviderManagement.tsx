@@ -3,7 +3,12 @@ import { ServiceProvider } from '@/types/settings';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ServiceProviderForm } from './ServiceProviderForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  UnifiedModalDialog,
+  UnifiedModalHeader,
+  UnifiedModalContent,
+  UnifiedModalFooter
+} from '@/components/ui/unified-modal-dialog';
 import { Pencil, Trash2, PlusCircle, AlertCircle } from 'lucide-react';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -214,32 +219,26 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
       )}
 
       
-      <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent
-          className="max-w-xl bg-gray-800 border-gray-700 text-gray-100"
-          description="Add a new service provider"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Add New Provider</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen} size="xl" variant="settings">
+        <UnifiedModalHeader>
+          <h2 className="text-gray-100 text-xl font-semibold">Add New Provider</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           {displayError && (
             <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
               {displayError}
             </div>
           )}
           <ServiceProviderForm onSubmit={handleAddProvider} isProcessing={isProcessing} />
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+      </UnifiedModalDialog>
 
       
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent
-          className="max-w-xl bg-gray-800 border-gray-700 text-gray-100"
-          description="Edit an existing service provider"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Edit Provider</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={editOpen} onOpenChange={setEditOpen} size="xl" variant="settings">
+        <UnifiedModalHeader>
+          <h2 className="text-gray-100 text-xl font-semibold">Edit Provider</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           {displayError && (
             <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
               {displayError}
@@ -253,18 +252,15 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
               initialValues={editingProvider}
             />
           )}
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+      </UnifiedModalDialog>
 
       
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent
-          className="bg-gray-800 border-gray-700 text-gray-100"
-          description="Confirm deletion of a service provider"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Confirm Deletion</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen} size="xl" variant="settings">
+        <UnifiedModalHeader>
+          <h2 className="text-gray-100 text-xl font-semibold">Confirm Deletion</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           <div className="py-4 text-gray-200">
             Are you sure you want to delete the provider <strong>{deleteConfirmProvider?.friendlyName}</strong>? This
             action cannot be undone. Models associated with this provider may stop working.
@@ -274,26 +270,26 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
               {displayError}
             </div>
           )}
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteDialogOpen(false)}
-              disabled={isProcessing}
-              className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteProviderConfirm}
-              disabled={isProcessing}
-              className="bg-red-700 hover:bg-red-800 text-white border-red-900"
-            >
-              {isProcessing ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+        <UnifiedModalFooter className="flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsDeleteDialogOpen(false)}
+            disabled={isProcessing}
+            className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={handleDeleteProviderConfirm}
+            disabled={isProcessing}
+            className="bg-red-700 hover:bg-red-800 text-white border-red-900"
+          >
+            {isProcessing ? 'Deleting...' : 'Delete'}
+          </Button>
+        </UnifiedModalFooter>
+      </UnifiedModalDialog>
     </>
   );
 };

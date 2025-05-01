@@ -56,15 +56,15 @@ export const UnifiedModalFooter: React.FC<UnifiedModalFooterProps> = ({ classNam
     <div 
       className={cn('UnifiedModalFooter', variantConfig.footerClassName, className)} 
       style={{
-        backgroundColor: 'var(--unifiedmodalfooter-bg, var(--global-backgroundColor, transparent))',
-        color: 'var(--unifiedmodalfooter-text-color, var(--global-textColor, var(--foreground)))',
-        borderColor: 'var(--unifiedmodalfooter-border-color, var(--global-borderColor, var(--border)))',
+        backgroundColor: 'var(--unifiedmodalfooter-bg, var(--global-background-color, transparent))',
+        color: 'var(--unifiedmodalfooter-text-color, var(--global-text-color, var(--foreground)))',
+        borderColor: 'var(--unifiedmodalfooter-border-color, var(--global-border-color, var(--border)))',
         padding: 'var(--unifiedmodalfooter-padding, inherit)',
         '--button-spacing': 'var(--unifiedmodalfooter-button-spacing, 0.5rem)',
-        fontFamily: 'var(--unifiedmodalfooter-font-family, var(--global-fontFamily, inherit))',
-        fontSize: 'var(--unifiedmodalfooter-font-size, var(--global-fontSize, inherit))',
-        borderRadius: 'var(--unifiedmodalfooter-border-radius, var(--global-borderRadius, inherit))',
-        boxShadow: 'var(--unifiedmodalfooter-box-shadow, var(--global-boxShadow, none))',
+        fontFamily: 'var(--unifiedmodalfooter-font-family, var(--global-font-family, inherit))',
+        fontSize: 'var(--unifiedmodalfooter-font-size, var(--global-font-size, inherit))',
+        borderRadius: 'var(--unifiedmodalfooter-border-radius, var(--global-border-radius, inherit))',
+        boxShadow: 'var(--unifiedmodalfooter-box-shadow, var(--global-box-shadow, none))',
         ...themeStyle
       }}
       {...props}

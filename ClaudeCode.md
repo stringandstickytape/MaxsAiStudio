@@ -1,6 +1,14 @@
 ﻿// ClaudeCode.md
 # ClaudeCode.md - AiStudio4 Architectural Overview
 
+## 2025-05-01: Dialog Refactor
+
+- All settings dialogs (model add/edit/delete, provider add/edit/delete) now use the UnifiedModalDialog system and its subcomponents (UnifiedModalHeader, UnifiedModalContent, UnifiedModalFooter).
+- The legacy Dialog/DialogContent/DialogHeader/DialogTitle components are deprecated for new work.
+- This ensures consistent theming, accessibility, and modal behavior across the application.
+
+---
+
 ## Core Architecture
 
 AiStudio4 is a hybrid desktop application built using:

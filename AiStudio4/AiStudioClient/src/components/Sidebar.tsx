@@ -38,13 +38,13 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
   return (
     <div className="Sidebar flex flex-col h-full border-r" 
       style={{
-        backgroundColor: 'var(--sidebar-bg, var(--global-backgroundColor, #111827))',
-        borderColor: 'var(--sidebar-border-color, var(--global-borderColor, #1f2937))',
-        color: 'var(--sidebar-text-color, var(--global-textColor, #e5e7eb))',
-        fontFamily: 'var(--sidebar-font-family, var(--global-fontFamily, inherit))',
-        fontSize: 'var(--sidebar-font-size, var(--global-fontSize, 0.875rem))',
-        borderRadius: 'var(--sidebar-border-radius, var(--global-borderRadius, 0))',
-        boxShadow: 'var(--sidebar-box-shadow, var(--global-boxShadow, none))',
+        backgroundColor: 'var(--sidebar-bg, var(--global-background-color, #111827))',
+        borderColor: 'var(--sidebar-border-color, var(--global-border-color, #1f2937))',
+        color: 'var(--sidebar-text-color, var(--global-text-color, #e5e7eb))',
+        fontFamily: 'var(--sidebar-font-family, var(--global-font-family, inherit))',
+        fontSize: 'var(--sidebar-font-size, var(--global-font-size, 0.875rem))',
+        borderRadius: 'var(--sidebar-border-radius, var(--global-border-radius, 0))',
+        boxShadow: 'var(--sidebar-box-shadow, var(--global-box-shadow, none))',
         ...(window?.theme?.Sidebar?.style || {})
       }}
     >
@@ -56,9 +56,9 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
       >
         <div className="Sidebar p-2 px-3 text-sm font-medium border-b" 
           style={{
-            backgroundColor: 'var(--sidebar-bg, var(--global-backgroundColor, rgba(31, 41, 55, 0.7)))',
-            borderColor: 'var(--sidebar-border-color, var(--global-borderColor, rgba(75, 85, 99, 0.5)))',
-            color: 'var(--sidebar-text-color, var(--global-textColor, #d1d5db))'
+            backgroundColor: 'var(--sidebar-bg, var(--global-background-color, rgba(31, 41, 55, 0.7)))',
+            borderColor: 'var(--sidebar-border-color, var(--global-border-color, rgba(75, 85, 99, 0.5)))',
+            color: 'var(--sidebar-text-color, var(--global-text-color, #d1d5db))'
           }}
         >
           Conversation History
