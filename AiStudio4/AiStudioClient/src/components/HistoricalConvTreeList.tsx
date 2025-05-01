@@ -207,18 +207,20 @@ export const HistoricalConvTreeList = () => {
     return (
         <div className="HistoricalConvTreeList flex flex-col h-full" 
             style={{
-                backgroundColor: 'var(--historylist-bg, transparent)',
-                color: 'var(--historylist-text-color, #e5e7eb)',
-                borderColor: 'var(--historylist-border-color, #374151)',
+                backgroundColor: 'var(--historylist-bg, var(--global-backgroundColor, transparent))',
+                color: 'var(--historylist-text-color, var(--global-textColor, #e5e7eb))',
+                borderColor: 'var(--historylist-border-color, var(--global-borderColor, #374151))',
+                fontFamily: 'var(--historylist-font-family, var(--global-fontFamily, inherit))',
+                fontSize: 'var(--historylist-font-size, var(--global-fontSize, inherit))',
                 ...(window?.theme?.HistoricalConvTreeList?.style || {})
             }}
         >
             {/* Search bar at the top */}
             <div className="HistoricalConvTreeList px-3 pt-2 pb-1 backdrop-blur-sm"
                 style={{
-                    backgroundColor: 'var(--historylist-search-bg, rgba(17, 24, 39, 0.9))',
+                    backgroundColor: 'var(--historylist-search-bg, var(--global-backgroundColor, rgba(17, 24, 39, 0.9)))',
                     backdropFilter: 'blur(4px)',
-                    borderColor: 'var(--historylist-border-color, #374151)',
+                    borderColor: 'var(--historylist-border-color, var(--global-borderColor, #374151))',
                     ...(window?.theme?.HistoricalConvTreeList?.style || {})
                 }}
             >
@@ -237,17 +239,17 @@ export const HistoricalConvTreeList = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="HistoricalConvTreeList w-full py-1.5 pl-10 pr-8 text-sm rounded-md border"
                             style={{
-                                backgroundColor: 'var(--historylist-bg, rgba(31, 41, 55, 0.8))',
-                                borderColor: 'var(--historylist-border-color, #374151)',
-                                color: 'var(--historylist-text-color, #e5e7eb)',
-                                caretColor: 'var(--historylist-accent-color, #60a5fa)',
+                                backgroundColor: 'var(--historylist-bg, var(--global-backgroundColor, rgba(31, 41, 55, 0.8)))',
+                                borderColor: 'var(--historylist-border-color, var(--global-borderColor, #374151))',
+                                color: 'var(--historylist-text-color, var(--global-textColor, #e5e7eb))',
+                                caretColor: 'var(--historylist-accent-color, var(--global-primaryColor, #60a5fa))',
                                 '::placeholder': {
-                                    color: 'var(--historylist-text-color, #6b7280)'
+                                    color: 'var(--historylist-text-color, var(--global-textColor, #6b7280))'
                                 },
                                 ':focus': {
                                     outline: 'none',
-                                    borderColor: 'var(--historylist-accent-color, #3b82f6)',
-                                    boxShadow: '0 0 0 1px var(--historylist-accent-color, #3b82f6)'
+                                    borderColor: 'var(--historylist-accent-color, var(--global-primaryColor, #3b82f6))',
+                                    boxShadow: '0 0 0 1px var(--historylist-accent-color, var(--global-primaryColor, #3b82f6))'
                                 },
                                 ...(window?.theme?.HistoricalConvTreeList?.style || {})
                             }}
@@ -316,10 +318,10 @@ export const HistoricalConvTreeList = () => {
                                     style={{ 
                                         display: 'block', 
                                         wordBreak: 'break-word',
-                                        color: 'var(--historylist-text-color, #e5e7eb)',
-                                        backgroundColor: 'var(--historylist-bg, transparent)',
+                                        color: 'var(--historylist-text-color, var(--global-textColor, #e5e7eb))',
+                                        backgroundColor: 'var(--historylist-bg, var(--global-backgroundColor, transparent))',
                                         ':hover': {
-                                            backgroundColor: 'var(--historylist-accent-color, rgba(31, 41, 55, 0.4))',
+                                            backgroundColor: 'var(--historylist-accent-color, var(--global-primaryColor, rgba(31, 41, 55, 0.4)))',
                                             opacity: 0.7
                                         },
                                         ...(window?.theme?.HistoricalConvTreeList?.style || {})

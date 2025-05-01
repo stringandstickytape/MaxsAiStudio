@@ -284,13 +284,13 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
       ref={containerRef}
       className="relative w-full max-w-2xl CommandBar"
       style={{
-        backgroundColor: 'var(--commandbar-bg, #222)',
-        color: 'var(--commandbar-text-color, #eee)',
-        borderColor: 'var(--commandbar-border-color, #555)',
-        borderRadius: '8px',
-        fontFamily: 'var(--commandbar-font-family, inherit)',
-        fontSize: 'var(--commandbar-font-size, 0.875rem)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+        backgroundColor: 'var(--commandbar-bg, var(--global-backgroundColor, #222))',
+        color: 'var(--commandbar-text-color, var(--global-textColor, #eee))',
+        borderColor: 'var(--commandbar-border-color, var(--global-borderColor, #555))',
+        borderRadius: 'var(--commandbar-border-radius, var(--global-borderRadius, 8px))',
+        fontFamily: 'var(--commandbar-font-family, var(--global-fontFamily, inherit))',
+        fontSize: 'var(--commandbar-font-size, var(--global-fontSize, 0.875rem))',
+        boxShadow: 'var(--commandbar-box-shadow, var(--global-boxShadow, 0 4px 12px rgba(0,0,0,0.3)))',
         ...(window?.theme?.CommandBar?.style || {})
       }}
     >
@@ -308,10 +308,10 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={{
-              backgroundColor: 'var(--commandbar-bg, #444)',
-              color: 'var(--commandbar-text-color, #eee)',
-              fontFamily: 'var(--commandbar-font-family, inherit)',
-              fontSize: 'var(--commandbar-font-size, 0.875rem)'
+              backgroundColor: 'var(--commandbar-bg, var(--global-backgroundColor, #444))',
+              color: 'var(--commandbar-text-color, var(--global-textColor, #eee))',
+              fontFamily: 'var(--commandbar-font-family, var(--global-fontFamily, inherit))',
+              fontSize: 'var(--commandbar-font-size, var(--global-fontSize, 0.875rem))'
             }}
             className="w-full shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost input-with-icon pl-9"
         />
@@ -365,9 +365,9 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
         <div
           className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
           style={{
-            backgroundColor: 'var(--commandbar-bg, #333)',
-            borderColor: 'var(--commandbar-border-color, #555)',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+            backgroundColor: 'var(--commandbar-bg, var(--global-backgroundColor, #333))',
+            borderColor: 'var(--commandbar-border-color, var(--global-borderColor, #555))',
+            boxShadow: 'var(--commandbar-box-shadow, var(--global-boxShadow, 0 4px 12px rgba(0,0,0,0.3)))'
           }}
         >
           {Object.entries(groupedCommands).map(([section, commands]) => (
@@ -375,8 +375,8 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
               <div
                 className="px-3 py-2 text-xs font-semibold"
                 style={{
-                  backgroundColor: 'var(--commandbar-bg, #111)',
-                  color: 'var(--commandbar-text-color, #aaa)'
+                  backgroundColor: 'var(--commandbar-bg, var(--global-backgroundColor, #111))',
+                  color: 'var(--commandbar-text-color, var(--global-textColor, #aaa))'
                 }}
               >
                 {section.charAt(0).toUpperCase() + section.slice(1)}
@@ -395,9 +395,9 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                           )}
                           style={{
                             backgroundColor: isSelected
-                              ? 'var(--commandbar-accent-color, #555)'
+                              ? 'var(--commandbar-accent-color, var(--global-primaryColor, #555))'
                               : 'transparent',
-                            color: 'var(--commandbar-text-color, #eee)'
+                            color: 'var(--commandbar-text-color, var(--global-textColor, #eee))'
                           }}
                           onMouseDown={(e) => {
                               e.preventDefault(); 
@@ -432,7 +432,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                   handlePinCommand(e, command);
                                 }}
                                 style={{
-                                  color: 'var(--commandbar-text-color, #888)'
+                                  color: 'var(--commandbar-text-color, var(--global-textColor, #888))'
                                 }}
                                 className={cn(
                                   'p-1 rounded hover:bg-gray-600/50 cursor-pointer',

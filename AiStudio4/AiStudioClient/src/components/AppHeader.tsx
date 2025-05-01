@@ -48,12 +48,12 @@ export function AppHeader({
                 'AppHeader header-section relative z-2 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
             )}
             style={{
-                backgroundColor: 'var(--appheader-bg, #1a1f2c)', // Default dark blue-gray
-                color: 'var(--appheader-text-color, #e0e0e0)',
-                borderColor: 'var(--appheader-border-color, #3a3f4c)',
-                fontFamily: 'var(--appheader-font-family, inherit)',
-                fontSize: 'var(--appheader-font-size, 0.875rem)',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                backgroundColor: 'var(--appheader-bg, var(--global-backgroundColor, #1a1f2c))', // Default dark blue-gray
+                color: 'var(--appheader-text-color, var(--global-textColor, #e0e0e0))',
+                borderColor: 'var(--appheader-border-color, var(--global-borderColor, #3a3f4c))',
+                fontFamily: 'var(--appheader-font-family, var(--global-fontFamily, inherit))',
+                fontSize: 'var(--appheader-font-size, var(--global-fontSize, 0.875rem))',
+                boxShadow: 'var(--appheader-box-shadow, var(--global-boxShadow, 0 2px 4px rgba(0,0,0,0.2)))',
                 ...(window?.theme?.AppHeader?.style || {})
             }}
             >

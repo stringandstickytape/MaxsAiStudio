@@ -309,7 +309,12 @@ export function PinnedShortcuts({
                         orientation === 'vertical' ? 'flex-col items-center' : 'flex-col w-full',
                         className,
                     )}
-                    style={window?.theme?.PinnedShortcuts?.style || {}}
+                    style={{
+                        fontFamily: 'var(--pinnedshortcuts-font-family, var(--global-fontFamily, inherit))',
+                        fontSize: 'var(--pinnedshortcuts-font-size, var(--global-fontSize, inherit))',
+                        color: 'var(--pinnedshortcuts-text-color, var(--global-textColor, #e5e7eb))',
+                        ...(window?.theme?.PinnedShortcuts?.style || {})
+                    }}
                 >
                     {/* Multi-row layout */}
                     {orientation === 'horizontal' && autoFit && rowCount > 1 ? (

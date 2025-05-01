@@ -101,11 +101,11 @@ export const themeableProps = {
 
 Track progress by checking off components as they are updated:
 
-- [ ] AppHeader.tsx
+- [x] AppHeader.tsx
 - [ ] AttachmentPreview.tsx
 - [ ] ChatContainer.tsx
 - [ ] ChatSpace.tsx
-- [ ] CommandBar.tsx
+- [x] CommandBar.tsx
 - [ ] CommandInitializer.tsx
 - [ ] GenericForm.tsx
 - [ ] ConvTreeView.tsx
@@ -124,7 +124,7 @@ Track progress by checking off components as they are updated:
 - [ ] FileAttachment.tsx
 - [ ] FontSizeProvider.tsx
 - [ ] HistoricalConvTree.tsx
-- [ ] HistoricalConvTreeList.tsx
+- [x] HistoricalConvTreeList.tsx
 - [ ] IconSelector.tsx
 - [ ] InputBar.tsx
 - [ ] InputBar/ActionButtons.tsx
@@ -136,7 +136,7 @@ Track progress by checking off components as they are updated:
 - [ ] InputBar/ToolsSection.tsx
 - [ ] LiveStreamToken.tsx
 - [ ] LoadingTimer.tsx
-- [ ] MarkdownPane.tsx
+- [x] MarkdownPane.tsx
 - [ ] MessageAttachments.tsx
 - [ ] ModalManager.tsx
 - [ ] ModelStatusBar.tsx
@@ -146,7 +146,7 @@ Track progress by checking off components as they are updated:
 - [ ] PinnedShortcutButton.tsx
 - [ ] PinnedShortcutDropdown.tsx
 - [ ] PinnedShortcutRow.tsx
-- [ ] PinnedShortcuts.tsx
+- [x] PinnedShortcuts.tsx
 - [ ] RenameShortcutDialog.tsx
 - [ ] ServerDialog.tsx
 - [ ] Sidebar.tsx
