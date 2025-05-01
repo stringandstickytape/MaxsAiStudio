@@ -43,6 +43,8 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
         color: 'var(--sidebar-text-color, var(--global-textColor, #e5e7eb))',
         fontFamily: 'var(--sidebar-font-family, var(--global-fontFamily, inherit))',
         fontSize: 'var(--sidebar-font-size, var(--global-fontSize, 0.875rem))',
+        borderRadius: 'var(--sidebar-border-radius, var(--global-borderRadius, 0))',
+        boxShadow: 'var(--sidebar-box-shadow, var(--global-boxShadow, none))',
         ...(window?.theme?.Sidebar?.style || {})
       }}
     >
@@ -177,6 +179,16 @@ export const themeableProps = {
     cssVar: '--sidebar-accent-color',
     description: 'Sidebar accent color for highlights and status indicators',
     default: '#10b981',
+  },
+  borderRadius: {
+    cssVar: '--sidebar-border-radius',
+    description: 'Sidebar border radius',
+    default: '0',
+  },
+  boxShadow: {
+    cssVar: '--sidebar-box-shadow',
+    description: 'Sidebar box shadow',
+    default: 'none',
   },
   style: {
     description: 'Arbitrary CSS style for Sidebar root',

@@ -109,7 +109,7 @@ Track progress by checking off components as they are updated:
 - [ ] CommandInitializer.tsx
 - [ ] GenericForm.tsx
 - [ ] ConvTreeView.tsx
-- [ ] ConvTreeView/ConvTreeView.tsx
+- [x] ConvTreeView/ConvTreeView.tsx
 - [ ] ConvTreeView/EmptyTreeView.tsx
 - [ ] ConvTreeView/TreeControls.tsx
 - [ ] ConvView.tsx (already implemented)
@@ -140,7 +140,7 @@ Track progress by checking off components as they are updated:
 - [ ] MessageAttachments.tsx
 - [ ] ModalManager.tsx
 - [ ] ModelStatusBar.tsx
-- [ ] NavigationContainer.tsx
+- [x] NavigationContainer.tsx
 - [ ] PanelContainerLayout.tsx
 - [ ] PanelManager.tsx
 - [ ] PinnedShortcutButton.tsx
@@ -149,10 +149,10 @@ Track progress by checking off components as they are updated:
 - [x] PinnedShortcuts.tsx
 - [ ] RenameShortcutDialog.tsx
 - [ ] ServerDialog.tsx
-- [ ] Sidebar.tsx
+- [x] Sidebar.tsx
 - [ ] StatusMessage.tsx
 - [ ] SystemPromptCard.tsx
-- [ ] SystemPromptComponent.tsx
+- [x] SystemPrompt/SystemPromptComponent.tsx
 - [ ] SystemPromptEditor.tsx
 - [ ] SystemPromptLibrary.tsx
 - [ ] ToolDialog.tsx

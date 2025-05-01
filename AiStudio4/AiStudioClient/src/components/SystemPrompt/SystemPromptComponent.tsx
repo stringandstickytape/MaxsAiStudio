@@ -27,6 +27,26 @@ export const themeableProps = {
     description: 'Accent color for highlights and active elements',
     default: '#3b82f6',
   },
+  borderRadius: {
+    cssVar: '--systemprompt-border-radius',
+    description: 'Border radius for the system prompt component',
+    default: '8px',
+  },
+  boxShadow: {
+    cssVar: '--systemprompt-box-shadow',
+    description: 'Box shadow for the system prompt component',
+    default: '0 4px 12px rgba(0,0,0,0.3)',
+  },
+  fontFamily: {
+    cssVar: '--systemprompt-font-family',
+    description: 'Font family for the system prompt component',
+    default: 'inherit',
+  },
+  fontSize: {
+    cssVar: '--systemprompt-font-size',
+    description: 'Font size for the system prompt component',
+    default: '0.875rem',
+  },
   // Additional properties needed for this component's unique features
   popupBackground: {
     cssVar: '--systemprompt-popup-bg',
@@ -304,11 +324,13 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{
-                backgroundColor: 'var(--systemprompt-bg, #2d3748)',
-                color: 'var(--systemprompt-text-color, #e2e8f0)',
-                borderColor: 'var(--systemprompt-border-color, #4a5568)',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                backgroundColor: 'var(--systemprompt-bg, var(--global-backgroundColor, #2d3748))',
+                color: 'var(--systemprompt-text-color, var(--global-textColor, #e2e8f0))',
+                borderColor: 'var(--systemprompt-border-color, var(--global-borderColor, #4a5568))',
+                fontFamily: 'var(--systemprompt-font-family, var(--global-fontFamily, inherit))',
+                fontSize: 'var(--systemprompt-font-size, var(--global-fontSize, 0.875rem))',
+                borderRadius: 'var(--systemprompt-border-radius, var(--global-borderRadius, 8px))',
+                boxShadow: 'var(--systemprompt-box-shadow, var(--global-boxShadow, 0 4px 12px rgba(0,0,0,0.3)))',
                 ...(window?.theme?.SystemPromptComponent?.style || {})
             }}
         >

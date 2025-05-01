@@ -129,6 +129,12 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
     return (
         <div className="ConvTreeView flex flex-col h-full w-full"
             style={{
+                backgroundColor: 'var(--convtree-bg, var(--global-backgroundColor, #111827))',
+                color: 'var(--convtree-text-color, var(--global-textColor, #e5e7eb))',
+                fontFamily: 'var(--convtree-font-family, var(--global-fontFamily, inherit))',
+                fontSize: 'var(--convtree-font-size, var(--global-fontSize, 0.875rem))',
+                borderRadius: 'var(--convtree-border-radius, var(--global-borderRadius, 0))',
+                boxShadow: 'var(--convtree-box-shadow, var(--global-boxShadow, none))',
                 ...(window?.theme?.ConvTreeView?.style || {})
             }}
         >
@@ -144,7 +150,7 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                     className="ConvTreeView w-full h-full"
                     key={`tree-${convId}-${updateKey}`}
                     style={{
-                        backgroundColor: 'var(--convtree-bg, #111827)'
+                        backgroundColor: 'var(--convtree-bg, var(--global-backgroundColor, #111827))'
                     }}
                 />
 
@@ -195,6 +201,26 @@ export const themeableProps = {
         cssVar: '--convtree-accent-color',
         description: 'Conversation tree accent color for highlights and active elements',
         default: '#4f46e5',
+    },
+    borderRadius: {
+        cssVar: '--convtree-border-radius',
+        description: 'Conversation tree border radius',
+        default: '0',
+    },
+    boxShadow: {
+        cssVar: '--convtree-box-shadow',
+        description: 'Conversation tree box shadow',
+        default: 'none',
+    },
+    fontFamily: {
+        cssVar: '--convtree-font-family',
+        description: 'Conversation tree font family',
+        default: 'inherit',
+    },
+    fontSize: {
+        cssVar: '--convtree-font-size',
+        description: 'Conversation tree font size',
+        default: '0.875rem',
     },
     style: {
         description: 'Arbitrary CSS style for ConvTreeView root',
