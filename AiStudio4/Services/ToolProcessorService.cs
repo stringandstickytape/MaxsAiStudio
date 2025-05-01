@@ -238,14 +238,14 @@ namespace AiStudio4.Services
                 // Collect all tool names for the ToolRequested property
                 foreach (var tool in response.ToolResponseSet.Tools)
                 {
-                    //if (toolRequestInfo.Length > 0)
-                    //    toolRequestInfo.AppendLine();
-                    //toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
+                    if (toolRequestInfo.Length > 0)
+                        toolRequestInfo.AppendLine();
+                    toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
                 }
             }
 
             var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
-
+             
             return new ToolExecutionResult
             {
                 ResponseText = collatedResponse.ToString(),

@@ -284,9 +284,7 @@ namespace AiStudio4.Services
                         TokenUsage = response.TokenUsage
                     });
 
-                    request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-    userMessage: $"{response.ResponseText}\n{toolResult.ToolRequested}", parentMessageId: request.MessageId,
-    attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
 
                     continueLoop = toolResult.ContinueProcessing;
 
@@ -301,8 +299,14 @@ namespace AiStudio4.Services
                         finalAttachments.AddRange(toolResult.Attachments);
                     }
 
+                    bool cont = continueLoop && currentIteration < MAX_ITERATIONS;
+
+                    request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                        userMessage: $"{response.ResponseText}\n{toolResult.ToolRequested}{(cont ? "" : $"\n\n{toolResult.ToolResult}")}", parentMessageId: request.MessageId,
+                        attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+
                     // If the loop should continue, add a user message to prompt the next step
-                    if (continueLoop && currentIteration < MAX_ITERATIONS)
+                    if (cont)
                     {
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
@@ -314,7 +318,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            Content = toolResult.ToolResult,
+                            Content = $"{response.ResponseText}\n{toolResult.ToolRequested}{(cont ? "" : $"\n\n{toolResult.ToolResult}")}",
                             ParentId = newAssistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
