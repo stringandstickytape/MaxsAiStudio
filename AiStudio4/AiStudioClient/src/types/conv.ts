@@ -1,4 +1,4 @@
-
+﻿
 import { Attachment } from './attachment';
 
 export interface Message {
@@ -20,6 +20,7 @@ export interface Message {
     };
     modelGuid?: string;
   } | null;
+  cumulativeCost?: number | null;
   durationMs?: number | null; // Ensure it can be null or number
 }
 

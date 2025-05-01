@@ -117,10 +117,11 @@ export const ConvView = ({
       timestamp: msg.timestamp,
       parentId: msg.parentId,
       durationMs: msg.durationMs,
-      costInfo: msg.costInfo,
+        costInfo: msg.costInfo,
+        cumulativeCost: msg.cumulativeCost,
       attachments: msg.attachments
     }));
-
+      console.log('messages are:', messages);
     // Get the starting message ID
     const startingMessageId = streamTokens.length > 0
       ? conv.messages[conv.messages.length - 1].id

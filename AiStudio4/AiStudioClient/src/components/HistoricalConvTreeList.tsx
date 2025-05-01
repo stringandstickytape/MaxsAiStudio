@@ -142,6 +142,7 @@ export const HistoricalConvTreeList = () => {
                             parentId: message.parentId,
                             timestamp: message.timestamp,
                             costInfo: message.costInfo,
+                            cumulativeCost: message.cumulativeCost,
                             attachments: message.attachments,
                             durationMs: message.durationMs
                         },

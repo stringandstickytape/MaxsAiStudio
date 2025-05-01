@@ -45,6 +45,7 @@ namespace AiStudio4.Services
                             // Note: We're no longer sending children arrays to the client
                             tokenUsage = update.TokenUsage,
                             costInfo = update.CostInfo,
+                            cumulativeCost = update.CumulativeCost,
                             attachments = update.Attachments,
                             durationMs = update.DurationMs
                         }

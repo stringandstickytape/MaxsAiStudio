@@ -66,6 +66,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         timestamp: content.timestamp || Date.now(),
                         durationMs: content.durationMs, // Ensure this is explicitly included
                         costInfo: content.costInfo || null,
+                        cumulativeCost: content.cumulativeCost,
                         attachments: attachments || undefined
                     },
                     slctdMsgId: isAiMessage ? content.id : false,
@@ -105,6 +106,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         parentId: null,
                         timestamp: content.timestamp || Date.now(),
                         costInfo: content.costInfo || null,
+                        cumulativeCost: content.cumulativeCost,
                     },
                 });
                 setActiveConv({ convId, slctdMsgId: content.id });
@@ -130,6 +132,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     parentId: null,
                     timestamp: rootMsg.timestamp || Date.now(),
                     costInfo: rootMsg.costInfo || null,
+                    cumulativeCost: rootMsg.cumulativeCost,
                 },
             });
 
@@ -153,6 +156,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                             timestamp: m.timestamp || Date.now(),
                             durationMs: m.durationMs,
                             costInfo: m.costInfo || null,
+                            cumulativeCost: m.cumulativeCost,
                             attachments: attachments || undefined
                         },
                     });
@@ -195,6 +199,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     durationMs: message.durationMs, // Explicitly include durationMs
                     parentId: message.parentId || s.slctdMsgId || null,
                     costInfo: message.costInfo,
+                    cumulativeCost: message.cumulativeCost,
                     attachments: message.attachments
                 };
                 

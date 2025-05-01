@@ -197,7 +197,7 @@ export class WebSocketService {
                     type: 'end',
                 });
             } else if (message.messageType === 'conv') {
-                console.log('conv:upd dispatching');
+                console.log('conv:upd dispatching :', message.content);
                 dispatchWebSocketEvent('conv:upd', {
                     type: 'message',
                     content: message.content,

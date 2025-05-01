@@ -53,7 +53,8 @@ namespace AiStudio4.Services
                     costInfo = msg.CostInfo,
                     attachments = msg.Attachments,
                     timestamp = new DateTimeOffset(msg.Timestamp).ToUnixTimeMilliseconds(),
-                    durationMs = msg.DurationMs
+                    durationMs = msg.DurationMs,
+                    cumulativeCost = msg.CumulativeCost,
                 }).ToList();
 
                 return JsonConvert.SerializeObject(new
