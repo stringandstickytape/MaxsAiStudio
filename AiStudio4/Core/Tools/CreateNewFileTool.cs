@@ -114,12 +114,7 @@ namespace AiStudio4.Core.Tools
                     overallSuccess = false;
                 }
                 
-                // Validate file doesn't already exist
-                if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
-                {
-                    _validationErrorMessages.AppendLine($"Error: File '{filePath}' already exists.");
-                    overallSuccess = false;
-                }
+                // If the file already exists, we'll take this as a replace
             }
             catch (JsonException jsonEx)
             {

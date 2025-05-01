@@ -11,6 +11,8 @@ import { useToolStore } from '@/stores/useToolStore';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 import { commandRegistry } from '@/services/commandRegistry';
+import { createApiRequest } from '@/utils/apiUtils';
+import { useConvStore } from '@/stores/useConvStore';
 
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
@@ -18,6 +20,32 @@ export function CommandInitializationPlugin() {
   const { togglePanel } = usePanelStore();
   const { openModal } = useModalStore();
   const { setActiveTools } = useToolStore();
+  const { activeConvId } = useConvStore();
+  
+  // Apply default system prompt tools when a new conversation is created
+  useEffect(() => {
+    if (activeConvId) {
+      // Get the default system prompt
+      const applyDefaultPromptTools = async () => {
+        try {
+          const response = await createApiRequest('/api/getDefaultSystemPrompt', 'POST')({});
+          if (response.success && response.prompt) {
+            const defaultPrompt = response.prompt;
+            
+            // Apply associated tools if available
+            if (defaultPrompt.associatedTools && defaultPrompt.associatedTools.length > 0) {
+              setActiveTools(defaultPrompt.associatedTools);
+              console.log(`Applied ${defaultPrompt.associatedTools.length} tools from default system prompt for new conversation`);
+            }
+          }
+        } catch (err) {
+          console.error('Failed to apply default prompt tools for new conversation:', err);
+        }
+      };
+      
+      applyDefaultPromptTools();
+    }
+  }, [activeConvId, setActiveTools]);
   
   useEffect(() => {
     if (systemPrompts.length > 0) {

@@ -35,7 +35,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             "setDefaultSystemPrompt",
             "getConvSystemPrompt",
             "setConvSystemPrompt",
-            "clearConvSystemPrompt"
+            "clearConvSystemPrompt",
+            "getDefaultSystemPrompt"
         };
 
         public override async Task<string> HandleAsync(string clientId, string requestType, JObject requestObject)
@@ -53,12 +54,26 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     "getConvSystemPrompt" => await HandleGetConvSystemPromptRequest(requestObject),
                     "setConvSystemPrompt" => await HandleSetConvSystemPromptRequest(requestObject),
                     "clearConvSystemPrompt" => await HandleClearConvSystemPromptRequest(requestObject),
+                    "getDefaultSystemPrompt" => await HandleGetDefaultSystemPromptRequest(),
                     _ => SerializeError($"Unsupported request type: {requestType}")
                 };
             }
             catch (Exception ex)
             {
                 return SerializeError($"Error handling {requestType} request: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleGetDefaultSystemPromptRequest()
+        {
+            try
+            {
+                var prompt = await _systemPromptService.GetDefaultSystemPromptAsync();
+                return JsonConvert.SerializeObject(new { success = true, prompt });
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error retrieving system prompts: {ex.Message}");
             }
         }
 

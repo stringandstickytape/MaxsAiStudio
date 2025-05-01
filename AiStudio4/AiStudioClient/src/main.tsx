@@ -3,6 +3,8 @@ import './index.css';
 import App from './App.tsx';
 import ThemeManager from './lib/ThemeManager';
 import { useThemeStore, debugThemeStore, applyRandomTheme, addThemeToStore } from './stores/useThemeStore';
+import { useSystemPromptStore } from './stores/useSystemPromptStore';
+import { useToolStore } from './stores/useToolStore';
 import { createApiRequest } from '@/utils/apiUtils';
 
 // Add TypeScript declarations for window object extensions
@@ -37,6 +39,29 @@ window.applyRandomTheme = applyRandomTheme;
 window.addThemeToStore = addThemeToStore;
 window.createTheme = createTheme;
 
+// Function to load the default system prompt and its associated tools
+async function loadDefaultSystemPromptAndTools() {
+  try {
+    // Get the default system prompt
+    const defaultPromptResp = await createApiRequest('/api/getDefaultSystemPrompt', 'POST')({});
+    if (defaultPromptResp.success && defaultPromptResp.prompt) {
+      const defaultPrompt = defaultPromptResp.prompt;
+      console.log('Loaded default system prompt:', defaultPrompt.title);
+      
+      // Set the default prompt in the store
+      useSystemPromptStore.getState().setDefaultPromptId(defaultPrompt.guid);
+      
+      // Apply associated tools if available
+      if (defaultPrompt.associatedTools && defaultPrompt.associatedTools.length > 0) {
+        useToolStore.getState().setActiveTools(defaultPrompt.associatedTools);
+        console.log(`Applied ${defaultPrompt.associatedTools.length} tools from default system prompt`);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load default system prompt and tools at startup:', err);
+  }
+}
+
 (async () => {
   await ThemeManager.discoverThemes();
   console.log('Theme schema:', ThemeManager.getSchema());
@@ -60,6 +85,9 @@ window.createTheme = createTheme;
   } catch (err) {
     console.error('Failed to load and apply active theme at startup:', err);
   }
+  
+  // Load default system prompt and its associated tools
+  await loadDefaultSystemPromptAndTools();
 
   try {
     // Render the app
