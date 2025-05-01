@@ -274,7 +274,7 @@ namespace AiStudio4.Services
                     {
                         ConvId = request.BranchedConv.ConvId,
                         MessageId = newAssistantMessageId,
-                        Content = $"{response.ResponseText}\n{toolResult.ToolRequested}",
+                        Content = $"{toolResult.ToolRequested}",
                         ParentId = request.MessageId,
                         Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                         Source = "assistant",

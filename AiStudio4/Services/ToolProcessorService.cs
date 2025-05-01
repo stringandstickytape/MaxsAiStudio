@@ -168,16 +168,16 @@ namespace AiStudio4.Services
 
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
 
-                                if(!string.IsNullOrEmpty(toolResponse.ToolName) && toolResponse.ToolName != "Think")
+                                if(!string.IsNullOrEmpty(toolResponse.ToolName))
                                 {
-                                    toolResultMessageContent += $"Tool Use: {toolResponse.ToolName}\n";
+                                    toolResultMessageContent += $"{toolResponse.ToolName}";
                                 }
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
                                 {
                                     if(string.IsNullOrEmpty(tool.OutputFileType))
-                                        toolResultMessageContent += $"{builtinToolResult.ResultMessage}\n\n";
-                                    else toolResultMessageContent += $"Tool Output:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
+                                        toolResultMessageContent += $": {builtinToolResult.ResultMessage}\n\n";
+                                    else toolResultMessageContent += $" Output:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
                                 }
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.StatusMessage))
@@ -238,9 +238,9 @@ namespace AiStudio4.Services
                 // Collect all tool names for the ToolRequested property
                 foreach (var tool in response.ToolResponseSet.Tools)
                 {
-                    if (toolRequestInfo.Length > 0)
-                        toolRequestInfo.AppendLine();
-                    toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
+                    //if (toolRequestInfo.Length > 0)
+                    //    toolRequestInfo.AppendLine();
+                    //toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
                 }
             }
 
