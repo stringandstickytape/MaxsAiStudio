@@ -217,7 +217,7 @@ namespace AiStudio4.Core.Tools
                 SendStatusUpdate("GitCommit completed with errors. See details.");
             }
 
-            return CreateResult(true, true, resultJson.ToString(), overallSuccess ? "Commit successful." : "Commit failed.");
+            return CreateResult(true, continueProcessing: false, resultJson.ToString(), overallSuccess ? "Commit successful." : "Commit failed.");
         }
 
         /// <summary>
