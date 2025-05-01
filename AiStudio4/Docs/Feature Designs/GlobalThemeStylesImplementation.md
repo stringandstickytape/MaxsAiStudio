@@ -101,64 +101,14 @@ export const themeableProps = {
 
 Track progress by checking off components as they are updated:
 
-- [x] AppHeader.tsx
-- [ ] AttachmentPreview.tsx
-- [ ] ChatContainer.tsx
-- [ ] ChatSpace.tsx
-- [x] CommandBar.tsx
-- [ ] CommandInitializer.tsx
-- [ ] GenericForm.tsx
-- [ ] ConvTreeView.tsx
-- [x] ConvTreeView/ConvTreeView.tsx
-- [ ] ConvTreeView/EmptyTreeView.tsx
-- [ ] ConvTreeView/TreeControls.tsx
-- [ ] ConvView.tsx (already implemented)
-- [ ] ConvView/ConversationControls.tsx
-- [ ] ConvView/MessageActions.tsx
-- [ ] ConvView/MessageEditor.tsx
-- [ ] ConvView/MessageItem.tsx
-- [ ] ConvView/MessageMetadata.tsx
-- [ ] ConvView/ScrollManager.tsx
-- [ ] ConvView/StreamingMessage.tsx
-- [ ] DragDropZone.tsx
-- [ ] FileAttachment.tsx
-- [ ] FontSizeProvider.tsx
-- [ ] HistoricalConvTree.tsx
-- [x] HistoricalConvTreeList.tsx
-- [ ] IconSelector.tsx
-- [ ] InputBar.tsx
-- [ ] InputBar/ActionButtons.tsx
-- [ ] InputBar/AttachmentSection.tsx
-- [ ] InputBar/MessageInputArea.tsx
-- [ ] InputBar/ModelStatusSection.tsx
-- [ ] InputBar/StatusSection.tsx
-- [ ] InputBar/SystemPromptSection.tsx
-- [ ] InputBar/ToolsSection.tsx
-- [ ] LiveStreamToken.tsx
-- [ ] LoadingTimer.tsx
-- [x] MarkdownPane.tsx
-- [ ] MessageAttachments.tsx
-- [ ] ModalManager.tsx
-- [ ] ModelStatusBar.tsx
-- [x] NavigationContainer.tsx
-- [ ] PanelContainerLayout.tsx
-- [ ] PanelManager.tsx
-- [ ] PinnedShortcutButton.tsx
-- [ ] PinnedShortcutDropdown.tsx
-- [ ] PinnedShortcutRow.tsx
-- [x] PinnedShortcuts.tsx
-- [ ] RenameShortcutDialog.tsx
-- [ ] ServerDialog.tsx
-- [x] Sidebar.tsx
-- [ ] StatusMessage.tsx
-- [ ] SystemPromptCard.tsx
-- [x] SystemPrompt/SystemPromptComponent.tsx
-- [ ] SystemPromptEditor.tsx
-- [ ] SystemPromptLibrary.tsx
-- [ ] ToolDialog.tsx
-- [ ] ToolEditor.tsx
-- [ ] ToolPanel.tsx
-- [ ] ToolSelector.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ConvTreeView.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ConvView.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\InputBar.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\InputBar\InputBar.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalContent.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalDialog.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalFooter.tsx
+C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\ui\unified-modal-dialog\UnifiedModalHeader.tsx
 
 ## Implementation Notes
 
