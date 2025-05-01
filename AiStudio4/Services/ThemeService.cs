@@ -135,8 +135,13 @@ namespace AiStudio4.Services
                 Created = DateTime.UtcNow.ToString("o"),
                 LastModified = DateTime.UtcNow.ToString("o"),
                 PreviewColors = new List<string> { "#1a1a1a", "#f9e1e9", "#ff8fb1" },
+                FontCdnUrl = "", // Empty by default
                 ThemeJson = new Dictionary<string, Dictionary<string, string>>
                 {
+                    ["global"] = new Dictionary<string, string>
+                    {
+                        ["fontCdnUrl"] = ""
+                    },
                     ["InputBar"] = new Dictionary<string, string>
                     {
                         ["backgroundColor"] = "#1a1a1a"
