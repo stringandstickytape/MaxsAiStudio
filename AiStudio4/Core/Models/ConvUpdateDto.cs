@@ -1,6 +1,5 @@
 ﻿using AiStudio4.DataModels;
 using SharedClasses.Providers;
-using System.Collections.Generic;
 
 namespace AiStudio4.Core.Models
 {
@@ -17,11 +16,5 @@ namespace AiStudio4.Core.Models
         public TokenCost CostInfo { get; set; }
         public decimal CumulativeCost { get; set; }
         public TokenUsage TokenUsage { get; set; }
-    }
-
-    public class StreamingUpdateDto
-    {
-        public string MessageType { get; set; }
-        public string Content { get; set; }
     }
 }
