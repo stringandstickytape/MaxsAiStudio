@@ -180,7 +180,7 @@ class ThemeManager {
 
   /**
    * Apply a theme by injecting CSS variables into the document.
-   * Global properties are injected to :root, component properties to their respective classes.
+   * Both global and component-specific properties are injected into each component's class.
    */
   public applyTheme(theme: Theme): void {
     console.log('[ThemeManager] Applying theme:', theme);
@@ -191,36 +191,40 @@ class ThemeManager {
       this.currentThemeName = theme.name;
     }
     
-    // Handle global properties - inject to :root
-    if (theme.global || theme.name) {
-      css += ':root {\n';
-      
-      // Add theme name as a CSS variable if provided
-      if (theme.name) {
-        css += `  --global-theme-name: "${theme.name}";\n`;
-      }
-      
-      // Add other global properties
-      if (theme.global && this.schema.global) {
-        for (const prop in theme.global) {
-          const value = theme.global[prop];
-          const cssVar = this.schema.global[prop]?.cssVar;
-          if (cssVar) {
-            css += `  ${cssVar}: ${value};\n`;
-          }
+    // Collect global variables
+    const globalVars: Array<[string, string]> = [];
+    
+    // Add theme name as a global variable if provided
+    if (theme.name) {
+      globalVars.push([`--global-theme-name`, `"${theme.name}"`]);
+    }
+    
+    // Add other global properties
+    if (theme.global && this.schema.global) {
+      for (const prop in theme.global) {
+        const value = theme.global[prop];
+        const cssVar = this.schema.global[prop]?.cssVar;
+        if (cssVar) {
+          globalVars.push([cssVar, value]);
         }
       }
-      
-      css += '}\n\n';
     }
     
     // Handle component-specific properties
     for (const component in theme) {
-      if (component === 'global' || component === 'name') continue; // Skip global and name, already handled
+      if (component === 'global' || component === 'name') continue; // Skip global and name
       
       const compTheme = theme[component];
       const schemaProps = this.schema[component] || {};
+      
       css += `.${component} {\n`;
+      
+      // Add global variables to each component
+      for (const [cssVar, value] of globalVars) {
+        css += `  ${cssVar}: ${value};\n`;
+      }
+      
+      // Add component-specific variables
       for (const prop in compTheme) {
         const value = compTheme[prop];
         const cssVar = schemaProps[prop]?.cssVar;
@@ -228,6 +232,7 @@ class ThemeManager {
           css += `  ${cssVar}: ${value};\n`;
         }
       }
+      
       css += '}\n';
     }
 
