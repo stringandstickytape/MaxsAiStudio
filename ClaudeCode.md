@@ -14,9 +14,9 @@ AiStudio4 is a hybrid desktop application built using:
     *   **Web Server (Kestrel):** An embedded web server (`WebServer.cs`) hosts the SPA and potentially provides an API endpoint for the frontend.
     *   **SPA Proxy:** (`Microsoft.AspNetCore.SpaProxy`) Facilitates development-time hosting of the SPA.
 
-## Frontend (AiStudio4.Web)
+## Frontend (AiStudioClient)
 
-*   **Technology:** Based on the project setup (`AiStudio4.csproj`), this is likely a **React/TypeScript** SPA located in the `AiStudio4.Web` directory.
+*   **Technology:** Based on the project setup (`AiStudio4.csproj`), this is likely a **React/TypeScript** SPA located in the `AiStudioClient` directory.
 *   **Build:** Built using npm (as indicated by the `NpmBuild` target in the `.csproj`). The built static assets (`dist` folder) are embedded as resources in the main application assembly and potentially copied to the output directory.
 *   **Communication:** Interacts with the C# backend primarily via **WebSockets** (`WebSocketServer.cs`, `WebSocketMessageHandler.cs`, `IWebSocketNotificationService`) for real-time updates and potentially standard HTTP requests to the embedded Kestrel server.
 *   **State Management:**
