@@ -1,5 +1,5 @@
-
-import React, { useEffect } from 'react';
+﻿
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Save, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 
 export type FieldType = 'text' | 'password' | 'textarea' | 'number' | 'checkbox' | 'select' | 'color';
@@ -38,9 +39,10 @@ interface GenericFormProps {
   uuidField?: string;
   layout?: 'single' | 'grid';
   className?: string;
+  title?: string;
 }
 
-export const GenericForm: React.FC<GenericFormProps> = ({
+export function GenericForm({
   fields,
   initialValues,
   onSubmit,
@@ -52,7 +54,9 @@ export const GenericForm: React.FC<GenericFormProps> = ({
   uuidField = 'guid',
   layout = 'single',
   className,
-}) => {
+  title,
+}: GenericFormProps) {
+  const [error, setError] = useState<string | null>(null);
   
   const getDefaultValues = () => {
     const defaultValues: Record<string, any> = {};
@@ -84,10 +88,16 @@ export const GenericForm: React.FC<GenericFormProps> = ({
   }, [initialValues, form]);
 
   const handleSubmit = async (data: any) => {
-    if (generateUuid && !data[uuidField]) {
-      data[uuidField] = uuidv4();
+    setError(null);
+    try {
+      if (generateUuid && !data[uuidField]) {
+        data[uuidField] = uuidv4();
+      }
+      await onSubmit(data);
+    } catch (err: any) {
+      console.error('Error in form submission:', err);
+      setError(err?.message || 'Failed to save data');
     }
-    await onSubmit(data);
   };
 
   
@@ -341,31 +351,64 @@ export const GenericForm: React.FC<GenericFormProps> = ({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className={`space-y-4 ${className || ''}`}>
-        {renderFormFields()}
-
-        <div className="flex justify-end gap-2 pt-4">
+    <div className="h-full flex-col-full">
+      {title && (
+        <div className="flex-none flex-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-100">{title}</h2>
           {onCancel && (
             <Button
-              type="button"
+              variant="ghost"
+              size="icon"
               onClick={onCancel}
-              variant="outline"
+              className="text-gray-400 hover:text-gray-100"
               disabled={isProcessing}
-              className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
             >
-              {cancelButtonText}
+              <X className="h-4 w-4" />
             </Button>
           )}
-          <Button 
-            type="submit" 
-            disabled={isProcessing} 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            {isProcessing ? 'Processing...' : submitButtonText}
-          </Button>
         </div>
-      </form>
-    </Form>
+      )}
+
+      {error && <div className="bg-red-950/30 text-red-400 p-3 rounded-md border border-red-800/50 mb-4">{error}</div>}
+
+      <Form {...form} className="flex-1 overflow-hidden">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className={`flex flex-col h-full ${className || ''}`}>
+          <div className="space-y-6 flex-1 overflow-y-auto pr-2">
+            {renderFormFields()}
+          </div>
+
+          <div className="flex-none mt-6 space-x-3 flex justify-end">
+            {onCancel && !title && (
+              <Button
+                type="button"
+                onClick={onCancel}
+                variant="outline"
+                disabled={isProcessing}
+                className="btn-secondary"
+              >
+                {cancelButtonText}
+              </Button>
+            )}
+            <Button 
+              type="submit" 
+              disabled={isProcessing} 
+              className="btn-primary"
+            >
+              {isProcessing ? (
+                <span className="flex items-center gap-2">
+                  <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-white rounded-full" />
+                  Processing...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Save className="h-4 w-4" />
+                  {submitButtonText}
+                </span>
+              )}
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
-};
+}
