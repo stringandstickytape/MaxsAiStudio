@@ -11,7 +11,7 @@ MaxsFileList format:
 Lists all files with full absolute paths, demarcated either side by backticks, thus:
 
 ```
-`C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\AiStudio4.Web\src\App.tsx`
+`C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\AiStudioClient\src\App.tsx`
 `...`
 ```
 

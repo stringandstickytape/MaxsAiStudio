@@ -234,6 +234,6 @@ If you need to ReadFiles, read all the files you need in one go, if possible. Do
 
 All code files should have a comment on the first line indicating the filename relative to the project root.  For instance:
 
-// AiStudio4.Web\src\components\diagrams\codeBlockRendererRegistry.ts
+// AiStudioClient\src\components\diagrams\codeBlockRendererRegistry.ts
 
 YOU MUST ALWAYS RESPOND WITH ONE OR MORE REAL TOOL USES, NEVER PLAINTEXT.

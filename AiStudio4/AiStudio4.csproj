@@ -26,19 +26,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AiTool3\AiTool3.csproj" />
     <ProjectReference Include="..\SharedClasses\SharedClasses.csproj" />
   </ItemGroup>
 
 
 	<ItemGroup>
-		<EmbeddedResource Include="..\AiStudio4.Web\dist\**\*.*">
-			<LogicalName>AiStudio4.WebviewResources.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		<EmbeddedResource Include="..\AiStudioClient\dist\**\*.*">
+			<LogicalName>AiStudioClientviewResources.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="AiStudio4.Web\dist\**\*.*">
+		<None Update="AiStudioClient\dist\**\*.*">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 
 		</None>
@@ -46,26 +45,27 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.tsx" />
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.ts" />
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.jsx" />
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.js" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.tsx" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.ts" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.jsx" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.js" />
 		<Compile Remove="AiServices\MockAiService.cs" />
 		<Content Include="@(TypeScriptFiles)">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>
-		<Content Include="AiStudio4.Web\src\components\LoadingTimer.css" />
+		<Content Include="AiStudioClient\src\components\LoadingTimer.css" />
 		<Content Include="Icon\icon.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="AiStudio4.Web\src\services\websocket\" />
-	  <Folder Include="AiStudio4.Web\src\store\" />
+	  <Folder Include="AiStudioClient\dist\" />
+	  <Folder Include="AiStudioClient\src\services\websocket\" />
+	  <Folder Include="AiStudioClient\src\store\" />
 	</ItemGroup>
 
-	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun" Inputs="@(TypeScriptFiles)" Outputs="$(ProjectDir)AiStudio4.Web\dist\index.html">
+	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun" Inputs="@(TypeScriptFiles)" Outputs="$(ProjectDir)AiStudioClient\dist\index.html">
 		<Message Text="Running npm build..." Importance="high" />
-		<Exec Command="xcopy &quot;$(ProjectDir)AiStudio4.Web\dist\*&quot; &quot;$(TargetDir)&quot; /E /I /Y" />
+		<Exec Command="xcopy &quot;$(ProjectDir)AiStudioClient\dist\*&quot; &quot;$(TargetDir)&quot; /E /I /Y" />
 	</Target>
 
 

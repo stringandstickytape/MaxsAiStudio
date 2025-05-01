@@ -60,9 +60,9 @@ const resp = await fetch('/api/endpoint', ...);
 5. **Test** all affected flows for regressions (**Ongoing; no major regressions found**)
 
 ### Remaining Direct `fetch` Usages (as of 2025-04)
-- `AiStudio4.Web/src/commands/coreCommands.ts`
-- `AiStudio4.Web/src/components/FileAttachment.tsx`
-- `AiStudio4.Web/src/stores/usePinnedCommandsStore.ts`
+- `AiStudioClient/src/commands/coreCommands.ts`
+- `AiStudioClient/src/components/FileAttachment.tsx`
+- `AiStudioClient/src/stores/usePinnedCommandsStore.ts`
 
 These should be migrated to `createApiRequest` or `apiClient` unless there is a technical reason not to.
 
@@ -97,9 +97,9 @@ These should be migrated to `createApiRequest` or `apiClient` unless there is a 
 - Legacy code may still contain direct `fetch` or inconsistent patterns; ongoing vigilance required
 
 ## References
-- [`apiClient.ts`](../../AiStudio4.Web/src/services/api/apiClient.ts)
-- [`apiUtils.ts`](../../AiStudio4.Web/src/utils/apiUtils.ts)
-- [`createApiRequest` usage examples](../../AiStudio4.Web/src/hooks/)
+- [`apiClient.ts`](../../AiStudioClient/src/services/api/apiClient.ts)
+- [`apiUtils.ts`](../../AiStudioClient/src/utils/apiUtils.ts)
+- [`createApiRequest` usage examples](../../AiStudioClient/src/hooks/)
 
 ---
 

@@ -11,13 +11,13 @@
     *   Run `pnpm install` to update dependencies.
 
 2.  **Zustand Store:**
-    *   Create a new zustand store: `AiStudio4/AiStudio4.Web/src/stores/useJumpToEndStore.ts`.
+    *   Create a new zustand store: `AiStudio4/AiStudioClient/src/stores/useJumpToEndStore.ts`.
     *   Store State:
         *   `jumpToEndEnabled`: boolean (default: `true`)
     *   Store Actions:
         *   `setJumpToEndEnabled(enabled: boolean)`: Updates the state.
 
-3.  **ConvView Component (`AiStudio4/AiStudio4.Web/src/components/ConvView.tsx`):**
+3.  **ConvView Component (`AiStudio4/AiStudioClient/src/components/ConvView.tsx`):**
     *   Remove all imports and usage of `StickToBottom`, `useStickToBottomContext`, and the `ScrollToBottom` button component.
     *   The main container (previously `StickToBottom`) should become a standard `div` with `overflow-y: auto` and a `ref` (e.g., `scrollContainerRef`).
     *   **Scrolling Logic:**
@@ -27,7 +27,7 @@
         *   Inside the scroll event handler, detect if the scroll was initiated by the user (not programmatically by `scrollToBottom`). This can be tricky; one approach is to set a flag before programmatic scrolling and check it in the handler. Another is to compare `scrollTop` before and after a potential programmatic scroll.
         *   If the scroll is determined to be manual (user wheel or scrollbar interaction), call `useJumpToEndStore.getState().setJumpToEndEnabled(false)`.
 
-4.  **InputBar Component (`AiStudio4/AiStudio4.Web/src/components/InputBar.tsx`):**
+4.  **InputBar Component (`AiStudio4/AiStudioClient/src/components/InputBar.tsx`):**
     *   Import `useJumpToEndStore`.
     *   Add a `Checkbox` component (from `shadcn/ui`) and a `Label`.
     *   Position the checkbox and label to the right of the `SystemPromptComponent`, likely within the same flex container.
@@ -35,7 +35,7 @@
     *   Checkbox `checked` state should be bound to `useJumpToEndStore(state => state.jumpToEndEnabled)`.
     *   Checkbox `onCheckedChange` handler should call `useJumpToEndStore.getState().setJumpToEndEnabled(newCheckedState)`.
 
-5.  **Token Handling (`AiStudio4/AiStudio4.Web/src/hooks/useStreamTokens.ts` or `ConvView.tsx`):**
+5.  **Token Handling (`AiStudio4/AiStudioClient/src/hooks/useStreamTokens.ts` or `ConvView.tsx`):**
     *   Where new stream tokens are processed and added to the display:
         *   Import `useJumpToEndStore`.
         *   Check if `useJumpToEndStore.getState().jumpToEndEnabled` is true.
@@ -43,12 +43,12 @@
 
 **Affected Files:**
 
-*   `AiStudio4/AiStudio4.Web/src/components/ConvView.tsx` (Major changes)
-*   `AiStudio4/AiStudio4.Web/src/components/InputBar.tsx` (Add checkbox)
-*   `AiStudio4/AiStudio4.Web/src/hooks/useStreamTokens.ts` (Add check and event dispatch)
-*   `AiStudio4/AiStudio4.Web/src/stores/useJumpToEndStore.ts` (New file)
-*   `AiStudio4/AiStudio4.Web/package.json` (Remove dependency)
-*   `AiStudio4/AiStudio4.Web/pnpm-lock.yaml` (Remove dependency)
+*   `AiStudio4/AiStudioClient/src/components/ConvView.tsx` (Major changes)
+*   `AiStudio4/AiStudioClient/src/components/InputBar.tsx` (Add checkbox)
+*   `AiStudio4/AiStudioClient/src/hooks/useStreamTokens.ts` (Add check and event dispatch)
+*   `AiStudio4/AiStudioClient/src/stores/useJumpToEndStore.ts` (New file)
+*   `AiStudio4/AiStudioClient/package.json` (Remove dependency)
+*   `AiStudio4/AiStudioClient/pnpm-lock.yaml` (Remove dependency)
 
 **Testing:**
 

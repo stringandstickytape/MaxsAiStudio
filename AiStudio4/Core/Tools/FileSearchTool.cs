@@ -1,7 +1,6 @@
 ﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
-using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq; // Needed for JArray parsing

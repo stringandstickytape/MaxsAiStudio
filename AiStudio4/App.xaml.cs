@@ -14,7 +14,6 @@ using AiStudio4.InjectedDependencies;
 using AiStudio4.InjectedDependencies.RequestHandlers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using WebSocketSharp;
 using AiStudio4.Core;
 
 namespace AiStudio4

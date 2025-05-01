@@ -40,15 +40,15 @@ The goal is to **simplify** each component�s theming surface by reducing the n
 
 | Component                                                                 | Completed? |
 |---------------------------------------------------------------------------|------------|
-| AiStudio4.Web/src/components/Sidebar.tsx                                  |     Y      |
-| AiStudio4.Web/src/components/AppHeader.tsx                                |     Y      |
-| AiStudio4.Web/src/components/CommandBar.tsx                               |     Y      |
-| AiStudio4.Web/src/components/ConvTreeView.tsx                             |     Y      |
-| AiStudio4.Web/src/components/ConvView.tsx                                 |     Y      |
-| AiStudio4.Web/src/components/HistoricalConvTreeList.tsx                   |     Y      |
-| AiStudio4.Web/src/components/InputBar.tsx                                 |     Y      |
-| AiStudio4.Web/src/components/navigation/NavigationContainer.tsx            |     Y      |
-| AiStudio4.Web/src/components/SystemPrompt/SystemPromptComponent.tsx        |     Y      |
+| AiStudioClient/src/components/Sidebar.tsx                                  |     Y      |
+| AiStudioClient/src/components/AppHeader.tsx                                |     Y      |
+| AiStudioClient/src/components/CommandBar.tsx                               |     Y      |
+| AiStudioClient/src/components/ConvTreeView.tsx                             |     Y      |
+| AiStudioClient/src/components/ConvView.tsx                                 |     Y      |
+| AiStudioClient/src/components/HistoricalConvTreeList.tsx                   |     Y      |
+| AiStudioClient/src/components/InputBar.tsx                                 |     Y      |
+| AiStudioClient/src/components/navigation/NavigationContainer.tsx            |     Y      |
+| AiStudioClient/src/components/SystemPrompt/SystemPromptComponent.tsx        |     Y      |
 
 
 ## Example (Sidebar.tsx)
@@ -76,4 +76,4 @@ And update all style usages accordingly.
 
 ---
 
-**Start with `AiStudio4.Web/src/components/Sidebar.tsx`.** Once complete, repeat for the other files in the list.
+**Start with `AiStudioClient/src/components/Sidebar.tsx`.** Once complete, repeat for the other files in the list.
