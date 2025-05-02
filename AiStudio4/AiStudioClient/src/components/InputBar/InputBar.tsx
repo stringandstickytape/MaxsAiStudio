@@ -196,7 +196,10 @@ export function InputBar({
                 attachments: attachments.length > 0 ? attachments : undefined
             });
 
-            setInputText('');
+            if (!isLoading) {
+                console.log("clear input text 2");
+                setInputText('');
+            }
             clearAttachments();
             setCursorPosition(0);
         } catch (error) {
@@ -226,6 +229,7 @@ export function InputBar({
         // If we're in the middle of a request and not cancelling, treat as interjection
         if (isLoading && currentRequest && !isCancelling && inputText.trim()) {
             webSocketService.sendInterjection(inputText);
+            console.log("clear input text 1");
             setInputText('');
             return;
         }

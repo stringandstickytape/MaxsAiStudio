@@ -240,13 +240,9 @@ export class WebSocketService {
                     content: message.content,
                 });
                 
-                // If the transcription contains text and requests to append to user prompt
-                if (message.content && message.content.text && message.content.action === 'appendToUserPrompt') {
-                    // Use the global appendToPrompt function if it exists
-                    if (typeof window.appendToPrompt === 'function') {
-                        window.appendToPrompt(message.content.text, { newLine: true });
-                    }
-                }
+                // Note: Auto-insertion of text into input bar during tool loops has been removed
+                // If you need to manually append text, use the transcription:received event
+                // or implement a user-triggered action to append the text
             } else if (message.messageType === 'interjectionAck') {
                 // Handle interjection acknowledgment
                 if (message.content && message.content.success) {

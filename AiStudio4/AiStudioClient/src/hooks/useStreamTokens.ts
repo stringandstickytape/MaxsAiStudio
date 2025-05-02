@@ -78,10 +78,7 @@ export function useStreamTokens() {
     }, [streamTokens, isStreaming, isCancelling]);
 
     // Create a wrapper for reset that also clears the input bar
-    const resetStreamTokensAndInput = useCallback(() => {
-        if (window.setPrompt) {
-            window.setPrompt('');
-        }
+    const resetStreamTokens = useCallback(() => {
         reset();
         setIsStreaming(false);
         setLastStreamedContent('');
@@ -100,19 +97,28 @@ export function useStreamTokens() {
             if (newestMessage.id !== lastMessageIdRef.current && isStreaming) {
                 lastMessageIdRef.current = newestMessage.id;
                 setIsStreaming(false);
-                resetStreamTokensAndInput();
+                if (window.setPrompt) {
+                    window.setPrompt('');
+                }
+                console.log("Reset 1");
+                resetStreamTokens();
             }
         }
-    }, [activeConvId, convs, isStreaming, resetStreamTokensAndInput]);
+    }, [activeConvId, convs, isStreaming, resetStreamTokens]);
 
     useEffect(() => {
         const handleStreamEnd = () => {
-            resetStreamTokensAndInput();
+            resetStreamTokens();
             setIsStreaming(false);
         };
+
         const handleCancelled = () => {
+            console.log("Reset 3");
+            if (window.setPrompt) {
+                window.setPrompt('');
+            }
             setIsStreaming(false);
-            resetStreamTokensAndInput();
+            resetStreamTokens();
         };
         const unsubscribeEnd = listenToWebSocketEvent('stream:end', handleStreamEnd);
         window.addEventListener('request:cancelled', handleCancelled);
@@ -120,11 +126,11 @@ export function useStreamTokens() {
             unsubscribeEnd();
             window.removeEventListener('request:cancelled', handleCancelled);
         };
-    }, [resetStreamTokensAndInput]);
+    }, [resetStreamTokens]);
 
     return {
         streamTokens,
-        resetStreamTokens: resetStreamTokensAndInput,
+        resetStreamTokens: resetStreamTokens,
         isStreaming,
         lastStreamedContent
     };
