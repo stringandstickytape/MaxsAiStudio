@@ -16,6 +16,29 @@
 
 ---
 
+## 2025-05-03: Notification Facade for Decoupling
+
+- Introduced `INotificationFacade` (see `Services/Interfaces/INotificationFacade.cs`) and its implementation `NotificationFacade` to group notification and status messaging methods.
+- `ToolProcessorService` now depends only on `INotificationFacade` for all notification and status messaging, instead of directly on `IStatusMessageService` and `IWebSocketNotificationService`.
+- Dependency injection registration updated in `App.xaml.cs` to provide `NotificationFacade` for `INotificationFacade`.
+- This reduces tight coupling, simplifies service constructors, and improves testability and maintainability.
+
+**Example Usage:**
+```csharp
+// Before:
+await _statusMessageService.SendStatusMessageAsync(clientId, "message");
+await _webSocketNotificationService.NotifyConvUpdate(clientId, update);
+
+// After:
+await _notificationFacade.SendStatusMessageAsync(clientId, "message");
+await _notificationFacade.NotifyConvUpdate(clientId, update);
+```
+
+**Next Steps:**
+- Gradually migrate other services to use `INotificationFacade` for notification/status needs
+- Continue extracting orchestration logic and breaking up large methods for further decoupling
+
+
 ## Core Architecture
 
 AiStudio4 is a hybrid desktop application built using:

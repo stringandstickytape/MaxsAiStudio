@@ -31,23 +31,20 @@ namespace AiStudio4.Services
         private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
         private DateTime _lastRequestTime = DateTime.MinValue;
         private readonly object _rateLimitLock = new object(); // Lock object for thread safety
-        private readonly IStatusMessageService _statusMessageService;
-        private readonly IWebSocketNotificationService _webSocketNotificationService;
+        private readonly Services.Interfaces.INotificationFacade _notificationFacade;
 
         public ToolProcessorService(
             ILogger<ToolProcessorService> logger,
             IToolService toolService,
             IMcpService mcpService,
             IBuiltinToolService builtinToolService,
-            IStatusMessageService statusMessageService,
-            IWebSocketNotificationService webSocketNotificationService)
+            Services.Interfaces.INotificationFacade notificationFacade)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
             _mcpService = mcpService ?? throw new ArgumentNullException(nameof(mcpService));
             _builtinToolService = builtinToolService ?? throw new ArgumentNullException(nameof(builtinToolService));
-            _statusMessageService = statusMessageService ?? throw new ArgumentNullException(nameof(statusMessageService));
-            _webSocketNotificationService = webSocketNotificationService ?? throw new ArgumentNullException(nameof(webSocketNotificationService));
+            _notificationFacade = notificationFacade ?? throw new ArgumentNullException(nameof(notificationFacade));
         }
 
         /// <summary>
@@ -94,7 +91,7 @@ namespace AiStudio4.Services
             }
             else
             {
-                await _statusMessageService.SendStatusMessageAsync(clientId, "Tools being processed");
+                await _notificationFacade.SendStatusMessageAsync(clientId, "Tools being processed");
                 _logger.LogInformation("Tools called: {ToolCount}", response.ToolResponseSet.Tools.Count);
                 bool shouldStopProcessing = false;
                 var toolResultMessages = new List<LinearConvMessage>();
