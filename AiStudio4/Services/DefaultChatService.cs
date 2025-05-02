@@ -216,11 +216,13 @@ namespace AiStudio4.Services
 
                     _logger.LogInformation("Processing chat request - Iteration {Iteration}", currentIteration);
 
+                    // we always make the stop tool available.
                     if (request.ToolIds.Any())
                     {
                         var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
                         if (!request.ToolIds.Contains(stopTool))
                             request.ToolIds.Add(stopTool);
+                        else throw new NotImplementedException();
                     }
 
                     var requestOptions = new AiRequestOptions
@@ -232,9 +234,7 @@ namespace AiStudio4.Services
                         ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                         MustNotUseEmbedding = true,
                         ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
-                        UseStreaming = true, // Optional: Only stream the first response
-                                             // CustomSystemPrompt is already in conv.systemprompt
-                                             // Pass callbacks from the original request
+                        UseStreaming = true, 
                         OnStreamingUpdate = request.OnStreamingUpdate,
                         OnStreamingComplete = request.OnStreamingComplete
                     };
