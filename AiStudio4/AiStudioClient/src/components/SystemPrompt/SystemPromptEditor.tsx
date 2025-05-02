@@ -105,7 +105,6 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
 
       if (isCreating) {
         result = await createSystemPrompt(data);
-        console.log('Created new prompt with result:', result);
       } else if (initialPrompt) {
         result = await updateSystemPrompt({
           ...data,
@@ -120,7 +119,6 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
       }
 
       if (result && result.guid && onApply) {
-        console.log('Applying prompt with guid:', result.guid);
         onApply(result);
       } else {
         console.error('Cannot apply prompt - missing guid:', result);
@@ -157,7 +155,6 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
       }
 
       if (result && result.guid && onApply) {
-        console.log('Save & Apply - applying prompt with guid:', result.guid);
         onApply(result);
       }
 

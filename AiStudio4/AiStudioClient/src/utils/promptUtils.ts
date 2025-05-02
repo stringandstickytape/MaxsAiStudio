@@ -19,7 +19,6 @@ export function setupPromptUtils(setTextFn) {
 
       window._currentPromptText = newValue;
 
-      console.log(`Prompt ${replaceCurrent ? 'replaced' : 'updated'} successfully.`);
       return true;
     } catch (error) {
       console.error('Failed to append to prompt:', error);
@@ -31,7 +30,6 @@ export function setupPromptUtils(setTextFn) {
     return window._currentPromptText || '';
   };
 
-  console.log('Prompt utilities initialized. Use appendToPrompt() to modify the current prompt.');
 }
 
 export function cleanupPromptUtils() {

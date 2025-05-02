@@ -64,7 +64,6 @@ export function useSystemPromptSelection() {
           // Find the user prompt in the local store instead of making an API call
           const userPrompt = userPrompts.find(up => up.guid === prompt.associatedUserPromptId);
           if (userPrompt) {
-            console.log('Activating associated user prompt:', userPrompt.title);
             insertUserPrompt(userPrompt);
           } else {
             console.warn('Associated user prompt not found in local store:', prompt.associatedUserPromptId);
@@ -73,13 +72,11 @@ export function useSystemPromptSelection() {
 
         // 6. Set associated models if they exist
         if (prompt.primaryModelGuid && prompt.primaryModelGuid !== 'none') {
-          console.log('Setting primary model to:', prompt.primaryModelGuid);
           selectPrimaryModel(prompt.primaryModelGuid);
           await createApiRequest('/api/setDefaultModel', 'POST')({ modelGuid: prompt.primaryModelGuid });
         }
 
         if (prompt.secondaryModelGuid && prompt.secondaryModelGuid !== 'none') {
-          console.log('Setting secondary model to:', prompt.secondaryModelGuid);
           selectSecondaryModel(prompt.secondaryModelGuid);
           await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
         }
@@ -156,13 +153,11 @@ export async function selectSystemPromptStandalone(prompt: SystemPrompt, options
 
     // 6. Set associated models if they exist
     if (prompt.primaryModelGuid && prompt.primaryModelGuid !== 'none') {
-      console.log('Setting primary model to:', prompt.primaryModelGuid);
       useModelStore.getState().selectPrimaryModel(prompt.primaryModelGuid);
       await createApiRequest('/api/setDefaultModel', 'POST')({ modelGuid: prompt.primaryModelGuid });
     }
 
     if (prompt.secondaryModelGuid && prompt.secondaryModelGuid !== 'none') {
-      console.log('Setting secondary model to:', prompt.secondaryModelGuid);
       useModelStore.getState().selectSecondaryModel(prompt.secondaryModelGuid);
       await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
     }

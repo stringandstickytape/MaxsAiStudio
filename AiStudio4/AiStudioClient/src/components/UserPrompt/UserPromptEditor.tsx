@@ -80,7 +80,6 @@ export function UserPromptEditor({ initialPrompt, onClose, onApply }: UserPrompt
 
       if (isCreating) {
         result = await createUserPrompt(data);
-        console.log('Created new user prompt with result:', result);
       } else if (initialPrompt) {
         result = await updateUserPrompt({
           ...data,
@@ -95,7 +94,6 @@ export function UserPromptEditor({ initialPrompt, onClose, onApply }: UserPrompt
       }
 
       if (result && result.guid && onApply) {
-        console.log('Applying user prompt with guid:', result.guid);
         onApply(result);
       }
 
@@ -130,7 +128,6 @@ export function UserPromptEditor({ initialPrompt, onClose, onApply }: UserPrompt
       }
 
       if (result && result.guid && onApply) {
-        console.log('Save & Apply - applying user prompt with guid:', result.guid);
         onApply(result);
       }
 

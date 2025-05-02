@@ -66,7 +66,6 @@ function App() {
     // Effect to handle opening the system prompt library modal via event
     useEffect(() => {
         const handleOpenSystemPromptLibrary = () => {
-            console.log("Event 'open-system-prompt-library' received, opening modal...");
             const createAction = window.localStorage.getItem('systemPrompt_action') === 'create';
             useModalStore.getState().openModal('systemPrompt', { createNew: createAction });
             // Clear the action after using it
@@ -178,7 +177,6 @@ function App() {
       if (userPromptId) {
         const userPrompt = userPrompts.find(up => up.guid === userPromptId);
         if (userPrompt && window.setPrompt) {
-          console.log('Loading associated user prompt from event:', userPrompt.title);
           window.setPrompt(userPrompt.content);
         }
       }

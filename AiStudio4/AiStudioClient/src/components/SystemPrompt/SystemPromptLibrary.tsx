@@ -88,7 +88,6 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
     if (effectiveConvId) {
       try {
         await selectSystemPrompt(prompt, { convId: effectiveConvId });
-        console.log(`Set conv ${effectiveConvId} system prompt to ${prompt.guid}`);
       } catch (error) {
         console.error('Failed to set conv system prompt:', error);
       }

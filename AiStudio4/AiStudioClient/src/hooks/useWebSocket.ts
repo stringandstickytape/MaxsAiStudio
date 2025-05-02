@@ -39,7 +39,6 @@ export function useWebSocket(options: UseWebSocketOptions = {}): UseWebSocketRes
     // Status message handler
     const { setMessage } = useStatusMessageStore.getState();
       const handleStatusMessage = (data: any) => {
-          console.log("handleStatusMessage setting message to " + data?.message);
       setMessage(data?.message || '');
     };
     webSocketService.subscribe('status', handleStatusMessage);

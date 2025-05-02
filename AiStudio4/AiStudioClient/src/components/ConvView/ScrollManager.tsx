@@ -20,7 +20,6 @@ export const ScrollManager = ({ isStreaming, streamTokens }: ScrollManagerProps)
   useEffect(() => {
     // Define a global function to handle scroll to bottom requests
     window.scrollConversationToBottom = () => {
-      console.log('scrollConversationToBottom called');
       scrollToBottom();
       setJumpToEndEnabled(true);
       return true;
@@ -67,7 +66,6 @@ export const ScrollManager = ({ isStreaming, streamTokens }: ScrollManagerProps)
   useEffect(() => {
     // Create a function that will be called when the SCROLL_TO_BOTTOM event is triggered
     const handleScrollToBottom = () => {
-      console.log('SCROLL_TO_BOTTOM event received');
       // Set jumpToEndEnabled to true
       setJumpToEndEnabled(true);
       

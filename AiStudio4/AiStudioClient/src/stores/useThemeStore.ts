@@ -49,12 +49,10 @@ export const debugThemeStore = () => {
 // Add these functions that are used in main.tsx
 export const applyRandomTheme = () => {
   // This would normally call the hook function, but we'll just log for now
-  console.log('Apply random theme called');
   return null;
 };
 
 export const addThemeToStore = (themeData: Partial<any>) => {
-  console.log('Add theme to store called', themeData);
   return null;
 };
 

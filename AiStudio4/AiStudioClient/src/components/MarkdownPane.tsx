@@ -258,12 +258,9 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                 <button
                                     onClick={async () => {
                                         try {
-                                            console.log('[Theme Debug] Starting theme application from code block');
-                                            console.log('[Theme Debug] Theme content:', content);
 
                                             // Apply theme visually
                                             const parsedContent = JSON.parse(content);
-                                            console.log('[Theme Debug] Parsed content:', parsedContent);
                                             
                                             // Apply theme visually
                                             window.applyLLMTheme(parsedContent);
@@ -294,16 +291,12 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                                 <button
                                     onClick={async () => {
                                         try {
-                                            console.log('[Theme Debug] Starting theme installation from code block');
-                                            console.log('[Theme Debug] Theme content:', content);
 
                                             // Parse the theme content
                                             const parsedContent = JSON.parse(content);
-                                            console.log('[Theme Debug] Parsed content:', parsedContent);
                                             
                                             // Get theme name from the theme-name property if available, otherwise use timestamp
                                             const themeName = parsedContent['theme-name'] || `Theme from code block ${new Date().toLocaleTimeString()}`;
-                                            console.log('[Theme Debug] Using theme name:', themeName);
                                             
                                             // Install the theme to the library
                                             if (typeof window.createTheme === 'function') {

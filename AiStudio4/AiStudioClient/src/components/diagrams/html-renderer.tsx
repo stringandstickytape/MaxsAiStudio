@@ -95,7 +95,6 @@ export const HtmlRenderer: CodeBlockRenderer = {
           iframeRef.current.style.height = `${event.data.height + 20}px`;
         } else if (event.data && event.data.type === 'linkClicked') {
           
-          console.log('Link clicked in HTML preview:', event.data.href);
         }
       };
 
