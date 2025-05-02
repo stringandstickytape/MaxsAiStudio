@@ -223,40 +223,10 @@ export function InputBar({
     ]);
 
     const handleSend = () => {
-        
         if (isCancelling) return;
         
-        // If we're in the middle of a request and not cancelling, treat as interjection
-        if (isLoading && currentRequest && !isCancelling && inputText.trim()) {
-            webSocketService.sendInterjection(inputText);
-            console.log("clear input text 1");
-            setInputText('');
-            return;
-        }
-
-        // If we're trying to cancel a current request
-        if (isLoading && currentRequest) {
-            setIsCancelling(true);
-            // --- Immediately clear stream and ignore tokens ---
-            windowEventService.emit(WindowEvents.STREAM_IGNORE);
-            (async () => {
-                const result = await cancelMessage({
-                    convId: currentRequest.convId,
-                    messageId: currentRequest.messageId
-                });
-                if (result) {
-                    windowEventService.emit(WindowEvents.REQUEST_CANCELLED);
-                } else {
-                    // Optionally show a toast or error message here
-                    console.error('Cancellation failed.');
-                }
-            })();
-            return;
-        }
-
         // Check if WebSocket is disconnected
         if (!isLoading && !useWebSocketStore.getState().isConnected) {
-            
             webSocketService.connect();
             return; // Don't send the message yet, user will need to press send again
         }
@@ -266,7 +236,6 @@ export function InputBar({
             // --- Allow stream tokens again on new send ---
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
             
-
             const textAttachments = attachments.filter(att => att.textContent);
             const textFileContent = formatTextAttachments(textAttachments);
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
@@ -345,11 +314,32 @@ export function InputBar({
                     {/* Action Buttons */}
                     <ActionButtons
                         onSend={handleSend}
+                        onCancel={() => {
+                            if (isLoading && currentRequest) {
+                                setIsCancelling(true);
+                                // Immediately clear stream and ignore tokens
+                                windowEventService.emit(WindowEvents.STREAM_IGNORE);
+                                (async () => {
+                                    const result = await cancelMessage({
+                                        convId: currentRequest.convId,
+                                        messageId: currentRequest.messageId
+                                    });
+                                    if (result) {
+                                        windowEventService.emit(WindowEvents.REQUEST_CANCELLED);
+                                    } else {
+                                        console.error('Cancellation failed.');
+                                    }
+                                })();
+                            }
+                        }}
                         onVoiceInputClick={onVoiceInputClick}
                         addAttachments={addAttachments}
                         isLoading={isLoading}
                         isCancelling={isCancelling}
                         disabled={disabled}
+                        inputText={inputText}
+                        setInputText={setInputText}
+                        messageSent={!!currentRequest}
                     />
                 </div>
 
