@@ -156,6 +156,7 @@ namespace AiStudio4.Services
 
 
                 // --- Tool Use Loop ---
+                string previousToolRequested = null; // Track previous tool request for loop detection
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
                     if(currentIteration != 0)
@@ -222,7 +223,6 @@ namespace AiStudio4.Services
                         var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
                         if (!request.ToolIds.Contains(stopTool))
                             request.ToolIds.Add(stopTool);
-                        else throw new NotImplementedException();
                     }
 
                     var requestOptions = new AiRequestOptions
@@ -275,9 +275,16 @@ namespace AiStudio4.Services
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
 
-
-
-
+                    bool duplicateDetection = false;
+                    // --- Tool Loop Detection ---
+                    if (previousToolRequested != null && toolResult.ToolRequested != null && toolResult.ToolRequested.Trim() == previousToolRequested.Trim())
+                    {
+                        _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.ToolRequested);
+                        await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row. Tool loop aborted.");
+                        duplicateDetection = true;
+                    }
+                    previousToolRequested = toolResult.ToolRequested;
+                    // --- End Tool Loop Detection ---
 
                     continueLoop = toolResult.ContinueProcessing;
 
@@ -292,13 +299,12 @@ namespace AiStudio4.Services
                         finalAttachments.AddRange(toolResult.Attachments);
                     }
 
-                    bool cont = continueLoop && currentIteration < MAX_ITERATIONS;
-
+                    continueLoop = continueLoop && currentIteration < MAX_ITERATIONS && !duplicateDetection;
 
                     var costInfo = new TokenCost(response.TokenUsage, model);
 
                     // If the loop should continue, add a user message to prompt the next step
-                    if (cont)
+                    if (continueLoop)
                     {
                         // Check for interjections before continuing the loop
                         var interjectionService = _serviceProvider.GetService<IInterjectionService>();
@@ -355,15 +361,23 @@ namespace AiStudio4.Services
                     }
                     else 
                     {
-                        var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
-                            userMessage: $"{response.ResponseText}\n{toolResult.ToolResult}", parentMessageId: request.MessageId,
+                        string duplicateDetectionText = "";
+                        if(duplicateDetection)
+                        {
+                            duplicateDetectionText = $"AI requested the same tool(s) twice in a row: {toolResult.ToolRequested}. Tool loop aborted.\n\n";
+                        }
+
+                        string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.ToolResult}";
+
+                        v4BranchedConvMessage msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                            userMessage: userMessage, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newAssistantMessageId,
-                            Content = $"{response.ResponseText}\n{toolResult.ToolResult}",
+                            Content = userMessage,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",
@@ -374,14 +388,7 @@ namespace AiStudio4.Services
                             TokenUsage = response.TokenUsage
                         });
 
-                        if (currentIteration >= MAX_ITERATIONS)
-                        {
-                            _logger.LogWarning("Maximum tool iteration limit ({MaxIterations}) reached.", MAX_ITERATIONS);
-                            continueLoop = false; // Ensure loop terminates
-                        }
-
- 
-                    }
+                   }
 
                 } // --- End of Tool Use Loop ---
 
