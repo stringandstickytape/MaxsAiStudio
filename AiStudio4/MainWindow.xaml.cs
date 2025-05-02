@@ -201,6 +201,32 @@ public partial class WebViewWindow : Window
             }
         }
     }
+    
+    private void ExploreProjectMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            string projectPath = _generalSettingsService.CurrentSettings.ProjectPath;
+            if (string.IsNullOrWhiteSpace(projectPath))
+            {
+                MessageBox.Show("Project path is not set.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (Directory.Exists(projectPath))
+            {
+                Process.Start("explorer.exe", projectPath);
+            }
+            else
+            {
+                MessageBox.Show($"Project directory does not exist: {projectPath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error opening project folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
     private void SetCondaPathMenuItem_Click(object sender, RoutedEventArgs e)
     {
         string currentKey = _generalSettingsService.CurrentSettings.CondaPath ?? string.Empty;
