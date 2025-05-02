@@ -46,7 +46,7 @@ async function loadDefaultSystemPromptAndTools() {
     const defaultPromptResp = await createApiRequest('/api/getDefaultSystemPrompt', 'POST')({});
     if (defaultPromptResp.success && defaultPromptResp.prompt) {
       const defaultPrompt = defaultPromptResp.prompt;
-      console.log('Loaded default system prompt:', defaultPrompt.title);
+      
       
       // Set the default prompt in the store
       useSystemPromptStore.getState().setDefaultPromptId(defaultPrompt.guid);
@@ -54,7 +54,7 @@ async function loadDefaultSystemPromptAndTools() {
       // Apply associated tools if available
       if (defaultPrompt.associatedTools && defaultPrompt.associatedTools.length > 0) {
         useToolStore.getState().setActiveTools(defaultPrompt.associatedTools);
-        console.log(`Applied ${defaultPrompt.associatedTools.length} tools from default system prompt`);
+        
       }
     }
   } catch (err) {
@@ -64,7 +64,7 @@ async function loadDefaultSystemPromptAndTools() {
 
 (async () => {
   await ThemeManager.discoverThemes();
-  console.log('Theme schema:', ThemeManager.getSchema());
+  
 
   // Fetch and load the active theme after theme discovery
   try {

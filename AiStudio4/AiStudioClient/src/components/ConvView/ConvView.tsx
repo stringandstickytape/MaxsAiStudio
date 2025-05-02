@@ -121,7 +121,6 @@ export const ConvView = ({
         cumulativeCost: msg.cumulativeCost,
       attachments: msg.attachments
     }));
-      console.log('messages are:', messages);
     // Get the starting message ID
     const startingMessageId = streamTokens.length > 0
       ? conv.messages[conv.messages.length - 1].id
@@ -141,10 +140,8 @@ export const ConvView = ({
   // Listen for stream:clear event to reset streamTokens
   useEffect(() => {
     const handleClearStream = () => {
-      console.log("handleClearStream");
       if (streamTokens.length > 0) {
         // This will clear the displayed tokens in the parent component
-        console.log("handleClearStream2");
         streamTokens = [];
       }
     };

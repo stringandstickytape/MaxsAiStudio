@@ -35,7 +35,7 @@ export function CommandInitializationPlugin() {
             // Apply associated tools if available
             if (defaultPrompt.associatedTools && defaultPrompt.associatedTools.length > 0) {
               setActiveTools(defaultPrompt.associatedTools);
-              console.log(`Applied ${defaultPrompt.associatedTools.length} tools from default system prompt for new conversation`);
+              
             }
           }
         } catch (err) {
@@ -92,7 +92,7 @@ export function CommandInitializationPlugin() {
         // Apply associated tools if available
         if (selectedPrompt.associatedTools && selectedPrompt.associatedTools.length > 0) {
           setActiveTools(selectedPrompt.associatedTools);
-          console.log(`Applied ${selectedPrompt.associatedTools.length} tools from system prompt: ${selectedPrompt.title}`);
+          
         }
         
         // Apply associated user prompt if available
@@ -101,7 +101,7 @@ export function CommandInitializationPlugin() {
           if (userPrompt && userPrompt.content) {
             // Use the windowEventService to set the prompt content
             windowEventService.emit(WindowEvents.SET_PROMPT, { text: userPrompt.content });
-            console.log(`Applied associated user prompt: ${userPrompt.title}`);
+            
           }
         }
       }

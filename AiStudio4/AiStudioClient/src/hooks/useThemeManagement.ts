@@ -155,7 +155,7 @@ export function useThemeManagement() {
      * @param themeId The ID of the theme to delete.
      */
     const deleteThemeById = useCallback(async (themeId: string) => {
-        console.log('[ThemeManagement] Deleting theme with ID:', themeId);
+        
         return await executeApiCall(async () => {
             const response = await createApiRequest('/api/themes/delete', 'POST')({ themeId });
             if (response.success) {

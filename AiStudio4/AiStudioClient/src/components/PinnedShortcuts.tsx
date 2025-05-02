@@ -75,7 +75,7 @@ export function PinnedShortcuts({
     useEffect(() => {
         const handleWebSocketConnected = () => {
             if (wsConnectedRef.current && initialLoadComplete) {
-                console.log('WebSocket reconnected, refreshing pinned commands');
+                
                 fetchPinnedCommands();
             }
             wsConnectedRef.current = true;
@@ -96,7 +96,7 @@ export function PinnedShortcuts({
 
             if (!initialLoadComplete) {
                 setInitialLoadComplete(true);
-                console.log('Initial pinned commands load complete');
+                
             }
         }
     }, [loading, pinnedCommands, initialLoadComplete]);
@@ -108,7 +108,7 @@ export function PinnedShortcuts({
         }
 
         const saveTimer = setTimeout(() => {
-            console.log('Saving modified pinned commands to server');
+            
             savePinnedCommands();
         }, 1000);
 

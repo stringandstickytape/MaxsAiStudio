@@ -114,7 +114,7 @@ class ThemeManager {
    * - or a `getThemeableProps()` function returning the object
    */
   public async discoverThemes(): Promise<void> {
-    console.log('[ThemeManager] Starting theme discovery...');
+    
     const modules = import.meta.glob('../components/**/*.tsx');
     for (const path in modules) {
       try {
@@ -125,15 +125,16 @@ class ThemeManager {
         if (themeableProps) {
           const componentName = this.extractComponentName(path);
           this.schema[componentName] = themeableProps;
-          console.log(`[ThemeManager] Registered themeable props for component: ${componentName}`, themeableProps);
+          
         } else {
-          console.log(`[ThemeManager] No themeable props found for ${path}`);
+          
         }
       } catch (error) {
         console.warn(`Theme discovery failed for ${path}:`, error);
       }
     }
-    console.log('[ThemeManager] Theme discovery complete. Schema:', JSON.stringify(this.schema));
+    // leave this in, it is useful sometimes
+    //console.log('[ThemeManager] Theme discovery complete. Schema:', JSON.stringify(this.schema));
   }
 
   /**
@@ -205,7 +206,7 @@ class ThemeManager {
     document.head.appendChild(linkElement);
     this.fontLinkElement = linkElement;
 
-    console.log(`[ThemeManager] Loaded font from CDN: ${cdnUrl}`);
+    
   }
 
   /**
@@ -213,7 +214,7 @@ class ThemeManager {
    * Both global and component-specific properties are injected into each component's class.
    */
   public applyTheme(theme: Theme): void {
-    console.log('[ThemeManager] Applying theme:', theme);
+    
     let css = '';
     
     // Store theme name if provided
@@ -255,8 +256,8 @@ class ThemeManager {
     // Handle all components in the schema that have themeable properties
     for (const component in this.schema) {
       if (component === 'global') continue; // Skip global section
-        console.log("Applying to " + component);
-      // Get component-specific theme properties if they exist
+
+        // Get component-specific theme properties if they exist
       const compTheme = theme[component] || {};
       const schemaProps = this.schema[component];
       
@@ -282,7 +283,7 @@ class ThemeManager {
       }
     }
 
-    console.log('[ThemeManager] Injecting CSS:', css);
+    
     this.injectStyle(css);
     
     // Dispatch a custom event for theme change
@@ -323,7 +324,7 @@ class ThemeManager {
     
     // Add global properties
     if (this.schema.global) {
-      console.log('[ThemeManager] Global schema properties:', Object.keys(this.schema.global));
+      
       for (const propName in this.schema.global) {
         if (propName === 'themeName') continue; // Skip themeName, handled separately
         
@@ -332,7 +333,7 @@ class ThemeManager {
           type: 'string',
           description: this.schema.global[propName].description || `Set global ${propName}`
         };
-        console.log(`[ThemeManager] Added global property to schema: ${key}`);
+        
       }
     }
     
@@ -366,9 +367,6 @@ class ThemeManager {
    * converts it into nested Theme object, and applies it.
    */
   public applyLLMTheme(flatThemeObj: Record<string, string>): void {
-    console.log('[ThemeManager] Applying LLM theme response:', flatThemeObj);
-    console.log('[ThemeManager] Theme response type:', typeof flatThemeObj);
-    console.log('[ThemeManager] Is array?', Array.isArray(flatThemeObj));
     
     if (typeof flatThemeObj !== 'object' || flatThemeObj === null) {
       console.error('[ThemeManager] Invalid theme object format:', flatThemeObj);
@@ -405,7 +403,7 @@ class ThemeManager {
       nestedTheme[component][prop] = value;
     }
     
-    console.log('[ThemeManager] Parsed nested theme:', nestedTheme);
+    
     
     if (processedKeys === 0) {
       console.warn('[ThemeManager] No valid theme properties found in the input');

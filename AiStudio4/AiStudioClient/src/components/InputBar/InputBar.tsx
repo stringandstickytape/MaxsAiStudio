@@ -149,7 +149,7 @@ export function InputBar({
     }, [isXs, isSm, isMd, visibleToolCount]);
 
     const handleChatMessage = useCallback(async (message: string) => {
-        console.log('Sending message with active tools:', activeTools);
+        
         try {
             let convId = activeConvId;
             let parentMessageId = null;
@@ -220,9 +220,9 @@ export function InputBar({
     ]);
 
     const handleSend = () => {
-        console.log("hs1");
+        
         if (isCancelling) return;
-        console.log("hs2", isLoading, currentRequest);
+        
 
         // If we're trying to cancel a current request
         if (isLoading && currentRequest) {
@@ -246,7 +246,7 @@ export function InputBar({
 
         // Check if WebSocket is disconnected
         if (!isLoading && !useWebSocketStore.getState().isConnected) {
-            console.log("WebSocket disconnected, attempting to reconnect");
+            
             webSocketService.connect();
             return; // Don't send the message yet, user will need to press send again
         }
@@ -255,12 +255,12 @@ export function InputBar({
         if (!isLoading) {
             // --- Allow stream tokens again on new send ---
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
-            console.log("hs3");
+            
 
             const textAttachments = attachments.filter(att => att.textContent);
             const textFileContent = formatTextAttachments(textAttachments);
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
-            console.log("HandleSend -> ChatMessage");
+            
             handleChatMessage(fullMessage);
         }
     };
@@ -364,13 +364,11 @@ export function InputBar({
 
 window.appendToPrompt = text => {
     windowEventService.emit(WindowEvents.APPEND_TO_PROMPT, { text });
-    console.log(`Appended to prompt: "${text}"`);
     return true;
 };
 
 window.setPrompt = text => {
     windowEventService.emit(WindowEvents.SET_PROMPT, { text });
-    console.log(`Set prompt to: "${text}"`);
     return true;
 };
 

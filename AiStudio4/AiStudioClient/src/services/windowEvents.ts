@@ -54,7 +54,6 @@ export const windowEventService = {
   emit: (eventName: string, data?: any) => {
     const event = new CustomEvent(eventName, { detail: data });
     window.dispatchEvent(event);
-    console.log(`Emitted ${eventName} with data:`, data);
   },
   
   /**

@@ -13,7 +13,6 @@ export function registerThemeCommands(selectTheme: (themeGuid: string) => void) 
   } catch (e) {}
 
   const { themes, activeThemeId } = useThemeStore.getState();
-  console.log('[themeCommands] Registering theme commands. themes:', themes, 'activeThemeId:', activeThemeId);
   if (!themes || themes.length === 0) {
     console.warn('[themeCommands] No themes available to register commands for.');
   }
@@ -31,13 +30,10 @@ export function registerThemeCommands(selectTheme: (themeGuid: string) => void) 
     disabled: activeThemeId === theme.guid,
   }));
 
-  console.log('[themeCommands] themeCommands array:', themeCommands);
-
   commandRegistry.registerGroup({
     id: 'theme-selection',
     name: 'Theme Selection',
     priority: 79,
     commands: themeCommands,
   });
-  console.log('[themeCommands] Registered theme-selection group with', themeCommands.length, 'commands');
 }

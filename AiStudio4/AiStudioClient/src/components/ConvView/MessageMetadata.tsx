@@ -64,7 +64,6 @@ const formatTimestamp = (timestamp?: number | null) => {
 };
 
 export const MessageMetadata = ({ message }: MessageMetadataProps) => {
-    console.log('Metadata; ', message);
   if (!message.costInfo?.tokenUsage && !message.costInfo && !message.timestamp && !message.durationMs && !message.id) {
     return null;
   }

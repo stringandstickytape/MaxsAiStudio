@@ -88,8 +88,6 @@ export function useModelManagement() {
     const fetchConfig = useCallback(async () =>
         executeApiCall(async () => {
             const data = await createApiRequest('/api/getConfig', 'POST')({});
-            console.log('Config data received:', data);
-            console.log('Config loaded:', data);
 
             if (data.models?.length > 0 && models.length === 0) {
                 // Handle both old format (array of strings) and new format (array of objects)
@@ -125,12 +123,12 @@ export function useModelManagement() {
                 useModelStore.getState().setModels(modelObjects);
             }
             if (data.defaultModelGuid?.length > 0) {
-                console.log('Setting primary model to GUID:', data.defaultModelGuid);
+                
                 selectPrimaryModel(data.defaultModelGuid);
             }
             
             if (data.secondaryModelGuid?.length > 0) {
-                console.log('Setting secondary model to GUID:', data.secondaryModelGuid);
+                
                 selectSecondaryModel(data.secondaryModelGuid);
             }
 

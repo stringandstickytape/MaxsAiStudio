@@ -28,12 +28,12 @@ export class WebSocketService {
     constructor() {
         this.connect = this.connect.bind(this);
         this.handleMessage = this.handleMessage.bind(this);
-        console.log('WebSocketService initialized with clientId:', this.clientId);
+        
     }
 
     public connect(): void {
         if (this.socket?.readyState === WebSocket.OPEN) {
-            console.log('WebSocket already connected');
+            
             return;
         }
 
@@ -52,7 +52,7 @@ export class WebSocketService {
             content: { isConnecting: true, clientId: this.clientId },
         });
 
-        console.log('WebSocket connection attempt initiated');
+        
     }
 
     public disconnect(): void {
@@ -156,7 +156,7 @@ export class WebSocketService {
     }
 
     private handleOpen = (): void => {
-        console.log('WebSocket Connected');
+        
         this.connected = true;
         this.reconnectAttempts = 0;
 
@@ -197,7 +197,7 @@ export class WebSocketService {
                     type: 'end',
                 });
             } else if (message.messageType === 'conv') {
-                console.log('conv:upd dispatching :', message.content);
+                
                 dispatchWebSocketEvent('conv:upd', {
                     type: 'message',
                     content: message.content,
@@ -208,7 +208,7 @@ export class WebSocketService {
                     content: message.content,
                 });
             } else if (message.messageType === 'historicalConvTree') {
-                console.log('historical:update');
+                
                 dispatchWebSocketEvent('historical:update', {
                     type: 'tree',
                     content: message.content,
@@ -250,7 +250,7 @@ export class WebSocketService {
     };
 
     private handleClose = (): void => {
-        console.log('WebSocket disconnected');
+        
         this.socket = null;
         this.connected = false;
 
@@ -265,7 +265,7 @@ export class WebSocketService {
         if (this.reconnectAttempts < this.maxReconnectAttempts) {
             this.reconnectAttempts++;
             const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-            console.log(`Attempting to reconnect in ${delay / 1000} seconds (attempt ${this.reconnectAttempts})`);
+            
 
             this.reconnectTimeout = setTimeout(() => {
                 this.connect();

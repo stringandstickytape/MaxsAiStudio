@@ -188,7 +188,7 @@ export const DotRenderer: CodeBlockRenderer = {
                 await graphviz.init();
                 graphvizInitialized = true;
             } catch (error) {
-                console.error('Failed to initialize graphviz:', error);
+                //console.error('Failed to initialize graphviz:', error);
             }
         }
     },

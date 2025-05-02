@@ -115,20 +115,20 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
 
   const handleDeleteThemeConfirm = async () => {
     if (!themeToDelete) {
-      console.log('[ThemeManagement] No theme to delete');
+      
       return;
     }
 
-    console.log('[ThemeManagement] Deleting theme:', themeToDelete.guid, themeToDelete.name);
+    
     setIsProcessing(true);
     setLocalError(null);
     try {
-      console.log('[ThemeManagement] Calling deleteTheme with ID:', themeToDelete.guid);
+      
       const result = await deleteTheme(themeToDelete.guid);
-      console.log('[ThemeManagement] Delete theme result:', result);
+      
       setDeleteOpen(false);
     } catch (err: any) {
-      console.error('[ThemeManagement] Error deleting theme:', err);
+      
       setLocalError(err?.message || 'Failed to delete theme');
     } finally {
       setIsProcessing(false);

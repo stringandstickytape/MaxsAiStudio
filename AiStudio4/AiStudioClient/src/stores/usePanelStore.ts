@@ -115,10 +115,6 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         ...(savedState.isOpen !== undefined ? { isOpen: savedState.isOpen } : {}),
       };
 
-      console.log(`Registering new panel ${panel.id} with state:`, {
-        isOpen: newPanel.isOpen
-      });
-
       return {
         panels: {
           ...state.panels,

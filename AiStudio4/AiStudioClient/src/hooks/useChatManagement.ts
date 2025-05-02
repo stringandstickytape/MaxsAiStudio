@@ -65,17 +65,10 @@ export function useChatManagement() {
 
     const sendMessage = useCallback(
         async (params: SendMessageParams) => {
-            console.debug('🚀 Sending message via API:', { 
-                convId: params.convId, 
-                hasParentId: Boolean(params.parentMessageId),
-                model: params.model,
-                hasAttachments: params.attachments ? params.attachments.length : 0
-            });
             
             return executeApiCall(async () => {
                 
                 const newMessageId = params.messageId || params.parentMessageId ? uuidv4() : undefined;
-                console.debug('📩 Generated newMessageId for API call:', newMessageId);
                 
                 let requestParams = { ...params };
 
@@ -94,11 +87,6 @@ export function useChatManagement() {
                     newMessageId,
                 });
 
-                console.debug('✅ Message sent successfully via API:', { 
-                    messageId: data.messageId,
-                    convId: params.convId
-                });
-                
                 return {
                     messageId: data.messageId,
                     success: true,
@@ -128,7 +116,7 @@ export function useChatManagement() {
         async (modelIdentifier: string, isGuid: boolean = true) => {
             return (
                 executeApiCall(async () => {
-                    console.log("123");
+                    
                     const setDefaultModelRequest = createApiRequest('/api/setDefaultModel', 'POST');
                     
                     // If isGuid is true, send as modelGuid, otherwise as modelName for backward compatibility

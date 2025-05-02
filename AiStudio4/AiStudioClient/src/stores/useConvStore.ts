@@ -26,14 +26,14 @@ interface ConvState {
 
 
 export const useConvStore = create<ConvState>((set, get) => {
-    console.log('useConvStore');
+    
     if (typeof window !== 'undefined') {
         listenToWebSocketEvent('conv:upd', ({ content }) => {
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             
             if (activeConvId) {
-                console.log('UCS 1');
+                
                 const conv = getConv(activeConvId);
                 let parentId = content.parentId;
 
@@ -95,7 +95,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 //}
                 
             } else {
-                console.log('UCS 2');
+                
                 const convId = `conv_${Date.now()}`;
                 createConv({
                     id: convId,

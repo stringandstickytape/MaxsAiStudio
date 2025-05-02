@@ -64,7 +64,7 @@ export function CommandInitializer() {
         
         registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
         registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
-        console.log('Initial prompt registration completed');
+        
       } catch (error) {
         console.error('Error loading initial data:', error);
       }
@@ -123,12 +123,10 @@ export function CommandInitializer() {
     const selectTheme = (themeGuid: string) => {
       useThemeStore.getState().setActiveThemeId(themeGuid);
     };
-    console.log('[CommandInitializer] Registering theme commands (initial)');
     registerThemeCommands(selectTheme);
     const unsubscribeThemes = useThemeStore.subscribe(
       (state) => [state.themes, state.activeThemeId],
       () => {
-        console.log('[CommandInitializer] Theme store changed, re-registering theme commands');
         registerThemeCommands(selectTheme);
       }
     );

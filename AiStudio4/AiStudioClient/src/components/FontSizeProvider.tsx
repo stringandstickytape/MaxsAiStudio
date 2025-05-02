@@ -28,7 +28,7 @@ export function FontSizeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!initialized.current) {
       initialized.current = true;
-      console.log('FontSizeProvider initialized with font size:', fontSize);
+      
     }
   }, [fontSize]);
 

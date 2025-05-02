@@ -42,7 +42,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
   
   typeof window !== 'undefined' && 
       listenToWebSocketEvent('historical:update', (detail) => {
-          console.log('historical:update listener: summary = ' + detail.content.summary ?? detail.content.content ?? 'Untitled Conv');
+          
       const content = detail.content;
       content && get().addOrUpdateConv({
         convGuid: content.convId ?? content.convGuid,
@@ -96,7 +96,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
       set({ isLoading: true, error: null });
 
         try {
-          console.log('Fetching historical conv tree for convId:', convId);
+          
           const { data } = await apiClient.post('/api/historicalConvTree', { convId });
 
           if (!data.success) throw new Error('Failed to fetch conv tree');
@@ -150,7 +150,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     },
 
       addOrUpdateConv: (conv) => {
-          console.log('addOrUpdateConv: ', conv);
+          
       set((state) => {
         const exists = state.convs.some((c) => c.convGuid === conv.convGuid);
         
