@@ -22,7 +22,7 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
       data-message-id={message.id}
     >
       <div 
-        className={`ConvView message-container px-4 py-3 shadow-md w-full`}
+        className={`ConvView message-container px-3 py-2 shadow-md w-full`}
         style={{
           background: message.source === 'user' 
             ? 'var(--user-message-background, #1e40af)' 

@@ -219,7 +219,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
 
             const createCodeHeader = useCallback((isFooter = false) => (
                 <div
-                    className={`MarkdownPane flex items-center justify-between px-4 py-2 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} text-sm`}
+                    className={`MarkdownPane flex items-center justify-between px-2 py-1 ${isFooter ? 'rounded-b-xl border-t' : 'rounded-t-xl border-b'} text-sm`}
                     style={{
                         background: 'var(--markdownpane-codeheader-bg, var(--global-background-color, #181c20))',
                         color: 'var(--markdownpane-codeheader-text, var(--global-text-color, #bfc7d5))',
@@ -393,14 +393,14 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
             if (diagramRenderer) {
                 const DiagramComponent = diagramRenderer.Component;
                 return isRawView ? (
-                    <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                    <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2">
                         {codeHeader}
                         <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800 rounded-b-lg`}>
                             <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
                         </div>
                     </div>
                 ) : (
-                    <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4" key={mermaidKey}>
+                    <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2" key={mermaidKey}>
                         {codeHeader}
                         <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800 rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
                             <DiagramComponent content={content} className="overflow-auto" />
@@ -410,7 +410,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
             }
 
             return isRawView ? (
-                <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2">
                     {createCodeHeader(true)}
                     <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl`}>
                         <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
@@ -418,7 +418,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                     {codeHeader}
                 </div>
             ) : (
-                <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg mb-4">
+                <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2">
                     {codeHeader}
                     <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 bg-gray-800/40 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200`}>
                         <SyntaxHighlighter
@@ -442,14 +442,15 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 </div>
             );
         },
-        pre: ({ children }: any) => <pre className="whitespace-pre-wrap break-words">{children}</pre>,
-        p: ({ children }: any) => <p className="my-1 whitespace-pre-wrap break-words">{children}</p>,
-        h1: ({ children }: any) => <h1 className="text-3xl font-bold my-6">{children}</h1>,
-        h2: ({ children }: any) => <h2 className="text-2xl font-bold my-5">{children}</h2>,
-        h3: ({ children }: any) => <h3 className="text-xl font-bold ">{children}</h3>,
-        ul: ({ children }: any) => <ul className="list-disc list-inside  space-y-2">{children}</ul>,
-        ol: ({ children }: any) => <ol className="list-decimal list-inside  space-y-2">{children}</ol>,
-        li: ({ children }: any) => <li className="ml-4">{children}</li>,
+        hr: ({ children }: any) => <hr className="my-2"/>,
+        pre: ({ children }: any) => <pre className="leading-snug whitespace-pre-wrap break-words">{children}</pre>,
+        p: ({ children }: any) => <p className="leading-snug mb-1 whitespace-pre-wrap break-words">{children}</p>,
+        h1: ({ children }: any) => <h1 className="mb-1 leading-relaxed text-3xl font-bold my-6">{children}</h1>,
+        h2: ({ children }: any) => <h2 className="mb-1 leading-normal text-2xl font-bold my-5">{children}</h2>,
+        h3: ({ children }: any) => <h3 className="mb-1 leading-normal text-xl font-bold ">{children}</h3>,
+        ul: ({ children }: any) => <ul className="mb-2 leading-snug list-disc list-inside  space-y-1">{children}</ul>,
+        ol: ({ children }: any) => <ol className="mb-2 leading-snug list-decimal list-inside  space-y-1">{children}</ol>,
+        li: ({ children }: any) => <li className="mb-2 leading-snug ml-4">{children}</li>,
         blockquote: ({ children }: any) => (
             <blockquote className="border-l-4 border-gray-600 pl-4  italic">{children}</blockquote>
         ),
