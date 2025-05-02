@@ -277,10 +277,11 @@ namespace AiStudio4.Services
 
                     bool duplicateDetection = false;
                     // --- Tool Loop Detection ---
+                    // Now comparing full tool requests including parameters, not just tool names
                     if (previousToolRequested != null && toolResult.ToolRequested != null && toolResult.ToolRequested.Trim() == previousToolRequested.Trim())
                     {
                         _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.ToolRequested);
-                        await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row. Tool loop aborted.");
+                        await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row with identical parameters. Tool loop aborted.");
                         duplicateDetection = true;
                     }
                     previousToolRequested = toolResult.ToolRequested;
@@ -364,7 +365,7 @@ namespace AiStudio4.Services
                         string duplicateDetectionText = "";
                         if(duplicateDetection)
                         {
-                            duplicateDetectionText = $"AI requested the same tool(s) twice in a row: {toolResult.ToolRequested}. Tool loop aborted.\n\n";
+                            duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.ToolRequested}. Tool loop aborted.\n\n";
                         }
 
                         string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.ToolResult}";

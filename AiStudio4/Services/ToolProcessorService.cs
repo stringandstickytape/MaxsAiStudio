@@ -235,12 +235,18 @@ namespace AiStudio4.Services
 
             if (response.ToolResponseSet != null && response.ToolResponseSet.Tools.Any())
             {
-                // Collect all tool names for the ToolRequested property
+                // Collect all tool names and parameters for the ToolRequested property
                 foreach (var tool in response.ToolResponseSet.Tools)
                 {
                     if (toolRequestInfo.Length > 0)
                         toolRequestInfo.AppendLine();
                     toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
+                    
+                    // Include parameters to ensure we can detect duplicate calls with different parameters
+                    if (!string.IsNullOrEmpty(tool.ResponseText))
+                    {
+                        toolRequestInfo.Append($" with parameters: {tool.ResponseText}");
+                    }
                 }
             }
 
