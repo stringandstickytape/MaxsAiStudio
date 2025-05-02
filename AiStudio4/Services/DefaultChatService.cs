@@ -297,11 +297,6 @@ namespace AiStudio4.Services
 
                     continueLoop = toolResult.ShouldContinueToolLoop;
 
-                    if (request.ToolIds.Count == 2) // one of which must be "Stop", so the user has only selected 1 tool
-                    {
-                        continueLoop = false;
-                    }
-
                     if (toolResult.Attachments?.Count > 0)
                     {
                         if (finalAttachments == null) finalAttachments = new List<Attachment>();

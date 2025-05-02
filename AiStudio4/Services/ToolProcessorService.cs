@@ -107,47 +107,34 @@ namespace AiStudio4.Services
 
                     try
                     {
-                        // Check if it's an MCP tool
-                        if (toolResponse.ToolName.Contains("_") && serverDefinitions.Any(x => x.IsEnabled && toolResponse.ToolName.StartsWith(x.Id + "_")))
+                        var nonMcpTool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
+
+                        if (nonMcpTool == null)
                         {
-                            var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
-                            var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
-
-                            response.ResponseText += $"\n\n{actualToolName}\n\n";
-                            var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
-                                ? new List<Dictionary<string, object>>()
-                                : ExtractMultipleJsonObjects(toolResponse.ResponseText)
-                                    .Select(json => CustomJsonParser.ParseJson(json))
-                                    .ToList();
-
-                            if (!setsOfToolParameters.Any())
+                            // Check if it's an MCP tool
+                            if (toolResponse.ToolName.Contains("_") && serverDefinitions.Any(x => x.IsEnabled && toolResponse.ToolName.StartsWith(x.Id + "_")))
                             {
-                                setsOfToolParameters.Add(new Dictionary<string, object>());
+                                var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
+                                var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
+
+                                toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName);
                             }
-
-                            foreach (var toolParameterSet in setsOfToolParameters)
+                            else
                             {
-                                _logger.LogDebug("Calling MCP tool: {ServerId} -> {ToolName}", serverDefinitionId, actualToolName);
-                                var retVal = await _mcpService.CallToolAsync(serverDefinitionId, actualToolName, toolParameterSet);
 
-                                // Format the tool result for the model
-                                if (retVal.Content.Count == 0)
+                                // sometimes claude spontaneously stops using the prefix, probably because the unprefixed version has appeared in the chat log so many times.
+                                foreach(var serverDefinition in serverDefinitions)
                                 {
-                                    toolResultMessageContent += "\nTool executed successfully with no return content.\n";
-                                }
-                                else
-                                {
-                                    toolResultMessageContent += $"Tool Use: {actualToolName}\n\n";
-                                    toolResultMessageContent += $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n";
-                                    toolResultMessageContent += $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
-                                }
-                                _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);
+                                    var tools = await _mcpService.ListToolsAsync(serverDefinition.Id);
+                                    var mcpTool = tools.FirstOrDefault(x => x.Name == toolResponse.ToolName);
 
-                                // Add any attachments from the tool result
-                                //if (retVal.Attachments != null && retVal.Attachments.Any())
-                                //{
-                                //    attachments.AddRange(retVal.Attachments);
-                                //}
+                                    if(mcpTool != null)
+                                    {
+                                        toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName);
+                                        break;
+                                    }
+
+                                }
                             }
                         }
                         else
@@ -264,6 +251,42 @@ namespace AiStudio4.Services
                 ShouldContinueToolLoop = continueLoop,
                 RequestedToolsSummary = toolRequestInfoOut
             };
+        }
+
+        private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName)
+        {
+            response.ResponseText += $"\n\n{actualToolName}\n\n";
+            var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
+                ? new List<Dictionary<string, object>>()
+                : ExtractMultipleJsonObjects(toolResponse.ResponseText)
+                    .Select(json => CustomJsonParser.ParseJson(json))
+                    .ToList();
+
+            if (!setsOfToolParameters.Any())
+            {
+                setsOfToolParameters.Add(new Dictionary<string, object>());
+            }
+
+            foreach (var toolParameterSet in setsOfToolParameters)
+            {
+                _logger.LogDebug("Calling MCP tool: {ServerId} -> {ToolName}", serverDefinitionId, actualToolName);
+                var retVal = await _mcpService.CallToolAsync(serverDefinitionId, actualToolName, toolParameterSet);
+
+                // Format the tool result for the model
+                if (retVal.Content.Count == 0)
+                {
+                    toolResultMessageContent += "\nTool executed successfully with no return content.\n";
+                }
+                else
+                {
+                    toolResultMessageContent += $"Tool Use: {actualToolName}\n\n";
+                    toolResultMessageContent += $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n";
+                    toolResultMessageContent += $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
+                }
+                _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);
+            }
+
+            return toolResultMessageContent;
         }
 
         private static List<string> ExtractMultipleJsonObjects(string jsonText)
