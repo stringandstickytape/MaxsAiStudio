@@ -120,7 +120,6 @@ namespace AiStudio4.InjectedDependencies
             }
 
             _connectionManager.Clear();
-            _messageHandler.Dispose();
         }
     }
 }
