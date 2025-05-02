@@ -10,24 +10,14 @@ namespace AiStudio4.Core.Models
     public class ToolExecutionResult
     {
         /// <summary>
-        /// The final response text after all tool executions
+        /// The aggregated output text from all tool executions in this iteration
         /// </summary>
-        public string ResponseText { get; set; }
-
-        /// <summary>
-        /// The final cost information accumulated across all tool executions
-        /// </summary>
-        public TokenCost CostInfo { get; set; }
+        public string AggregatedToolOutput { get; set; }
 
         /// <summary>
         /// Any file attachments generated during tool execution
         /// </summary>
         public List<Attachment> Attachments { get; set; }
-
-        /// <summary>
-        /// Number of tool execution iterations performed
-        /// </summary>
-        public int IterationCount { get; set; }
 
         /// <summary>
         /// Indicates whether the execution completed successfully
@@ -42,29 +32,23 @@ namespace AiStudio4.Core.Models
         /// <summary>
         /// Flag to determine if the tool processing loop should continue
         /// </summary>
-        public bool ContinueProcessing { get; set; }
+        public bool ShouldContinueToolLoop { get; set; }
 
         /// <summary>
-        /// The name of the tool that was requested by the AI
+        /// A summary of the tool(s) requested by the AI in this iteration (including parameter hashes)
         /// </summary>
-        public string ToolRequested { get; set; }
+        public string RequestedToolsSummary { get; set; }
 
-        /// <summary>
-        /// The result of running the tool
-        /// </summary>
-        public string ToolResult { get; set; }
 
         /// <summary>
         /// Creates a new successful tool execution result
         /// </summary>
-        public static ToolExecutionResult Successful(string responseText, TokenCost costInfo = null, List<Attachment> attachments = null, int iterationCount = 0)
+        public static ToolExecutionResult Successful(string aggregatedToolOutput, List<Attachment> attachments = null)
         {
             return new ToolExecutionResult
             {
-                ResponseText = responseText,
-                CostInfo = costInfo,
+                AggregatedToolOutput = aggregatedToolOutput,
                 Attachments = attachments,
-                IterationCount = iterationCount,
                 Success = true
             };
         }

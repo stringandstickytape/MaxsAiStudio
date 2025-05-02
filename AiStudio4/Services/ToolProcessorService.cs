@@ -257,15 +257,12 @@ namespace AiStudio4.Services
 
             return new ToolExecutionResult
             {
-                ResponseText = collatedResponse.ToString(),
-                CostInfo = costInfo,
+                AggregatedToolOutput = collatedResponse.ToString(),
                 Attachments = attachments,
                 Success = true,
-                IterationCount = 1, // This is incremented at the caller level
                 // ContinueProcessing flag to indicate whether the tool loop should continue
-                ContinueProcessing = continueLoop,
-                ToolRequested = toolRequestInfoOut,
-                ToolResult = toolResultInfo
+                ShouldContinueToolLoop = continueLoop,
+                RequestedToolsSummary = toolRequestInfoOut
             };
         }
 
