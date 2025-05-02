@@ -63,7 +63,9 @@ namespace AiStudio4.Services
                     Description = "Standard helpful assistant prompt",
                     IsDefault = true,
                     Tags = new List<string> { "general", "default" },
-                    AssociatedTools = new List<string>() // No default tools
+                    AssociatedTools = new List<string>(), // No default tools
+                    PrimaryModelGuid = string.Empty, // No default model
+                    SecondaryModelGuid = string.Empty // No default secondary model
                 };
 
                 await CreateSystemPromptAsync(defaultPrompt);
