@@ -168,26 +168,12 @@ export function UserPromptEditor({ initialPrompt, onClose, onApply }: UserPrompt
 
   return (
     <div className="h-full flex-col-full">
-      <div className="flex-none flex-between mb-4">
-        <h2 className="text-xl font-semibold text-gray-100">
-          {isCreating ? 'Create New User Prompt' : 'Edit User Prompt'}
-        </h2>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="text-gray-400 hover:text-gray-100"
-          disabled={isProcessing}
-        >
-          <X className="h-4 w-4" />
-        </Button>
-      </div>
 
       {error && <div className="bg-red-950/30 text-red-400 p-3 rounded-md border border-red-800/50">{error}</div>}
 
       <Form {...form} className="flex-1 overflow-hidden">
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col h-full">
-          <div className="space-y-6 flex-1 overflow-y-auto pr-2 max-h-[calc(100vh-350px)]">
+          <div className="space-y-6 flex-1 pr-2 max-h-[calc(100vh-350px)]">
             <FormField
               control={form.control}
               name="title"
