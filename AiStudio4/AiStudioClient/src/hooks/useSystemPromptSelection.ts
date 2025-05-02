@@ -2,6 +2,7 @@
 import { useCallback } from 'react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useToolStore } from '@/stores/useToolStore';
+import { useModelStore } from '@/stores/useModelStore';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { SystemPrompt } from '@/types/systemPrompt';
@@ -15,11 +16,13 @@ import { createApiRequest } from '@/utils/apiUtils';
  * - Sets the prompt as default (if requested)
  * - Loads associated tools
  * - Loads associated user prompt
+ * - Sets associated models (primary and secondary)
  */
 export function useSystemPromptSelection() {
   const { activeConvId } = useConvStore();
   const { setConvPrompt } = useSystemPromptStore();
   const { setActiveTools } = useToolStore.getState();
+  const { selectPrimaryModel, selectSecondaryModel } = useModelStore();
   const { prompts: userPrompts, insertUserPrompt } = useUserPromptManagement();
   const { setConvSystemPrompt, setDefaultSystemPrompt } = useSystemPromptManagement();
 
@@ -68,13 +71,26 @@ export function useSystemPromptSelection() {
           }
         }
 
+        // 6. Set associated models if they exist
+        if (prompt.primaryModelGuid && prompt.primaryModelGuid !== 'none') {
+          console.log('Setting primary model to:', prompt.primaryModelGuid);
+          selectPrimaryModel(prompt.primaryModelGuid);
+          await createApiRequest('/api/setDefaultModel', 'POST')({ modelGuid: prompt.primaryModelGuid });
+        }
+
+        if (prompt.secondaryModelGuid && prompt.secondaryModelGuid !== 'none') {
+          console.log('Setting secondary model to:', prompt.secondaryModelGuid);
+          selectSecondaryModel(prompt.secondaryModelGuid);
+          await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
+        }
+
         return true;
       } catch (error) {
         console.error(`Failed to select system prompt ${prompt.guid}:`, error);
         return false;
       }
     },
-    [activeConvId, setConvSystemPrompt, setConvPrompt, setDefaultSystemPrompt, userPrompts, insertUserPrompt]
+    [activeConvId, setConvSystemPrompt, setConvPrompt, setDefaultSystemPrompt, userPrompts, insertUserPrompt, selectPrimaryModel, selectSecondaryModel]
   );
 
   return { selectSystemPrompt };
@@ -136,6 +152,19 @@ export async function selectSystemPromptStandalone(prompt: SystemPrompt, options
           detail: { userPromptId: prompt.associatedUserPromptId }
         })
       );
+    }
+
+    // 6. Set associated models if they exist
+    if (prompt.primaryModelGuid && prompt.primaryModelGuid !== 'none') {
+      console.log('Setting primary model to:', prompt.primaryModelGuid);
+      useModelStore.getState().selectPrimaryModel(prompt.primaryModelGuid);
+      await createApiRequest('/api/setDefaultModel', 'POST')({ modelGuid: prompt.primaryModelGuid });
+    }
+
+    if (prompt.secondaryModelGuid && prompt.secondaryModelGuid !== 'none') {
+      console.log('Setting secondary model to:', prompt.secondaryModelGuid);
+      useModelStore.getState().selectSecondaryModel(prompt.secondaryModelGuid);
+      await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
     }
 
     return true;

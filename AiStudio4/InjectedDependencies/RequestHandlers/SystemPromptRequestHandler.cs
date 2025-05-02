@@ -115,6 +115,10 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 var prompt = requestObject.ToObject<Core.Models.SystemPrompt>();
                 if (prompt == null) return SerializeError("Invalid system prompt data");
                 
+                // Ensure 'none' values for model GUIDs are converted to empty strings
+                if (prompt.PrimaryModelGuid == "none") prompt.PrimaryModelGuid = string.Empty;
+                if (prompt.SecondaryModelGuid == "none") prompt.SecondaryModelGuid = string.Empty;
+                
                 var result = await _systemPromptService.CreateSystemPromptAsync(prompt);
                 return JsonConvert.SerializeObject(new { success = true, prompt = result });
             }
@@ -131,6 +135,10 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 var prompt = requestObject.ToObject<Core.Models.SystemPrompt>();
                 if (prompt == null || string.IsNullOrEmpty(prompt.Guid)) 
                     return SerializeError("Invalid system prompt data or missing prompt ID");
+                
+                // Ensure empty strings for model GUIDs are converted to null
+                if (prompt.PrimaryModelGuid == "none") prompt.PrimaryModelGuid = string.Empty;
+                if (prompt.SecondaryModelGuid == "none") prompt.SecondaryModelGuid = string.Empty;
                 
                 var result = await _systemPromptService.UpdateSystemPromptAsync(prompt);
                 return JsonConvert.SerializeObject(new { success = true, prompt = result });

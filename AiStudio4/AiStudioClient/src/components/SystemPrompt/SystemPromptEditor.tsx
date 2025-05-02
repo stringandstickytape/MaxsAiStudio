@@ -13,6 +13,7 @@ import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
+import { useModelStore } from '@/stores/useModelStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SystemPromptEditorProps {
@@ -23,7 +24,7 @@ interface SystemPromptEditorProps {
 
 export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPromptEditorProps) {
   const { setCurrentPrompt } = useSystemPromptStore();
-
+  const { models } = useModelStore();
   const { createSystemPrompt, updateSystemPrompt } = useSystemPromptManagement();
 
   const [isCreating, setIsCreating] = useState(!initialPrompt);
@@ -44,6 +45,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           isDefault: initialPrompt.isDefault,
           associatedTools: initialPrompt.associatedTools || [],
           associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
+          primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
+          secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
         }
       : {
           title: '',
@@ -53,6 +56,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           isDefault: false,
           associatedTools: [],
           associatedUserPromptId: 'none',
+          primaryModelGuid: 'none',
+          secondaryModelGuid: 'none',
         },
   });
 
@@ -71,6 +76,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         isDefault: initialPrompt.isDefault,
         associatedTools: initialPrompt.associatedTools || [],
         associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
+        primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
+        secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
       });
       setIsCreating(false);
     } else {
@@ -82,6 +89,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         isDefault: false,
         associatedTools: [],
         associatedUserPromptId: 'none',
+        primaryModelGuid: 'none',
+        secondaryModelGuid: 'none',
       });
       setIsCreating(true);
     }
@@ -342,6 +351,77 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                 </FormItem>
               )}
             />
+
+            {/* Model Association */}
+            <div className="mt-4">
+              <FormLabel className="form-label">Associated Models</FormLabel>
+              
+              {/* Primary Model */}
+              <FormField
+                control={form.control}
+                name="primaryModelGuid"
+                render={({ field }) => (
+                  <FormItem className="mb-4">
+                    <FormLabel className="form-label text-sm">Primary Model</FormLabel>
+                    <Select
+                      value={field.value || "none"}
+                      onValueChange={field.onChange}
+                      disabled={isProcessing}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full bg-gray-800 border-gray-700">
+                          <SelectValue placeholder="Select primary model" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        <SelectItem value="none">None</SelectItem>
+                        {models.map((model) => (
+                          <SelectItem key={model.guid} value={model.guid}>
+                            {model.friendlyName || model.modelName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="form-description">
+                      The primary model to use with this system prompt
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+              
+              {/* Secondary Model */}
+              <FormField
+                control={form.control}
+                name="secondaryModelGuid"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="form-label text-sm">Secondary Model</FormLabel>
+                    <Select
+                      value={field.value || "none"}
+                      onValueChange={field.onChange}
+                      disabled={isProcessing}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full bg-gray-800 border-gray-700">
+                          <SelectValue placeholder="Select secondary model" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-gray-800 border-gray-700">
+                        <SelectItem value="none">None</SelectItem>
+                        {models.map((model) => (
+                          <SelectItem key={model.guid} value={model.guid}>
+                            {model.friendlyName || model.modelName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="form-description">
+                      The secondary model to use with this system prompt
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />
+            </div>
 
             {/* Tool Association Multi-Select */}
             <div>

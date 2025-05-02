@@ -95,8 +95,8 @@ export function createApiRequest<TParams, TResponse>(
   },
 ) {
   return async (params?: TParams): Promise<TResponse> => {
-    console.log(`[API Debug] Making ${method} request to ${endpoint}`);
-    console.log('[API Debug] Request params:', params);
+    //console.log(`[API Debug] Making ${method} request to ${endpoint}`);
+    //console.log('[API Debug] Request params:', params);
     
     try {
       const requestConfig = {
@@ -104,13 +104,13 @@ export function createApiRequest<TParams, TResponse>(
         method,
         [method === 'GET' ? 'params' : 'data']: params || {},
       };
-      console.log('[API Debug] Request config:', requestConfig);
+      //console.log('[API Debug] Request config:', requestConfig);
       
       const response = await apiClient.request(requestConfig);
-      console.log(`[API Debug] Response from ${endpoint}:`, response);
+      //console.log(`[API Debug] Response from ${endpoint}:`, response);
 
       const data = response.data;
-      console.log(`[API Debug] Response data from ${endpoint}:`, data);
+      //console.log(`[API Debug] Response data from ${endpoint}:`, data);
 
       if (data && typeof data === 'object' && 'success' in data && data.success === false) {
         console.error(`[API Debug] Request to ${endpoint} returned success: false with error:`, data.error);
@@ -118,7 +118,7 @@ export function createApiRequest<TParams, TResponse>(
       }
 
       const transformedData = options?.transformResponse ? options.transformResponse(data) : data;
-      console.log(`[API Debug] Transformed response data from ${endpoint}:`, transformedData);
+      //console.log(`[API Debug] Transformed response data from ${endpoint}:`, transformedData);
       return transformedData;
     } catch (err) {
       console.error(`[API Debug] Error in API request to ${endpoint}:`, err);

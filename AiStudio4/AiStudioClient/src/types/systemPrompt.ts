@@ -9,6 +9,8 @@
   tags: string[];
   associatedTools: string[]; // Tool GUIDs
   associatedUserPromptId?: string; // Associated User Prompt GUID
+  primaryModelGuid?: string; // Associated primary model GUID
+  secondaryModelGuid?: string; // Associated secondary model GUID
 }
 
 export interface SystemPromptFormValues {
@@ -19,4 +21,6 @@ export interface SystemPromptFormValues {
   isDefault?: boolean;
   associatedTools: string[]; // Tool GUIDs
   associatedUserPromptId?: string; // Associated User Prompt GUID
+  primaryModelGuid?: string; // Associated primary model GUID
+  secondaryModelGuid?: string; // Associated secondary model GUID
 }
