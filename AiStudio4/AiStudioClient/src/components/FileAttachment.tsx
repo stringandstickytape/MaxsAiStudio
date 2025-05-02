@@ -96,7 +96,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            <input
+            {/*<input
                 ref={inputRef}
                 type="file"
                 accept={acceptedTypes}
@@ -104,7 +104,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 className="hidden"
                 disabled={disabled}
                 multiple
-            />
+            />*/}
 
             {/* Drag overlay */}
             {isDragging && (
