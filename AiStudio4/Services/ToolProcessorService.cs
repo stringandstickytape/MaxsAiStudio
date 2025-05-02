@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using SharedClasses;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace AiStudio4.Services
 {
@@ -34,10 +35,10 @@ namespace AiStudio4.Services
         private readonly IWebSocketNotificationService _webSocketNotificationService;
 
         public ToolProcessorService(
-            ILogger<ToolProcessorService> logger, 
-            IToolService toolService, 
-            IMcpService mcpService, 
-            IBuiltinToolService builtinToolService, 
+            ILogger<ToolProcessorService> logger,
+            IToolService toolService,
+            IMcpService mcpService,
+            IBuiltinToolService builtinToolService,
             IStatusMessageService statusMessageService,
             IWebSocketNotificationService webSocketNotificationService)
         {
@@ -119,7 +120,7 @@ namespace AiStudio4.Services
                                     .Select(json => CustomJsonParser.ParseJson(json))
                                     .ToList();
 
-                            if(!setsOfToolParameters.Any())
+                            if (!setsOfToolParameters.Any())
                             {
                                 setsOfToolParameters.Add(new Dictionary<string, object>());
                             }
@@ -155,7 +156,7 @@ namespace AiStudio4.Services
                             // Retrieve the Tool object to get user-edited ExtraProperties
                             var tool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
                             var extraProps = tool?.ExtraProperties ?? new Dictionary<string, string>();
-                                                       
+
                             // Pass the extraProps to the tool processor
                             var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, clientId);
 
@@ -168,14 +169,14 @@ namespace AiStudio4.Services
 
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
 
-                                if(!string.IsNullOrEmpty(toolResponse.ToolName))
+                                if (!string.IsNullOrEmpty(toolResponse.ToolName))
                                 {
                                     toolResultMessageContent += $"{toolResponse.ToolName}";
                                 }
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
                                 {
-                                    if(string.IsNullOrEmpty(tool.OutputFileType))
+                                    if (string.IsNullOrEmpty(tool.OutputFileType))
                                         toolResultMessageContent += $": {builtinToolResult.ResultMessage}\n\n";
                                     else toolResultMessageContent += $" Output:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
                                 }
@@ -185,7 +186,7 @@ namespace AiStudio4.Services
                                     toolResultMessageContent += $"Result: {builtinToolResult.StatusMessage}\n\n";
                                 }
 
-                                    // If the built-in tool indicates processing should stop
+                                // If the built-in tool indicates processing should stop
                                 if (!builtinToolResult.ContinueProcessing)
                                 {
                                     shouldStopProcessing = true;
@@ -216,7 +217,7 @@ namespace AiStudio4.Services
                     }
 
                     // Add tool result message to conversation history
-                    conv.messages[conv.messages.Count-1].content += $"\n{toolResultMessageContent}\n";
+                    conv.messages[conv.messages.Count - 1].content += $"\n{toolResultMessageContent}\n";
 
                     collatedResponse.AppendLine(toolResultMessageContent);
                 }
@@ -241,17 +242,19 @@ namespace AiStudio4.Services
                     if (toolRequestInfo.Length > 0)
                         toolRequestInfo.AppendLine();
                     toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
-                    
-                    // Include parameters to ensure we can detect duplicate calls with different parameters
+
+                    // Include parameters hash to ensure we can detect duplicate calls with different parameters
+                    // without storing potentially large parameter text
                     if (!string.IsNullOrEmpty(tool.ResponseText))
                     {
-                        toolRequestInfo.Append($" with parameters: {tool.ResponseText}");
+                        string paramHash = ComputeSha256Hash(tool.ResponseText);
+                        toolRequestInfo.Append($" [{paramHash.Substring(0,7)}]");
                     }
                 }
             }
 
             var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
-              
+
             return new ToolExecutionResult
             {
                 ResponseText = collatedResponse.ToString(),
@@ -286,6 +289,30 @@ namespace AiStudio4.Services
             }
 
             return result;
+        }
+
+
+        /// <summary>
+        /// Computes SHA256 hash of the input string
+        /// </summary>
+        /// <param name="text">Text to hash</param>
+        /// <returns>Hexadecimal string representation of the hash</returns>
+        private string ComputeSha256Hash(string text)
+        {
+            // Create a SHA256 hash from the input string
+            using (SHA256 sha256Hash = SHA256.Create())
+            {
+                // ComputeHash - returns byte array
+                byte[] bytes = sha256Hash.ComputeHash(Encoding.UTF8.GetBytes(text));
+
+                // Convert byte array to a string
+                StringBuilder builder = new StringBuilder();
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    builder.Append(bytes[i].ToString("x2"));
+                }
+                return builder.ToString();
+            }
         }
     }
 }
