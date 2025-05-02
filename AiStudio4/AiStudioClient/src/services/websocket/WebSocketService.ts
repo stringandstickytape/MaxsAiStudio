@@ -228,6 +228,12 @@ export class WebSocketService {
                     type: 'tree',
                     content: message.content,
                 });
+            } else if (message.messageType === 'convList') {
+                // Map convList to historical:update so summary updates propagate
+                dispatchWebSocketEvent('historical:update', {
+                    type: 'convList',
+                    content: message.content,
+                });
             } else if (message.messageType === 'cancelledRequest') {
                 dispatchWebSocketEvent('request:cancelled', {
                     type: 'cancelled',

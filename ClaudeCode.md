@@ -7,6 +7,13 @@
 - The legacy Dialog/DialogContent/DialogHeader/DialogTitle components are deprecated for new work.
 - This ensures consistent theming, accessibility, and modal behavior across the application.
 
+
+## 2025-05-02: Tool Loop Stuck Detection
+
+- Added server-side detection of consecutive identical tool requests in the tool loop (DefaultChatService.cs).
+- If two consecutive AI responses request identical tool uses, the loop aborts and returns an error indicating the AI is stuck in a loop.
+- This prevents infinite or unproductive tool execution cycles caused by repeated AI tool requests.
+
 ---
 
 ## Core Architecture
@@ -55,7 +62,7 @@ AiStudio4 is a hybrid desktop application built using:
 
 ## Critical Configuration
 
-*   **`ProjectPath`:** This setting, managed by `ISettingsService` and configured via the "File" menu in the UI (`WebViewWindow.xaml.cs`), is **essential**. It determines the context for many operations, especially file system access and context-aware AI tasks performed by tools (`IBuiltinToolService.UpdateProjectRoot`).
+*   **`ProjectPath`:** This setting, managed by `IGeneralSettingsService` and configured via the "File" menu in the UI (`MainWindow.xaml.cs`), is **essential**. It determines the context for many operations, especially file system access and context-aware AI tasks performed by tools (`IBuiltinToolService.UpdateProjectRoot`).ns, especially file system access and context-aware AI tasks performed by tools (`IBuiltinToolService.UpdateProjectRoot`).
 *   **`appsettings.json`:** Contains backend configuration details.
 *   **MCP Server Definitions:** Managed via `IMcpService` and configurable through the UI, determining available AI model endpoints.
 
