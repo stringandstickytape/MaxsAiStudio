@@ -134,6 +134,14 @@ namespace AiStudio4.Services
             {
                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Processing request...");
 
+                // Clear any existing interjections at the start of a new request
+                var clearInterjectionService = _serviceProvider.GetService<IInterjectionService>();
+                if (clearInterjectionService != null)
+                {
+                    await clearInterjectionService.GetAndClearInterjectionAsync(request.ClientId);
+                }
+
+
                 _logger.LogInformation("Processing chat request for conv {ConvId}", request.BranchedConv.ConvId);
 
                 var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
@@ -278,16 +286,16 @@ namespace AiStudio4.Services
                     bool duplicateDetection = false;
                     // --- Tool Loop Detection ---
                     // Now comparing full tool requests including parameters, not just tool names
-                    if (previousToolRequested != null && toolResult.ToolRequested != null && toolResult.ToolRequested.Trim() == previousToolRequested.Trim())
+                    if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
                     {
-                        _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.ToolRequested);
+                        _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);
                         await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row with identical parameters. Tool loop aborted.");
                         duplicateDetection = true;
                     }
-                    previousToolRequested = toolResult.ToolRequested;
+                    previousToolRequested = toolResult.RequestedToolsSummary;
                     // --- End Tool Loop Detection ---
 
-                    continueLoop = toolResult.ContinueProcessing;
+                    continueLoop = toolResult.ShouldContinueToolLoop;
 
                     if (request.ToolIds.Count == 2) // one of which must be "Stop", so the user has only selected 1 tool
                     {
@@ -330,7 +338,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newAssistantMessageId,
-                            Content = toolResult.ToolRequested,
+                            Content = toolResult.RequestedToolsSummary,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",
@@ -365,10 +373,10 @@ namespace AiStudio4.Services
                         string duplicateDetectionText = "";
                         if(duplicateDetection)
                         {
-                            duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.ToolRequested}. Tool loop aborted.\n\n";
+                            duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
                         }
 
-                        string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.ToolResult}";
+                        string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: userMessage, parentMessageId: request.MessageId,
