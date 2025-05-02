@@ -54,7 +54,8 @@ export function MessageInputArea({
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-        if (e.key === 'Enter' && e.ctrlKey) {
+        // Standard Ctrl+Enter to send
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
             onSend();
             return;
@@ -98,8 +99,8 @@ export function MessageInputArea({
                 onClick={handleTextAreaClick}
                 onKeyUp={handleTextAreaKeyUp}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your message here... (Ctrl+Enter to send)"
-                disabled={isLoading || disabled}
+                placeholder="Type your message here... (Ctrl+Enter to send, also works during AI processing)"
+                disabled={disabled}
                 showLineCount={true}
                 style={{
                     backgroundColor: 'var(--inputbar-edit-bg, #2d3748)',

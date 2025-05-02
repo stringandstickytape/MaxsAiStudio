@@ -13,6 +13,7 @@ using Newtonsoft.Json.Linq;
 using System.Text;
 using System.IO;
 using AiStudio4.Core.Tools;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AiStudio4.Services
 {
@@ -27,12 +28,13 @@ namespace AiStudio4.Services
         private readonly IWebSocketNotificationService _notificationService;
         private readonly IGeneralSettingsService _generalSettingsService;
         private readonly IStatusMessageService _statusMessageService;
+        private readonly IServiceProvider _serviceProvider;
 
         // Events removed
         // public event EventHandler<string> StreamingTextReceived;
         // public event EventHandler<string> StreamingComplete;
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService)
+        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider)
         {
             _logger = logger;
             _toolService = toolService;
@@ -42,6 +44,7 @@ namespace AiStudio4.Services
             _notificationService = notificationService;
             _generalSettingsService = generalSettingsService;
             _statusMessageService = statusMessageService;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<SimpleChatResponse> ProcessSimpleChatRequest(string chatMessage)
@@ -75,7 +78,7 @@ namespace AiStudio4.Services
                     };
                 }
 
-                var service = ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
                 // Create a simple chat request
@@ -134,7 +137,7 @@ namespace AiStudio4.Services
                 _logger.LogInformation("Processing chat request for conv {ConvId}", request.BranchedConv.ConvId);
 
                 var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
-                var service = ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
+                var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
                 string systemPromptContent = await GetSystemPrompt(request);
@@ -157,6 +160,8 @@ namespace AiStudio4.Services
                 {
                     if(currentIteration != 0)
                         await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Looping...");
+                        
+
                     // Check for cancellation at the start of each loop iteration
                     if (request.CancellationToken.IsCancellationRequested)
                     {
@@ -295,6 +300,21 @@ namespace AiStudio4.Services
                     // If the loop should continue, add a user message to prompt the next step
                     if (cont)
                     {
+                        // Check for interjections before continuing the loop
+                        var interjectionService = _serviceProvider.GetService<IInterjectionService>();
+                        if (interjectionService != null && await interjectionService.HasInterjectionAsync(request.ClientId))
+                        {
+                            string interjection = await interjectionService.GetAndClearInterjectionAsync(request.ClientId);
+                            if (!string.IsNullOrEmpty(interjection))
+                            {
+                                // Prepend the interjection to the collated response
+                                collatedResponse.Insert(0, $"User interjection: {interjection}\n\n");
+
+                                // Notify the client that the interjection was processed
+                                await _statusMessageService.SendStatusMessageAsync(request.ClientId, "Your interjection has been added to the conversation.");
+                            }
+                        }
+
                         var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: response.ResponseText, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));

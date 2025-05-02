@@ -1,6 +1,8 @@
 ﻿// AiStudioClient/src/services/websocket/WebSocketService.ts
 import { dispatchWebSocketEvent } from './websocketEvents';
 import { prepareAttachmentsForTransmission } from '@/utils/attachmentUtils';
+import { toast } from '@/hooks/use-toast';
+
 export interface WebSocketMessage {
     messageType: string;
     content: any;
@@ -106,6 +108,19 @@ export class WebSocketService {
     } else {
       console.warn('Cannot send message: WebSocket is not connected');
     }
+  }
+  
+  /**
+   * Sends an interjection message to the server during an active tool loop
+   * @param message The message text to send as an interjection
+   */
+  public sendInterjection(message: string): void {
+    this.send({
+      messageType: 'interject',
+      content: {
+        message
+      }
+    });
   }
 
 
@@ -231,6 +246,21 @@ export class WebSocketService {
                     if (typeof window.appendToPrompt === 'function') {
                         window.appendToPrompt(message.content.text, { newLine: true });
                     }
+                }
+            } else if (message.messageType === 'interjectionAck') {
+                // Handle interjection acknowledgment
+                if (message.content && message.content.success) {
+                    toast({
+                        title: 'Interjection Sent',
+                        description: 'Your message will be included in the next response.',
+                        variant: 'default',
+                    });
+                } else {
+                    toast({
+                        title: 'Interjection Failed',
+                        description: message.content?.error || 'Failed to send your message.',
+                        variant: 'destructive',
+                    });
                 }
             }
 

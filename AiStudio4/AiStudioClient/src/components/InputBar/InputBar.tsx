@@ -223,6 +223,12 @@ export function InputBar({
         
         if (isCancelling) return;
         
+        // If we're in the middle of a request and not cancelling, treat as interjection
+        if (isLoading && currentRequest && !isCancelling && inputText.trim()) {
+            webSocketService.sendInterjection(inputText);
+            setInputText('');
+            return;
+        }
 
         // If we're trying to cancel a current request
         if (isLoading && currentRequest) {

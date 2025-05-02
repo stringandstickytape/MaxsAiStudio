@@ -74,6 +74,7 @@ namespace AiStudio4
             services.AddSingleton<IToolProcessorService, ToolProcessorService>(); // Add ToolProcessorService
             services.AddSingleton<IBuiltinToolService, BuiltinToolService>(); // Add BuiltinToolService
             services.AddSingleton<ISecondaryAiService, SecondaryAiService>(); // Add SecondaryAiService
+            services.AddSingleton<IInterjectionService, InterjectionService>(); // Add InterjectionService
 
             // Register application services
             services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();
