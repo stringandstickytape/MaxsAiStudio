@@ -142,14 +142,14 @@ Many built-in tools in AiStudio4 expose additional configuration or metadata thr
 **Examples:**
 
 - **FileSearchTool:**
-    - `ExcludedFileExtensions (CSV)`: A comma-separated list of file extensions (e.g., `.cs,.dll,.xml`) that should be excluded from search results.
-    - `ExcludedFilePrefixes (CSV)`: A comma-separated list of filename prefixes (e.g., `jquery`) to exclude.
+    - `excludedFileExtensions (CSV)`: A comma-separated list of file extensions (e.g., `.cs,.dll,.xml`) that should be excluded from search results.
+    - `excludedFilePrefixes (CSV)`: A comma-separated list of filename prefixes (e.g., `jquery`) to exclude.
     - These are parsed at runtime and used to filter files, replacing hardcoded logic.
 - **ThinkTool:**
     - Demonstrates use of `ExtraProperties` for arbitrary metadata (e.g., `TestProperty`).
 - **DirectoryTreeTool:**
-    - `ExcludedFileExtensions (CSV)`: A comma-separated list of file extensions (e.g., `.cs`) that should be excluded from the directory tree.
-    - `ExcludedDirectories (CSV)`: A comma-separated list of directory names (e.g., `bin,obj,node_modules`) to exclude from traversal.
+    - `excludedFileExtensions (CSV)`: A comma-separated list of file extensions (e.g., `.cs`) that should be excluded from the directory tree.
+    - `excludedDirectories (CSV)`: A comma-separated list of directory names (e.g., `bin,obj,node_modules`) to exclude from traversal.
     - These are parsed at runtime and used to filter files and directories, replacing hardcoded logic.
 
 **Benefits:**
