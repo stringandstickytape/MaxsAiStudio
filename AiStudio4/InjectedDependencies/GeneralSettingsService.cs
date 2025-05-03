@@ -68,8 +68,18 @@ namespace AiStudio4.InjectedDependencies
 
         public void UpdateSettings(GeneralSettings newSettings)
         {
+            // Store the old project path to check if it changed
+            string oldProjectPath = CurrentSettings.ProjectPath;
+            
             CurrentSettings = newSettings;
             SaveSettings();
+            
+            // If project path changed, notify the BuiltinToolService
+            if (oldProjectPath != CurrentSettings.ProjectPath)
+            {
+                // This will be handled by the caller (MainWindow.xaml.cs)
+                // which should call _builtinToolService.UpdateProjectRoot()
+            }
         }
 
         public void UpdateDefaultModel(string modelNameOrGuid)

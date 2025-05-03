@@ -38,6 +38,7 @@ namespace AiStudio4.Core.Tools
         public void UpdateProjectRoot()
         {
             _projectRoot = _generalSettingsService.CurrentSettings.ProjectPath;
+            _logger.LogInformation("Updated project root to: {ProjectRoot}", _projectRoot);
         }
 
         /// <summary>

@@ -1,6 +1,14 @@
 ﻿// ClaudeCode.md
 # ClaudeCode.md - AiStudio4 Architectural Overview
 
+## 2025-05-04: Project Path Change Propagation Fix
+
+- Fixed issue where changing the project root path wasn't properly propagated to all tools.
+- Added logging in `BaseToolImplementation.UpdateProjectRoot()` to track when project root updates occur.
+- Modified `SetProjectPathMenuItem_Click` and `RecentProjectPathMenuItem_Click` in `MainWindow.xaml.cs` to only update when the path actually changes.
+- Added comments to emphasize the importance of calling `_builtinToolService.UpdateProjectRoot()` when the project path changes.
+- Enhanced `GeneralSettingsService.UpdateSettings()` to track project path changes.
+
 ## 2025-05-01: Dialog Refactor
 
 - All settings dialogs (model add/edit/delete, provider add/edit/delete) now use the UnifiedModalDialog system and its subcomponents (UnifiedModalHeader, UnifiedModalContent, UnifiedModalFooter).

@@ -133,13 +133,22 @@ public partial class WebViewWindow : Window
             try
             {
                 string selectedPath = dialog.FolderName;
-                _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
-                _projectHistoryService.AddProjectPathToHistory(selectedPath);
-                _generalSettingsService.SaveSettings();
-                _projectHistoryService.SaveSettings();
-                _builtinToolService.UpdateProjectRoot();
-                UpdateWindowTitle(); // Update title bar after changing the path
-                UpdateRecentProjectsMenu(); // Update the recent projects menu
+                string oldPath = _generalSettingsService.CurrentSettings.ProjectPath;
+                
+                // Only update if the path actually changed
+                if (selectedPath != oldPath)
+                {
+                    _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
+                    _projectHistoryService.AddProjectPathToHistory(selectedPath);
+                    _generalSettingsService.SaveSettings();
+                    _projectHistoryService.SaveSettings();
+                    
+                    // Make sure to update the project root in all tools
+                    _builtinToolService.UpdateProjectRoot();
+                    
+                    UpdateWindowTitle(); // Update title bar after changing the path
+                    UpdateRecentProjectsMenu(); // Update the recent projects menu
+                }
             }
             catch (Exception ex)
             {
@@ -187,13 +196,22 @@ public partial class WebViewWindow : Window
         {
             try
             {
-                _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
-                _projectHistoryService.AddProjectPathToHistory(selectedPath);
-                _generalSettingsService.SaveSettings();
-                _projectHistoryService.SaveSettings();
-                _builtinToolService.UpdateProjectRoot();
-                UpdateWindowTitle();
-                UpdateRecentProjectsMenu();
+                string oldPath = _generalSettingsService.CurrentSettings.ProjectPath;
+                
+                // Only update if the path actually changed
+                if (selectedPath != oldPath)
+                {
+                    _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
+                    _projectHistoryService.AddProjectPathToHistory(selectedPath);
+                    _generalSettingsService.SaveSettings();
+                    _projectHistoryService.SaveSettings();
+                    
+                    // Make sure to update the project root in all tools
+                    _builtinToolService.UpdateProjectRoot();
+                    
+                    UpdateWindowTitle();
+                    UpdateRecentProjectsMenu();
+                }
             }
             catch (Exception ex)
             {
