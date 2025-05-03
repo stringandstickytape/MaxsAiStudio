@@ -107,7 +107,7 @@ namespace AiStudio4.Core.Tools.Vite
                 }
 
                 // Build the npm install command
-                string command = "npm install";
+                string command = "install";
                 if (!string.IsNullOrEmpty(packageName))
                 {
                     command += $" {packageName}";
@@ -124,11 +124,11 @@ namespace AiStudio4.Core.Tools.Vite
                 SendStatusUpdate($"Running: {command} in {workingPath}...");
 
                 // Execute npm install command using the helper
-                string npmCommand = "npm";
+                string npmCommand = "pnpm";
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
                 // Use the enhanced helper to execute the command
-                var result = await ViteCommandHelper.ExecuteCommandAsync(npmCommand, command.Replace("npm ", ""), useCmd, workingPath, _logger);
+                var result = await ViteCommandHelper.ExecuteCommandAsync(npmCommand, command, useCmd, workingPath, _logger);
                 
                 if (!result.Success)
                 {

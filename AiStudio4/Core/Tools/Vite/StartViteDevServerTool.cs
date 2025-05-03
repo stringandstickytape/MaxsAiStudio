@@ -78,7 +78,7 @@ namespace AiStudio4.Core.Tools.Vite
 
                 // Extract parameters with defaults
                 var workingDirectory = parameters.ContainsKey("workingDirectory") ? parameters["workingDirectory"].ToString() : "";
-                var port = parameters.ContainsKey("port") ? Convert.ToInt32(parameters["port"]) : 5173;
+                var port = parameters.ContainsKey("port") ? Convert.ToInt32(parameters["port"]) : 5174;
                 var host = parameters.ContainsKey("host") ? parameters["host"].ToString() : "localhost";
 
                 // Get the working directory path (relative to project root for security)
@@ -89,7 +89,7 @@ namespace AiStudio4.Core.Tools.Vite
                     if (!workingPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
                     {
                         SendStatusUpdate("Error: Working directory is outside the allowed directory.");
-                        return CreateResult(false, true, "Error: Working directory is outside the allowed directory.");
+                        return CreateResult(true, true, "Error: Working directory is outside the allowed directory.");
                     }
                 }
 
@@ -98,7 +98,7 @@ namespace AiStudio4.Core.Tools.Vite
                 if (!File.Exists(packageJsonPath))
                 {
                     SendStatusUpdate("Error: package.json not found in the specified directory.");
-                    return CreateResult(false, true, "Error: package.json not found in the specified directory.");
+                    return CreateResult(true, true, "Error: package.json not found in the specified directory.");
                 }
 
                 // Kill any existing dev server process
@@ -130,17 +130,17 @@ namespace AiStudio4.Core.Tools.Vite
                 _runningDevServer.Start();
 
                 // Read the first few lines of output to get the server URL
-                string output = "";
-                for (int i = 0; i < 20; i++)
-                {
-                    string line = await _runningDevServer.StandardOutput.ReadLineAsync();
-                    if (line == null) break;
-                    output += line + "\n";
-                    if (line.Contains("Local:") || line.Contains("ready in"))
-                    {
-                        break;
-                    }
-                }
+                //string output = "";
+                //for (int i = 0; i < 20; i++)
+                //{
+                //    string line = await _runningDevServer.StandardOutput.ReadLineAsync();
+                //    if (line == null) break;
+                //    output += line + "\n";
+                //    if (line.Contains("Local:") || line.Contains("ready in"))
+                //    {
+                //        break;
+                //    }
+                //}
 
                 // Start a background task to continue reading output
                 _ = Task.Run(async () =>
@@ -183,7 +183,7 @@ namespace AiStudio4.Core.Tools.Vite
                 });
 
                 SendStatusUpdate("Vite dev server started successfully.");
-                return CreateResult(true, true, $"Vite dev server started successfully on http://{host}:{port}\n\nInitial output:\n{output}");
+                return CreateResult(true, true, $"Vite dev server started successfully on http://{host}:{port}\n\nInitial output:\n");
             }
             catch (Exception ex)
             {

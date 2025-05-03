@@ -105,10 +105,10 @@ namespace AiStudio4.Core.Tools.Vite
                 }
 
                 // Ensure the target directory exists
-                if (!Directory.Exists(targetPath))
-                {
-                    Directory.CreateDirectory(targetPath);
-                }
+                //if (!Directory.Exists(targetPath))
+                //{
+                //    Directory.CreateDirectory(targetPath);
+                //}
 
                 SendStatusUpdate($"Creating Vite project '{projectName}' with template '{template}'...");
 
@@ -125,7 +125,7 @@ namespace AiStudio4.Core.Tools.Vite
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
                 // Use the enhanced helper to execute the command
-                var result = await ViteCommandHelper.ExecuteCommandAsync(command, arguments, useCmd, targetPath, _logger);
+                var result = await ViteCommandHelper.ExecuteCommandAsync(command, arguments, useCmd, _projectRoot, _logger);
                 
                 if (!result.Success)
                 {

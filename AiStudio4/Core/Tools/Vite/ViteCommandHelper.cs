@@ -47,7 +47,7 @@ namespace AiStudio4.Core.Tools.Vite
         /// <returns>The command output or empty string on error</returns>
         public static async Task<string> GetCommandOutputAsync(string command, string arguments, bool useCmd, ILogger logger)
         {
-            var result = await ExecuteCommandAsync(command, arguments, useCmd, null, logger);
+            var result = await ExecuteCommandAsync(command, arguments, useCmd, null, logger, false);
             return result.Success ? result.Output : string.Empty;
         }
         
@@ -59,8 +59,9 @@ namespace AiStudio4.Core.Tools.Vite
         /// <param name="useCmd">Whether to use cmd.exe to execute the command (needed for npm and other batch files)</param>
         /// <param name="workingDirectory">Optional working directory for the command</param>
         /// <param name="logger">Logger instance</param>
+        /// <param name="showWindow">Whether to show the command window to allow user interaction (default: true)</param>
         /// <returns>CommandResult with output, error, and exit code</returns>
-        public static async Task<CommandResult> ExecuteCommandAsync(string command, string arguments, bool useCmd, string workingDirectory = null, ILogger logger = null)
+        public static async Task<CommandResult> ExecuteCommandAsync(string command, string arguments, bool useCmd, string workingDirectory = null, ILogger logger = null, bool showWindow = true)
         {
             try
             {
@@ -68,10 +69,10 @@ namespace AiStudio4.Core.Tools.Vite
                 {
                     FileName = useCmd ? "cmd.exe" : command,
                     Arguments = useCmd ? $"/c {command} {arguments}" : arguments,
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
+                    RedirectStandardOutput = !showWindow,
+                    RedirectStandardError = !showWindow,
+                    UseShellExecute = showWindow,
+                    CreateNoWindow = !showWindow
                 };
                 
                 if (!string.IsNullOrEmpty(workingDirectory))
@@ -90,7 +91,7 @@ namespace AiStudio4.Core.Tools.Vite
                     .Where(p => !string.IsNullOrEmpty(p))
                     .Distinct());
                 
-                startInfo.EnvironmentVariables["PATH"] = combinedPath;
+                //startInfo.EnvironmentVariables["PATH"] = combinedPath;
                 
                 // Log the PATH for debugging purposes
                 logger?.LogDebug($"Using PATH: {combinedPath}");
@@ -99,8 +100,15 @@ namespace AiStudio4.Core.Tools.Vite
                 var process = new Process { StartInfo = startInfo };
 
                 process.Start();
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string error = await process.StandardError.ReadToEndAsync();
+                string output = "";
+                string error = "";
+                
+                if (!showWindow)
+                {
+                    output = await process.StandardOutput.ReadToEndAsync();
+                    error = await process.StandardError.ReadToEndAsync();
+                }
+                
                 await process.WaitForExitAsync();
 
                 if (process.ExitCode != 0)
@@ -135,17 +143,19 @@ namespace AiStudio4.Core.Tools.Vite
         /// <param name="useCmd">Whether to use cmd.exe to execute the command</param>
         /// <param name="workingDirectory">Optional working directory</param>
         /// <param name="logger">Logger instance</param>
+        /// <param name="showWindow">Whether to show the command window to allow user interaction (default: true)</param>
         /// <returns>Configured Process object ready to start</returns>
-        public static Process CreateProcess(string command, string arguments, bool useCmd, string workingDirectory = null, ILogger logger = null)
+        public static Process CreateProcess(string command, string arguments, bool useCmd, string workingDirectory = null, ILogger logger = null, bool showWindow = true)
         {
             var startInfo = new ProcessStartInfo
             {
                 FileName = useCmd ? "cmd.exe" : command,
-                Arguments = useCmd ? $"/c {command} {arguments}" : arguments,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
+                Arguments = useCmd ? $"/K {command} {arguments}" : arguments,
+                RedirectStandardOutput = !showWindow,
+                RedirectStandardError = !showWindow,
+                UseShellExecute = showWindow,
+                CreateNoWindow = !showWindow,
+                
             };
             
             if (!string.IsNullOrEmpty(workingDirectory))
@@ -163,7 +173,7 @@ namespace AiStudio4.Core.Tools.Vite
                 .Where(p => !string.IsNullOrEmpty(p))
                 .Distinct());
             
-            startInfo.EnvironmentVariables["PATH"] = combinedPath;
+            //startInfo.EnvironmentVariables["PATH"] = combinedPath;
             
             // Log the PATH for debugging purposes
             logger?.LogDebug($"Using PATH: {combinedPath}");
