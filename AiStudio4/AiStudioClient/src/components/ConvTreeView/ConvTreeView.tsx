@@ -46,20 +46,30 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
 
     // Handle node click to set active conversation and message
     const handleNodeClick = useCallback((nodeId: string, nodeSource: string, nodeContent: string) => {
-        // No longer setting prompt content when clicking nodes
         const conv = convs[convId];
+        
+        // Set the prompt content when clicking user nodes
         if (conv && nodeSource === 'user') {
             const message = conv.messages.find(msg => msg.id === nodeId);
-            if (message && message.parentId) {
-                setActiveConv({
-                    convId: convId,
-                    slctdMsgId: message.parentId,
-                });
-                // Scroll to the last message after a brief delay
-                setTimeout(() => scrollToMessage(), 100);
-                return;
+            if (message) {
+                // Set the prompt to the user message content
+                if (window.setPrompt) {
+                    window.setPrompt(message.content);
+                }
+                
+                // If it has a parent, select the parent (AI message)
+                if (message.parentId) {
+                    setActiveConv({
+                        convId: convId,
+                        slctdMsgId: message.parentId,
+                    });
+                    // Scroll to the last message after a brief delay
+                    setTimeout(() => scrollToMessage(), 100);
+                    return;
+                }
             }
         }
+        
         setActiveConv({
             convId: convId, slctdMsgId: nodeId,
         });

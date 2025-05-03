@@ -34,27 +34,8 @@ export function ChatSpace() {
     setInputValue(text);
   });
 
-  useEffect(() => {
-    if (promptOverrideRef.current) {
-      promptOverrideRef.current = false;
-      return;
-    }
-    if (activeConvId && slctdMsgId && convs[activeConvId]) {
-      const conv = convs[activeConvId];
-      
-      const messages = conv.messages;
-      const slctdMsgIndex = messages.findIndex(msg => msg.id === slctdMsgId);
-      
-      if (slctdMsgIndex >= 0) {
-        
-        const nextIndex = slctdMsgIndex + 1;
-        if (nextIndex < messages.length && messages[nextIndex].source === 'user') {
-          
-          setInputValue(messages[nextIndex].content);
-        }
-      }
-    }
-  }, [activeConvId, slctdMsgId, convs]);
+  // Removed the effect that was automatically setting input value based on selected message
+  // Now we'll only set input value when explicitly requested
 
   // Listen for set-prompt event and update inputValue directly, with override flag
   useEffect(() => {
