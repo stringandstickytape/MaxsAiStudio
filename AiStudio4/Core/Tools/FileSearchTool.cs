@@ -365,7 +365,7 @@ namespace AiStudio4.Core.Tools
                 if (matchingFiles.Any())
                 {
                     // The results are now already formatted with context
-                    string resultText = $"Found matches in {matchingFiles.Count} files (searching in '{path}'):\n\n" +
+                    string resultText = $"Found matches for specified search terms of {string.Join("/", searchTerms)} in {matchingFiles.Count} files (searching in '{path}'):\n\n" +
                                         string.Join("\n", matchingFiles);
                     SendStatusUpdate($"Search completed. Found matches in {matchingFiles.Count} files.");
                     return Task.FromResult(CreateResult(true, true, resultText));

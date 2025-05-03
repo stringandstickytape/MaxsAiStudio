@@ -326,7 +326,7 @@ namespace AiStudio4.Core.Tools
 
                 if (matchingFiles.Any())
                 {
-                    string resultText = $"Found matches in {matchingFiles.Count} files (searching in '{path}'):\n\n" +
+                    string resultText = $"Found matches for the specified regexes ({string.Join("/", searchRegexes)}) in {matchingFiles.Count} files (searching in '{path}'):\n\n" +
                                         string.Join("\n", matchingFiles);
                     SendStatusUpdate($"Search completed. Found matches in {matchingFiles.Count} files.");
                     return Task.FromResult(CreateResult(true, true, resultText));
