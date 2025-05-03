@@ -121,13 +121,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
                 // Make the API request
-                var result = await GetFileContentAsync(owner, repo, path, reference);
-                // Append parameters info to output
-                if (result.Success)
-                {
-                    result.Output = $"Parameters: owner={owner}, repo={repo}, path={path}, ref={reference}\n\n" + result.Output;
-                }
-                return result;
+                return await GetFileContentAsync(owner, repo, path, reference);
             }
             catch (JsonException jsonEx)
             {
