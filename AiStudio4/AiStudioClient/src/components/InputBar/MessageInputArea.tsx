@@ -1,7 +1,6 @@
 ﻿// AiStudioClient\src\components\InputBar\MessageInputArea.tsx
 import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
-import { handlePromptShortcut } from '@/commands/shortcutPromptExecutor';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 
 interface MessageInputAreaProps {
@@ -34,16 +33,6 @@ export function MessageInputArea({
         const value = e.target.value;
         setInputText(value);
         setCursorPosition(e.target.selectionStart);
-
-        if (value.startsWith('/') && value.length > 1 && !value.includes(' ') &&
-            e.nativeEvent instanceof InputEvent && e.nativeEvent.data === ' ' &&
-            handlePromptShortcut(value)) {
-            setTimeout(() => {
-                const length = textareaRef.current?.value.length;
-                textareaRef.current?.setSelectionRange(length, length);
-                setCursorPosition(length);
-            }, 0);
-        }
     };
 
     const handleTextAreaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
@@ -66,13 +55,6 @@ export function MessageInputArea({
                 onSend();
             }
             return;
-        }
-
-        if ((e.key === ' ' || e.key === 'Tab') &&
-            inputText.startsWith('/') &&
-            !inputText.includes(' ') &&
-            handlePromptShortcut(inputText)) {
-            e.preventDefault();
         }
     };
 

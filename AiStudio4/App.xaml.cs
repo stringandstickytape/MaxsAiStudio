@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Services;
 using AiStudio4.InjectedDependencies.WebSocketManagement;
@@ -15,6 +14,8 @@ using AiStudio4.InjectedDependencies.RequestHandlers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using AiStudio4.Core;
+using System;
+using System.Threading.Tasks;
 
 namespace AiStudio4
 {
@@ -114,8 +115,8 @@ namespace AiStudio4
             services.AddSingleton<WindowManager>();
             services.AddTransient<WebViewWindow>();
 
-            // Add hosted service to initialize services during startup
-            services.AddHostedService<StartupService>();
+            // Register StartupService directly instead of as a hosted service
+            services.AddSingleton<StartupService>();
 
         }
 
@@ -123,16 +124,11 @@ namespace AiStudio4
         {
             base.OnStartup(e);
 
-            // Initialize services that need initialization
-            var toolService = _serviceProvider.GetRequiredService<IToolService>();
-            await toolService.InitializeAsync();
+            // Initialize services directly since we're getting an error with IHost
+            var startupService = _serviceProvider.GetRequiredService<StartupService>();
+            await startupService.StartAsync(default);
 
-            var mcpService = _serviceProvider.GetRequiredService<IMcpService>();
-            await mcpService.InitializeAsync();
-
-            var systemPromptService = _serviceProvider.GetRequiredService<ISystemPromptService>();
-            await systemPromptService.InitializeAsync();
-
+            // Initialize user prompt service (not handled by StartupService)
             var userPromptService = _serviceProvider.GetRequiredService<IUserPromptService>();
             await userPromptService.InitializeAsync();
             

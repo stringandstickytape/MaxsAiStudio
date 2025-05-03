@@ -28,13 +28,7 @@ namespace AiStudio4.InjectedDependencies
         public ProjectFileWatcherService(IGeneralSettingsService generalSettingsService)
         {
             _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
-            
-            // Initialize with the current project path from settings
-            if (!string.IsNullOrEmpty(_generalSettingsService.CurrentSettings.ProjectPath))
-            {
-                Initialize(_generalSettingsService.CurrentSettings.ProjectPath);
-            }
-            
+                       
             // Subscribe to settings changes to detect project path changes
             _generalSettingsService.SettingsChanged += OnSettingsChanged;
         }
@@ -121,35 +115,44 @@ namespace AiStudio4.InjectedDependencies
                 if (!Directory.Exists(ProjectPath))
                     return;
 
-                // Get all directories
-                var allDirectories = Directory.GetDirectories(ProjectPath, "*", SearchOption.AllDirectories)
-                    .Select(d => d.Replace("\\", "/"))  // Normalize path separators
-                    .ToList();
-
-                // Filter directories using GitIgnore rules
-                foreach (var dir in allDirectories)
-                {
-                    if (!_gitIgnoreFilter.PathIsIgnored(dir))
-                    {
-                        _directories.Add(dir);
-                    }
-                }
-
                 // Add the project root directory
-                _directories.Add(ProjectPath.Replace("\\", "/"));
+                string normalizedRootPath = ProjectPath.Replace("\\", "/");
+                _directories.Add(normalizedRootPath);
 
-                // Get all files
-                var allFiles = Directory.GetFiles(ProjectPath, "*", SearchOption.AllDirectories)
-                    .Select(f => f.Replace("\\", "/"))  // Normalize path separators
-                    .ToList();
+                // Process directories recursively, starting with root
+                ProcessDirectory(normalizedRootPath);
+            }
+        }
 
-                // Filter files using GitIgnore rules
-                foreach (var file in allFiles)
+        private void ProcessDirectory(string directoryPath)
+        {
+            // Get immediate child directories
+            var childDirectories = Directory.GetDirectories(directoryPath)
+                .Select(d => d.Replace("\\", "/"))  // Normalize path separators
+                .ToList();
+
+            // Process each non-ignored directory
+            foreach (var dir in childDirectories)
+            {
+                if (!_gitIgnoreFilter.PathIsIgnored($"{dir}/"))
                 {
-                    if (!_gitIgnoreFilter.PathIsIgnored(file))
-                    {
-                        _files.Add(file);
-                    }
+                    _directories.Add(dir);
+                    
+                    // Recursively process this directory
+                    ProcessDirectory(dir);
+                }
+            }
+
+            // Get and filter files in this directory
+            var files = Directory.GetFiles(directoryPath)
+                .Select(f => f.Replace("\\", "/"))  // Normalize path separators
+                .ToList();
+
+            foreach (var file in files)
+            {
+                if (!_gitIgnoreFilter.PathIsIgnored(file))
+                {
+                    _files.Add(file);
                 }
             }
         }

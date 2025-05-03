@@ -46,7 +46,10 @@ namespace SharedClasses.Git
             
             // Normalize path separators to forward slashes for gitignore matching
             relativePath = relativePath.Replace('\\', '/');
-            
+
+            if (relativePath == ".git/")
+                return true;
+
             // Check if the path is ignored
             return _ignoreList.IsIgnored(relativePath);
         }
@@ -60,7 +63,13 @@ namespace SharedClasses.Git
             // If the path is rooted but doesn't start with the project root,
             // it might be using a different drive or format, so return it as is
             if (!path.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
-                return path;
+            {
+                path = path.Replace('/', '\\');
+                if (!path.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
+                {
+                    return path;
+                }
+            }
 
             // Get the path relative to the project root
             string relativePath = path.Substring(_projectRoot.Length).TrimStart('\\', '/');
