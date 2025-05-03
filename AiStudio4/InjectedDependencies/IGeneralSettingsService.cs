@@ -1,12 +1,19 @@
 ﻿// InjectedDependencies/IGeneralSettingsService.cs
 using AiStudio4.Core.Models;
 using SharedClasses.Providers;
+using System;
 
 namespace AiStudio4.InjectedDependencies
 {
     public interface IGeneralSettingsService
     {
         GeneralSettings CurrentSettings { get; }
+        
+        /// <summary>
+        /// Event that is raised when settings are changed
+        /// </summary>
+        event EventHandler SettingsChanged;
+        
         void LoadSettings();
         void SaveSettings();
         void UpdateSettings(GeneralSettings newSettings);

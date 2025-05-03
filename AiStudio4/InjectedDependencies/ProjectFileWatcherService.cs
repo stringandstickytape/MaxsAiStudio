@@ -34,6 +34,20 @@ namespace AiStudio4.InjectedDependencies
             {
                 Initialize(_generalSettingsService.CurrentSettings.ProjectPath);
             }
+            
+            // Subscribe to settings changes to detect project path changes
+            _generalSettingsService.SettingsChanged += OnSettingsChanged;
+        }
+        
+        private void OnSettingsChanged(object sender, EventArgs e)
+        {
+            // Check if the project path has changed
+            string currentProjectPath = _generalSettingsService.CurrentSettings.ProjectPath;
+            if (!string.IsNullOrEmpty(currentProjectPath) && currentProjectPath != ProjectPath)
+            {
+                // Reinitialize with the new project path
+                Initialize(currentProjectPath);
+            }
         }
 
         public void Initialize(string projectPath)
@@ -262,6 +276,13 @@ namespace AiStudio4.InjectedDependencies
 
         public void Dispose()
         {
+            // Unsubscribe from events
+            if (_generalSettingsService != null)
+            {
+                _generalSettingsService.SettingsChanged -= OnSettingsChanged;
+            }
+            
+            // Shutdown the watcher
             Shutdown();
         }
     }

@@ -15,6 +15,8 @@ namespace AiStudio4.InjectedDependencies
         private readonly string _settingsFilePath;
         public GeneralSettings CurrentSettings { get; private set; } = new();
         private readonly object _lock = new();
+        
+        public event EventHandler SettingsChanged;
 
         public GeneralSettingsService(IConfiguration configuration)
         {
@@ -39,6 +41,8 @@ namespace AiStudio4.InjectedDependencies
                 if (section != null)
                 {
                     CurrentSettings = section.ToObject<GeneralSettings>() ?? new GeneralSettings();
+                    // Notify subscribers that settings have changed
+                    SettingsChanged?.Invoke(this, EventArgs.Empty);
                 }
                 else
                 {
@@ -63,6 +67,9 @@ namespace AiStudio4.InjectedDependencies
                 }
                 json["generalSettings"] = JToken.FromObject(CurrentSettings);
                 File.WriteAllText(_settingsFilePath, json.ToString(Formatting.Indented));
+                
+                // Notify subscribers that settings have changed
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -74,13 +81,16 @@ namespace AiStudio4.InjectedDependencies
             CurrentSettings = newSettings;
             SaveSettings();
             
+            // Notify subscribers that settings have changed
+            SettingsChanged?.Invoke(this, EventArgs.Empty);
+            
             // If project path changed, notify services that depend on the project path
             if (oldProjectPath != CurrentSettings.ProjectPath)
             {
                 // This will be handled by the caller (MainWindow.xaml.cs)
                 // which should call _builtinToolService.UpdateProjectRoot()
                 
-                // The ProjectFileWatcherService will be notified through its dependency on this service
+                // The ProjectFileWatcherService will be notified through the SettingsChanged event
                 // and will initialize itself with the new path when needed
             }
         }
