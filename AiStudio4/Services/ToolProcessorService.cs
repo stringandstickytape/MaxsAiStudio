@@ -120,7 +120,7 @@ namespace AiStudio4.Services
                             {
 
                                 // sometimes claude spontaneously stops using the prefix, probably because the unprefixed version has appeared in the chat log so many times.
-                                foreach(var serverDefinition in serverDefinitions)
+                                foreach(var serverDefinition in serverDefinitions.Where(x=>x.IsEnabled))
                                 {
                                     var tools = await _mcpService.ListToolsAsync(serverDefinition.Id);
                                     var mcpTool = tools.FirstOrDefault(x => x.Name == toolResponse.ToolName);

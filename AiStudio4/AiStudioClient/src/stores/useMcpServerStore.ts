@@ -7,18 +7,40 @@ export interface McpServerDefinition {
   name: string;
   description?: string;
   isEnabled: boolean;
+  command: string;
+  arguments?: string;
+  stdIo?: boolean;
+  env?: Record<string, string>;
+  categories?: string[];
+}
+
+export interface McpTool {
+  name: string;
+  description?: string;
+  parameters?: any;
 }
 
 interface McpServerStoreState {
   servers: McpServerDefinition[];
   enabledCount: number;
+  selectedServer: McpServerDefinition | null;
+  serverTools: McpTool[];
+  isLoadingTools: boolean;
   fetchServers: () => Promise<void>;
   setServerEnabled: (id: string, enabled: boolean) => Promise<void>;
+  addServer: (server: McpServerDefinition) => Promise<McpServerDefinition | null>;
+  updateServer: (server: McpServerDefinition) => Promise<McpServerDefinition | null>;
+  deleteServer: (id: string) => Promise<boolean>;
+  fetchServerTools: (id: string) => Promise<McpTool[]>;
+  setSelectedServer: (server: McpServerDefinition | null) => void;
 }
 
 export const useMcpServerStore = create<McpServerStoreState>((set, get) => ({
   servers: [],
   enabledCount: 0,
+  selectedServer: null,
+  serverTools: [],
+  isLoadingTools: false,
 
   async fetchServers() {
     try {
@@ -53,5 +75,92 @@ export const useMcpServerStore = create<McpServerStoreState>((set, get) => ({
     } catch (err) {
       console.error('Failed to toggle MCP server', err);
     }
+  },
+
+  async addServer(server) {
+    try {
+      const response = await createApiRequest('/api/mcpServers/add', 'POST')(server);
+      if (response?.success) {
+        const newServer = response.server as McpServerDefinition;
+        const servers = [...get().servers, newServer];
+        set({
+          servers,
+          enabledCount: servers.filter((s) => s.isEnabled).length,
+        });
+        return newServer;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to add MCP server', err);
+      return null;
+    }
+  },
+
+  async updateServer(server) {
+    try {
+      const response = await createApiRequest('/api/mcpServers/update', 'POST')(server);
+      if (response?.success) {
+        const updatedServer = response.server as McpServerDefinition;
+        const servers = get().servers.map((s) => 
+          s.id === updatedServer.id ? updatedServer : s
+        );
+        set({
+          servers,
+          enabledCount: servers.filter((s) => s.isEnabled).length,
+        });
+        return updatedServer;
+      }
+      return null;
+    } catch (err) {
+      console.error('Failed to update MCP server', err);
+      return null;
+    }
+  },
+
+  async deleteServer(id) {
+    try {
+      const response = await createApiRequest('/api/mcpServers/delete', 'POST')({
+        serverId: id,
+      });
+      if (response?.success) {
+        const servers = get().servers.filter((s) => s.id !== id);
+        set({
+          servers,
+          enabledCount: servers.filter((s) => s.isEnabled).length,
+        });
+        return true;
+      }
+      return false;
+    } catch (err) {
+      console.error('Failed to delete MCP server', err);
+      return false;
+    }
+  },
+
+  async fetchServerTools(id) {
+    try {
+      set({ isLoadingTools: true });
+      const response = await createApiRequest('/api/mcpServers/getTools', 'POST')({
+        serverId: id,
+      });
+      if (response?.success) {
+        const tools = response.tools as McpTool[];
+        set({
+          serverTools: tools,
+          isLoadingTools: false,
+        });
+        return tools;
+      }
+      set({ isLoadingTools: false });
+      return [];
+    } catch (err) {
+      console.error('Failed to fetch MCP server tools', err);
+      set({ isLoadingTools: false });
+      return [];
+    }
+  },
+
+  setSelectedServer(server) {
+    set({ selectedServer: server });
   },
 }));

@@ -39,7 +39,7 @@ namespace AiStudio4.Core.Tools
                     //    continue;
 
                     var obj = new JObject();
-                    obj["name"] = $"{serverDefinition.Id.Replace(" ", "")}_{tool.Name.Replace(" ", "")}";
+                    obj["name"] = $"{tool.Name.Replace(" ", "")}";
                     obj["description"] = tool.Description.ToString();
                     obj["input_schema"] =  JToken.Parse(tool.InputSchema.ToString());
 
