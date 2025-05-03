@@ -14,13 +14,13 @@ using System.Threading.Tasks;
 namespace AiStudio4.Core.Tools.GitHub
 {
     /// <summary>
-    /// Implementation of the GitHub Get Content API tool
+    /// Implementation of the GitHub Documentation Retrieval tool
     /// </summary>
-    public class GitHubGetContentTool : BaseToolImplementation
+    public class GitHubDocumentationTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
 
-        public GitHubGetContentTool(ILogger<GitHubGetContentTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
+        public GitHubDocumentationTool(ILogger<GitHubDocumentationTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
             _httpClient = new HttpClient();
@@ -30,18 +30,18 @@ namespace AiStudio4.Core.Tools.GitHub
         }
 
         /// <summary>
-        /// Gets the GitHub Get Content tool definition
+        /// Gets the GitHub Documentation tool definition
         /// </summary>
         public override Tool GetToolDefinition()
         {
             return new Tool
             {
-                Guid = "6172c3d4-e5f6-7890-1234-56789abcdef03",
-                Name = "GitHubGetContent",
-                Description = "Retrieves the content of a specific file from a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint.",
+                Guid = "6172c3d4-e5f6-7890-1234-56789abcdef05",
+                Name = "GitHubDocumentation",
+                Description = "Retrieves project documentation from a GitHub repository, looking first for /llms.txt, then /readme.md if not found.",
                 Schema = @"{
-  ""name"": ""GitHubGetContent"",
-  ""description"": ""Retrieves the content of a specific file from a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint."",
+  ""name"": ""GitHubDocumentation"",
+  ""description"": ""Retrieves project documentation from a GitHub repository, looking first for /llms.txt, then /readme.md if not found."",
   ""input_schema"": {
     ""properties"": {
       ""owner"": {
@@ -54,19 +54,14 @@ namespace AiStudio4.Core.Tools.GitHub
         ""type"": ""string"",
         ""description"": ""The name of the repository""
       },
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string"",
-        ""description"": ""The path to the file within the repository""
-      },
       ""ref"": {
         ""title"": ""Reference"",
         ""type"": ""string"",
         ""description"": ""The name of the commit/branch/tag (defaults to the repository's default branch)""
       }
     },
-    ""required"": [""owner"", ""repo"", ""path""],
-    ""title"": ""GitHubGetContentArguments"",
+    ""required"": [""owner"", ""repo""],
+    ""title"": ""GitHubDocumentationArguments"",
     ""type"": ""object""
   }
 }",
@@ -84,7 +79,7 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             try
             {
-                SendStatusUpdate("Starting GitHub Get Content tool execution...");
+                SendStatusUpdate("Starting GitHub Documentation tool execution...");
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
 
                 // Extract parameters
@@ -96,11 +91,6 @@ namespace AiStudio4.Core.Tools.GitHub
                 if (!parameters.TryGetValue("repo", out var repoObj) || !(repoObj is string repo) || string.IsNullOrWhiteSpace(repo))
                 {
                     return CreateResult(true, true, "Error: 'repo' parameter is required.");
-                }
-
-                if (!parameters.TryGetValue("path", out var pathObj) || !(pathObj is string path) || string.IsNullOrWhiteSpace(path))
-                {
-                    return CreateResult(true, true, "Error: 'path' parameter is required.");
                 }
 
                 // Optional parameter
@@ -120,12 +110,12 @@ namespace AiStudio4.Core.Tools.GitHub
                 // Set up authentication header
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-                // Make the API request
-                var result = await GetFileContentAsync(owner, repo, path, reference);
+                // Try to get documentation
+                var result = await GetDocumentationAsync(owner, repo, reference);
                 // Append parameters info to output
                 if (result.Success)
                 {
-                    result.Output = $"Parameters: owner={owner}, repo={repo}, path={path}, ref={reference}\n\n" + result.Output;
+                    result.Output = $"Parameters: owner={owner}, repo={repo}, ref={reference}\n\n" + result.Output;
                 }
                 return result;
             }
@@ -141,12 +131,43 @@ namespace AiStudio4.Core.Tools.GitHub
             }
         }
 
-        private async Task<BuiltinToolResult> GetFileContentAsync(string owner, string repo, string path, string reference)
+        private async Task<BuiltinToolResult> GetDocumentationAsync(string owner, string repo, string reference)
         {
             try
             {
-                SendStatusUpdate($"Fetching content of file {path} from {owner}/{repo}...");
+                SendStatusUpdate($"Fetching documentation for {owner}/{repo}...");
                 
+                // First try to get llms.txt
+                var llmsResult = await TryGetFileContentAsync(owner, repo, "llms.txt", reference);
+                if (llmsResult.Success)
+                {
+                    SendStatusUpdate("Successfully retrieved llms.txt documentation.");
+                    return llmsResult;
+                }
+                
+                // If llms.txt not found, try readme.md
+                var readmeResult = await TryGetFileContentAsync(owner, repo, "readme.md", reference);
+                if (readmeResult.Success)
+                {
+                    SendStatusUpdate("Successfully retrieved readme.md documentation.");
+                    return readmeResult;
+                }
+                
+                // If neither file was found
+                SendStatusUpdate("No documentation found.");
+                return CreateResult(true, true, $"No documentation found for {owner}/{repo}.");
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "Error fetching documentation");
+                return CreateResult(true, true, $"Error fetching documentation: {ex.Message}");
+            }
+        }
+
+        private async Task<BuiltinToolResult> TryGetFileContentAsync(string owner, string repo, string path, string reference)
+        {
+            try
+            {
                 string url = $"https://api.github.com/repos/{owner}/{repo}/contents/{path.TrimStart('/')}";
                 if (!string.IsNullOrEmpty(reference))
                 {
@@ -154,24 +175,22 @@ namespace AiStudio4.Core.Tools.GitHub
                 }
                 
                 var response = await _httpClient.GetAsync(url);
-                var content = await response.Content.ReadAsStringAsync();
                 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var errorObj = JObject.Parse(content);
-                    string errorMessage = errorObj["message"]?.ToString() ?? "Unknown error";
-                    return CreateResult(true, true, $"GitHub API Error: {errorMessage} (Status code: {response.StatusCode})");
+                    // File not found or other error
+                    return CreateResult(false, false, "");
                 }
                 
+                var content = await response.Content.ReadAsStringAsync();
                 var fileContent = ExtractFileContent(content);
                 
-                SendStatusUpdate("Successfully retrieved file content.");
-                return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}, path={path}, ref={reference}\n\n" + fileContent);
+                return CreateResult(true, true, $"# Documentation from {path}\n\n{fileContent}");
             }
-            catch (HttpRequestException ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Error fetching file content");
-                return CreateResult(true, true, $"Error fetching file content: {ex.Message}");
+                _logger.LogError(ex, $"Error fetching {path}");
+                return CreateResult(false, false, "");
             }
         }
 
@@ -187,13 +206,6 @@ namespace AiStudio4.Core.Tools.GitHub
                     return "Error: The specified path does not point to a file.";
                 }
                 
-                // Get file metadata
-                string name = fileObj["name"]?.ToString() ?? "Unknown";
-                string path = fileObj["path"]?.ToString() ?? "Unknown";
-                string sha = fileObj["sha"]?.ToString() ?? "Unknown";
-                int size = fileObj["size"]?.ToObject<int>() ?? 0;
-                string htmlUrl = fileObj["html_url"]?.ToString() ?? "Unknown";
-                
                 // Get content (base64 encoded)
                 string encodedContent = fileObj["content"]?.ToString();
                 if (string.IsNullOrEmpty(encodedContent))
@@ -207,27 +219,12 @@ namespace AiStudio4.Core.Tools.GitHub
                 byte[] data = Convert.FromBase64String(encodedContent);
                 string decodedContent = Encoding.UTF8.GetString(data);
                 
-                // Build result with metadata and content
-                var sb = new StringBuilder();
-                sb.AppendLine($"# File: {name}");
-                sb.AppendLine();
-                sb.AppendLine($"**Path:** {path}");
-                sb.AppendLine($"**Size:** {size} bytes");
-                sb.AppendLine($"**SHA:** {sha}");
-                sb.AppendLine($"**URL:** {htmlUrl}");
-                sb.AppendLine();
-                sb.AppendLine("## Content");
-                sb.AppendLine();
-                sb.AppendLine("```");
-                sb.AppendLine(decodedContent);
-                sb.AppendLine("```");
-                
-                return sb.ToString();
+                return decodedContent;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error extracting file content");
-                return $"Error extracting file content: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+                return $"Error extracting file content: {ex.Message}";
             }
         }
     }

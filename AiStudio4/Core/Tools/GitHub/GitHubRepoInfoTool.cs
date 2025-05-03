@@ -99,7 +99,13 @@ namespace AiStudio4.Core.Tools.GitHub
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
                 // Make the API request
-                return await GetRepositoryInfoAsync(owner, repo);
+                var result = await GetRepositoryInfoAsync(owner, repo);
+                // Append parameters info to output
+                if (result.Success)
+                {
+                    result.Output = $"Parameters: owner={owner}, repo={repo}\n\n" + result.Output;
+                }
+                return result;
             }
             catch (JsonException jsonEx)
             {

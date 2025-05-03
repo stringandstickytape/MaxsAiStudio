@@ -162,7 +162,13 @@ namespace AiStudio4.Core.Tools.GitHub
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
                 // Make the API request
-                return await SearchCodeAsync(query, perPage, page, sort, order);
+                var result = await SearchCodeAsync(query, perPage, page, sort, order);
+                // Append parameters info to output
+                if (result.Success)
+                {
+                    result.Output = $"Parameters: q={query}, per_page={perPage}, page={page}, sort={sort}, order={order}\n\n" + result.Output;
+                }
+                return result;
             }
             catch (JsonException jsonEx)
             {
