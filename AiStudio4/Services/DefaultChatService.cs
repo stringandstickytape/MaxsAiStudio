@@ -224,14 +224,9 @@ namespace AiStudio4.Services
                     }
 
                     _logger.LogInformation("Processing chat request - Iteration {Iteration}", currentIteration);
-
+                    
                     // we always make the stop tool available.
-                    if (request.ToolIds.Any())
-                    {
-                        var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
-                        if (!request.ToolIds.Contains(stopTool))
-                            request.ToolIds.Add(stopTool);
-                    }
+
 
                     var requestOptions = new AiRequestOptions
                     {
@@ -248,6 +243,13 @@ namespace AiStudio4.Services
                     };
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
+
+                    if (request.ToolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
+                    {
+                        var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
+                        if (!request.ToolIds.Contains(stopTool))
+                            request.ToolIds.Add(stopTool);
+                    }
 
                     response = await aiService.FetchResponse(requestOptions);
 

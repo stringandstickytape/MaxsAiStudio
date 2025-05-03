@@ -217,6 +217,12 @@ namespace AiStudio4.InjectedDependencies
             SaveSettings();
         }
 
+        public void UpdateGitHubApiKey(string apiKey)
+        {
+            CurrentSettings.GitHubApiKey = apiKey;
+            SaveSettings();
+        }
+
         public void UpdateCondaPath(string path)
         {
             CurrentSettings.CondaPath = path;

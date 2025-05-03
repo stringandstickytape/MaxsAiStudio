@@ -20,6 +20,7 @@ namespace AiStudio4.InjectedDependencies
         void UpdateServiceProvider(ServiceProvider updatedProvider);
         void DeleteServiceProvider(string providerGuid);
         void UpdateYouTubeApiKey(string apiKey);
+        void UpdateGitHubApiKey(string apiKey);
         void UpdateCondaPath(string path);
     }
 }

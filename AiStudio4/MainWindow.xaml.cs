@@ -305,6 +305,37 @@ public partial class WebViewWindow : Window
             }
         }
     }
+    
+    private void SetGitHubApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentKey = _generalSettingsService.CurrentSettings.GitHubApiKey ?? string.Empty;
+        string prompt = "Enter your GitHub API Key:";
+        string title = "Set GitHub API Key";
+
+        var dialog = new WpfInputDialog(title, prompt, currentKey)
+        {
+            Owner = this // Set the owner to center the dialog over the main window
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            string newKey = dialog.ResponseText;
+
+            // Check if the key actually changed
+            if (newKey != currentKey)
+            {
+                try
+                {
+                    _generalSettingsService.UpdateGitHubApiKey(newKey);
+                    MessageBox.Show("GitHub API Key updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving GitHub API Key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+    }
 
     private async void TestAudioTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
     {

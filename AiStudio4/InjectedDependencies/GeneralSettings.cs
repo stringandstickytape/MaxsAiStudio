@@ -19,6 +19,7 @@ namespace AiStudio4.InjectedDependencies
         public string DefaultSystemPromptId { get; set; }
         public string ProjectPath { get; set; } = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
         public string YouTubeApiKey { get; set; }
+        public string GitHubApiKey { get; set; }
         public string CondaPath { get; set; }
 
         // New properties using GUIDs for model identification

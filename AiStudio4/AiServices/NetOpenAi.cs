@@ -22,6 +22,8 @@ using System.ClientModel;
 using AiStudio4.Core.Models;
 using AiStudio4.Services;
 using Azure.Core;
+using AiStudio4.Core.Interfaces;
+using ModelContextProtocol.Protocol.Messages;
 
 namespace AiStudio4.AiServices
 {
@@ -456,7 +458,9 @@ namespace AiStudio4.AiServices
             {
                 ["tools"] = new JArray()
             };
-            
+
+
+
             // Add user-selected tools
             if (toolIDs?.Any() == true)
             {
@@ -472,6 +476,8 @@ namespace AiStudio4.AiServices
             // Convert the JArray of tools to ChatTool objects
             if (requestObj["tools"] is JArray toolsArray && toolsArray.Count > 0)
             {
+
+
                 foreach (JObject toolObj in toolsArray)
                 {
                     if (toolObj["type"]?.ToString() == "function" && toolObj["function"] is JObject functionObj)

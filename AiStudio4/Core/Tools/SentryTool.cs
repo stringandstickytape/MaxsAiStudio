@@ -65,7 +65,7 @@ namespace AiStudio4.Core.Tools
     ""type"": ""object""
   }
 }",
-                Categories = new List<string> { "API Tools" },
+                Categories = new List<string> { "APITools" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow,

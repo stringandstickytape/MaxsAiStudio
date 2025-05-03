@@ -66,6 +66,7 @@ namespace AiStudio4.Services
                 _toolLibrary = new ToolLibrary();
                 // Initialize with default categories
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "MaxCode", Priority = 110, Id = "MaxCode" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "GitHub", Priority = 105, Id = "GitHub" });
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "API Tools", Priority = 100, Id = "APITools" });
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "Development", Priority = 90, Id = "Development" });
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "Data Analysis", Priority = 80, Id = "DataAnalysis" });
