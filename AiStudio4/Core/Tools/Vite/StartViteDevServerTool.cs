@@ -120,13 +120,16 @@ namespace AiStudio4.Core.Tools.Vite
                 // Build the command with host and port options
                 string command = $"npm run dev -- --port {port} --host {host}";
 
-                // Execute the dev server command
+                // Execute the dev server command using cmd.exe for npm
+                string npmCommand = "npm";
+                bool useCmd = true; // npm is a batch file and needs cmd.exe
+                
                 _runningDevServer = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "cmd.exe",
-                        Arguments = $"/c {command}",
+                        FileName = useCmd ? "cmd.exe" : npmCommand,
+                        Arguments = useCmd ? $"/c {command}" : command,
                         WorkingDirectory = workingPath,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,

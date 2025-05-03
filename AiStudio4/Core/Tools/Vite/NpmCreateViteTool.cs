@@ -119,13 +119,18 @@ namespace AiStudio4.Core.Tools.Vite
                     templateArg += "-ts";
                 }
 
-                // Execute npm create vite command
+                // Execute npm create vite command using the helper
+                string command = "npm";
+                string arguments = $"create vite@latest {projectName} -- --template {templateArg}";
+                bool useCmd = true; // npm is a batch file and needs cmd.exe
+                
+                // Create a process to capture output and error
                 var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "cmd.exe",
-                        Arguments = $"/c npm create vite@latest {projectName} -- --template {templateArg}",
+                        FileName = useCmd ? "cmd.exe" : command,
+                        Arguments = useCmd ? $"/c {command} {arguments}" : arguments,
                         WorkingDirectory = targetPath,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,

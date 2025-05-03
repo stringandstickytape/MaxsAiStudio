@@ -70,6 +70,7 @@ namespace AiStudio4.Services
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "Development", Priority = 90, Id = "Development" });
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "Data Analysis", Priority = 80, Id = "DataAnalysis" });
                 _toolLibrary.Categories.Add(new ToolCategory { Name = "Productivity", Priority = 70, Id = "Productivity" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Vite", Priority = 60, Id = "Vite" });
 
             }
 

@@ -123,13 +123,17 @@ namespace AiStudio4.Core.Tools.Vite
 
                 SendStatusUpdate($"Running: {command} in {workingPath}...");
 
-                // Execute npm install command
+                // Execute npm install command using the helper
+                string npmCommand = "npm";
+                bool useCmd = true; // npm is a batch file and needs cmd.exe
+                
+                // Create a process to capture output and error
                 var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "cmd.exe",
-                        Arguments = $"/c {command}",
+                        FileName = useCmd ? "cmd.exe" : npmCommand,
+                        Arguments = useCmd ? $"/c {command}" : command,
                         WorkingDirectory = workingPath,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,

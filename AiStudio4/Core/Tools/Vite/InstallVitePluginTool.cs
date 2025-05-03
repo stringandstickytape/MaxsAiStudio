@@ -114,14 +114,19 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                // Install the plugin
+                // Install the plugin using the helper
                 SendStatusUpdate($"Installing Vite plugin: {pluginName}...");
+                string npmCommand = "npm";
+                string arguments = $"install {pluginName} --save-dev";
+                bool useCmd = true; // npm is a batch file and needs cmd.exe
+                
+                // Use the helper to run the command
                 var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = "cmd.exe",
-                        Arguments = $"/c npm install {pluginName} --save-dev",
+                        FileName = useCmd ? "cmd.exe" : npmCommand,
+                        Arguments = useCmd ? $"/c {npmCommand} {arguments}" : arguments,
                         WorkingDirectory = projectPath,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
