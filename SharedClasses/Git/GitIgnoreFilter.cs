@@ -1,69 +1,70 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
+using Ignore;
 
 namespace SharedClasses.Git
 {
     public class GitIgnoreFilterManager
     {
-        string gitIgnoreContent { get; set; }
+        private readonly string _projectRoot;
+        private readonly Ignore.Ignore _ignoreList;
 
-        List<(Regex Regex, bool IsNegation)> gitIgnorePatterns { get; set; }
-
-        public GitIgnoreFilterManager(string gitIgnoreContent)
+        public GitIgnoreFilterManager(string gitIgnoreContent, string projectRoot)
         {
-            this.gitIgnoreContent = gitIgnoreContent;
-            gitIgnorePatterns = ParseGitIgnore();
+            _projectRoot = projectRoot?.TrimEnd('\\', '/') ?? string.Empty;
+            _ignoreList = new Ignore.Ignore();
+            
+            // Add the gitignore patterns to the ignore list
+            if (!string.IsNullOrEmpty(gitIgnoreContent))
+            {
+                using (var reader = new StringReader(gitIgnoreContent))
+                {
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        _ignoreList.Add(line);
+                    }
+                }
+            }
         }
 
         public List<string> FilterNonIgnoredPaths(List<string> paths)
         {
-            return paths.Where(path => !IsIgnored(path)).ToList();
+            return paths.Where(path => !PathIsIgnored(path)).ToList();
         }
 
         public bool PathIsIgnored(string path)
         {
-            return FilterNonIgnoredPaths(new List<string> { path }).Count == 0;
+            if (string.IsNullOrEmpty(path))
+                return false;
+
+            // Convert path to be relative to project root if it's absolute
+            string relativePath = GetRelativePath(path);
+            
+            // Normalize path separators to forward slashes for gitignore matching
+            relativePath = relativePath.Replace('\\', '/');
+            
+            // Check if the path is ignored
+            return _ignoreList.IsIgnored(relativePath);
         }
 
-        private List<(Regex Regex, bool IsNegation)> ParseGitIgnore()
+        private string GetRelativePath(string path)
         {
-            return gitIgnoreContent.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(line => !string.IsNullOrWhiteSpace(line) && !line.TrimStart().StartsWith("#"))
-                .Select(pattern =>
-                {
-                    bool isNegation = pattern.StartsWith("!");
-                    if (isNegation) pattern = pattern.Substring(1);
+            // If the path is already relative or project root is empty, return as is
+            if (string.IsNullOrEmpty(_projectRoot) || !Path.IsPathRooted(path))
+                return path;
 
-                    pattern = pattern.Trim('/').Replace(".", "\\.").Replace("**", ".*").Replace("*", "[^/]*").Replace("?", ".");
-                    if (pattern.EndsWith("/")) pattern += ".*";
+            // If the path is rooted but doesn't start with the project root,
+            // it might be using a different drive or format, so return it as is
+            if (!path.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
+                return path;
 
-                    // Ensure the pattern matches anywhere in the path
-                    if (!pattern.StartsWith(".*") && !pattern.StartsWith("^")) pattern = "(^|/)" + pattern;
-                    if (!pattern.EndsWith(".*") && !pattern.EndsWith("$")) pattern += "($|/)";
-
-                    return (new Regex(pattern, RegexOptions.IgnoreCase), isNegation);
-                })
-                .ToList();
-        }
-
-        private bool IsIgnored(string path)
-        {
-            path = path.Replace('\\', '/').Trim('/');
-            bool ignored = false;
-
-            foreach (var (pattern, isNegation) in gitIgnorePatterns)
-            {
-                if (pattern.IsMatch(path))
-                {
-                    ignored = !isNegation;
-                }
-            }
-            //if (ignored)
-            //    Debug.WriteLine(path);
-            return ignored;
+            // Get the path relative to the project root
+            string relativePath = path.Substring(_projectRoot.Length).TrimStart('\\', '/');
+            return relativePath;
         }
     }
 }

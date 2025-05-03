@@ -249,7 +249,7 @@ namespace VSIXTest
                         if (File.Exists(Path.Combine(rootFolder, ".gitignore")))
                         {
                             var gitignore = File.ReadAllText(Path.Combine(rootFolder, ".gitignore"));
-                            var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+                            var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore, rootFolder);
 
                             if (gitignore != null)
                             {
@@ -272,7 +272,7 @@ namespace VSIXTest
                     if (File.Exists(Path.Combine(solutionRoot, ".gitignore")))
                     {
                         var gitignore = File.ReadAllText(Path.Combine(solutionRoot, ".gitignore"));
-                        var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+                        var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore, solutionRoot);
 
                         if (gitignore != null)
                         {

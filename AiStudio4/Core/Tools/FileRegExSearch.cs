@@ -308,7 +308,7 @@ namespace AiStudio4.Core.Tools
                             _logger.LogInformation("Using .gitignore: {GitIgnorePath}", gitIgnoreFilePath);
                             var gitignoreContent = File.ReadAllText(gitIgnoreFilePath);
                             string gitignoreBaseDir = Path.GetDirectoryName(gitIgnoreFilePath);
-                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignoreContent);
+                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignoreContent, _projectRoot);
                         }
                         catch (Exception ex)
                         {

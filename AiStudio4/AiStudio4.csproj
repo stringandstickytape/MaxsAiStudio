@@ -10,6 +10,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Ignore" Version="0.2.1" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />

@@ -140,7 +140,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 if (File.Exists(gitIgnorePath))
                 {
                     var gitignore = File.ReadAllText(gitIgnorePath);
-                    var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore);
+                    var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore, projectRoot);
                     files = gitIgnoreFilterManager.FilterNonIgnoredPaths(files);
                 }
             }

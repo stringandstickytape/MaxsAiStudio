@@ -342,7 +342,7 @@ namespace AiStudio4.Core.Tools
                             var gitignoreContent = File.ReadAllText(gitIgnoreFilePath);
                             string gitignoreBaseDir = Path.GetDirectoryName(gitIgnoreFilePath);
                             // Crucial: Pass the base directory of the .gitignore file
-                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignoreContent);
+                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignoreContent, _projectRoot);
                         }
                         catch (Exception ex)
                         {
