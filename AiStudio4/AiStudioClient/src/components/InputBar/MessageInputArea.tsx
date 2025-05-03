@@ -2,6 +2,7 @@
 import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { handlePromptShortcut } from '@/commands/shortcutPromptExecutor';
+import { webSocketService } from '@/services/websocket/WebSocketService';
 
 interface MessageInputAreaProps {
     inputText: string;
@@ -57,7 +58,13 @@ export function MessageInputArea({
         // Standard Ctrl+Enter to send
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
-            onSend();
+            // If tool loop is running (isLoading), send interjection instead of normal send
+            if (isLoading) {
+                webSocketService.sendInterjection(inputText);
+                setInputText('');
+            } else {
+                onSend();
+            }
             return;
         }
 
