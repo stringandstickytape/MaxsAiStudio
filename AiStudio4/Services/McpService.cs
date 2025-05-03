@@ -56,8 +56,9 @@ namespace AiStudio4.Services
                         Command = "uvx",
                         Arguments = "blender-mcp", // Note: This might need changing if uvx expects different args for 'Everything'
                         Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = false
-                        
+                        IsEnabled = false,
+                        Categories = new List<string> { "3D Modelling" },
+
                     });
 
                     _serverDefinitions.Add(new McpServerDefinition
@@ -67,7 +68,8 @@ namespace AiStudio4.Services
                         Command = "npx",
                         Arguments = "@browsermcp/mcp@latest", // Note: This might need changing if uvx expects different args for 'Everything'
                         Description = "Browser MCP",
-                        IsEnabled = false
+                        IsEnabled = false,
+                        Categories = new List<string> { "Web" },
 
                     });
 
@@ -78,7 +80,8 @@ namespace AiStudio4.Services
                         Command = "http://127.0.0.1:6050/sse",
                         Description = "Example MCP server using uvx (Update arguments if needed)",
                         IsEnabled = false,
-                        StdIo = false
+                        StdIo = false,
+                        Categories = new List<string> { "3D Modelling" },
 
 
                     });
@@ -90,7 +93,8 @@ namespace AiStudio4.Services
                         Command = "uvx",
                         Arguments = "--from mcp-claude-code claudecode --allow-path C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool", 
                         Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = false
+                        IsEnabled = false,
+                        Categories = new List<string> { "Development" },
 
                     });
 
@@ -106,9 +110,10 @@ namespace AiStudio4.Services
                         Arguments = "mcp-server-everything-search", // Note: This might need changing if uvx expects different args for 'Everything'
                         Description = "Example MCP server using uvx (Update arguments if needed)",
                         IsEnabled = true,
-                        Env = env
-                    
-                    })
+                        Env = env,
+                            Categories = new List<string> { "Filesystem" },
+
+                        })
                         ;
                     SaveDefinitions();
                 }

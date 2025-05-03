@@ -205,41 +205,6 @@ namespace AiStudio4.Core.Tools
             }
         }
 
-        private JObject ConvertToolToGemini(JObject toolConfig)
-        {
-            var functionObject = toolConfig;
-            var parameters = functionObject["parameters"];
-            var properties = parameters["properties"];
-            var required = parameters["required"];
-
-            var convertedProperties = new JObject();
-            foreach (var property in properties.Cast<JProperty>())
-            {
-                
-                var prop = property.Value;
-                if (prop["type"] != null)
-                {
-                    convertedProperties[property.Name] = new JObject
-                    {
-                        ["type"] = prop["type"].ToString().ToUpper(),
-                        ["description"] = prop["description"]
-                    };
-                }
-            }
-
-            return new JObject
-            {
-                    ["name"] = functionObject["name"],
-                    ["description"] = functionObject["description"],
-                    ["parameters"] = new JObject
-                    {
-                        ["type"] = parameters["type"].ToString().ToUpper(),
-                        ["properties"] = convertedProperties,
-                        ["required"] = required
-                    }
-            };
-        }
-
         public static JObject RemoveDefaultProperties(JObject jObject)
         {
             if (jObject == null)
@@ -338,62 +303,7 @@ namespace AiStudio4.Core.Tools
             toolConfig["parameters"] = toolConfig["input_schema"];
             toolConfig.Remove("input_schema");
 
-            if (toolConfig["name"].ToString() == "claudecode_edit_file")
-            {
-                return;
-
-                var json = toolConfig.ToString();
-
-
-                json = @"{
-  ""name"": ""claudecode_edit_file"",
-  ""description"": ""Make line-based edits to a text file.\n\nEach edit replaces exact line sequences with new content.\nReturns a git-style diff showing the changes made.\nOnly works within allowed directories.\n\nArgs:\n    path: Path\n    edits: Edits\n    dry_run: Dry Run (optional)\n\nReturns:\n    Result of the operation"",
-  ""parameters"": {
-    ""properties"": {
-
-""path"": {
-                    ""type"": ""string"",
-                    ""description"": ""The absolute path to the file to modify (must be absolute, not relative)"",
-                },
-                ""edits"": {
-                    ""items"": {
-                        ""properties"": {
-                            ""oldText"": {
-                                ""type"": ""string"",
-                                ""description"": ""The text to replace (must be unique within the file, and must match the file contents exactly, including all whitespace and indentation)"",
-                                },
-                            ""newText"": {
-                                ""type"": ""string"",
-                                ""description"": ""The edited text to replace the old_string"",
-                                },
-                            },
-                        ""type"": ""object""
-                    },
-                    ""description"":""List of edit operations [{\""oldText\"": \""...\"", \""newText\"": \""...\""}]"",
-                    ""type"": ""array""
-                },
-                ""dry_run"": {
-                    ""type"": ""boolean"",
-                    ""description"": ""If true, do not write changes to the file""
-                }
-
-    },
-    ""required"": [
-      ""path"",
-      ""edits""
-    ],
-    ""title"": ""edit_fileArguments"",
-    ""type"": ""object""
-  }
-}";
-
-                toolConfig = JsonConvert.DeserializeObject<JObject>(json);
-            }
-
-            else
-            {
                 RemoveDefaultProperties(toolConfig);
-            }
 
             if (request["tools"] == null)
             {
