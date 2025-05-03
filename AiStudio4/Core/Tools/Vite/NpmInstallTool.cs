@@ -139,7 +139,7 @@ namespace AiStudio4.Core.Tools.Vite
                 string output = result.Output;
 
                 SendStatusUpdate("Npm packages installed successfully.");
-                return CreateResult(true, true, $"Npm packages installed successfully.\n\nOutput:\n{output}");
+                return CreateResult(true, true, $"All specified npm packages were installed successfully for command `{command}`");
             }
             catch (Exception ex)
             {

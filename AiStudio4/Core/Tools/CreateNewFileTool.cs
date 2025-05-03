@@ -23,14 +23,14 @@ namespace AiStudio4.Core.Tools
     public class CreateNewFileTool : BaseToolImplementation
     {
         private readonly StringBuilder _validationErrorMessages;
-        private readonly PathSecurityManager _pathSecurityManager;
+        private  PathSecurityManager _pathSecurityManager;
 
         public CreateNewFileTool(ILogger<CreateNewFileTool> logger, IGeneralSettingsService generalSettingsService, 
             IStatusMessageService statusMessageService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
             _validationErrorMessages = new StringBuilder();
-            _pathSecurityManager = new PathSecurityManager(logger, _projectRoot);
+            
         }
 
         public override Tool GetToolDefinition()
@@ -75,6 +75,7 @@ namespace AiStudio4.Core.Tools
 
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
+            _pathSecurityManager = new PathSecurityManager(_logger, _projectRoot);
             _validationErrorMessages.Clear();
             var overallSuccess = true;
             

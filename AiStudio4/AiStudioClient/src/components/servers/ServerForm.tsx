@@ -179,6 +179,28 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
         <Label htmlFor="isEnabled">Enabled</Label>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="categories">Categories</Label>
+        <Input
+          id="categories"
+          name="categories"
+          value={formData.categories?.join(', ') || ''}
+          onChange={(e) => {
+            const categoriesText = e.target.value;
+            const categoriesList = categoriesText.split(',').map(cat => cat.trim()).filter(cat => cat !== '');
+            setFormData(prev => ({
+              ...prev,
+              categories: categoriesList
+            }));
+          }}
+          placeholder="Enter categories separated by commas (e.g., Development, Web, 3D Modelling)"
+          disabled={isSubmitting}
+        />
+        <div className="text-xs text-gray-400">
+          Categories help organize servers in the server modal
+        </div>
+      </div>
+
       <div className="pt-4 flex justify-end space-x-2">
         <Button
           type="button"

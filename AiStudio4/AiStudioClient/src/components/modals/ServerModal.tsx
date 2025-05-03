@@ -24,12 +24,6 @@ type ServerCategory = {
   name: string;
 };
 
-// Placeholder for future server categories
-const SERVER_CATEGORIES: ServerCategory[] = [
-  { id: 'local', name: 'Local Servers' },
-  { id: 'remote', name: 'Remote Servers' },
-];
-
 export function ServerModal() {
   const { openModalId, modalProps, closeModal } = useModalStore();
   const isOpen = openModalId === 'server';
@@ -98,8 +92,10 @@ export function ServerModal() {
       server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (server.description && server.description.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    // Category filtering can be implemented in the future
-    const matchesCategory = selectedCategory === null; // For now, all servers match when no category is selected
+    // Filter by selected category
+    const matchesCategory = 
+      selectedCategory === null || 
+      (server.categories && server.categories.includes(selectedCategory));
 
     return matchesSearch && matchesCategory;
   });
@@ -165,24 +161,27 @@ export function ServerModal() {
                     >
                       All Servers
                     </Button>
-                    {/* Category buttons - for future implementation */}
-                    {SERVER_CATEGORIES.map((category) => (
-                      <Button
-                        key={category.id}
-                        variant="outline"
-                        size="sm"
-                        className={cn(
-                          "w-full justify-start", 
-                          selectedCategory === category.id 
-                            ? "bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 text-white" 
-                            : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
-                        )}
-                        onClick={() => setSelectedCategory(category.id)}
-                        disabled={true} // Disabled for now
-                      >
-                        {category.name}
-                      </Button>
-                    ))}
+                    {/* Dynamic category buttons based on server categories */}
+                    {servers
+                      .flatMap(server => server.categories || [])
+                      .filter((category, index, self) => category && self.indexOf(category) === index) // Get unique categories
+                      .sort()
+                      .map((category) => (
+                        <Button
+                          key={category}
+                          variant="outline"
+                          size="sm"
+                          className={cn(
+                            "w-full justify-start", 
+                            selectedCategory === category 
+                              ? "bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 text-white" 
+                              : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
+                          )}
+                          onClick={() => setSelectedCategory(category)}
+                        >
+                          {category}
+                        </Button>
+                      ))}
                   </div>
                 </CardContent>
               </Card>

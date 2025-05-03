@@ -26,7 +26,7 @@ namespace AiStudio4.Core.Tools
     {
         private readonly StringBuilder _validationErrorMessages;
         private readonly ISecondaryAiService _secondaryAiService;
-        private readonly PathSecurityManager _pathSecurityManager;
+        private  PathSecurityManager _pathSecurityManager;
 
         public ModifyFileTool(ILogger<ModifyFileTool> logger, IGeneralSettingsService generalSettingsService, 
             ISecondaryAiService secondaryAiService, IStatusMessageService statusMessageService) 
@@ -34,7 +34,7 @@ namespace AiStudio4.Core.Tools
         {
             _validationErrorMessages = new StringBuilder();
             _secondaryAiService = secondaryAiService ?? throw new ArgumentNullException(nameof(secondaryAiService));
-            _pathSecurityManager = new PathSecurityManager(logger, _projectRoot);
+            
         }
 
         public override Tool GetToolDefinition()
@@ -88,6 +88,7 @@ namespace AiStudio4.Core.Tools
 
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
+            _pathSecurityManager = new PathSecurityManager(_logger, _projectRoot);
             _validationErrorMessages.Clear();
             var overallSuccess = true;
             

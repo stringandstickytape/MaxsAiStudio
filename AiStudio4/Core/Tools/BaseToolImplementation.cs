@@ -1,5 +1,6 @@
 ﻿using AiStudio4.Core.Interfaces; // Main interfaces namespace
 using AiStudio4.Core.Models;
+using AiStudio4.Core.Tools.CodeDiff;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using System;
@@ -16,7 +17,8 @@ namespace AiStudio4.Core.Tools
     protected readonly ILogger _logger; // Logger for diagnostic information
         protected readonly IGeneralSettingsService _generalSettingsService;
         protected readonly IStatusMessageService _statusMessageService;
-        
+        private readonly PathSecurityManager _pathSecurityManager;
+
         /// <summary>
         /// Client ID for sending status messages directly via StatusMessageService
         /// </summary>
