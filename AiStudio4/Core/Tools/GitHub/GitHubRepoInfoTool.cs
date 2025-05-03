@@ -133,7 +133,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 var formattedContent = FormatRepositoryInfo(content);
                 
                 SendStatusUpdate("Successfully retrieved repository information.");
-                return CreateResult(true, true, formattedContent);
+                return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}\n\n" + formattedContent);
             }
             catch (HttpRequestException ex)
             {

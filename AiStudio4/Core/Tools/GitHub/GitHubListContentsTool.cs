@@ -162,7 +162,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 var formattedContent = FormatContentsListing(content, pathDisplay, owner, repo, reference);
                 
                 SendStatusUpdate("Successfully retrieved contents listing.");
-                return CreateResult(true, true, formattedContent);
+                return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}, path={path}, ref={reference}\n\n" + formattedContent);
             }
             catch (HttpRequestException ex)
             {

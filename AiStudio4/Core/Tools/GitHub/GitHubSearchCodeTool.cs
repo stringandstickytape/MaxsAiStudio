@@ -213,7 +213,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 var formattedContent = FormatSearchResults(content, query, page, perPage);
                 
                 SendStatusUpdate("Successfully retrieved search results.");
-                return CreateResult(true, true, formattedContent);
+                return CreateResult(true, true, $"Parameters: q={query}, per_page={perPage}, page={page}, sort={sort}, order={order}\n\n" + formattedContent);
             }
             catch (HttpRequestException ex)
             {

@@ -160,7 +160,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 var fileContent = ExtractFileContent(content);
                 
                 SendStatusUpdate("Successfully retrieved file content.");
-                return CreateResult(true, true, fileContent);
+                return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}, path={path}, ref={reference}\n\n" + fileContent);
             }
             catch (HttpRequestException ex)
             {
