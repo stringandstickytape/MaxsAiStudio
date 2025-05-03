@@ -195,12 +195,6 @@ export function InputBar({
                 messageId,
                 attachments: attachments.length > 0 ? attachments : undefined
             });
-
-            if (!isLoading) {
-                console.log("clear input text 2");
-                setInputText('');
-            }
-            clearAttachments();
             setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
@@ -241,6 +235,8 @@ export function InputBar({
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
             
             handleChatMessage(fullMessage);
+            setInputText('');
+            clearAttachments();
         }
     };
 
