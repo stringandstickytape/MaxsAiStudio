@@ -127,31 +127,16 @@ namespace AiStudio4.Core.Tools.Vite
                 string npmCommand = "npm";
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
-                // Create a process to capture output and error
-                var process = new Process
+                // Use the enhanced helper to execute the command
+                var result = await ViteCommandHelper.ExecuteCommandAsync(npmCommand, command.Replace("npm ", ""), useCmd, workingPath, _logger);
+                
+                if (!result.Success)
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = useCmd ? "cmd.exe" : npmCommand,
-                        Arguments = useCmd ? $"/c {command}" : command,
-                        WorkingDirectory = workingPath,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode != 0)
-                {
-                    SendStatusUpdate($"Error installing npm packages: {error}");
-                    return CreateResult(false, true, $"Error installing npm packages: {error}");
+                    SendStatusUpdate($"Error installing npm packages: {result.Error}");
+                    return CreateResult(false, true, $"Error installing npm packages: {result.Error}");
                 }
+                
+                string output = result.Output;
 
                 SendStatusUpdate("Npm packages installed successfully.");
                 return CreateResult(true, true, $"Npm packages installed successfully.\n\nOutput:\n{output}");

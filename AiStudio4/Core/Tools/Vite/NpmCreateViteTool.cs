@@ -124,31 +124,16 @@ namespace AiStudio4.Core.Tools.Vite
                 string arguments = $"create vite@latest {projectName} -- --template {templateArg}";
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
-                // Create a process to capture output and error
-                var process = new Process
+                // Use the enhanced helper to execute the command
+                var result = await ViteCommandHelper.ExecuteCommandAsync(command, arguments, useCmd, targetPath, _logger);
+                
+                if (!result.Success)
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = useCmd ? "cmd.exe" : command,
-                        Arguments = useCmd ? $"/c {command} {arguments}" : arguments,
-                        WorkingDirectory = targetPath,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode != 0)
-                {
-                    SendStatusUpdate($"Error creating Vite project: {error}");
-                    return CreateResult(false, true, $"Error creating Vite project: {error}");
+                    SendStatusUpdate($"Error creating Vite project: {result.Error}");
+                    return CreateResult(false, true, $"Error creating Vite project: {result.Error}");
                 }
+                
+                string output = result.Output;
 
                 SendStatusUpdate("Vite project created successfully.");
                 return CreateResult(true, true, $"Vite project '{projectName}' created successfully with template '{templateArg}'\n\nOutput:\n{output}");

@@ -124,19 +124,8 @@ namespace AiStudio4.Core.Tools.Vite
                 string npmCommand = "npm";
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
-                _runningDevServer = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = useCmd ? "cmd.exe" : npmCommand,
-                        Arguments = useCmd ? $"/c {command}" : command,
-                        WorkingDirectory = workingPath,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
+                // Use the helper to create the process
+                _runningDevServer = ViteCommandHelper.CreateProcess(npmCommand, command.Replace("npm ", ""), useCmd, workingPath, _logger);
 
                 _runningDevServer.Start();
 

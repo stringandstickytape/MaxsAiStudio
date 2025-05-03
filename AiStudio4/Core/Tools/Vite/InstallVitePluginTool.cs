@@ -120,31 +120,16 @@ namespace AiStudio4.Core.Tools.Vite
                 string arguments = $"install {pluginName} --save-dev";
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
-                // Use the helper to run the command
-                var process = new Process
+                // Use the enhanced helper to execute the command
+                var result = await ViteCommandHelper.ExecuteCommandAsync(npmCommand, arguments, useCmd, projectPath, _logger);
+                
+                if (!result.Success)
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = useCmd ? "cmd.exe" : npmCommand,
-                        Arguments = useCmd ? $"/c {npmCommand} {arguments}" : arguments,
-                        WorkingDirectory = projectPath,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    }
-                };
-
-                process.Start();
-                string output = await process.StandardOutput.ReadToEndAsync();
-                string error = await process.StandardError.ReadToEndAsync();
-                await process.WaitForExitAsync();
-
-                if (process.ExitCode != 0)
-                {
-                    SendStatusUpdate($"Error installing Vite plugin: {error}");
-                    return CreateResult(false, true, $"Error installing Vite plugin: {error}");
+                    SendStatusUpdate($"Error installing Vite plugin: {result.Error}");
+                    return CreateResult(false, true, $"Error installing Vite plugin: {result.Error}");
                 }
+                
+                string output = result.Output;
 
                 // Update the Vite config to use the plugin
                 SendStatusUpdate("Updating Vite configuration to use the plugin...");
