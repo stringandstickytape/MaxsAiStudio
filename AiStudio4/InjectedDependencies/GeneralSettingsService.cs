@@ -74,11 +74,14 @@ namespace AiStudio4.InjectedDependencies
             CurrentSettings = newSettings;
             SaveSettings();
             
-            // If project path changed, notify the BuiltinToolService
+            // If project path changed, notify services that depend on the project path
             if (oldProjectPath != CurrentSettings.ProjectPath)
             {
                 // This will be handled by the caller (MainWindow.xaml.cs)
                 // which should call _builtinToolService.UpdateProjectRoot()
+                
+                // The ProjectFileWatcherService will be notified through its dependency on this service
+                // and will initialize itself with the new path when needed
             }
         }
 

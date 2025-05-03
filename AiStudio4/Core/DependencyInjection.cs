@@ -1,6 +1,7 @@
 ﻿// AiStudio4.Core\DependencyInjection.cs
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Tools;
+using AiStudio4.InjectedDependencies;
 using AiStudio4.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
@@ -22,6 +23,8 @@ namespace AiStudio4.Core
             services.AddControllers();
             // Register all tool-related services
             services.AddToolServices();
+            // Register the project file watcher service
+            services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
             return services;
         }
 
