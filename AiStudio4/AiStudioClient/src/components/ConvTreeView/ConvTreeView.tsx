@@ -161,24 +161,14 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                     }}
                 />
 
-                {/* Info tooltip about middle-click functionality */}
-                <div className="ConvTreeView absolute top-2 left-2 text-xs px-2 py-1 rounded-md backdrop-blur-sm"
-                    style={{
-                        backgroundColor: 'var(--convtree-bg, rgba(31, 41, 55, 0.7))',
-                        color: 'var(--convtree-text-color, #9ca3af)',
-                        backdropFilter: 'blur(4px)'
-                    }}
-                >
-                    <span>Middle-click to delete</span>
-                </div>
-
-                {/* Tree controls */}
-                <TreeControls 
-                    onFocusLatest={focusOnLatest}
-                    onCenter={handleCenter}
-                    onZoomIn={handleZoomIn}
-                    onZoomOut={handleZoomOut}
-                />
+                {/* Tree controls */
+                    <TreeControls
+                        onFocusLatest={focusOnLatest}
+                        onCenter={handleCenter}
+                        onZoomIn={handleZoomIn}
+                        onZoomOut={handleZoomOut}
+                    />
+                }
             </div>
         </div>
     );

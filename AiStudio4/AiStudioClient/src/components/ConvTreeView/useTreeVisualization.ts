@@ -253,6 +253,10 @@ export const useTreeVisualization = ({
       .on('click', (e, d) => onNodeClick(d.data.id, d.data.source, d.data.content))
       .on('mousedown', (e, d) => onNodeMiddleClick(e, d.data.id));
 
+    // Add tooltip for middle-click delete
+    nodeGroups.append('title')
+      .text('Middle-click to delete');
+
     // Draw node rectangles
     nodeGroups
       .append('rect')
