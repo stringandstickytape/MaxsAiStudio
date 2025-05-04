@@ -52,15 +52,76 @@ class SlashItemRegistryService {
     const items = await this.getItems();
     if (!query) return items;
     
-    const lowerQuery = query.toLowerCase();
+    // Helper function to check if a string matches a pattern with wildcards
+    const matchesWildcard = (text: string, pattern: string): boolean => {
+      // Convert strings to lowercase for case-insensitive matching
+      const lowerText = text.toLowerCase();
+      const lowerPattern = pattern.toLowerCase();
+      
+      // For patterns without wildcards, use simple includes
+      if (!lowerPattern.includes('*') && !lowerPattern.includes('?')) {
+        return lowerText.includes(lowerPattern);
+      }
+      
+      // Check if any substring of the text matches the wildcard pattern
+      for (let i = 0; i <= lowerText.length; i++) {
+        if (matchFromPosition(lowerText, lowerPattern, i)) {
+          return true;
+        }
+      }
+      
+      return false;
+    };
+    
+    // Helper function to check if text matches pattern starting from a specific position
+    const matchFromPosition = (text: string, pattern: string, startPos: number): boolean => {
+      let textIndex = startPos;
+      let patternIndex = 0;
+      
+      while (patternIndex < pattern.length && textIndex <= text.length) {
+        // Handle * wildcard
+        if (pattern[patternIndex] === '*') {
+          // Last character in pattern is *, it matches everything remaining
+          if (patternIndex === pattern.length - 1) {
+            return true;
+          }
+          
+          // Try to match the rest of the pattern with different positions in text
+          const restPattern = pattern.substring(patternIndex + 1);
+          for (let i = textIndex; i <= text.length; i++) {
+            if (matchFromPosition(text, restPattern, i)) {
+              return true;
+            }
+          }
+          return false;
+        }
+        
+        // End of text but not end of pattern
+        if (textIndex === text.length) {
+          return false;
+        }
+        
+        // Handle ? wildcard or exact character match
+        if (pattern[patternIndex] === '?' || pattern[patternIndex] === text[textIndex]) {
+          textIndex++;
+          patternIndex++;
+        } else {
+          return false;
+        }
+      }
+      
+      // Check if we've consumed the entire pattern
+      return patternIndex === pattern.length;
+    };
+    
     return items.filter(item => {
-      // Ensure item and item.name are defined before calling toLowerCase
+      // Ensure item and item.name are defined before matching
       if (!item || typeof item.name !== 'string') return false;
       
-      const nameMatch = item.name.toLowerCase().includes(lowerQuery);
+      const nameMatch = matchesWildcard(item.name, query);
       const descriptionMatch = item.description && 
         typeof item.description === 'string' && 
-        item.description.toLowerCase().includes(lowerQuery);
+        matchesWildcard(item.description, query);
       
       return nameMatch || descriptionMatch;
     });
