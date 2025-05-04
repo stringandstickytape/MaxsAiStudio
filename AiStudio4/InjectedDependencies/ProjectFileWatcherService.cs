@@ -174,6 +174,9 @@ namespace AiStudio4.InjectedDependencies
                 string path = e.FullPath.Replace("\\", "/");
                 bool isDirectory = Directory.Exists(path);
 
+                if (isDirectory)
+                    path = $"{path}/";
+
                 // Check if the path should be ignored
                 if (_gitIgnoreFilter.PathIsIgnored(path))
                     return;
