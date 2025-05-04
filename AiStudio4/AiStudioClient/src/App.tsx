@@ -16,6 +16,10 @@ import { useConvStore } from '@/stores/useConvStore';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { v4 as uuidv4 } from 'uuid';
 import { useModalStore } from '@/stores/useModalStore';
+// Import slash command registry and providers
+import { slashItemRegistry } from './services/slashItemRegistry';
+import { UserPromptProvider } from './services/providers/userPromptProvider';
+import { FileNameProvider } from './services/providers/fileNameProvider';
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -39,6 +43,13 @@ function App() {
     };
   }, []);
   
+  // Initialize slash command providers
+  useEffect(() => {
+    // Register slash command providers
+    slashItemRegistry.registerProvider(new UserPromptProvider());
+    slashItemRegistry.registerProvider(new FileNameProvider());
+    // Register other providers as needed
+  }, []);
   
   const checkAndFixPanelData = () => {
     try {

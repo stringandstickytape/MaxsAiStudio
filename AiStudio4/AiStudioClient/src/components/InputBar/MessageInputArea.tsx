@@ -2,6 +2,8 @@
 import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { webSocketService } from '@/services/websocket/WebSocketService';
+import { SlashDropdown } from '@/components/SlashDropdown';
+import { getCursorPosition } from '@/utils/textAreaUtils';
 
 interface MessageInputAreaProps {
     inputText: string;
@@ -22,6 +24,9 @@ export function MessageInputArea({
 }: MessageInputAreaProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
+    const [showSlashDropdown, setShowSlashDropdown] = useState(false);
+    const [slashQuery, setSlashQuery] = useState('');
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
     useEffect(() => {
         if (onCursorPositionChange) {
@@ -33,17 +38,90 @@ export function MessageInputArea({
         const value = e.target.value;
         setInputText(value);
         setCursorPosition(e.target.selectionStart);
+        
+        // Check for slash command trigger
+        const match = /(?:^|\s)\/([^\s]*)$/.exec(value);
+        if (match) {
+            const query = match[1];
+            setSlashQuery(query);
+            setShowSlashDropdown(true);
+            
+            // Calculate dropdown position based on cursor position
+            if (textareaRef.current) {
+                const cursorPos = getCursorPosition(textareaRef.current);
+                setDropdownPosition({
+                    top: cursorPos.top + 20, // Adjust as needed
+                    left: cursorPos.left
+                });
+            }
+        } else {
+            setShowSlashDropdown(false);
+        }
     };
 
     const handleTextAreaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
         setCursorPosition(e.currentTarget.selectionStart);
+        
+        // Check if we should show the slash dropdown after click
+        if (textareaRef.current) {
+            const value = textareaRef.current.value;
+            const selectionStart = textareaRef.current.selectionStart;
+            const textBeforeCursor = value.substring(0, selectionStart);
+            const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
+            
+            if (match) {
+                const query = match[1];
+                setSlashQuery(query);
+                setShowSlashDropdown(true);
+                
+                const cursorPos = getCursorPosition(textareaRef.current);
+                setDropdownPosition({
+                    top: cursorPos.top + 20,
+                    left: cursorPos.left
+                });
+            } else {
+                setShowSlashDropdown(false);
+            }
+        }
     };
 
     const handleTextAreaKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         setCursorPosition(e.currentTarget.selectionStart);
+        
+        // Don't process special keys that are handled by the dropdown
+        if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
+            return;
+        }
+        
+        // Check if we should show the slash dropdown after key press
+        if (textareaRef.current) {
+            const value = textareaRef.current.value;
+            const selectionStart = textareaRef.current.selectionStart;
+            const textBeforeCursor = value.substring(0, selectionStart);
+            const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
+            
+            if (match) {
+                const query = match[1];
+                setSlashQuery(query);
+                setShowSlashDropdown(true);
+                
+                const cursorPos = getCursorPosition(textareaRef.current);
+                setDropdownPosition({
+                    top: cursorPos.top + 20,
+                    left: cursorPos.left
+                });
+            } else {
+                setShowSlashDropdown(false);
+            }
+        }
     };
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        // If dropdown is open, let it handle these keys
+        if (showSlashDropdown && ['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
+            return;
+        }
+        
         // Standard Ctrl+Enter to send
         if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
             e.preventDefault();
@@ -56,6 +134,52 @@ export function MessageInputArea({
             }
             return;
         }
+    };
+
+    // Handle selection from dropdown
+    const handleSlashItemSelect = (text: string) => {
+        // Replace the slash command with the selected text
+        if (textareaRef.current) {
+            const value = textareaRef.current.value;
+            const selectionStart = textareaRef.current.selectionStart;
+            const textBeforeCursor = value.substring(0, selectionStart);
+            const textAfterCursor = value.substring(selectionStart);
+            
+            // Find the last slash command before cursor
+            const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
+            if (match) {
+                const matchStart = match.index;
+                const matchEnd = matchStart + match[0].length;
+                
+                // Replace the slash command with the selected text
+                const newValue = textBeforeCursor.substring(0, matchStart) + 
+                    (match[0].startsWith(' ') ? ' ' : '') + 
+                    text + 
+                    textAfterCursor;
+                
+                setInputText(newValue);
+                
+                // Set cursor position after the inserted text
+                const newCursorPosition = matchStart + 
+                    (match[0].startsWith(' ') ? 1 : 0) + 
+                    text.length;
+                
+                setTimeout(() => {
+                    if (textareaRef.current) {
+                        textareaRef.current.focus();
+                        textareaRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+                        setCursorPosition(newCursorPosition);
+                    }
+                }, 0);
+            }
+        }
+        
+        setShowSlashDropdown(false);
+    };
+
+    // Handle cancellation
+    const handleSlashDropdownCancel = () => {
+        setShowSlashDropdown(false);
     };
 
     // Expose focus method to parent component via ref
@@ -97,6 +221,15 @@ export function MessageInputArea({
                     ...(window?.theme?.InputBar?.style || {})
                 }}
             />
+            
+            {showSlashDropdown && (
+                <SlashDropdown
+                    query={slashQuery}
+                    onSelect={handleSlashItemSelect}
+                    onCancel={handleSlashDropdownCancel}
+                    position={dropdownPosition}
+                />
+            )}
         </div>
     );
 }
