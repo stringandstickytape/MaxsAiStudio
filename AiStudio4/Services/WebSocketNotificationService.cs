@@ -5,6 +5,7 @@ using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Services
@@ -167,6 +168,33 @@ namespace AiStudio4.Services
             {
                 _logger.LogError(ex, "Failed to send status message to client {ClientId}", clientId);
                 throw new WebSocketNotificationException("Failed to send status message", ex);
+            }
+        }
+        
+        public async Task NotifyFileSystemChanges(IReadOnlyList<string> directories, IReadOnlyList<string> files)
+        {
+            try
+            {
+                if (directories == null) throw new ArgumentNullException(nameof(directories));
+                if (files == null) throw new ArgumentNullException(nameof(files));
+
+                var message = new
+                {
+                    messageType = "fileSystem",
+                    content = new
+                    {
+                        directories = directories,
+                        files = files
+                    }
+                };
+
+                await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
+                _logger.LogDebug("Sent file system update to all clients");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send file system update to clients");
+                throw new WebSocketNotificationException("Failed to send file system update", ex);
             }
         }
     }

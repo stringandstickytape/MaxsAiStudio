@@ -24,7 +24,6 @@ namespace AiStudio4.Core
             // Register all tool-related services
             services.AddToolServices();
             // Register the project file watcher service
-            services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
             return services;
         }
 
