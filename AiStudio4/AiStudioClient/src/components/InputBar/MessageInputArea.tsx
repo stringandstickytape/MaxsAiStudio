@@ -104,7 +104,24 @@ export function MessageInputArea({
 
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         // If dropdown is open, let it handle these keys
-        if (showSlashDropdown && ['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
+        if (showSlashDropdown && ['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape', ' '].includes(e.key)) {
+            e.preventDefault();
+            if (e.key === ' ') {
+                // Insert space and hide dropdown
+                setShowSlashDropdown(false);
+                const cursorPos = e.currentTarget.selectionStart;
+                const text = e.currentTarget.value;
+                const newText = text.substring(0, cursorPos) + ' ' + text.substring(cursorPos);
+                e.currentTarget.value = newText;
+                // Need to update React state to match the DOM change
+                setInputText(newText);
+                // Set cursor position after the space
+                setTimeout(() => {
+                    if (textareaRef.current) {
+                        textareaRef.current.selectionStart = textareaRef.current.selectionEnd = cursorPos + 1;
+                    }
+                }, 0);
+            }
             return;
         }
         

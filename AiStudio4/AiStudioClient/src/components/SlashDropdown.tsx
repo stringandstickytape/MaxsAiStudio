@@ -146,12 +146,10 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
           onCancel();
           break;
         case ' ':
-          // Only prevent default if we're showing the dropdown
-          // Otherwise let the space be typed normally
-          if (items.length > 0) {
-            e.preventDefault();
-            onCancel();
-          }
+          // When space is pressed, just cancel the dropdown
+          // The space character will be handled by the MessageInputArea component
+          e.preventDefault();
+          onCancel();
           break;
       }
     };
