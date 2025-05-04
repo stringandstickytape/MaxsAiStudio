@@ -50,9 +50,12 @@ export function MessageInputArea({
             // Calculate dropdown position based on cursor position
             if (textareaRef.current) {
                 const cursorPos = getCursorPosition(textareaRef.current);
+                const textareaRect = textareaRef.current.getBoundingClientRect();
+                
+                // Calculate position relative to the viewport for the portal
                 setDropdownPosition({
-                    top: cursorPos.top + 20, // Adjust as needed
-                    left: cursorPos.left
+                    top: textareaRect.top + cursorPos.top + 20, // Adjust as needed
+                    left: textareaRect.left + cursorPos.left
                 });
             }
         } else {
@@ -76,9 +79,12 @@ export function MessageInputArea({
                 setShowSlashDropdown(true);
                 
                 const cursorPos = getCursorPosition(textareaRef.current);
+                const textareaRect = textareaRef.current.getBoundingClientRect();
+                
+                // Calculate position relative to the viewport for the portal
                 setDropdownPosition({
-                    top: cursorPos.top + 20,
-                    left: cursorPos.left
+                    top: textareaRect.top + cursorPos.top + 20,
+                    left: textareaRect.left + cursorPos.left
                 });
             } else {
                 setShowSlashDropdown(false);
@@ -107,9 +113,12 @@ export function MessageInputArea({
                 setShowSlashDropdown(true);
                 
                 const cursorPos = getCursorPosition(textareaRef.current);
+                const textareaRect = textareaRef.current.getBoundingClientRect();
+                
+                // Calculate position relative to the viewport for the portal
                 setDropdownPosition({
-                    top: cursorPos.top + 20,
-                    left: cursorPos.left
+                    top: textareaRect.top + cursorPos.top + 20,
+                    left: textareaRect.left + cursorPos.left
                 });
             } else {
                 setShowSlashDropdown(false);
