@@ -103,10 +103,11 @@ namespace AiStudio4
             services.AddTransient<IRequestHandler, AppearanceRequestHandler>();
             services.AddTransient<IRequestHandler, PinnedCommandRequestHandler>();
             services.AddTransient<IRequestHandler, ChatRequestHandler>();
+            services.AddTransient<IRequestHandler, FileSystemRequestHandler>();
             services.AddTransient<IRequestHandler, ModelRequestHandler>();
             services.AddTransient<IRequestHandler, MiscRequestHandler>();
             services.AddTransient<IRequestHandler, ConfigRequestHandler>();
-            
+
             // Register request router and broker
             services.AddSingleton<UiRequestRouter>();
             services.AddSingleton<UiRequestBroker>();

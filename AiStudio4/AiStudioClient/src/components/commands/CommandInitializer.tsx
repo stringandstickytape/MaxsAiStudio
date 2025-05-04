@@ -23,12 +23,15 @@ import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { useModalStore } from '@/stores/useModalStore'; // Added import for modal control
+import { useFileSystemManagement } from '@/hooks/useFileSystemManagement';
+
 export function CommandInitializer() {
   const { togglePanel } = usePanelStore();
   const { models, handleModelSelect } = useModelManagement();
   const { fetchPinnedCommands } = usePinnedCommandsStore();
   const { fetchUserPrompts } = useUserPromptManagement();
   const { fetchTools, fetchToolCategories } = useToolsManagement();
+  const { fetchFileSystem } = useFileSystemManagement();
 
   const handleOpenNewWindow = () => {
     window.open(window.location.href, '_blank');
@@ -58,7 +61,8 @@ export function CommandInitializer() {
           fetchPinnedCommands(),
           fetchTools(),
           fetchToolCategories(),
-          fetchUserPrompts()
+          fetchUserPrompts(),
+          fetchFileSystem() // Fetch file system data on startup
         ]);
         
         
@@ -71,7 +75,7 @@ export function CommandInitializer() {
     };
     
     loadInitialData();
-  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, togglePanel]);
+  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, fetchFileSystem, togglePanel]);
 
   useEffect(() => {
     initializeCoreCommands({
