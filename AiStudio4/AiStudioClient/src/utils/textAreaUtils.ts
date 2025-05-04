@@ -27,13 +27,24 @@ export function getCursorPosition(textarea: HTMLTextAreaElement) {
     const top = paddingTop + (currentLineNumber - 1) * lineHeight;
     
     // Calculate left position based on character position in current line
-    // This is approximate and depends on font being monospace
-    const charWidth = 8; // Approximate character width in pixels
-    const left = paddingLeft + (currentLineText.length * charWidth);
+    // Use canvas to measure the actual text width
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+    if (context) {
+      const computedStyle = window.getComputedStyle(textarea);
+      context.font = `${computedStyle.fontWeight} ${computedStyle.fontSize} ${computedStyle.fontFamily}`;
+      const textMetrics = context.measureText(currentLineText);
+      const left = paddingLeft + textMetrics.width;
+      return {
+        top: top,
+        left: left
+      };
+    }
     
+    // Fallback to using the calculated top with a fallback left position
     return {
       top: top,
-      left: left
+      left: paddingLeft
     };
   } catch (error) {
     // Return a default position if calculation fails
