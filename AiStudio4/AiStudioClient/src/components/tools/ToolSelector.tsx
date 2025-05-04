@@ -1,4 +1,4 @@
-
+﻿
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -77,12 +77,10 @@ export function ToolSelector({ onManageTools }: ToolSelectorProps) {
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {tools.map((tool) => (
                 <div key={tool.guid} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`tool-${tool.guid}`}
-                    checked={activeTools.includes(tool.guid)}
-                    onCheckedChange={(checked) => handleToolToggle(tool.guid, checked as boolean)}
-                  />
-                  <Label htmlFor={`tool-${tool.guid}`} className="text-sm cursor-pointer">
+                  <Label 
+                    className="text-sm cursor-pointer w-full py-1 px-2 rounded hover:bg-gray-700"
+                    onClick={() => handleToolToggle(tool.guid, !activeTools.includes(tool.guid))}
+                  >
                     {tool.name}
                   </Label>
                 </div>

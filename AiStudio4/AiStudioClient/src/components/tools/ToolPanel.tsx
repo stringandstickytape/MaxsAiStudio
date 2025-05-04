@@ -323,10 +323,6 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="flex items-center gap-2">
-                          {isActive ? 
-                            <CheckSquare className="h-5 w-5 text-blue-500" /> : 
-                            <Square className="h-5 w-5 text-gray-500" />
-                          }
                           <h3 className="text-title text-lg">{tool.name}</h3>
                         </div>
                         <p className="text-body">{tool.description}</p>

@@ -220,10 +220,6 @@ export function ServerModal() {
                         <div className="flex justify-between items-start">
                           <div>
                             <div className="flex items-center gap-2">
-                              {server.isEnabled ? 
-                                <CheckSquare className="h-5 w-5 text-blue-500" /> : 
-                                <Square className="h-5 w-5 text-gray-500" />
-                              }
                               <h3 className="text-title text-lg">{server.name}</h3>
                             </div>
                             <p className="text-body">{server.description}</p>
