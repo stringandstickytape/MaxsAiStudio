@@ -59,6 +59,112 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
     }
   }, [anchorElement]);
   
+  // Helper function to filter items with wildcard support
+  const filterItemsWithWildcards = (items: SlashItem[], query: string): SlashItem[] => {
+    if (!query) return items;
+    
+    // Helper function to check if a string matches a pattern with wildcards
+    const matchesWildcard = (text: string, pattern: string): boolean => {
+      // Convert strings to lowercase for case-insensitive matching
+      const lowerText = text.toLowerCase();
+      const lowerPattern = pattern.toLowerCase();
+      
+      
+      // For patterns without wildcards, use simple includes
+      if (!lowerPattern.includes('*') && !lowerPattern.includes('?')) {
+        const result = lowerText.includes(lowerPattern);
+        return result;
+      }
+      
+      // Unified wildcard matching approach for both * and ? wildcards
+      try {
+        // If pattern has no wildcards, use simple includes
+        if (!lowerPattern.includes('*') && !lowerPattern.includes('?')) {
+          const result = lowerText.includes(lowerPattern);
+          return result;
+        }
+        
+        // If pattern is just * or **, match everything
+        if (lowerPattern.replace(/\*/g, '').length === 0) {
+          return true;
+        }
+        
+        // First handle ? wildcards by converting them to regex dots
+        // but only for parts between * characters
+        const parts = lowerPattern.split('*');
+        
+        // Convert ? to regex dots in each part
+        const processedParts = parts.map(part => {
+          if (part.includes('?')) {
+            // Escape regex special chars except ? which we'll replace
+            return part.replace(/[.*+^${}()|[\]\\]/g, '\\$&')
+                      .replace(/\?/g, '.');
+          }
+          return part;
+        });
+        
+        
+        // Filter out empty parts (adjacent * characters)
+        const nonEmptyParts = processedParts.filter(part => part.length > 0);
+        
+        // If no non-empty parts, match everything
+        if (nonEmptyParts.length === 0) {
+          return true;
+        }
+        
+        // Check if all parts appear in sequence
+        let currentPos = 0;
+        for (const part of nonEmptyParts) {
+          // If part contains regex dots (from ? wildcards), use regex to find it
+          if (part.includes('.')) {
+            const regex = new RegExp(part);
+            // Find the next position where this regex matches
+            let found = false;
+            while (currentPos <= lowerText.length) {
+              const substring = lowerText.substring(currentPos);
+              const match = substring.match(regex);
+              if (match && match.index !== undefined) {
+                currentPos += match.index + match[0].length;
+                found = true;
+                break;
+              }
+              currentPos++;
+            }
+            if (!found) {
+              return false;
+            }
+          } else {
+            // For parts without ? wildcards, use simple indexOf
+            const pos = lowerText.indexOf(part, currentPos);
+            if (pos === -1) {
+              return false;
+            }
+            currentPos = pos + part.length;
+          }
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Error in wildcard matching:', error);
+      }
+      
+      // Fallback to simple includes if all else fails
+      const fallbackResult = lowerText.includes(lowerPattern.replace(/[*?]/g, ''));
+      return fallbackResult;
+    };
+    
+    return items.filter(item => {
+      if (!item || typeof item.name !== 'string') return false;
+      
+      const nameMatch = matchesWildcard(item.name, query);
+      const descriptionMatch = item.description && 
+        typeof item.description === 'string' && 
+        matchesWildcard(item.description, query);
+      
+      return nameMatch || descriptionMatch;
+    });
+  };
+  
   // Fetch and filter items when query changes
   useEffect(() => {
     const fetchItems = async () => {
@@ -71,29 +177,21 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
             description: 'Inserts the word "sausages"',
             category: 'Test',
             getTextToInsert: () => 'sausages'
-          },
-          {
-            id: 'hardcoded-2',
-            name: 'test-item',
-            description: 'A test item',
-            category: 'Test',
-            getTextToInsert: () => 'This is a test item'
           }
         ];
         
-        // Get items from registry
+        // Get items from registry - these are already filtered with wildcard support
         const registryItems = await slashItemRegistry.getFilteredItems(query);
         
         // Combine items
         const allItems = [...hardcodedItems, ...registryItems];
         
-        // Filter items based on query
-        const filteredItems = query ? 
-          allItems.filter(item => 
-            item.name.toLowerCase().includes(query.toLowerCase()) ||
-            (item.description && item.description.toLowerCase().includes(query.toLowerCase()))
-          ) : 
-          allItems;
+        // Don't filter again - the registry items are already filtered with wildcard support
+        // Just filter the hardcoded items with wildcard support
+        const filteredHardcodedItems = filterItemsWithWildcards(hardcodedItems, query);
+        
+        // Combine the filtered hardcoded items with the already filtered registry items
+        const filteredItems = [...filteredHardcodedItems, ...registryItems];
         
         setItems(filteredItems);
         setSelectedIndex(0);

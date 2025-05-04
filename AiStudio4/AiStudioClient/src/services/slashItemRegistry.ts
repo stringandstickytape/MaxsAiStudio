@@ -52,69 +52,97 @@ class SlashItemRegistryService {
     const items = await this.getItems();
     if (!query) return items;
     
+    
     // Helper function to check if a string matches a pattern with wildcards
     const matchesWildcard = (text: string, pattern: string): boolean => {
       // Convert strings to lowercase for case-insensitive matching
       const lowerText = text.toLowerCase();
       const lowerPattern = pattern.toLowerCase();
       
+      
       // For patterns without wildcards, use simple includes
       if (!lowerPattern.includes('*') && !lowerPattern.includes('?')) {
-        return lowerText.includes(lowerPattern);
+        const result = lowerText.includes(lowerPattern);
+        return result;
       }
       
-      // Check if any substring of the text matches the wildcard pattern
-      for (let i = 0; i <= lowerText.length; i++) {
-        if (matchFromPosition(lowerText, lowerPattern, i)) {
+      // Unified wildcard matching approach for both * and ? wildcards
+      try {
+        // If pattern has no wildcards, use simple includes
+        if (!lowerPattern.includes('*') && !lowerPattern.includes('?')) {
+          const result = lowerText.includes(lowerPattern);
+          return result;
+        }
+        
+        // If pattern is just * or **, match everything
+        if (lowerPattern.replace(/\*/g, '').length === 0) {
           return true;
         }
-      }
-      
-      return false;
-    };
-    
-    // Helper function to check if text matches pattern starting from a specific position
-    const matchFromPosition = (text: string, pattern: string, startPos: number): boolean => {
-      let textIndex = startPos;
-      let patternIndex = 0;
-      
-      while (patternIndex < pattern.length && textIndex <= text.length) {
-        // Handle * wildcard
-        if (pattern[patternIndex] === '*') {
-          // Last character in pattern is *, it matches everything remaining
-          if (patternIndex === pattern.length - 1) {
-            return true;
+        
+        // First handle ? wildcards by converting them to regex dots
+        // but only for parts between * characters
+        const parts = lowerPattern.split('*');
+        
+        // Convert ? to regex dots in each part
+        const processedParts = parts.map(part => {
+          if (part.includes('?')) {
+            // Escape regex special chars except ? which we'll replace
+            return part.replace(/[.*+^${}()|[\]\\]/g, '\\$&')
+                      .replace(/\?/g, '.');
           }
-          
-          // Try to match the rest of the pattern with different positions in text
-          const restPattern = pattern.substring(patternIndex + 1);
-          for (let i = textIndex; i <= text.length; i++) {
-            if (matchFromPosition(text, restPattern, i)) {
-              return true;
+          return part;
+        });
+        
+        // Filter out empty parts (adjacent * characters)
+        const nonEmptyParts = processedParts.filter(part => part.length > 0);
+        
+        // If no non-empty parts, match everything
+        if (nonEmptyParts.length === 0) {
+          return true;
+        }
+        
+        // Check if all parts appear in sequence
+        let currentPos = 0;
+        for (const part of nonEmptyParts) {
+          // If part contains regex dots (from ? wildcards), use regex to find it
+          if (part.includes('.')) {
+            const regex = new RegExp(part);
+            // Find the next position where this regex matches
+            let found = false;
+            while (currentPos <= lowerText.length) {
+              const substring = lowerText.substring(currentPos);
+              const match = substring.match(regex);
+              if (match && match.index !== undefined) {
+                currentPos += match.index + match[0].length;
+                found = true;
+                break;
+              }
+              currentPos++;
             }
+            if (!found) {
+              return false;
+            }
+          } else {
+            // For parts without ? wildcards, use simple indexOf
+            const pos = lowerText.indexOf(part, currentPos);
+            if (pos === -1) {
+              return false;
+            }
+            currentPos = pos + part.length;
           }
-          return false;
         }
         
-        // End of text but not end of pattern
-        if (textIndex === text.length) {
-          return false;
-        }
-        
-        // Handle ? wildcard or exact character match
-        if (pattern[patternIndex] === '?' || pattern[patternIndex] === text[textIndex]) {
-          textIndex++;
-          patternIndex++;
-        } else {
-          return false;
-        }
+        return true;
+      } catch (error) {
+        console.error('Error in wildcard matching:', error);
       }
       
-      // Check if we've consumed the entire pattern
-      return patternIndex === pattern.length;
+      // Fallback to simple includes if all else fails
+      const fallbackResult = lowerText.includes(lowerPattern.replace(/[*?]/g, ''));
+      return fallbackResult;
     };
     
-    return items.filter(item => {
+    const filteredItems = items.filter(item => {
       // Ensure item and item.name are defined before matching
       if (!item || typeof item.name !== 'string') return false;
       
@@ -123,8 +151,11 @@ class SlashItemRegistryService {
         typeof item.description === 'string' && 
         matchesWildcard(item.description, query);
       
-      return nameMatch || descriptionMatch;
+      const result = nameMatch || descriptionMatch;
+      return result;
     });
+    
+    return filteredItems;
   }
   
   /**
