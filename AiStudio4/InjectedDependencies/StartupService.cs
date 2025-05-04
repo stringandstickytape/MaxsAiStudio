@@ -18,15 +18,18 @@ namespace AiStudio4.InjectedDependencies
         private readonly ILogger<StartupService> _logger;
         private readonly IProjectFileWatcherService _projectFileWatcherService;
         private readonly IGeneralSettingsService _generalSettingsService;
+        private readonly FileSystemChangeHandler _fileSystemChangeHandler;
 
         public StartupService(IServiceProvider serviceProvider, ILogger<StartupService> logger,
             IProjectFileWatcherService projectFileWatcherService,
-            IGeneralSettingsService generalSettingsService)
+            IGeneralSettingsService generalSettingsService,
+            FileSystemChangeHandler fileSystemChangeHandler)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _projectFileWatcherService = projectFileWatcherService ?? throw new ArgumentNullException(nameof(projectFileWatcherService));
             _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
+            _fileSystemChangeHandler = fileSystemChangeHandler ?? throw new ArgumentNullException(nameof(fileSystemChangeHandler));
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -61,7 +64,12 @@ namespace AiStudio4.InjectedDependencies
             string projectPath = _generalSettingsService.CurrentSettings.ProjectPath;
             if (!string.IsNullOrEmpty(projectPath))
             {
+                _logger.LogInformation("Initializing ProjectFileWatcherService with path: {ProjectPath}", projectPath);
                 _projectFileWatcherService.Initialize(projectPath);
+                
+                // FileSystemChangeHandler is already initialized through DI and will automatically
+                // receive events from the ProjectFileWatcherService
+                _logger.LogInformation("FileSystemChangeHandler is ready to process file system events");
             }
 
             return;

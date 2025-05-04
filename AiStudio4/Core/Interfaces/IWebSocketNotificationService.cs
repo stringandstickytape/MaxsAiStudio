@@ -1,4 +1,5 @@
 ﻿using AiStudio4.Core.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Interfaces
@@ -39,5 +40,12 @@ namespace AiStudio4.Core.Interfaces
         /// <param name="clientId">The ID of the client to notify</param>
         /// <param name="message">The status message to send</param>
         Task NotifyStatusMessage(string clientId, string message);
+        
+        /// <summary>
+        /// Notifies all clients about file system changes
+        /// </summary>
+        /// <param name="directories">List of directories</param>
+        /// <param name="files">List of files</param>
+        Task NotifyFileSystemChanges(IReadOnlyList<string> directories, IReadOnlyList<string> files);
     }
 }

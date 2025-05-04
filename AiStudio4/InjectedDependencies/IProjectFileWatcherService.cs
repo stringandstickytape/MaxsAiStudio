@@ -1,4 +1,6 @@
 ﻿// InjectedDependencies/IProjectFileWatcherService.cs
+using AiStudio4.Core.Models;
+using System;
 using System.Collections.Generic;
 
 namespace AiStudio4.InjectedDependencies
@@ -23,6 +25,11 @@ namespace AiStudio4.InjectedDependencies
         /// Gets all files in the project (filtered by GitIgnore rules)
         /// </summary>
         IReadOnlyList<string> Files { get; }
+
+        /// <summary>
+        /// Event that is raised when the file system changes (add, delete, rename)
+        /// </summary>
+        event EventHandler<FileSystemChangedEventArgs> FileSystemChanged;
 
         /// <summary>
         /// Initializes the file watcher with the specified project path

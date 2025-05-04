@@ -2,6 +2,7 @@
 import { dispatchWebSocketEvent } from './websocketEvents';
 import { prepareAttachmentsForTransmission } from '@/utils/attachmentUtils';
 import { toast } from '@/hooks/use-toast';
+import { handleWebSocketMessage } from '@/utils/websocketUtils';
 
 export interface WebSocketMessage {
     messageType: string;
@@ -194,6 +195,9 @@ export class WebSocketService {
         this.lastMessageTime = Date.now();
         try {
             const message: WebSocketMessage = JSON.parse(event.data);
+
+            // Process the message with our custom handler for file system updates
+            handleWebSocketMessage(message);
 
             dispatchWebSocketEvent('message:received', {
                 type: message.messageType,

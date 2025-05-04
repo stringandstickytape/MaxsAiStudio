@@ -1,4 +1,5 @@
 ﻿// InjectedDependencies/ProjectFileWatcherService.cs
+using AiStudio4.Core.Models;
 using SharedClasses.Git;
 using System;
 using System.Collections.Generic;
@@ -24,6 +25,9 @@ namespace AiStudio4.InjectedDependencies
         public string ProjectPath { get; private set; }
         public IReadOnlyList<string> Directories => _directories.AsReadOnly();
         public IReadOnlyList<string> Files => _files.AsReadOnly();
+        
+        // Implement the FileSystemChanged event
+        public event EventHandler<FileSystemChangedEventArgs> FileSystemChanged;
 
         public ProjectFileWatcherService(IGeneralSettingsService generalSettingsService)
         {
@@ -81,6 +85,9 @@ namespace AiStudio4.InjectedDependencies
                 // Start watching
                 _watcher.EnableRaisingEvents = true;
                 _isInitialized = true;
+                
+                // Raise initial event with current file system state
+                RaiseFileSystemChangedEvent();
             }
         }
 
@@ -211,6 +218,12 @@ namespace AiStudio4.InjectedDependencies
                         }
                         break;
                 }
+                
+                // Notify listeners about the file system change
+                if (e.ChangeType == WatcherChangeTypes.Created || e.ChangeType == WatcherChangeTypes.Deleted)
+                {
+                    RaiseFileSystemChangedEvent();
+                }
             }
         }
 
@@ -240,6 +253,9 @@ namespace AiStudio4.InjectedDependencies
                     {
                         _files.Remove(oldPath);
                     }
+                    
+                    // Notify listeners about the file system change
+                    RaiseFileSystemChangedEvent();
                     return;
                 }
 
@@ -274,7 +290,16 @@ namespace AiStudio4.InjectedDependencies
                         _files.Add(newPath);
                     }
                 }
+                
+                // Notify listeners about the file system change
+                RaiseFileSystemChangedEvent();
             }
+        }
+        
+        // Helper method to raise the FileSystemChanged event
+        private void RaiseFileSystemChangedEvent()
+        {
+            FileSystemChanged?.Invoke(this, new FileSystemChangedEventArgs(Directories, Files));
         }
 
         public void Dispose()
