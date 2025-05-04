@@ -30,7 +30,19 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   useEffect(() => {
     if (anchorElement) {
       const updatePosition = () => {
-        const rect = anchorElement.getBoundingClientRect();
+        // Find the InputBar container (parent of the textarea's parent)
+        let inputBarElement = anchorElement.closest('.InputBar');
+        if (!inputBarElement) {
+          // Fallback to textarea's position if InputBar not found
+          const rect = anchorElement.getBoundingClientRect();
+          setPosition({
+            top: rect.top,
+            left: rect.left + (rect.width / 2)
+          });
+          return;
+        }
+        
+        const rect = inputBarElement.getBoundingClientRect();
         const MARGIN = 8; // 8px margin above the input bar
         
         // Calculate position centered above the input bar
@@ -176,11 +188,12 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         zIndex: 1000,
         maxHeight: '300px',
         overflowY: 'auto',
-        backgroundColor: 'var(--background, #1f2937)',
-        border: '1px solid var(--border, #4a5568)',
-        borderRadius: '4px',
-        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
-        width: '300px'
+        backgroundColor: 'var(--global-background-color, #1f2937)',
+        border: '1px solid var(--global-border-color, #4a5568)',
+        borderRadius: 'var(--global-border-radius, 4px)',
+        boxShadow: 'var(--global-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.15))',
+        width: '90%', // 90% of the input bar width
+        maxWidth: '800px' // Prevent it from getting too wide
       }}
     >
       {items.map((item, index) => (
