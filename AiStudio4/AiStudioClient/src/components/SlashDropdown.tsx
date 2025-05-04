@@ -1,5 +1,6 @@
 ﻿// AiStudioClient/src/components/SlashDropdown.tsx
 import React, { useEffect, useState, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { SlashItem, slashItemRegistry } from '../services/slashItemRegistry';
 
 interface SlashDropdownProps {
@@ -145,12 +146,12 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
     left: position.left < 0 ? 20 : position.left // Default to 20px from left if negative
   };
   
-  return (
+  return createPortal(
     <div 
       ref={dropdownRef}
       className="slash-dropdown"
       style={{
-        position: 'absolute',
+        position: 'fixed', // Changed from absolute to fixed for portal
         top: fixedPosition.top,
         left: fixedPosition.left,
         zIndex: 1000,
@@ -183,6 +184,7 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
           )}
         </div>
       ))}
-    </div>
+    </div>,
+    document.body
   );
 };
