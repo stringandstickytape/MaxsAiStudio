@@ -26,7 +26,7 @@ export function MessageInputArea({
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [showSlashDropdown, setShowSlashDropdown] = useState(false);
     const [slashQuery, setSlashQuery] = useState('');
-    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+    // We don't need to track dropdown position anymore as it's calculated in the SlashDropdown component
 
     useEffect(() => {
         if (onCursorPositionChange) {
@@ -47,17 +47,7 @@ export function MessageInputArea({
             setSlashQuery(query);
             setShowSlashDropdown(true);
             
-            // Calculate dropdown position based on cursor position
-            if (textareaRef.current) {
-                const cursorPos = getCursorPosition(textareaRef.current);
-                const textareaRect = textareaRef.current.getBoundingClientRect();
-                
-                // Calculate position relative to the viewport for the portal
-                setDropdownPosition({
-                    top: textareaRect.top + cursorPos.top + 20, // Adjust as needed
-                    left: textareaRect.left + cursorPos.left
-                });
-            }
+            // No need to calculate position as it's fixed above the input bar
         } else {
             setShowSlashDropdown(false);
         }
@@ -78,14 +68,7 @@ export function MessageInputArea({
                 setSlashQuery(query);
                 setShowSlashDropdown(true);
                 
-                const cursorPos = getCursorPosition(textareaRef.current);
-                const textareaRect = textareaRef.current.getBoundingClientRect();
-                
-                // Calculate position relative to the viewport for the portal
-                setDropdownPosition({
-                    top: textareaRect.top + cursorPos.top + 20,
-                    left: textareaRect.left + cursorPos.left
-                });
+                // No need to calculate position as it's fixed above the input bar
             } else {
                 setShowSlashDropdown(false);
             }
@@ -112,14 +95,7 @@ export function MessageInputArea({
                 setSlashQuery(query);
                 setShowSlashDropdown(true);
                 
-                const cursorPos = getCursorPosition(textareaRef.current);
-                const textareaRect = textareaRef.current.getBoundingClientRect();
-                
-                // Calculate position relative to the viewport for the portal
-                setDropdownPosition({
-                    top: textareaRect.top + cursorPos.top + 20,
-                    left: textareaRect.left + cursorPos.left
-                });
+                // No need to calculate position as it's fixed above the input bar
             } else {
                 setShowSlashDropdown(false);
             }
@@ -237,7 +213,7 @@ export function MessageInputArea({
                     query={slashQuery}
                     onSelect={handleSlashItemSelect}
                     onCancel={handleSlashDropdownCancel}
-                    position={dropdownPosition}
+                    anchorElement={textareaRef.current}
                 />
             )}
         </div>

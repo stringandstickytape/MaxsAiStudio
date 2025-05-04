@@ -7,22 +7,45 @@ interface SlashDropdownProps {
   query: string;
   onSelect: (text: string) => void;
   onCancel: () => void;
-  position: { top: number; left: number };
+  anchorElement: HTMLTextAreaElement | null;
 }
 
 /**
  * Dropdown component for slash commands
  * Shows a list of items that match the query and allows selection
+ * Positioned centered above the input bar
  */
 export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   query,
   onSelect,
   onCancel,
-  position
+  anchorElement
 }) => {
   const [items, setItems] = useState<SlashItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  
+  // Calculate position centered above the input bar
+  useEffect(() => {
+    if (anchorElement) {
+      const updatePosition = () => {
+        const rect = anchorElement.getBoundingClientRect();
+        const MARGIN = 8; // 8px margin above the input bar
+        
+        // Calculate position centered above the input bar
+        setPosition({
+          top: rect.top - MARGIN, // Position will be at the bottom of the dropdown
+          left: rect.left + (rect.width / 2) // Center horizontally
+        });
+      };
+      
+      // Update position immediately and on resize
+      updatePosition();
+      window.addEventListener('resize', updatePosition);
+      return () => window.removeEventListener('resize', updatePosition);
+    }
+  }, [anchorElement]);
   
   // Fetch and filter items when query changes
   useEffect(() => {
@@ -135,25 +158,21 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
     }
   };
   
-  // Don't render if no items
-  if (items.length === 0) {
+  // Don't render if no items or no anchor element
+  if (items.length === 0 || !anchorElement) {
     return null;
   }
   
-  // Fix position if it's negative or invalid
-  const fixedPosition = {
-    top: position.top < 0 ? 40 : position.top, // Default to 40px from top if negative
-    left: position.left < 0 ? 20 : position.left // Default to 20px from left if negative
-  };
-  
+  // Use createPortal to render the dropdown to the document body
   return createPortal(
     <div 
       ref={dropdownRef}
       className="slash-dropdown"
       style={{
-        position: 'fixed', // Changed from absolute to fixed for portal
-        top: fixedPosition.top,
-        left: fixedPosition.left,
+        position: 'fixed',
+        bottom: `calc(100vh - ${position.top}px)`, // Position bottom at 8px above input bar
+        left: position.left,
+        transform: 'translateX(-50%)', // Center horizontally
         zIndex: 1000,
         maxHeight: '300px',
         overflowY: 'auto',
