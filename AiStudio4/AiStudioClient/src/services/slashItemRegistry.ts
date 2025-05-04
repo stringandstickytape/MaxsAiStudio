@@ -53,10 +53,17 @@ class SlashItemRegistryService {
     if (!query) return items;
     
     const lowerQuery = query.toLowerCase();
-    return items.filter(item => 
-      item.name.toLowerCase().includes(lowerQuery) || 
-      item.description?.toLowerCase().includes(lowerQuery)
-    );
+    return items.filter(item => {
+      // Ensure item and item.name are defined before calling toLowerCase
+      if (!item || typeof item.name !== 'string') return false;
+      
+      const nameMatch = item.name.toLowerCase().includes(lowerQuery);
+      const descriptionMatch = item.description && 
+        typeof item.description === 'string' && 
+        item.description.toLowerCase().includes(lowerQuery);
+      
+      return nameMatch || descriptionMatch;
+    });
   }
   
   /**
@@ -76,7 +83,13 @@ class SlashItemRegistryService {
     for (const provider of this.providers) {
       try {
         const items = await provider.getItems();
-        allItems.push(...items);
+        // Filter out any invalid items
+        const validItems = items.filter(item => 
+          item && typeof item.id === 'string' && 
+          typeof item.name === 'string' && 
+          typeof item.getTextToInsert === 'function'
+        );
+        allItems.push(...validItems);
       } catch (error) {
         console.error('Error fetching items from provider:', error);
       }

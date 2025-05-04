@@ -26,9 +26,58 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   // Fetch and filter items when query changes
   useEffect(() => {
     const fetchItems = async () => {
-      const filteredItems = await slashItemRegistry.getFilteredItems(query);
-      setItems(filteredItems);
-      setSelectedIndex(0);
+      console.log('Fetching items for query:', query);
+      try {
+        // Add a hardcoded item for testing
+        const hardcodedItems: SlashItem[] = [
+          {
+            id: 'hardcoded-1',
+            name: 'roflcopters',
+            description: 'Inserts the word "sausages"',
+            category: 'Test',
+            getTextToInsert: () => 'sausages'
+          },
+          {
+            id: 'hardcoded-2',
+            name: 'test-item',
+            description: 'A test item',
+            category: 'Test',
+            getTextToInsert: () => 'This is a test item'
+          }
+        ];
+        
+        // Get items from registry
+        const registryItems = await slashItemRegistry.getFilteredItems(query);
+        console.log('Items from registry:', registryItems);
+        
+        // Combine items
+        const allItems = [...hardcodedItems, ...registryItems];
+        console.log('All items:', allItems);
+        
+        // Filter items based on query
+        const filteredItems = query ? 
+          allItems.filter(item => 
+            item.name.toLowerCase().includes(query.toLowerCase()) ||
+            (item.description && item.description.toLowerCase().includes(query.toLowerCase()))
+          ) : 
+          allItems;
+        
+        console.log('Filtered items:', filteredItems);
+        setItems(filteredItems);
+        setSelectedIndex(0);
+      } catch (error) {
+        console.error('Error fetching slash items:', error);
+        // Fallback to hardcoded items on error
+        setItems([
+          {
+            id: 'hardcoded-1',
+            name: 'roflcopters',
+            description: 'Inserts the word "sausages"',
+            category: 'Test',
+            getTextToInsert: () => 'sausages'
+          }
+        ]);
+      }
     };
     
     fetchItems();
@@ -82,15 +131,37 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   // Handle item selection
   const selectItem = async (item: SlashItem) => {
     try {
+      console.log('Selecting item:', item);
       const text = await item.getTextToInsert();
+      console.log('Text to insert:', text);
       onSelect(text);
     } catch (error) {
       console.error('Error getting text to insert:', error);
     }
   };
   
+  // Debug: Log when component renders or doesn't render
+  useEffect(() => {
+    console.log('SlashDropdown render state:', { 
+      itemsLength: items.length, 
+      shouldRender: items.length > 0,
+      position
+    });
+  }, [items.length, position]);
+  
   // Don't render if no items
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    console.log('No items to display, not rendering dropdown');
+    return null;
+  }
+  
+  // Fix position if it's negative or invalid
+  const fixedPosition = {
+    top: position.top < 0 ? 40 : position.top, // Default to 40px from top if negative
+    left: position.left < 0 ? 20 : position.left // Default to 20px from left if negative
+  };
+  
+  console.log('Using fixed position:', fixedPosition);
   
   return (
     <div 
@@ -98,8 +169,8 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
       className="slash-dropdown"
       style={{
         position: 'absolute',
-        top: position.top,
-        left: position.left,
+        top: fixedPosition.top,
+        left: fixedPosition.left,
         zIndex: 1000,
         maxHeight: '300px',
         overflowY: 'auto',
