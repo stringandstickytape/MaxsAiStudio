@@ -26,7 +26,6 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   // Fetch and filter items when query changes
   useEffect(() => {
     const fetchItems = async () => {
-      console.log('Fetching items for query:', query);
       try {
         // Add a hardcoded item for testing
         const hardcodedItems: SlashItem[] = [
@@ -48,11 +47,9 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         
         // Get items from registry
         const registryItems = await slashItemRegistry.getFilteredItems(query);
-        console.log('Items from registry:', registryItems);
         
         // Combine items
         const allItems = [...hardcodedItems, ...registryItems];
-        console.log('All items:', allItems);
         
         // Filter items based on query
         const filteredItems = query ? 
@@ -62,7 +59,6 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
           ) : 
           allItems;
         
-        console.log('Filtered items:', filteredItems);
         setItems(filteredItems);
         setSelectedIndex(0);
       } catch (error) {
@@ -131,27 +127,15 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   // Handle item selection
   const selectItem = async (item: SlashItem) => {
     try {
-      console.log('Selecting item:', item);
       const text = await item.getTextToInsert();
-      console.log('Text to insert:', text);
       onSelect(text);
     } catch (error) {
       console.error('Error getting text to insert:', error);
     }
   };
   
-  // Debug: Log when component renders or doesn't render
-  useEffect(() => {
-    console.log('SlashDropdown render state:', { 
-      itemsLength: items.length, 
-      shouldRender: items.length > 0,
-      position
-    });
-  }, [items.length, position]);
-  
   // Don't render if no items
   if (items.length === 0) {
-    console.log('No items to display, not rendering dropdown');
     return null;
   }
   
@@ -160,8 +144,6 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
     top: position.top < 0 ? 40 : position.top, // Default to 40px from top if negative
     left: position.left < 0 ? 20 : position.left // Default to 20px from left if negative
   };
-  
-  console.log('Using fixed position:', fixedPosition);
   
   return (
     <div 

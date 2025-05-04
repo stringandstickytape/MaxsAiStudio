@@ -31,23 +31,11 @@ export function getCursorPosition(textarea: HTMLTextAreaElement) {
     const charWidth = 8; // Approximate character width in pixels
     const left = paddingLeft + (currentLineText.length * charWidth);
     
-    console.log('Cursor position calculation:', {
-      textareaRect,
-      currentLineNumber,
-      currentLineText,
-      lineHeight,
-      paddingTop,
-      paddingLeft,
-      calculatedTop: top,
-      calculatedLeft: left
-    });
-    
     return {
       top: top,
       left: left
     };
   } catch (error) {
-    console.error('Error calculating cursor position:', error);
     // Return a default position if calculation fails
     return {
       top: 20,

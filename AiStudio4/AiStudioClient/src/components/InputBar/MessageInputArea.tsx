@@ -4,7 +4,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { SlashDropdown } from '@/components/SlashDropdown';
 import { getCursorPosition } from '@/utils/textAreaUtils';
-import { slashItemRegistry } from '@/services/slashItemRegistry';
 
 interface MessageInputAreaProps {
     inputText: string;
@@ -29,15 +28,6 @@ export function MessageInputArea({
     const [slashQuery, setSlashQuery] = useState('');
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
 
-    // Debug: Check if providers are registered
-    useEffect(() => {
-        const checkProviders = async () => {
-            const items = await slashItemRegistry.getItems();
-            console.log('Available slash items:', items);
-        };
-        checkProviders();
-    }, []);
-
     useEffect(() => {
         if (onCursorPositionChange) {
             onCursorPositionChange(cursorPosition);
@@ -51,18 +41,15 @@ export function MessageInputArea({
         
         // Check for slash command trigger
         const match = /(?:^|\s)\/([^\s]*)$/.exec(value);
-        console.log('Input change - Match:', match, 'Value:', value);
         
         if (match) {
             const query = match[1];
-            console.log('Slash query detected:', query);
             setSlashQuery(query);
             setShowSlashDropdown(true);
             
             // Calculate dropdown position based on cursor position
             if (textareaRef.current) {
                 const cursorPos = getCursorPosition(textareaRef.current);
-                console.log('Cursor position:', cursorPos);
                 setDropdownPosition({
                     top: cursorPos.top + 20, // Adjust as needed
                     left: cursorPos.left
@@ -82,11 +69,9 @@ export function MessageInputArea({
             const selectionStart = textareaRef.current.selectionStart;
             const textBeforeCursor = value.substring(0, selectionStart);
             const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
-            console.log('Click - Match:', match, 'Text before cursor:', textBeforeCursor);
             
             if (match) {
                 const query = match[1];
-                console.log('Slash query detected on click:', query);
                 setSlashQuery(query);
                 setShowSlashDropdown(true);
                 
@@ -115,11 +100,9 @@ export function MessageInputArea({
             const selectionStart = textareaRef.current.selectionStart;
             const textBeforeCursor = value.substring(0, selectionStart);
             const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
-            console.log('KeyUp - Match:', match, 'Key:', e.key);
             
             if (match) {
                 const query = match[1];
-                console.log('Slash query detected on keyup:', query);
                 setSlashQuery(query);
                 setShowSlashDropdown(true);
                 
@@ -137,7 +120,6 @@ export function MessageInputArea({
     const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         // If dropdown is open, let it handle these keys
         if (showSlashDropdown && ['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
-            console.log('Key down in dropdown:', e.key);
             return;
         }
         
@@ -157,7 +139,6 @@ export function MessageInputArea({
 
     // Handle selection from dropdown
     const handleSlashItemSelect = (text: string) => {
-        console.log('Item selected:', text);
         // Replace the slash command with the selected text
         if (textareaRef.current) {
             const value = textareaRef.current.value;
@@ -199,7 +180,6 @@ export function MessageInputArea({
 
     // Handle cancellation
     const handleSlashDropdownCancel = () => {
-        console.log('Dropdown cancelled');
         setShowSlashDropdown(false);
     };
 
@@ -222,11 +202,6 @@ export function MessageInputArea({
         }),
         [textareaRef]
     );
-
-    // Debug: Log state changes
-    useEffect(() => {
-        console.log('Dropdown state:', { showSlashDropdown, slashQuery, dropdownPosition });
-    }, [showSlashDropdown, slashQuery, dropdownPosition]);
 
     return (
         <div className="relative flex-1 flex flex-col">
