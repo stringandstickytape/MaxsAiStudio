@@ -9,6 +9,9 @@ import { Tool, ToolCategory } from '@/types/toolTypes';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 
+// Define themeable properties for the component
+export const themeableProps = {};
+
 interface ToolEditorProps {
   tool: Tool | null;
   onClose: () => void;
@@ -116,7 +119,14 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   const isLoading = isApiLoading || isSubmitting;
 
   return (
-    <div className="space-y-4">
+    <div className="ToolEditor space-y-4" style={{
+      backgroundColor: 'var(--global-background-color)',
+      color: 'var(--global-text-color)',
+      borderRadius: 'var(--global-border-radius)',
+      fontFamily: 'var(--global-font-family)',
+      fontSize: 'var(--global-font-size)',
+      padding: '1rem'
+    }}>
       <div>
         <Label htmlFor="tool-name">Name</Label>
         <Input
@@ -126,7 +136,11 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           placeholder="Tool name"
           className="input-base"
           disabled={isLoading}
-        />
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}/>
       </div>
 
       <div>
@@ -138,6 +152,11 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           placeholder="Tool description"
           className="input-base"
           disabled={isLoading}
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}
         />
       </div>
 
@@ -194,6 +213,11 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           placeholder="e.g., 'json', 'csv', or leave blank for any file"
           className="input-base"
           disabled={isLoading}
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}
         />
       </div>
 
@@ -207,9 +231,16 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
             placeholder="Enter JSON schema..."
             className="min-h-[200px] font-mono text-sm input-base"
             disabled={isLoading}
+            style={{
+              backgroundColor: 'var(--global-background-color)',
+              borderColor: 'var(--global-border-color)',
+              color: 'var(--global-text-color)'
+            }}
           />
           {isValid !== null && (
-            <div className={`mt-2 flex items-center space-x-2 ${isValid ? 'text-green-400' : 'text-red-400'}`}>
+            <div className={`mt-2 flex items-center space-x-2`} style={{ 
+              color: isValid ? 'var(--global-secondary-color)' : 'var(--global-primary-color)' 
+            }}>
               {isValid ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
               <span>{validationMessage}</span>
             </div>
@@ -249,6 +280,11 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
                   }}
                   className="input-base flex-1"
                   disabled={isLoading}
+                  style={{
+                    backgroundColor: 'var(--global-background-color)',
+                    borderColor: 'var(--global-border-color)',
+                    color: 'var(--global-text-color)'
+                  }}
                 />
               </div>
             ))}
@@ -257,7 +293,12 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
       )}
 
       <div className="flex justify-end space-x-3 pt-4">
-        <Button variant="outline" onClick={handleValidateSchema} disabled={isLoading} className="btn-secondary">
+        <Button variant="outline" onClick={handleValidateSchema} disabled={isLoading} className="btn-secondary"
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}>
           {isLoading ? 'Validating...' : 'Validate'}
         </Button>
         <Button
@@ -277,13 +318,27 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           }}
           disabled={isLoading}
           className="btn-secondary"
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}
         >
           Use Theme Schema
         </Button>
-        <Button variant="outline" onClick={onClose} className="btn-secondary" disabled={isLoading}>
+        <Button variant="outline" onClick={onClose} className="btn-secondary" disabled={isLoading}
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}>
           Cancel
         </Button>
-        <Button onClick={handleSubmit} disabled={isLoading} className="btn-primary">
+        <Button onClick={handleSubmit} disabled={isLoading} className="btn-primary"
+          style={{
+            backgroundColor: 'var(--global-primary-color)',
+            color: '#ffffff'
+          }}>
           {isLoading ? (
             <span className="flex items-center">
               <svg

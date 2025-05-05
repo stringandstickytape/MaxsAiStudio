@@ -9,6 +9,9 @@ import { useModalStore, ModalRegistry } from '@/stores/useModalStore';
 import { ToolEditor } from '../tools/ToolEditor';
 import { Tool } from '@/types/toolTypes';
 
+// Define themeable properties for the component
+export const themeableProps = {};
+
 type ToolEditorModalProps = {
   tool: Tool | null;
   categories: any[];
@@ -28,11 +31,28 @@ export function ToolEditorModal() {
       onOpenChange={(open) => !open && closeModal()}
       variant="form"
       size="2xl"
+      className="ToolEditorModal"
+      style={{
+        backgroundColor: 'var(--global-background-color)',
+        color: 'var(--global-text-color)',
+        borderRadius: 'var(--global-border-radius)',
+        fontFamily: 'var(--global-font-family)',
+        fontSize: 'var(--global-font-size)',
+        boxShadow: 'var(--global-box-shadow)',
+        border: `1px solid var(--global-border-color)`
+      }}
     >
-      <UnifiedModalHeader>
+      <UnifiedModalHeader style={{
+        backgroundColor: 'var(--global-background-color)',
+        color: 'var(--global-text-color)',
+        borderBottom: `1px solid var(--global-border-color)`
+      }}>
         <h2 className="text-xl font-semibold">{props.tool ? 'Edit Tool' : 'Create Tool'}</h2>
       </UnifiedModalHeader>
-      <UnifiedModalContent>
+      <UnifiedModalContent style={{
+        backgroundColor: 'var(--global-background-color)',
+        color: 'var(--global-text-color)'
+      }}>
         <ToolEditor 
           tool={props.tool} 
           onClose={() => closeModal()} 
