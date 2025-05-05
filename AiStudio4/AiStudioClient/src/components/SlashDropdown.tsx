@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { SlashItem, slashItemRegistry } from '../services/slashItemRegistry';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { createApiRequest } from '@/utils/apiUtils';
 import { base64ToArrayBuffer } from '@/utils/attachmentUtils';
 
@@ -378,8 +379,12 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
             color: index === selectedIndex ? 'var(--global-text-color, #e2e8f0)' : 'var(--global-text-color, #e2e8f0)',
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
-            whiteSpace: 'normal'
+            whiteSpace: 'normal',
+            position: 'relative'
           }}
+          title={item.category === 'Files' ? 
+            "Click to insert filename; Shift+click to attach" : 
+            `Click to insert ${item.name}`}
         >
           <div className="slash-item-name" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{item.name}</div>
           {item.description && (
