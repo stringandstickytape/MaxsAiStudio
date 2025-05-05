@@ -338,11 +338,14 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
             cursor: 'pointer',
             backgroundColor: index === selectedIndex ? 'var(--selection-background, #2d3748)' : 'transparent',
             color: index === selectedIndex ? 'var(--selection-text, #e2e8f0)' : 'var(--text, #e2e8f0)',
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            whiteSpace: 'normal'
           }}
         >
-          <div className="slash-item-name">{item.name}</div>
+          <div className="slash-item-name" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{item.name}</div>
           {item.description && (
-            <div className="slash-item-description" style={{ fontSize: '0.8em', opacity: 0.7 }}>
+            <div className="slash-item-description" style={{ fontSize: '0.8em', opacity: 0.7, wordWrap: 'break-word', overflowWrap: 'break-word' }}>
               {item.description}
             </div>
           )}
