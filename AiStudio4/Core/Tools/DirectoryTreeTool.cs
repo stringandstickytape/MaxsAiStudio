@@ -104,6 +104,16 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 
                 SendStatusUpdate($"Generating directory tree for: {Path.GetFileName(searchPath)}...");
 
+                if (!Directory.Exists(searchPath)) {
+                    string suggestion = FindAlternativeDirectory(searchPath);
+                    string errorMessage = $"Error: Directory not found: {searchPath}";
+                    if (!string.IsNullOrEmpty(suggestion)) {
+                        errorMessage += $"\n{suggestion}";
+                    }
+                    SendStatusUpdate(errorMessage);
+                    return Task.FromResult(CreateResult(true, true, errorMessage));
+                }
+
                 string prettyPrintedResult = GetDirectoryTree(depth, includeFiltered, searchPath, _projectRoot);
                 SendStatusUpdate("Directory tree generated successfully.");
                 return Task.FromResult(CreateResult(true, true, prettyPrintedResult));

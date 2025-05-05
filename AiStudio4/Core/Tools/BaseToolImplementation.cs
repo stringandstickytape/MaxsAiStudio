@@ -5,6 +5,7 @@ using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
@@ -88,6 +89,40 @@ namespace AiStudio4.Core.Tools
             {
                 // Log but don't throw - status updates should never break tool execution
                 _logger.LogWarning(ex, "Failed to send status update: {Message}", statusMessage);
+            }
+        }
+
+        /// <summary>
+        /// Checks if a directory exists in any immediate child of the project root
+        /// </summary>
+        /// <param name="fullPath">The full path that was not found</param>
+        /// <returns>A suggestion message if an alternative path is found, otherwise null</returns>
+        protected string FindAlternativeDirectory(string fullPath)
+        {
+            try
+            {
+                // Extract the relative path by removing the project root
+                if (!fullPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
+                    return null;
+                
+                string relativePath = fullPath.Substring(_projectRoot.Length).TrimStart('\\', '/');
+                
+                // Check each immediate child directory of the project root
+                foreach (var childDir in Directory.GetDirectories(_projectRoot))
+                {
+                    string possiblePath = Path.Combine(childDir, relativePath);
+                    if (Directory.Exists(possiblePath))
+                    {
+                        return $"Did you mean {possiblePath}";
+                    }
+                }
+                
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error finding alternative directory for {FullPath}", fullPath);
+                return null;
             }
         }
 

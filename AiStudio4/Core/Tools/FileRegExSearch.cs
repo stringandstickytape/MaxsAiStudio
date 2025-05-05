@@ -267,8 +267,13 @@ namespace AiStudio4.Core.Tools
                     return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
                 }
                 if (!Directory.Exists(searchPath)) {
-                    SendStatusUpdate($"Error: Directory not found: {searchPath}");
-                    return Task.FromResult(CreateResult(true, true, $"Error: Directory not found: {searchPath}"));
+                    string suggestion = FindAlternativeDirectory(searchPath);
+                    string errorMessage = $"Error: Directory not found: {searchPath}";
+                    if (!string.IsNullOrEmpty(suggestion)) {
+                        errorMessage += $"\n{suggestion}";
+                    }
+                    SendStatusUpdate(errorMessage);
+                    return Task.FromResult(CreateResult(true, true, errorMessage));
                 }
 
                 // Compile regexes (case-insensitive)
