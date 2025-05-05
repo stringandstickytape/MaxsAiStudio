@@ -8,8 +8,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Save, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
+import { IconSelector } from '../settings/IconSelector';
 
-export type FieldType = 'text' | 'password' | 'textarea' | 'number' | 'checkbox' | 'select' | 'color';
+export type FieldType = 'text' | 'password' | 'textarea' | 'number' | 'checkbox' | 'select' | 'color' | 'icon';
 
 export interface FormFieldDefinition {
   name: string;
@@ -221,11 +222,33 @@ export function GenericForm({
     />
   );
 
-  
-
+  // --- ICON FIELD SUPPORT ---
+  const IconFormField = ({ field }: { field: FormFieldDefinition }) => (
+    <FormField
+      key={field.name}
+      control={form.control}
+      name={field.name}
+      render={({ field: formField }) => (
+        <FormItem>
+          <FormLabel className={formLabelClass}>{field.label}</FormLabel>
+          <FormDescription className={formDescriptionClass}>{field.description}</FormDescription>
+          <FormControl>
+            <IconSelector
+              value={formField.value}
+              onChange={formField.onChange}
+              disabled={isProcessing}
+            />
+          </FormControl>
+          <FormMessage className={formMessageClass} />
+        </FormItem>
+      )}
+    />
+  );
 
   const renderField = (field: FormFieldDefinition) => {
     switch (field.type) {
+      case 'icon':
+        return <IconFormField field={field} />;
       case 'textarea':
         return (
           <CommonFormField field={field}>
@@ -398,7 +421,7 @@ export function GenericForm({
             )}
           </CommonFormField>
         );
-
+      
       case 'number':
         return (
           <CommonFormField field={field}>
