@@ -215,7 +215,7 @@ export function MessageInputArea({
                 onClick={handleTextAreaClick}
                 onKeyUp={handleTextAreaKeyUp}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your message here... (Ctrl+Enter to send, also works during AI processing)"
+                placeholder="Type your message here... (CTRL+Return to send, interject during AI processing with CTRL+Return, type / for quicklist of files and prompts)"
                 disabled={disabled}
                 showLineCount={true}
                 style={{

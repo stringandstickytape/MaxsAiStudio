@@ -33,11 +33,11 @@ Available tools:
 TOOL USAGE GUIDELINES:
 - ALWAYS respond using one or more tool calls
 - Use "think" for explanations, planning, and reasoning
-- Use "readfiles" efficiently - combine multiple files in one call
-- Never read the same file twice in succession
+- Use "readfiles" efficiently - combine multiple files, or multiple changes for one file, in one call wherever possible
 - Use appropriate tools for each development task
 - All code files should include a first-line comment with the relative filepath
 - You may not use ReadFiles to retrieve a file more than once, unless you are certain it has changed since you last retrieved it.
+- When searching files, use the FileRegExSearch with multiple search terms to search efficiently
 
 ## MODIFYING FILES:
 When using ModifyFile:

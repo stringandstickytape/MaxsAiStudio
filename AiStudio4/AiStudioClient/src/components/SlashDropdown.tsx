@@ -3,6 +3,12 @@ import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { SlashItem, slashItemRegistry } from '../services/slashItemRegistry';
 
+// Interface for dropdown dimensions
+interface DropdownDimensions {
+  width: number;
+  maxWidth: number;
+}
+
 interface SlashDropdownProps {
   query: string;
   onSelect: (text: string) => void;
@@ -25,11 +31,12 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   const [selectedIndex, setSelectedIndex] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const [dimensions, setDimensions] = useState<DropdownDimensions>({ width: 0, maxWidth: 800 });
   
-  // Calculate position centered above the input bar
+  // Calculate position and dimensions based on the input bar
   useEffect(() => {
     if (anchorElement) {
-      const updatePosition = () => {
+      const updatePositionAndDimensions = () => {
         // Find the InputBar container (parent of the textarea's parent)
         let inputBarElement = anchorElement.closest('.InputBar');
         if (!inputBarElement) {
@@ -38,6 +45,10 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
           setPosition({
             top: rect.top,
             left: rect.left + (rect.width / 2)
+          });
+          setDimensions({
+            width: rect.width * 0.7, // 70% of textarea width
+            maxWidth: 800
           });
           return;
         }
@@ -50,12 +61,37 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
           top: rect.top - MARGIN, // Position will be at the bottom of the dropdown
           left: rect.left + (rect.width / 2) // Center horizontally
         });
+        
+        // Set dimensions to 70% of input bar width
+        setDimensions({
+          width: rect.width * 0.7,
+          maxWidth: 800
+        });
       };
       
-      // Update position immediately and on resize
-      updatePosition();
-      window.addEventListener('resize', updatePosition);
-      return () => window.removeEventListener('resize', updatePosition);
+      // Update position and dimensions immediately and on resize
+      updatePositionAndDimensions();
+      
+      // Set up resize observer to track input bar size changes
+      const resizeObserver = new ResizeObserver(() => {
+        updatePositionAndDimensions();
+      });
+      
+      // Find the InputBar element to observe
+      const inputBarElement = anchorElement.closest('.InputBar');
+      if (inputBarElement) {
+        resizeObserver.observe(inputBarElement);
+      }
+      
+      // Also listen for window resize and scroll events
+      window.addEventListener('resize', updatePositionAndDimensions);
+      window.addEventListener('scroll', updatePositionAndDimensions, true);
+      
+      return () => {
+        resizeObserver.disconnect();
+        window.removeEventListener('resize', updatePositionAndDimensions);
+        window.removeEventListener('scroll', updatePositionAndDimensions, true);
+      };
     }
   }, [anchorElement]);
   
@@ -288,8 +324,8 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         border: '1px solid var(--global-border-color, #4a5568)',
         borderRadius: 'var(--global-border-radius, 4px)',
         boxShadow: 'var(--global-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.15))',
-        width: '90%', // 90% of the input bar width
-        maxWidth: '800px' // Prevent it from getting too wide
+        width: `${dimensions.width}px`, // Dynamic width based on input bar
+        maxWidth: `${dimensions.maxWidth}px` // Prevent it from getting too wide
       }}
     >
       {items.map((item, index) => (
