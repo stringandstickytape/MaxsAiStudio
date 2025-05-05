@@ -24,8 +24,8 @@ export class UserPromptProvider implements SlashItemProvider {
       
       return userPrompts.map(prompt => ({
         id: `prompt-${prompt.guid}`,
-        name: prompt.name || 'Unnamed Prompt',
-        description: prompt.description || 'User prompt',
+        name: (prompt.title || 'Unnamed') + ' (User Prompt)',
+        description: prompt.tags || 'User prompt',
         category: 'Prompts',
         getTextToInsert: () => prompt.content || ''
       }));
