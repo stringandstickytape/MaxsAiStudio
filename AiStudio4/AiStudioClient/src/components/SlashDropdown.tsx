@@ -296,7 +296,8 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   const selectItem = async (item: SlashItem) => {
     try {
       const text = await item.getTextToInsert();
-      onSelect(text);
+      // Add a space after the inserted text
+      onSelect(text + ' ');
     } catch (error) {
       console.error('Error getting text to insert:', error);
     }
