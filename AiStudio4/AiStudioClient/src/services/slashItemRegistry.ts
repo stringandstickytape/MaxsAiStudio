@@ -34,13 +34,13 @@ class SlashItemRegistryService {
   
   /**
    * Get all available slash items
-   * @returns A promise that resolves to an array of slash items
+   * @returns A promise that resolves to an array of slash items sorted alphabetically by name
    */
   async getItems(): Promise<SlashItem[]> {
     if (Date.now() - this.lastUpdateTime > 5000) {
       await this.refreshCache();
     }
-    return this.cachedItems;
+    return [...this.cachedItems].sort((a, b) => a.name.localeCompare(b.name));
   }
   
   /**
@@ -155,7 +155,8 @@ class SlashItemRegistryService {
       return result;
     });
     
-    return filteredItems;
+    // Sort the filtered items alphabetically by name
+    return filteredItems.sort((a, b) => a.name.localeCompare(b.name));
   }
   
   /**
