@@ -242,63 +242,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                 ...(window?.theme?.HistoricalConvTreeList?.style || {})
             }}
         >
-            {/* Search bar at the top */}
-            <div className="HistoricalConvTreeList px-3 pt-2 pb-1 backdrop-blur-sm"
-                style={{
-                    backgroundColor: 'var(--historylist-search-bg, var(--global-background-color, rgba(17, 24, 39, 0.9)))',
-                    backdropFilter: 'blur(4px)',
-                    borderColor: 'var(--historylist-border-color, var(--global-border-color, #374151))',
-                    ...(window?.theme?.HistoricalConvTreeList?.style || {})
-                }}
-            >
-                <div className="relative">
-                    <div className="flex items-center">
-                        <Search size={16} className="HistoricalConvTreeList absolute left-3" 
-                            style={{
-                                color: 'var(--historylist-text-color, #9ca3af)',
-                                ...(window?.theme?.HistoricalConvTreeList?.style || {})
-                            }}
-                        />
-                        <input
-                            type="text"
-                            placeholder="Search conversations..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="HistoricalConvTreeList w-full py-1.5 pl-10 pr-8 text-sm rounded-md border"
-                            style={{
-                                backgroundColor: 'var(--historylist-bg, var(--global-background-color, rgba(31, 41, 55, 0.8)))',
-                                borderColor: 'var(--historylist-border-color, var(--global-border-color, #374151))',
-                                color: 'var(--historylist-text-color, var(--global-text-color, #e5e7eb))',
-                                caretColor: 'var(--historylist-accent-color, var(--global-primary-color, #60a5fa))',
-                                '::placeholder': {
-                                    color: 'var(--historylist-text-color, var(--global-text-color, #6b7280))'
-                                },
-                                ':focus': {
-                                    outline: 'none',
-                                    borderColor: 'var(--historylist-accent-color, var(--global-primary-color, #3b82f6))',
-                                    boxShadow: '0 0 0 1px var(--historylist-accent-color, var(--global-primary-color, #3b82f6))'
-                                },
-                                ...(window?.theme?.HistoricalConvTreeList?.style || {})
-                            }}
-                        />
-                        {searchTerm && (
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className="HistoricalConvTreeList absolute right-2 flex items-center"
-                                style={{
-                                    color: 'var(--historylist-text-color, #9ca3af)',
-                                    ':hover': {
-                                        color: 'var(--historylist-accent-color, #e5e7eb)'
-                                    },
-                                    ...(window?.theme?.HistoricalConvTreeList?.style || {})
-                                }}
-                            >
-                                <X size={14} />
-                            </button>
-                        )}
-                    </div>
-                </div>
-            </div>
+            {/* Search bar removed - now using the one in Sidebar */}
 
             {/* Conversation list with scrolling */}
             <div className="HistoricalConvTreeList flex-1 overflow-y-auto mt-2"
