@@ -205,43 +205,21 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   useEffect(() => {
     const fetchItems = async () => {
       try {
-        // Add a hardcoded item for testing
-        const hardcodedItems: SlashItem[] = [
-          {
-            id: 'hardcoded-1',
-            name: 'roflcopters',
-            description: 'Inserts the word "sausages"',
-            category: 'Test',
-            getTextToInsert: () => 'sausages'
-          }
-        ];
-        
         // Get items from registry - these are already filtered with wildcard support
         const registryItems = await slashItemRegistry.getFilteredItems(query);
         
-        // Combine items
-        const allItems = [...hardcodedItems, ...registryItems];
-        
         // Don't filter again - the registry items are already filtered with wildcard support
         // Just filter the hardcoded items with wildcard support
-        const filteredHardcodedItems = filterItemsWithWildcards(hardcodedItems, query);
         
         // Combine the filtered hardcoded items with the already filtered registry items
-        const filteredItems = [...filteredHardcodedItems, ...registryItems];
         
-        setItems(filteredItems);
+          setItems(registryItems);
         setSelectedIndex(0);
       } catch (error) {
         console.error('Error fetching slash items:', error);
         // Fallback to hardcoded items on error
         setItems([
-          {
-            id: 'hardcoded-1',
-            name: 'roflcopters',
-            description: 'Inserts the word "sausages"',
-            category: 'Test',
-            getTextToInsert: () => 'sausages'
-          }
+
         ]);
       }
     };
