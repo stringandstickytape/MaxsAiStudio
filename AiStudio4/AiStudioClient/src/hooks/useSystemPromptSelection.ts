@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { useModelStore } from '@/stores/useModelStore';
+import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { SystemPrompt } from '@/types/systemPrompt';
@@ -17,12 +18,14 @@ import { createApiRequest } from '@/utils/apiUtils';
  * - Loads associated tools
  * - Loads associated user prompt
  * - Sets associated models (primary and secondary)
+ * - Activates associated MCP servers
  */
 export function useSystemPromptSelection() {
   const { activeConvId } = useConvStore();
   const { setConvPrompt } = useSystemPromptStore();
   const { setActiveTools } = useToolStore.getState();
   const { selectPrimaryModel, selectSecondaryModel } = useModelStore();
+  const { setEnabledServers } = useMcpServerStore();
   const { prompts: userPrompts, insertUserPrompt } = useUserPromptManagement();
   const { setConvSystemPrompt, setDefaultSystemPrompt } = useSystemPromptManagement();
 
@@ -59,7 +62,12 @@ export function useSystemPromptSelection() {
         // 4. Synchronize active tools
         setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
 
-        // 5. Handle associated user prompt if one exists
+        // 5. Activate associated MCP servers
+        if (Array.isArray(prompt.associatedMcpServers) && prompt.associatedMcpServers.length > 0) {
+          setEnabledServers(prompt.associatedMcpServers);
+        }
+
+        // 6. Handle associated user prompt if one exists
         if (prompt.associatedUserPromptId && prompt.associatedUserPromptId !== 'none') {
           // Find the user prompt in the local store instead of making an API call
           const userPrompt = userPrompts.find(up => up.guid === prompt.associatedUserPromptId);
@@ -70,7 +78,7 @@ export function useSystemPromptSelection() {
           }
         }
 
-        // 6. Set associated models if they exist
+        // 7. Set associated models if they exist
         if (prompt.primaryModelGuid && prompt.primaryModelGuid !== 'none') {
           selectPrimaryModel(prompt.primaryModelGuid);
           await createApiRequest('/api/setDefaultModel', 'POST')({ modelGuid: prompt.primaryModelGuid });
@@ -87,7 +95,7 @@ export function useSystemPromptSelection() {
         return false;
       }
     },
-    [activeConvId, setConvSystemPrompt, setConvPrompt, setDefaultSystemPrompt, userPrompts, insertUserPrompt, selectPrimaryModel, selectSecondaryModel]
+    [activeConvId, setConvSystemPrompt, setConvPrompt, setDefaultSystemPrompt, userPrompts, insertUserPrompt, selectPrimaryModel, selectSecondaryModel, setEnabledServers]
   );
 
   return { selectSystemPrompt };
@@ -141,7 +149,12 @@ export async function selectSystemPromptStandalone(prompt: SystemPrompt, options
       Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []
     );
 
-    // 5. Handle associated user prompt if one exists
+    // 5. Activate associated MCP servers
+    if (Array.isArray(prompt.associatedMcpServers) && prompt.associatedMcpServers.length > 0) {
+      useMcpServerStore.getState().setEnabledServers(prompt.associatedMcpServers);
+    }
+
+    // 6. Handle associated user prompt if one exists
     if (prompt.associatedUserPromptId && prompt.associatedUserPromptId !== 'none') {
       // We can't use the hook here, so we'll just dispatch an event that can be listened for
       window.dispatchEvent(
@@ -151,7 +164,7 @@ export async function selectSystemPromptStandalone(prompt: SystemPrompt, options
       );
     }
 
-    // 6. Set associated models if they exist
+    // 7. Set associated models if they exist
     if (prompt.primaryModelGuid && prompt.primaryModelGuid !== 'none') {
       useModelStore.getState().selectPrimaryModel(prompt.primaryModelGuid);
       await createApiRequest('/api/setDefaultModel', 'POST')({ modelGuid: prompt.primaryModelGuid });

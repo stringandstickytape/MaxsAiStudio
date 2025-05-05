@@ -14,6 +14,7 @@ import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useModelStore } from '@/stores/useModelStore';
+import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SystemPromptEditorProps {
@@ -26,6 +27,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
   const { setCurrentPrompt } = useSystemPromptStore();
   const { models } = useModelStore();
   const { createSystemPrompt, updateSystemPrompt } = useSystemPromptManagement();
+  const { servers } = useMcpServerStore();
 
   const [isCreating, setIsCreating] = useState(!initialPrompt);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -44,6 +46,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           tags: initialPrompt.tags,
           isDefault: initialPrompt.isDefault,
           associatedTools: initialPrompt.associatedTools || [],
+          associatedMcpServers: initialPrompt.associatedMcpServers || [],
           associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
           primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
           secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
@@ -55,6 +58,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           tags: [],
           isDefault: false,
           associatedTools: [],
+          associatedMcpServers: [],
           associatedUserPromptId: 'none',
           primaryModelGuid: 'none',
           secondaryModelGuid: 'none',
@@ -75,6 +79,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         tags: initialPrompt.tags,
         isDefault: initialPrompt.isDefault,
         associatedTools: initialPrompt.associatedTools || [],
+        associatedMcpServers: initialPrompt.associatedMcpServers || [],
         associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
         primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
         secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
@@ -88,6 +93,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         tags: [],
         isDefault: false,
         associatedTools: [],
+        associatedMcpServers: [],
         associatedUserPromptId: 'none',
         primaryModelGuid: 'none',
         secondaryModelGuid: 'none',
@@ -431,6 +437,34 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
               </div>
               <FormDescription className="form-description">
                 Select one or more tools to associate with this system prompt. These tools will be activated when the prompt is used.
+              </FormDescription>
+            </div>
+
+            {/* MCP Server Association Multi-Select */}
+            <div className="mt-4">
+              <FormLabel className="form-label">Associated MCP Servers</FormLabel>
+              <div className="flex flex-wrap gap-2 mt-2 mb-2">
+                {servers.map((server) => (
+                  <label key={server.id} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.watch('associatedMcpServers')?.includes(server.id)}
+                      onChange={(e) => {
+                        const current = form.getValues('associatedMcpServers') || [];
+                        if (e.target.checked) {
+                          form.setValue('associatedMcpServers', [...current, server.id]);
+                        } else {
+                          form.setValue('associatedMcpServers', current.filter((id) => id !== server.id));
+                        }
+                      }}
+                      disabled={isProcessing}
+                    />
+                    <span className="text-sm text-gray-200">{server.name}</span>
+                  </label>
+                ))}
+              </div>
+              <FormDescription className="form-description">
+                Select one or more MCP servers to associate with this system prompt. These servers will be activated when the prompt is used.
               </FormDescription>
             </div>
 

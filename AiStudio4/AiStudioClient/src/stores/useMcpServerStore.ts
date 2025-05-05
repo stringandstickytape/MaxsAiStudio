@@ -28,6 +28,7 @@ interface McpServerStoreState {
   isLoadingTools: boolean;
   fetchServers: () => Promise<void>;
   setServerEnabled: (id: string, enabled: boolean) => Promise<void>;
+  setEnabledServers: (serverIds: string[]) => Promise<void>;
   addServer: (server: McpServerDefinition) => Promise<McpServerDefinition | null>;
   updateServer: (server: McpServerDefinition) => Promise<McpServerDefinition | null>;
   deleteServer: (id: string) => Promise<boolean>;
@@ -74,6 +75,40 @@ export const useMcpServerStore = create<McpServerStoreState>((set, get) => ({
       }
     } catch (err) {
       console.error('Failed to toggle MCP server', err);
+    }
+  },
+
+  async setEnabledServers(serverIds) {
+    try {
+      // First, disable all servers
+      const currentServers = get().servers;
+      const updatedServers = await Promise.all(
+        currentServers.map(async (server) => {
+          // If server should be enabled (in serverIds list)
+          const shouldBeEnabled = serverIds.includes(server.id);
+          
+          // Only make API call if state is changing
+          if (server.isEnabled !== shouldBeEnabled) {
+            const response = await createApiRequest('/api/mcpServers/setEnabled', 'POST')({
+              serverId: server.id,
+              isEnabled: shouldBeEnabled,
+            });
+            
+            if (response?.success) {
+              return response.server as McpServerDefinition;
+            }
+          }
+          return server;
+        })
+      );
+
+      // Update the store with all servers
+      set({
+        servers: updatedServers,
+        enabledCount: updatedServers.filter((s) => s.isEnabled).length,
+      });
+    } catch (err) {
+      console.error('Failed to set enabled MCP servers', err);
     }
   },
 

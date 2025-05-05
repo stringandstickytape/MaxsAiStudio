@@ -9,6 +9,7 @@
   tags: string[];
   associatedTools: string[]; // Tool GUIDs
   associatedUserPromptId?: string; // Associated User Prompt GUID
+  associatedMcpServers?: string[]; // MCP Server IDs
   primaryModelGuid?: string; // Associated primary model GUID
   secondaryModelGuid?: string; // Associated secondary model GUID
 }
@@ -21,6 +22,7 @@ export interface SystemPromptFormValues {
   isDefault?: boolean;
   associatedTools: string[]; // Tool GUIDs
   associatedUserPromptId?: string; // Associated User Prompt GUID
+  associatedMcpServers?: string[]; // MCP Server IDs
   primaryModelGuid?: string; // Associated primary model GUID
   secondaryModelGuid?: string; // Associated secondary model GUID
 }

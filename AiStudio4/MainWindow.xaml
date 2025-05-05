@@ -30,7 +30,6 @@
                 <MenuItem Header="_Recent Projects" Name="RecentProjectsMenuItem"/>
             </MenuItem>
             <MenuItem Header="📂" ToolTip="Opens the project root folder in an Explorer window" Click="ExploreProjectMenuItem_Click"/>
-            <MenuItem Header="_MCP Servers" Name="McpServersMenuItem" Loaded="McpServersMenuItem_Loaded"/>
             <MenuItem Header="_Test">
                 <MenuItem Header="_Test Audio Transcription..." Name="TestAudioTranscriptionMenuItem" Click="TestAudioTranscriptionMenuItem_Click"/>
                 <MenuItem Header="_Test Reapply Merge..." Name="TestReapplyMergeMenuItem" Click="TestReapplyMergeMenuItem_Click"/>
