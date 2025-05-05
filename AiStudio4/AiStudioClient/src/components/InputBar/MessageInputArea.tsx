@@ -151,21 +151,26 @@ export function MessageInputArea({
             // Find the last slash command before cursor
             const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
             if (match) {
+                // Get the full match and the slash command part
+                const fullMatch = match[0];
+                const slashCommand = '/' + match[1];
                 const matchStart = match.index;
-                const matchEnd = matchStart + match[0].length;
                 
-                // Replace the slash command with the selected text
-                const newValue = textBeforeCursor.substring(0, matchStart) + 
-                    (match[0].startsWith(' ') ? ' ' : '') + 
+                // Find where the actual slash character starts within the match
+                const slashIndex = fullMatch.indexOf('/');
+                
+                // Calculate the start position of the slash command (not including any leading space)
+                const slashStart = matchStart + slashIndex;
+                
+                // Construct the new value by replacing only the /command part
+                const newValue = textBeforeCursor.substring(0, slashStart) + 
                     text + 
                     textAfterCursor;
                 
                 setInputText(newValue);
                 
                 // Set cursor position after the inserted text
-                const newCursorPosition = matchStart + 
-                    (match[0].startsWith(' ') ? 1 : 0) + 
-                    text.length;
+                const newCursorPosition = slashStart + text.length;
                 
                 setTimeout(() => {
                     if (textareaRef.current) {
