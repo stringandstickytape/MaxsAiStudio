@@ -80,7 +80,7 @@ export class FileNameProvider implements SlashItemProvider {
       name: file.name,
       description: file.name === 'roflcopters' 
         ? 'Inserts the word "sausages"' 
-        : `File: ${file.path} (Shift+click to attach)`,
+        : `File: ${file.path}`,
       category: 'Files',
       getTextToInsert: () => file.path
     }));
