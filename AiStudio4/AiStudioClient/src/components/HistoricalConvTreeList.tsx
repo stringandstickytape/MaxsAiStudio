@@ -3,18 +3,29 @@ import { processAttachments } from '@/utils/attachmentUtils';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
+import { useSearchStore } from '@/stores/useSearchStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { Search, X, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 
-export const HistoricalConvTreeList = () => {
+interface HistoricalConvTreeListProps {
+    searchResults?: {
+        conversationId: string;
+        matchingMessageIds: string[];
+        summary: string;
+        lastModified: string;
+    }[] | null;
+}
+
+export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeListProps) => {
     const [searchTerm, setSearchTerm] = useState<string>('');
 
 
     const { clientId } = useWebSocketStore();
     const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
     const { convs, isLoading, fetchAllConvs, addOrUpdateConv, deleteConv } = useHistoricalConvsStore();
+    const { highlightMessage } = useSearchStore();
 
 
     useEffect(() => {
@@ -73,6 +84,17 @@ export const HistoricalConvTreeList = () => {
         
         // Dispatch an event to notify that a conversation was selected
         window.dispatchEvent(new CustomEvent('historical-conv-selected', { detail: { convId, nodeId } }));
+
+        // Find if this conv has search results
+        const searchResult = searchResults?.find(r => r.conversationId === convId);
+        
+        // If there are matching messages, highlight the first one
+        if (searchResult?.matchingMessageIds?.length) {
+            highlightMessage(searchResult.matchingMessageIds[0]);
+        } else {
+            // Otherwise clear any highlighted message
+            highlightMessage(null);
+        }
 
         try {
 
@@ -180,9 +202,13 @@ export const HistoricalConvTreeList = () => {
         }
     };
 
-    const filteredConvs = convs.filter(conv =>
-        searchTerm ? conv.summary.toLowerCase().includes(searchTerm.toLowerCase()) : true
-    );
+    // Filter conversations based on search results if available
+    const displayedConvs = searchResults
+        ? convs.filter(conv => 
+            searchResults.some(result => result.conversationId === conv.convGuid))
+        : convs.filter(conv =>
+            searchTerm ? conv.summary.toLowerCase().includes(searchTerm.toLowerCase()) : true
+        );
 
     // Handle middle-click to delete conversation
     const handleMiddleClick = async (event: React.MouseEvent, convId: string) => {
@@ -280,7 +306,7 @@ export const HistoricalConvTreeList = () => {
                     ...(window?.theme?.HistoricalConvTreeList?.style || {})
                 }}
             >
-                {filteredConvs.length === 0 ? (
+                {displayedConvs.length === 0 ? (
                     <div className="HistoricalConvTreeList p-4 text-center flex flex-col items-center"
                         style={{
                             color: 'var(--historylist-text-color, #9ca3af)',
@@ -312,7 +338,11 @@ export const HistoricalConvTreeList = () => {
                 ) : (
                     <ScrollArea className="HistoricalConvTreeList h-full pr-1">
                         <div className="HistoricalConvTreeList px-1" style={{ display: 'block', minWidth: '100%' }}>
-                            {filteredConvs.map((conv) => (
+                            {displayedConvs.map((conv) => {
+                                    // Find if this conv has search results
+                                    const searchResult = searchResults?.find(r => r.conversationId === conv.convGuid);
+                                    
+                                    return (
                                 <div
                                     key={conv.convGuid}
                                     className="HistoricalConvTreeList text-sm cursor-pointer px-2 py-0.5 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1"
@@ -320,7 +350,8 @@ export const HistoricalConvTreeList = () => {
                                         display: 'block', 
                                         wordBreak: 'break-word',
                                         color: 'var(--historylist-text-color, var(--global-text-color, #e5e7eb))',
-                                        backgroundColor: 'var(--historylist-bg, var(--global-background-color, transparent))',
+                                        backgroundColor: searchResult ? 'var(--historylist-accent-color, var(--global-primary-color, rgba(59, 130, 246, 0.2)))' : 'var(--historylist-bg, var(--global-background-color, transparent))',
+                                        border: searchResult ? '1px solid var(--historylist-accent-color, var(--global-primary-color, rgba(59, 130, 246, 0.5)))' : 'none',
                                         ':hover': {
                                             backgroundColor: 'var(--historylist-accent-color, var(--global-primary-color, rgba(31, 41, 55, 0.4)))',
                                             opacity: 0.7
@@ -347,8 +378,14 @@ export const HistoricalConvTreeList = () => {
                                     }}
                                 >
                                     {conv.summary}
+                                    {searchResult && (
+                                        <div className="text-xs text-blue-400 mt-1">
+                                            {searchResult.matchingMessageIds.length} matching message{searchResult.matchingMessageIds.length !== 1 ? 's' : ''}
+                                        </div>
+                                    )}
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </ScrollArea>
                 )}

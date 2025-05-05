@@ -5,6 +5,8 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using AiStudio4.Core.Interfaces;
 using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Threading;
 
 namespace AiStudio4.InjectedDependencies.WebSocket
 {
@@ -14,15 +16,19 @@ namespace AiStudio4.InjectedDependencies.WebSocket
         private readonly ILogger<WebSocketMessageHandler> _logger;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly IInterjectionService _interjectionService;
+        private readonly IConvStorage _convStorage;
+        private readonly ConcurrentDictionary<string, CancellationTokenSource> _activeSearches = new();
 
         public WebSocketMessageHandler(
             WebSocketConnectionManager connectionManager,
             ILogger<WebSocketMessageHandler> logger,
-            IInterjectionService interjectionService)
+            IInterjectionService interjectionService,
+            IConvStorage convStorage)
         {
             _connectionManager = connectionManager;
             _logger = logger;
             _interjectionService = interjectionService;
+            _convStorage = convStorage;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -148,6 +154,12 @@ namespace AiStudio4.InjectedDependencies.WebSocket
                     case "loadConvList":
                         await HandleLoadConvListAsync(clientId);
                         break;
+                    case "searchConversations":
+                        await HandleSearchConversationsAsync(clientId, messageObj);
+                        break;
+                    case "cancelSearch":
+                        await HandleCancelSearchAsync(clientId, messageObj);
+                        break;
                     default:
                         _logger.LogWarning("Unknown message type: {MessageType}", messageType);
                         break;
@@ -235,6 +247,107 @@ namespace AiStudio4.InjectedDependencies.WebSocket
         {
             // Implementation details
             return Task.CompletedTask;
+        }
+
+        private async Task HandleSearchConversationsAsync(string clientId, dynamic messageObj)
+        {
+            try
+            {
+                string searchTerm = messageObj.content.searchTerm;
+                string searchId = messageObj.content.searchId;
+                
+                // Cancel any existing search for this client
+                if (_activeSearches.TryRemove(clientId, out var existingCts))
+                {
+                    existingCts.Cancel();
+                    existingCts.Dispose();
+                }
+                
+                // Create new cancellation token source
+                var cts = new CancellationTokenSource();
+                _activeSearches[clientId] = cts;
+                
+                try
+                {
+                    // Notify client that search has started
+                    await SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                    {
+                        messageType = "searchStarted",
+                        content = new { searchId }
+                    }));
+                    
+                    // Perform the search
+                    var results = await _convStorage.SearchConversationsAsync(searchTerm, cts.Token);
+                    
+                    // Send results to client
+                    await SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                    {
+                        messageType = "searchResults",
+                        content = new 
+                        { 
+                            searchId,
+                            results = results.Select(r => new
+                            {
+                                conversationId = r.ConversationId,
+                                matchingMessageIds = r.MatchingMessageIds,
+                                summary = r.ConversationSummary,
+                                lastModified = r.LastModified
+                            })
+                        }
+                    }));
+                }
+                catch (OperationCanceledException)
+                {
+                    // Search was cancelled, notify client
+                    await SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                    {
+                        messageType = "searchCancelled",
+                        content = new { searchId }
+                    }));
+                }
+                finally
+                {
+                    // Remove the cancellation token source
+                    _activeSearches.TryRemove(clientId, out _);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling search request from client {ClientId}", clientId);
+                
+                // Send error to client
+                await SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                {
+                    messageType = "searchError",
+                    content = new { error = ex.Message }
+                }));
+            }
+        }
+
+        private async Task HandleCancelSearchAsync(string clientId, dynamic messageObj)
+        {
+            try
+            {
+                string searchId = messageObj.content.searchId;
+                
+                // Cancel the search if it exists
+                if (_activeSearches.TryRemove(clientId, out var cts))
+                {
+                    cts.Cancel();
+                    cts.Dispose();
+                    
+                    // Notify client that search was cancelled
+                    await SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                    {
+                        messageType = "searchCancelled",
+                        content = new { searchId }
+                    }));
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling cancel search request from client {ClientId}", clientId);
+            }
         }
     }
 }

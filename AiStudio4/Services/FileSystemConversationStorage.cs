@@ -169,5 +169,53 @@ namespace AiStudio4.Services
         }
 
         // Methods removed as they're no longer needed with flat structure
+
+        /// <summary>
+        /// Searches all conversations for content matching the search term
+        /// </summary>
+        /// <param name="searchTerm">The term to search for</param>
+        /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
+        /// <returns>List of search results containing matching conversations and message IDs</returns>
+        public async Task<List<ConversationSearchResult>> SearchConversationsAsync(string searchTerm, CancellationToken cancellationToken)
+        {
+            var results = new List<ConversationSearchResult>();
+            var allConvs = await GetAllConvs();
+            
+            foreach (var conv in allConvs)
+            {   
+                cancellationToken.ThrowIfCancellationRequested();
+                
+                var matchingMessageIds = new List<string>();
+                foreach (var message in conv.Messages)
+                {   
+                    // Skip system messages
+                    if (message.Role == v4BranchedConvMessageRole.System)
+                        continue;
+                        
+                    // Case-insensitive search in message content
+                    if (message.UserMessage!= null && 
+                        message.UserMessage.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        matchingMessageIds.Add(message.Id);
+                    }
+                }
+                
+                if (matchingMessageIds.Count > 0)
+                {
+                    var filePath = Path.Combine(_basePath, $"{conv.ConvId}.json");
+                    var fileInfo = new FileInfo(filePath);
+                    
+                    results.Add(new ConversationSearchResult
+                    {
+                        ConversationId = conv.ConvId,
+                        MatchingMessageIds = matchingMessageIds,
+                        ConversationSummary = conv.Summary ?? "Untitled Conversation",
+                        LastModified = fileInfo.LastWriteTime
+                    });
+                }
+            }
+            
+            return results;
+        }
     }
 }
