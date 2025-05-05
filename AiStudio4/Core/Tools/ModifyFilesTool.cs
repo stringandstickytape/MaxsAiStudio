@@ -24,9 +24,11 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class ModifyFilesTool : BaseToolImplementation
     {
+
         private readonly StringBuilder _validationErrorMessages;
         private readonly ISecondaryAiService _secondaryAiService;
         private  PathSecurityManager _pathSecurityManager;
+
 
         public ModifyFilesTool(ILogger<ModifyFilesTool> logger, IGeneralSettingsService generalSettingsService, 
             ISecondaryAiService secondaryAiService, IStatusMessageService statusMessageService) 
@@ -41,7 +43,7 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd03", // Fixed GUID for ModifyFiles
+                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd43", // Fixed GUID for ModifyFiles
                 Description = "Modifies content within one or more existing files.",
                 Name = "ModifyFiles",
                 Schema = @"{
