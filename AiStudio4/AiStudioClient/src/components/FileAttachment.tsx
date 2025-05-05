@@ -32,8 +32,10 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
 }) => {
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
-    const handleAttachFileClick = () => {
+    const handleAttachFileClick = async () => {
+        // If in Visual Studio, use the VS-specific approach
         if (localStorage.getItem('isVisualStudio') === 'true') {
             window.chrome?.webview?.postMessage({
                 type: 'send',
@@ -48,8 +50,36 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
             return;
         }
 
-        if (inputRef.current) {
-            inputRef.current.click();
+        // For non-VS environments, make an API call to open a file dialog on the server
+        try {
+            setIsLoading(true);
+            const attachFileRequest = createApiRequest('/api/attachFile', 'POST');
+            const data = await attachFileRequest({});
+            
+            if (data.success && data.attachments && data.attachments.length > 0) {
+                // Process each attachment
+                const files = data.attachments.map((attachment: any) => {
+                    // Convert base64 to ArrayBuffer for content
+                    const arrBuf = base64ToArrayBuffer(attachment.content);
+                    return new File(
+                        [arrBuf],
+                        attachment.name,
+                        {
+                            type: attachment.type || 'application/octet-stream',
+                            lastModified: attachment.lastModified || Date.now()
+                        }
+                    );
+                });
+                
+                // Pass the files to the callback
+                onFilesSelected(files);
+            } else if (data.error) {
+                console.error('Error attaching file:', data.error);
+            }
+        } catch (err) {
+            console.error('Failed to attach file:', err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -96,7 +126,8 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
         >
-            {/*<input
+            {/* Hidden file input for future use if needed */}
+            <input
                 ref={inputRef}
                 type="file"
                 accept={acceptedTypes}
@@ -104,7 +135,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                 className="hidden"
                 disabled={disabled}
                 multiple
-            />*/}
+            />
 
             {/* Drag overlay */}
             {isDragging && (
@@ -120,70 +151,84 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                         variant="outline"
                         size="icon"
                         type="button"
-                        disabled={disabled}
+                        disabled={disabled || isLoading}
                         className="btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400"
                         aria-label="Attachment options"
                         title="Attachment options"
                         style={style}
                     >
-                        <Paperclip className="h-5 w-5" />
+                        <Paperclip className={cn("h-5 w-5", isLoading && "animate-pulse")} />
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem onClick={handleAttachFileClick}>
+                    <DropdownMenuItem 
+                        onClick={handleAttachFileClick}
+                        disabled={isLoading}
+                    >
                         <Upload className="mr-2 h-4 w-4" />
-                        <span>Attach file</span>
+                        <span>{isLoading ? "Attaching..." : "Attach file"}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={async () => {
-                        // Show loading indicator (optional)
-                        try {
-                            const clipboardImageRequest = createApiRequest('/api/clipboardImage', 'POST');
-                            const data = await clipboardImageRequest({});
-                            if (data.success && data.attachment) {
-                                // Convert base64 to ArrayBuffer for content
-                                const arrBuf = base64ToArrayBuffer(data.attachment.content);
-                                const file = new File([
-                                    arrBuf
-                                ], data.attachment.name || 'clipboard-image.png', {
-                                    type: data.attachment.type || 'image/png',
-                                    lastModified: data.attachment.lastModified || Date.now()
-                                });
-                                // Pass as array for addAttachments
-                                onFilesSelected([file]);
-                            } else {
-                                alert(data.error || 'No image found in clipboard.');
+                    <DropdownMenuItem 
+                        onClick={async () => {
+                            // Show loading indicator
+                            setIsLoading(true);
+                            try {
+                                const clipboardImageRequest = createApiRequest('/api/clipboardImage', 'POST');
+                                const data = await clipboardImageRequest({});
+                                if (data.success && data.attachment) {
+                                    // Convert base64 to ArrayBuffer for content
+                                    const arrBuf = base64ToArrayBuffer(data.attachment.content);
+                                    const file = new File([
+                                        arrBuf
+                                    ], data.attachment.name || 'clipboard-image.png', {
+                                        type: data.attachment.type || 'image/png',
+                                        lastModified: data.attachment.lastModified || Date.now()
+                                    });
+                                    // Pass as array for addAttachments
+                                    onFilesSelected([file]);
+                                } else {
+                                    alert(data.error || 'No image found in clipboard.');
+                                }
+                            } catch (err) {
+                                alert('Failed to get image from clipboard.');
+                            } finally {
+                                setIsLoading(false);
                             }
-                        } catch (err) {
-                            alert('Failed to get image from clipboard.');
-                        }
-                    }}>
+                        }}
+                        disabled={isLoading}
+                    >
                         <ClipboardPen className="mr-2 h-4 w-4" />
                         <span>Image from Clipboard</span>
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={async () => {
-                        // Git Diff option
-                        try {
-                            // Optionally show loading indicator here
-                            const gitDiffRequest = createApiRequest('/api/gitDiff', 'POST');
-                            const data = await gitDiffRequest({ data: '{}' });
-                            if (data.success && data.attachment) {
-                                // Convert base64 to ArrayBuffer for content
-                                const arrBuf = base64ToArrayBuffer(data.attachment.content);
-                                const file = new File([
-                                    arrBuf
-                                ], data.attachment.name || 'git-diff.txt', {
-                                    type: data.attachment.type || 'text/plain',
-                                    lastModified: data.attachment.lastModified || Date.now()
-                                });
-                                // Pass as array for addAttachments
-                                onFilesSelected([file]);
-                            } else {
-                                alert(data.error || 'Failed to get git diff.');
+                    <DropdownMenuItem 
+                        onClick={async () => {
+                            // Git Diff option
+                            setIsLoading(true);
+                            try {
+                                const gitDiffRequest = createApiRequest('/api/gitDiff', 'POST');
+                                const data = await gitDiffRequest({ data: '{}' });
+                                if (data.success && data.attachment) {
+                                    // Convert base64 to ArrayBuffer for content
+                                    const arrBuf = base64ToArrayBuffer(data.attachment.content);
+                                    const file = new File([
+                                        arrBuf
+                                    ], data.attachment.name || 'git-diff.txt', {
+                                        type: data.attachment.type || 'text/plain',
+                                        lastModified: data.attachment.lastModified || Date.now()
+                                    });
+                                    // Pass as array for addAttachments
+                                    onFilesSelected([file]);
+                                } else {
+                                    alert(data.error || 'Failed to get git diff.');
+                                }
+                            } catch (err) {
+                                alert('Failed to get git diff.');
+                            } finally {
+                                setIsLoading(false);
                             }
-                        } catch (err) {
-                            alert('Failed to get git diff.');
-                        }
-                    }}>
+                        }}
+                        disabled={isLoading}
+                    >
                         <Paperclip className="mr-2 h-4 w-4" />
                         <span>Git Diff</span>
                     </DropdownMenuItem>

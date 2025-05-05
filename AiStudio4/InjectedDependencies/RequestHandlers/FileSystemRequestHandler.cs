@@ -7,6 +7,9 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Windows.Forms;
+using System.Linq;
+using Microsoft.Win32;
 
 namespace AiStudio4.InjectedDependencies.RequestHandlers
 {
@@ -23,7 +26,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
         }
 
         protected override IEnumerable<string> SupportedRequestTypes => new[]
-        {  "getFileSystem", "getFileContent" };
+        {  "getFileSystem", "getFileContent", "attachFile" };
 
         public override async Task<string> HandleAsync(string clientId, string requestType, JObject requestData)
         {
@@ -40,8 +43,103 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             {
                 return await GetFileContentAsync(requestData);
             }
+            else if (requestType == "attachFile")
+            {
+                return await AttachFileAsync(requestData);
+            }
 
             return SerializeError($"Unknown request type: {requestType}");
+        }
+
+        private async Task<string> AttachFileAsync(JObject requestData)
+        {
+            try
+            {
+
+                // Create OpenFileDialog to allow user to select files
+                var openFileDialog = new OpenFileDialog();
+                {
+                    // Configure dialog
+                    openFileDialog.Title = "Select File(s) to Attach";
+                    openFileDialog.Filter = "All Files (*.*)|*.*";
+                    openFileDialog.Multiselect = true;
+                    openFileDialog.CheckFileExists = true;
+                    openFileDialog.CheckPathExists = true;
+
+                    // Show dialog and process results
+                    if (((bool)openFileDialog.ShowDialog()))
+                    {
+                        // Process selected files
+                        var attachments = new List<object>();
+                        foreach (string filePath in openFileDialog.FileNames)
+                        {
+                            try
+                            {
+                                // Get file info for metadata
+                                var fileInfo = new FileInfo(filePath);
+                                string fileName = Path.GetFileName(filePath);
+                                string mimeType = GetMimeTypeFromExtension(Path.GetExtension(filePath));
+                                bool isBinary = IsBinaryFile(mimeType);
+                                
+                                // Read file content
+                                byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
+                                string base64Content = Convert.ToBase64String(fileBytes);
+                                
+                                // For text files, also include the text content
+                                string textContent = null;
+                                if (!isBinary)
+                                {
+                                    try
+                                    {
+                                        textContent = await File.ReadAllTextAsync(filePath);
+                                    }
+                                    catch
+                                    {
+                                        // If we can't read as text, just continue without text content
+                                    }
+                                }
+
+                                // Add to attachments list
+                                attachments.Add(new
+                                {
+                                    name = fileName,
+                                    type = mimeType,
+                                    content = base64Content,
+                                    size = fileInfo.Length,
+                                    lastModified = ((DateTimeOffset)fileInfo.LastWriteTime).ToUnixTimeMilliseconds(),
+                                    textContent = textContent
+                                });
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
+                                // Continue with other files even if one fails
+                            }
+                        }
+
+                        // Return all attachments
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true,
+                            attachments = attachments
+                        });
+                    }
+                    else
+                    {
+                        // User canceled the dialog
+                        return JsonConvert.SerializeObject(new
+                        {
+                            success = true,
+                            attachments = new object[0],
+                            message = "File selection canceled"
+                        });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error attaching files: {ex.Message}");
+            }
         }
 
         private async Task<string> GetFileContentAsync(JObject requestData)
