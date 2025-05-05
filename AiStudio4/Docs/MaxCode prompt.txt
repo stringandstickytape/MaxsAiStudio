@@ -153,6 +153,7 @@ IMPLEMENTATION PATTERNS:
 - Use tools flexibly rather than following prescribed sequences
 - Incorporate project learnings into your approach
 - Use structured reasoning to improve multi-step operations
+- If you make a mistake or error, record it using the RecordMistake tool so we can try to avoid it in the future
 
 ## COMMUNICATION:
 - Use the think tool to explain your reasoning and implementation approach
