@@ -7,7 +7,7 @@ import { StickToBottom } from 'use-stick-to-bottom';
 
 import { MessageItem } from './MessageItem';
 import { StreamingMessage } from './StreamingMessage';
-import { ConversationControls } from './ConversationControls';
+// import { ConversationControls } from './ConversationControls';
 import { ScrollManager } from './ScrollManager';
 
 // Define themeable properties for the ConvView component
@@ -100,9 +100,8 @@ export const ConvView = ({
   // Ref for StickToBottom component
   const stickToBottomRef = useRef<any>(null);
   
-  // State for visible message count
-  const [visibleCount, setVisibleCount] = useState(20);
-  const [debouncedScrollTrigger, setDebouncedScrollTrigger] = useState(0);
+  // No need for visibleCount or debouncedScrollTrigger, always show all messages
+
 
   // Calculate message chain based on selected message or latest message
   const messageChain = useMemo(() => {
@@ -136,10 +135,8 @@ export const ConvView = ({
     return path;
   }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
 
-  // Update visible count when conversation changes
-  useEffect(() => {
-    setVisibleCount(Math.min(20, messageChain.length));
-  }, [activeConvId, slctdMsgId, messageChain]);
+  // No need to update visibleCount when conversation changes, always show all messages
+
 
   // Listen for stream:clear event to reset streamTokens
   useEffect(() => {
@@ -156,10 +153,8 @@ export const ConvView = ({
     };
   }, [streamTokens]);
 
-  // Handle loading more messages
-  const handleLoadMore = useCallback(() => {
-    setVisibleCount(prev => Math.min(prev + 10, messageChain.length));
-  }, [messageChain.length]);
+  // No need for handleLoadMore, always show all messages
+
 
   if (!activeConvId) return null;
   if (!messageChain.length) return null;
@@ -168,14 +163,12 @@ export const ConvView = ({
   const currentConvSearchResult = searchResults?.find(result => result.conversationId === activeConvId);
   
   // Filter messages based on search results if we have them
-  let visibleMessages = messageChain.slice(-visibleCount);
+  let visibleMessages = messageChain;
   if (searchResults && currentConvSearchResult) {
     visibleMessages = visibleMessages.filter(message => 
       currentConvSearchResult.matchingMessageIds.includes(message.id)
     );
   }
-  
-  const hasMoreToLoad = visibleCount < messageChain.length;
 
   return (
     <StickToBottom 
@@ -197,12 +190,7 @@ export const ConvView = ({
       throttle={isStreaming ? 100 : 0}
     >
       <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4">
-        <ConversationControls 
-          hasMoreToLoad={hasMoreToLoad}
-          messageChainLength={messageChain.length}
-          visibleCount={visibleCount}
-          onLoadMore={handleLoadMore}
-        />
+        {/* ConversationControls removed: always show all messages */}
 
         {visibleMessages.map((message) => {
           // Skip system messages
