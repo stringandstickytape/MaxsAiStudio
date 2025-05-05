@@ -78,7 +78,9 @@ export class FileNameProvider implements SlashItemProvider {
     return allFiles.map(file => ({
       id: `file-${file.path}`,
       name: file.name,
-      description: file.name === 'roflcopters' ? 'Inserts the word "sausages"' : `File: ${file.path}`,
+      description: file.name === 'roflcopters' 
+        ? 'Inserts the word "sausages"' 
+        : `File: ${file.path} (Shift+click to attach)`,
       category: 'Files',
       getTextToInsert: () => file.path
     }));

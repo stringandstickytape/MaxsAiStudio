@@ -12,6 +12,7 @@ interface MessageInputAreaProps {
     isLoading: boolean;
     disabled: boolean;
     onCursorPositionChange?: (position: number | null) => void;
+    onAttachFile?: (file: File) => void; // New prop for handling file attachments
 }
 
 export function MessageInputArea({
@@ -20,7 +21,8 @@ export function MessageInputArea({
     onSend,
     isLoading,
     disabled,
-    onCursorPositionChange
+    onCursorPositionChange,
+    onAttachFile
 }: MessageInputAreaProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -224,7 +226,8 @@ export function MessageInputArea({
 
 * CTRL+Return to send
 * CTRL+Return to interject (during AI tool loops)
-* Type / for quicklist of user prompts and project files"
+* Type / for quicklist of user prompts and project files
+* SHIFT+select a file in the slash menu to attach it"
                 disabled={disabled}
                 showLineCount={true}
                 style={{
@@ -240,6 +243,7 @@ export function MessageInputArea({
                     onSelect={handleSlashItemSelect}
                     onCancel={handleSlashDropdownCancel}
                     anchorElement={textareaRef.current}
+                    onAttachFile={onAttachFile}
                 />
             )}
         </div>

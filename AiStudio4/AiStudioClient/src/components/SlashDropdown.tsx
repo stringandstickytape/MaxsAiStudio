@@ -2,6 +2,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { SlashItem, slashItemRegistry } from '../services/slashItemRegistry';
+import { createApiRequest } from '@/utils/apiUtils';
+import { base64ToArrayBuffer } from '@/utils/attachmentUtils';
 
 // Interface for dropdown dimensions
 interface DropdownDimensions {
@@ -14,6 +16,7 @@ interface SlashDropdownProps {
   onSelect: (text: string) => void;
   onCancel: () => void;
   anchorElement: HTMLTextAreaElement | null;
+  onAttachFile?: (file: File) => void; // New prop for handling file attachments
 }
 
 /**
@@ -25,7 +28,8 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
   query,
   onSelect,
   onCancel,
-  anchorElement
+  anchorElement,
+  onAttachFile
 }) => {
   const [items, setItems] = useState<SlashItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -244,7 +248,12 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         case 'Enter':
           e.preventDefault();
           if (items[selectedIndex]) {
-            selectItem(items[selectedIndex]);
+            // Check if shift key is pressed for file attachment
+            if (e.shiftKey && onAttachFile) {
+              handleFileAttachment(items[selectedIndex]);
+            } else {
+              selectItem(items[selectedIndex]);
+            }
           }
           break;
         case 'Tab':
@@ -268,7 +277,7 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [items, selectedIndex, onCancel]);
+  }, [items, selectedIndex, onCancel, onAttachFile]);
   
   // Handle item selection
   const selectItem = async (item: SlashItem) => {
@@ -278,6 +287,45 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
       onSelect(text + ' ');
     } catch (error) {
       console.error('Error getting text to insert:', error);
+    }
+  };
+
+  // Handle file attachment (when shift+selecting an item)
+  const handleFileAttachment = async (item: SlashItem) => {
+    try {
+      if (!onAttachFile) return;
+      
+      // Get the file path from the item
+      const filePath = await item.getTextToInsert();
+      
+      // Call the API to get the file content
+      const fileContentRequest = createApiRequest('/api/getFileContent', 'POST');
+      const response = await fileContentRequest({ filePath });
+      
+      if (response.success && response.attachment) {
+        // Convert base64 to ArrayBuffer for content
+        const arrBuf = base64ToArrayBuffer(response.attachment.content);
+        
+        // Create a File object from the response
+        const file = new File(
+          [arrBuf],
+          response.attachment.name,
+          {
+            type: response.attachment.type,
+            lastModified: response.attachment.lastModified
+          }
+        );
+        
+        // Call the callback to add the file as an attachment
+        onAttachFile(file);
+        
+        // Close the dropdown
+        onCancel();
+      } else {
+        console.error('Failed to get file content:', response.error);
+      }
+    } catch (error) {
+      console.error('Error attaching file:', error);
     }
   };
   
@@ -311,7 +359,14 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         <div
           key={item.id}
           className={`slash-item ${index === selectedIndex ? 'selected' : ''}`}
-          onClick={() => selectItem(item)}
+          onClick={(e) => {
+            // Handle shift+click for file attachment
+            if (e.shiftKey && onAttachFile) {
+              handleFileAttachment(item);
+            } else {
+              selectItem(item);
+            }
+          }}
           style={{
             padding: '8px 12px',
             cursor: 'pointer',

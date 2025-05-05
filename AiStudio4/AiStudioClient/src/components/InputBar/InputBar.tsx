@@ -298,6 +298,7 @@ export function InputBar({
                         isLoading={isLoading}
                         disabled={disabled}
                         onCursorPositionChange={setCursorPosition}
+                        onAttachFile={addAttachment}
                     />
 
                     {/* Attachments Section */}
