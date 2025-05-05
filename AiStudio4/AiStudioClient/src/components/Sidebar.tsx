@@ -135,7 +135,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
             color: 'var(--sidebar-text-color, var(--global-text-color, #d1d5db))'
           }}
         >
-          {searchResults ? `Search Results (${searchResults.length})` : "Conversation History"}
+          {searchResults ? `Search Results (${searchResults.length})` : null}
           {searchResults && (
             <Button
               variant="link"
@@ -165,7 +165,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
             color: 'var(--sidebar-text-color, #d1d5db)'
           }}
         >
-          Message Structure
+
         </div>
         <div className="Sidebar h-[calc(100%-32px)] overflow-auto" 
           style={{
