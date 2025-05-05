@@ -8,6 +8,9 @@ import { Switch } from '@/components/ui/switch';
 import { McpServerDefinition } from '@/stores/useMcpServerStore';
 import { AlertCircle } from 'lucide-react';
 
+// Define themeable properties for the ServerForm component
+export const themeableProps = {};
+
 interface ServerFormProps {
   server?: McpServerDefinition;
   onSubmit: (server: McpServerDefinition) => void;
@@ -92,7 +95,16 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="ServerForm space-y-4" style={{
+      backgroundColor: 'var(--global-background-color)',
+      color: 'var(--global-text-color)',
+      borderRadius: 'var(--global-border-radius)',
+      fontFamily: 'var(--global-font-family)',
+      fontSize: 'var(--global-font-size)',
+      boxShadow: 'var(--global-box-shadow)',
+      border: `1px solid var(--global-border-color)`,
+      padding: '1rem'
+    }}>
       <div className="space-y-2">
         <Label htmlFor="name">Name</Label>
         <Input
@@ -101,11 +113,14 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           value={formData.name}
           onChange={handleChange}
           placeholder="Server name"
-          className={errors.name ? 'border-red-500' : ''}
+          className={errors.name ? '' : ''}
+          style={{
+            borderColor: errors.name ? 'var(--global-primary-color)' : 'var(--global-border-color)'
+          }}
           disabled={isSubmitting}
         />
         {errors.name && (
-          <div className="text-red-500 text-sm flex items-center">
+          <div className="text-sm flex items-center" style={{ color: 'var(--global-primary-color)' }}>
             <AlertCircle className="h-4 w-4 mr-1" />
             {errors.name}
           </div>
@@ -122,6 +137,11 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           placeholder="Server description"
           rows={2}
           disabled={isSubmitting}
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}
         />
       </div>
 
@@ -133,11 +153,14 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           value={formData.command}
           onChange={handleChange}
           placeholder="Command to start the server (e.g., uvx, npx, http://...)"
-          className={errors.command ? 'border-red-500' : ''}
+          className={errors.command ? '' : ''}
+          style={{
+            borderColor: errors.command ? 'var(--global-primary-color)' : 'var(--global-border-color)'
+          }}
           disabled={isSubmitting}
         />
         {errors.command && (
-          <div className="text-red-500 text-sm flex items-center">
+          <div className="text-sm flex items-center" style={{ color: 'var(--global-primary-color)' }}>
             <AlertCircle className="h-4 w-4 mr-1" />
             {errors.command}
           </div>
@@ -164,7 +187,7 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           disabled={isSubmitting}
         />
         <Label htmlFor="stdIo">Use Standard I/O</Label>
-        <div className="text-xs text-gray-400 ml-2">
+        <div className="text-xs ml-2" style={{ color: 'var(--global-secondary-color)' }}>
           (Disable for HTTP/SSE endpoints)
         </div>
       </div>
@@ -196,21 +219,33 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           placeholder="Enter categories separated by commas (e.g., Development, Web, 3D Modelling)"
           disabled={isSubmitting}
         />
-        <div className="text-xs text-gray-400">
+        <div className="text-xs" style={{ color: 'var(--global-secondary-color)' }}>
           Categories help organize servers in the server modal
         </div>
       </div>
 
-      <div className="pt-4 flex justify-end space-x-2">
+      <div className="pt-4 flex justify-end space-x-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
         <Button
           type="button"
           variant="outline"
           onClick={onCancel}
           disabled={isSubmitting}
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            borderColor: 'var(--global-border-color)',
+            color: 'var(--global-text-color)'
+          }}
         >
           Cancel
         </Button>
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          style={{
+            backgroundColor: 'var(--global-primary-color)',
+            color: '#ffffff'
+          }}
+        >
           {isSubmitting ? 'Saving...' : server ? 'Update Server' : 'Add Server'}
         </Button>
       </div>
