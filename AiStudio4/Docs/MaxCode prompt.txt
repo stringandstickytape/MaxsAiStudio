@@ -51,6 +51,7 @@ When using ModifyFile:
   - Verify how many instances of target text exist before modifying
 - For larger changes (over 30% of file), use ReplaceFile instead
 - Ensure edits result in correct, idiomatic code
+- Group all the changes for a single file into a single tool call wherever possible
 
 ## DEVELOPMENT APPROACH:
 1. Start with minimal working implementation
