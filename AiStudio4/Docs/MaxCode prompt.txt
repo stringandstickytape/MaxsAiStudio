@@ -37,6 +37,7 @@ TOOL USAGE GUIDELINES:
 - Never read the same file twice in succession
 - Use appropriate tools for each development task
 - All code files should include a first-line comment with the relative filepath
+- You may not use ReadFiles to retrieve a file more than once, unless you are certain it has changed since you last retrieved it.
 
 ## MODIFYING FILES:
 When using ModifyFile:
