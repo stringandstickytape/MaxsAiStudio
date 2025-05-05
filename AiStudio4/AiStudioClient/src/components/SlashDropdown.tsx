@@ -372,7 +372,7 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
             }
           }}
           style={{
-            padding: '8px 12px',
+            padding: '4px 12px',
             cursor: 'pointer',
             backgroundColor: index === selectedIndex ? 'var(--global-primary-color, #2d3748)' : 'transparent',
             color: index === selectedIndex ? 'var(--global-text-color, #e2e8f0)' : 'var(--global-text-color, #e2e8f0)',
