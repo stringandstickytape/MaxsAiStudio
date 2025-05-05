@@ -62,10 +62,8 @@ export function useSystemPromptSelection() {
         // 4. Synchronize active tools
         setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
 
-        // 5. Activate associated MCP servers
-        if (Array.isArray(prompt.associatedMcpServers) && prompt.associatedMcpServers.length > 0) {
-          setEnabledServers(prompt.associatedMcpServers);
-        }
+        // 5. Activate associated MCP servers or clear them if none are associated
+        setEnabledServers(Array.isArray(prompt.associatedMcpServers) ? prompt.associatedMcpServers : []);
 
         // 6. Handle associated user prompt if one exists
         if (prompt.associatedUserPromptId && prompt.associatedUserPromptId !== 'none') {
@@ -149,10 +147,10 @@ export async function selectSystemPromptStandalone(prompt: SystemPrompt, options
       Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []
     );
 
-    // 5. Activate associated MCP servers
-    if (Array.isArray(prompt.associatedMcpServers) && prompt.associatedMcpServers.length > 0) {
-      useMcpServerStore.getState().setEnabledServers(prompt.associatedMcpServers);
-    }
+    // 5. Activate associated MCP servers or clear them if none are associated
+    useMcpServerStore.getState().setEnabledServers(
+      Array.isArray(prompt.associatedMcpServers) ? prompt.associatedMcpServers : []
+    );
 
     // 6. Handle associated user prompt if one exists
     if (prompt.associatedUserPromptId && prompt.associatedUserPromptId !== 'none') {

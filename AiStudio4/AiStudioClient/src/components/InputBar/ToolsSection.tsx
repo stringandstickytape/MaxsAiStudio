@@ -48,13 +48,19 @@ export function ToolsSection({
                     variant="ghost"
                     size="sm"
                     onClick={() => windowEventService.emit(WindowEvents.OPEN_SERVER_LIST)}
+                    onMouseDown={(e) => {
+                        if (e.button === 1) { // Middle mouse button
+                            e.preventDefault(); // Prevent default middle-click behavior
+                            useMcpServerStore.getState().setEnabledServers([]);
+                        }
+                    }}
                     className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0 relative"
                     disabled={disabled}
                 >
                     <Server className="h-3 w-3 mr-1" />
                     <span>MCP Servers</span>
                     {enabledCount > 0 && (
-                        <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-blue-500 rounded-full" title="Number of enabled MCP servers">
+                        <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-blue-500 rounded-full" title="Middle-click to clear all">
                             {enabledCount}
                         </span>
                     )}
