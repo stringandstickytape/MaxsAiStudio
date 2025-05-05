@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
+import { useSearchStore } from '@/stores/useSearchStore';
 import { StickToBottom } from 'use-stick-to-bottom';
 
 import { MessageItem } from './MessageItem';
@@ -93,6 +94,9 @@ export const ConvView = ({
   // Get necessary state from stores
   const { activeConvId, slctdMsgId, convs } = useConvStore();
   
+  // Get search results from search store
+  const { searchResults } = useSearchStore();
+  
   // Ref for StickToBottom component
   const stickToBottomRef = useRef<any>(null);
   
@@ -160,7 +164,17 @@ export const ConvView = ({
   if (!activeConvId) return null;
   if (!messageChain.length) return null;
 
-  const visibleMessages = messageChain.slice(-visibleCount);
+  // Get the current conversation's search results if any
+  const currentConvSearchResult = searchResults?.find(result => result.conversationId === activeConvId);
+  
+  // Filter messages based on search results if we have them
+  let visibleMessages = messageChain.slice(-visibleCount);
+  if (searchResults && currentConvSearchResult) {
+    visibleMessages = visibleMessages.filter(message => 
+      currentConvSearchResult.matchingMessageIds.includes(message.id)
+    );
+  }
+  
   const hasMoreToLoad = visibleCount < messageChain.length;
 
   return (

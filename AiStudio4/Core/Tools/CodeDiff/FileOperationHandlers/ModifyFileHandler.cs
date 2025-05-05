@@ -84,8 +84,6 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
             // NEW: First try programmatic modification
             var programmaticModifier = new ProgrammaticModifier(_logger, _statusMessageService, _clientId);
 
-            programmaticModifier.SaveMergeDebugInfo(filePath, originalContent, changes, "");
-
             string failureReason = "";
 
             //if (false) // temporarily disabled, do not remove

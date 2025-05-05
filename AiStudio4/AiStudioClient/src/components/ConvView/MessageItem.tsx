@@ -40,7 +40,7 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
     <div
       className="ConvView w-full group flex flex-col relative markdown-pane"
       data-message-id={message.id}
-      ref={messageRef}
+      ref={messageRef}>
 
       <div 
         className={`ConvView message-container px-3 py-2 shadow-md w-full`}

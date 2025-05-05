@@ -244,12 +244,6 @@ namespace AiStudio4.Core.Tools
                     string filePath = modification["path"].ToString();
                     var changesArray = modification["changes"] as JArray;
                     
-                    // Skip if we've already processed this file
-                    if (processedFiles.Contains(filePath))
-                    {
-                        continue;
-                    }
-                    
                     processedFiles.Add(filePath);
                     SendStatusUpdate($"Modifying file: {Path.GetFileName(filePath)} ({changesArray.Count} change(s))");
                     
