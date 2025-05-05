@@ -348,11 +348,15 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         maxHeight: '300px',
         overflowY: 'auto',
         backgroundColor: 'var(--global-background-color, #1f2937)',
+        color: 'var(--global-text-color, #e2e8f0)',
         border: '1px solid var(--global-border-color, #4a5568)',
         borderRadius: 'var(--global-border-radius, 4px)',
         boxShadow: 'var(--global-box-shadow, 0 2px 8px rgba(0, 0, 0, 0.15))',
+        fontFamily: 'var(--global-font-family, inherit)',
+        fontSize: 'var(--global-font-size, inherit)',
         width: `${dimensions.width}px`, // Dynamic width based on input bar
-        maxWidth: `${dimensions.maxWidth}px` // Prevent it from getting too wide
+        maxWidth: `${dimensions.maxWidth}px`, // Prevent it from getting too wide
+        ...(window?.theme?.SlashDropdown?.style || {})
       }}
     >
       {items.map((item, index) => (
@@ -370,8 +374,8 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
           style={{
             padding: '8px 12px',
             cursor: 'pointer',
-            backgroundColor: index === selectedIndex ? 'var(--selection-background, #2d3748)' : 'transparent',
-            color: index === selectedIndex ? 'var(--selection-text, #e2e8f0)' : 'var(--text, #e2e8f0)',
+            backgroundColor: index === selectedIndex ? 'var(--global-primary-color, #2d3748)' : 'transparent',
+            color: index === selectedIndex ? 'var(--global-text-color, #e2e8f0)' : 'var(--global-text-color, #e2e8f0)',
             wordWrap: 'break-word',
             overflowWrap: 'break-word',
             whiteSpace: 'normal'
@@ -388,4 +392,47 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
     </div>,
     document.body
   );
+};
+
+// Define themeable properties for the SlashDropdown component
+export const themeableProps = {
+  backgroundColor: {
+    cssVar: '--global-background-color',
+    description: 'Background color for the dropdown',
+    default: '#1f2937',
+  },
+  textColor: {
+    cssVar: '--global-text-color',
+    description: 'Text color for dropdown items',
+    default: '#e2e8f0',
+  },
+  borderColor: {
+    cssVar: '--global-border-color',
+    description: 'Border color for the dropdown',
+    default: '#4a5568',
+  },
+  borderRadius: {
+    cssVar: '--global-border-radius',
+    description: 'Border radius for the dropdown',
+    default: '4px',
+  },
+  boxShadow: {
+    cssVar: '--global-box-shadow',
+    description: 'Box shadow for the dropdown',
+    default: '0 2px 8px rgba(0, 0, 0, 0.15)',
+  },
+  fontFamily: {
+    cssVar: '--global-font-family',
+    description: 'Font family for dropdown text',
+    default: 'inherit',
+  },
+  fontSize: {
+    cssVar: '--global-font-size',
+    description: 'Font size for dropdown text',
+    default: 'inherit',
+  },
+  style: {
+    description: 'Arbitrary CSS style for the dropdown container',
+    default: {},
+  },
 };
