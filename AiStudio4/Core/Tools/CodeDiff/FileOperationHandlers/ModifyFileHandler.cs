@@ -38,14 +38,14 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
             // For ModifyFileHandler, we expect a list of changes rather than a single change
             // This is handled by the CodeDiffTool class which collects all modify changes for a file
             // and passes them as a list to this handler
-            return await HandleModifyFileAsync(filePath, new List<JObject> { change });
+            return await HandleModifyFilesAsync(filePath, new List<JObject> { change });
         }
 
         /// <summary>
         /// Handles multiple modification operations for a single file
         /// First attempts programmatic modification, then falls back to AI if needed
         /// </summary>
-        public async Task<FileOperationResult> HandleModifyFileAsync(string filePath, List<JObject> changes)
+        public async Task<FileOperationResult> HandleModifyFilesAsync(string filePath, List<JObject> changes)
         {
             string originalContent;
             try
@@ -242,7 +242,7 @@ namespace AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers
 
                 // Create a ModifyFileHandler instance and apply the changes
                 var handler = new ModifyFileHandler(logger, statusMessageService, clientId, secondaryAiService);
-                return await handler.HandleModifyFileAsync(originalFilePath, changes);
+                return await handler.HandleModifyFilesAsync(originalFilePath, changes);
             }
             catch (JsonException jsonEx)
             {

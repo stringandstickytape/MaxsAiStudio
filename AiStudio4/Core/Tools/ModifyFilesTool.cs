@@ -240,7 +240,7 @@ namespace AiStudio4.Core.Tools
                 foreach (JObject modification in modifications)
                 {
                     string filePath = modification["path"].ToString();
-                    var changes = modification["changes"] as JArray;
+                    var changesArray = modification["changes"] as JArray;
                     
                     // Skip if we've already processed this file
                     if (processedFiles.Contains(filePath))
@@ -249,67 +249,18 @@ namespace AiStudio4.Core.Tools
                     }
                     
                     processedFiles.Add(filePath);
-                    SendStatusUpdate($"Modifying file: {Path.GetFileName(filePath)} ({changes.Count} change(s))");
+                    SendStatusUpdate($"Modifying file: {Path.GetFileName(filePath)} ({changesArray.Count} change(s))");
                     
-                    bool allChangesSuccessful = true;
-                    var fileResults = new List<(bool Success, string Message)>();
+                    // Convert JArray to List<JObject> for the handler
+                    var changes = changesArray.Select(c => c as JObject).Where(c => c != null).ToList();
                     
-                    // Try to apply each change individually first
-                    foreach (JObject change in changes)
-                    {
-                        var result = await handler.HandleAsync(filePath, change);
-                        fileResults.Add((result.Success, result.Message));
-                        
-                        if (!result.Success)
-                        {
-                            allChangesSuccessful = false;
-                            _logger.LogError($"Failed to apply change to {filePath}: {result.Message}");
-                        }
-                    }
+                    // Use the HandleModifyFileAsync method which can process multiple changes at once
+                    var result = await handler.HandleModifyFilesAsync(filePath, changes);
+                    results.Add((filePath, result.Success, result.Message));
                     
-                    // If any changes failed, try to apply all changes at once using the secondary AI
-                    if (!allChangesSuccessful)
+                    if (!result.Success)
                     {
-                        _logger.LogInformation($"Some changes failed for {filePath}. Attempting to apply all changes at once using AI assistance.");
-                        SendStatusUpdate($"Using AI to apply all changes to {Path.GetFileName(filePath)} at once...");
-                        
-                        try
-                        {
-                            // Read the original file content
-                            string originalContent = File.ReadAllText(filePath);
-                            
-                            // Create a combined change request for the secondary AI
-                            var combinedChange = new JObject
-                            {
-                                ["filePath"] = filePath,
-                                ["originalContent"] = originalContent,
-                                ["changes"] = changes
-                            };
-                            
-                            // Use the secondary AI to apply all changes at once
-                            var aiResult = await _secondaryAiService.ApplyMultipleChangesToFile(combinedChange.ToString());
-                            
-                            if (aiResult.Success)
-                            {
-                                // Write the modified content back to the file
-                                File.WriteAllText(filePath, aiResult.ModifiedContent);
-                                results.Add((filePath, true, "Changes applied successfully using AI assistance."));
-                            }
-                            else
-                            {
-                                results.Add((filePath, false, $"AI-assisted modification failed: {aiResult.ErrorMessage}"));
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, $"Error during AI-assisted modification of {filePath}");
-                            results.Add((filePath, false, $"Error during AI-assisted modification: {ex.Message}"));
-                        }
-                    }
-                    else
-                    {
-                        // All changes were successful
-                        results.Add((filePath, true, "All changes applied successfully."));
+                        _logger.LogError($"Failed to apply changes to {filePath}: {result.Message}");
                     }
                 }
                 
