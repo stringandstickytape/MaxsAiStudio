@@ -449,7 +449,7 @@ namespace AiStudio4.Services
             // Replace CommonAiMistakes token if it exists
             if(systemPromptContent.Contains("{CommonAiMistakes}"))
             {
-                string commonMistakesPath = Path.Combine(Path.GetDirectoryName(_generalSettingsService.CurrentSettings.ProjectPath), "CommonAiMistakes.md");
+                string commonMistakesPath = Path.Combine(_generalSettingsService.CurrentSettings.ProjectPath, "CommonAiMistakes.md");
                 if(File.Exists(commonMistakesPath))
                 {
                     string mistakesContent = File.ReadAllText(commonMistakesPath);
