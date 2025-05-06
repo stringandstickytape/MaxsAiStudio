@@ -15,67 +15,7 @@ import { SystemPromptCollapsedDisplay } from './SystemPromptCollapsedDisplay';
 import { SystemPromptPortal } from './SystemPromptPortal';
 
 // Simplified themeable properties for ThemeManager
-export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--systemprompt-bg',
-    description: 'System prompt background color',
-    default: '#2d3748',
-  },
-  textColor: {
-    cssVar: '--systemprompt-text-color',
-    description: 'System prompt text color',
-    default: '#e2e8f0',
-  },
-  borderColor: {
-    cssVar: '--systemprompt-border-color',
-    description: 'Border color',
-    default: '#4a5568',
-  },
-  accentColor: {
-    cssVar: '--systemprompt-accent-color',
-    description: 'Accent color for highlights and active elements',
-    default: '#3b82f6',
-  },
-  borderRadius: {
-    cssVar: '--systemprompt-border-radius',
-    description: 'Border radius for the system prompt component',
-    default: '8px',
-  },
-  boxShadow: {
-    cssVar: '--systemprompt-box-shadow',
-    description: 'Box shadow for the system prompt component',
-    default: '0 4px 12px rgba(0,0,0,0.3)',
-  },
-  fontFamily: {
-    cssVar: '--systemprompt-font-family',
-    description: 'Font family for the system prompt component',
-    default: 'inherit',
-  },
-  fontSize: {
-    cssVar: '--systemprompt-font-size',
-    description: 'Font size for the system prompt component',
-    default: '0.875rem',
-  },
-  popupBackground: {
-    cssVar: '--systemprompt-popup-bg',
-    description: 'Popup background color',
-    default: '#1a202c',
-  },
-  popupTextColor: {
-    cssVar: '--systemprompt-popup-text-color',
-    description: 'Popup text color',
-    default: '#e2e8f0',
-  },
-  editBackground: {
-    cssVar: '--systemprompt-edit-bg',
-    description: 'Edit textarea background',
-    default: '#2d3748',
-  },
-  style: {
-    description: 'Arbitrary CSS style for SystemPromptComponent root',
-    default: {},
-  },
-};
+export const themeableProps = {};
 
 interface SystemPromptComponentProps {
     convId?: string;
@@ -259,13 +199,13 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
             style={{
-                backgroundColor: 'var(--systemprompt-bg, var(--global-background-color, #2d3748))',
-                color: 'var(--systemprompt-text-color, var(--global-text-color, #e2e8f0))',
-                borderColor: 'var(--systemprompt-border-color, var(--global-border-color, #4a5568))',
-                fontFamily: 'var(--systemprompt-font-family, var(--global-font-family, inherit))',
-                fontSize: 'var(--systemprompt-font-size, var(--global-font-size, 0.875rem))',
-                borderRadius: 'var(--systemprompt-border-radius, var(--global-border-radius, 8px))',
-                boxShadow: 'var(--systemprompt-box-shadow, var(--global-box-shadow, 0 4px 12px rgba(0,0,0,0.3)))',
+                backgroundColor: 'var(--global-background-color)',
+                color: 'var(--global-text-color)',
+                borderColor: 'var(--global-border-color)',
+                fontFamily: 'var(--global-font-family)',
+                fontSize: 'var(--global-font-size)',
+                borderRadius: 'var(--global-border-radius)',
+                boxShadow: 'var(--global-box-shadow)',
                 ...(window?.theme?.SystemPromptComponent?.style || {})
             }}
         >
@@ -297,11 +237,11 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                         <SystemPromptPortal
                             portalStyle={{
                                 ...portalStyle,
-                                backgroundColor: 'var(--systemprompt-popup-bg, #1a202c)',
-                                color: 'var(--systemprompt-popup-text-color, #e2e8f0)',
-                                borderColor: 'var(--systemprompt-border-color, #4a5568)',
-                                borderRadius: '8px',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                backgroundColor: 'var(--global-background-color)',
+                                color: 'var(--global-text-color)',
+                                borderColor: 'var(--global-border-color)',
+                                borderRadius: 'var(--global-border-radius)',
+                                boxShadow: 'var(--global-box-shadow)',
                                 ...(window?.theme?.SystemPromptComponent?.style || {})
                             }}
                             portalContentRef={portalContentRef}

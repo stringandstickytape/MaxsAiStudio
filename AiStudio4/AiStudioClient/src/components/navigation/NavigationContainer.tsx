@@ -14,52 +14,7 @@ import { useUserPromptStore } from '@/stores/useUserPromptStore';
 /**
  * Themeable properties for NavigationContainer
  */
-export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--navigationcontainer-bg',
-    description: 'Background color of the navigation container',
-    default: 'transparent',
-  },
-  textColor: {
-    cssVar: '--navigationcontainer-text-color',
-    description: 'Text color for the navigation container',
-    default: 'inherit',
-  },
-  borderColor: {
-    cssVar: '--navigationcontainer-border-color',
-    description: 'Border color for the navigation container',
-    default: 'transparent',
-  },
-  accentColor: {
-    cssVar: '--navigationcontainer-accent-color',
-    description: 'Accent color for the navigation container highlights',
-    default: '#3b82f6',
-  },
-  borderRadius: {
-    cssVar: '--navigationcontainer-border-radius',
-    description: 'Border radius for the navigation container',
-    default: '0',
-  },
-  boxShadow: {
-    cssVar: '--navigationcontainer-box-shadow',
-    description: 'Box shadow for the navigation container',
-    default: 'none',
-  },
-  fontFamily: {
-    cssVar: '--navigationcontainer-font-family',
-    description: 'Font family for the navigation container',
-    default: 'inherit',
-  },
-  fontSize: {
-    cssVar: '--navigationcontainer-font-size',
-    description: 'Font size for the navigation container',
-    default: 'inherit',
-  },
-  style: {
-    description: 'Arbitrary CSS style for the NavigationContainer root',
-    default: {},
-  },
-};
+export const themeableProps = {};
 
 interface NavigationContainerProps {
   children: ReactNode;
@@ -156,13 +111,13 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
       <div 
         className="NavigationContainer"
         style={{
-          backgroundColor: 'var(--navigationcontainer-bg, var(--global-background-color, transparent))',
-          color: 'var(--navigationcontainer-text-color, var(--global-text-color, inherit))',
-          borderColor: 'var(--navigationcontainer-border-color, var(--global-border-color, transparent))',
-          fontFamily: 'var(--navigationcontainer-font-family, var(--global-font-family, inherit))',
-          fontSize: 'var(--navigationcontainer-font-size, var(--global-font-size, inherit))',
-          borderRadius: 'var(--navigationcontainer-border-radius, var(--global-border-radius, 0))',
-          boxShadow: 'var(--navigationcontainer-box-shadow, var(--global-box-shadow, none))',
+          backgroundColor: 'var(--global-background-color)',
+          color: 'var(--global-text-color)',
+          borderColor: 'var(--global-border-color)',
+          fontFamily: 'var(--global-font-family)',
+          fontSize: 'var(--global-font-size)',
+          borderRadius: 'var(--global-border-radius)',
+          boxShadow: 'var(--global-box-shadow)',
           ...(window?.theme?.NavigationContainer?.style || {})
         }}
       >
@@ -170,13 +125,13 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           <div 
             className="NavigationContainer h-full flex flex-col"
             style={{
-              backgroundColor: 'var(--navigationcontainer-bg, var(--global-background-color, transparent))',
-              color: 'var(--navigationcontainer-text-color, var(--global-text-color, inherit))',
-              borderColor: 'var(--navigationcontainer-border-color, var(--global-border-color, transparent))',
-              fontFamily: 'var(--navigationcontainer-font-family, var(--global-font-family, inherit))',
-              fontSize: 'var(--navigationcontainer-font-size, var(--global-font-size, inherit))',
-              borderRadius: 'var(--navigationcontainer-border-radius, var(--global-border-radius, 0))',
-              boxShadow: 'var(--navigationcontainer-box-shadow, var(--global-box-shadow, none))',
+              backgroundColor: 'var(--global-background-color)',
+              color: 'var(--global-text-color)',
+              borderColor: 'var(--global-border-color)',
+              fontFamily: 'var(--global-font-family)',
+              fontSize: 'var(--global-font-size)',
+              borderRadius: 'var(--global-border-radius)',
+              boxShadow: 'var(--global-box-shadow)',
               ...(window?.theme?.NavigationContainer?.style || {})
             }}
           >
