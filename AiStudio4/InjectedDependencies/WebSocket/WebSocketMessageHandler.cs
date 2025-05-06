@@ -275,24 +275,38 @@ namespace AiStudio4.InjectedDependencies.WebSocket
                         messageType = "searchStarted",
                         content = new { searchId }
                     }));
-                    
-                    // Perform the search
-                    var results = await _convStorage.SearchConversationsAsync(searchTerm, cts.Token);
-                    
-                    // Send results to client
+
+                    // Stream results as they are found
+                    var results = new List<object>();
+                    await foreach (var result in _convStorage.SearchConversationsStreamingAsync(searchTerm, cts.Token))
+                    {
+                        var resultObj = new
+                        {
+                            conversationId = result.ConversationId,
+                            matchingMessageIds = result.MatchingMessageIds,
+                            summary = result.ConversationSummary,
+                            lastModified = result.LastModified
+                        };
+                        results.Add(resultObj);
+                        // Send each result as it is found
+                        await SendToClientAsync(clientId, JsonConvert.SerializeObject(new
+                        {
+                            messageType = "searchResultPartial",
+                            content = new
+                            {
+                                searchId,
+                                result = resultObj
+                            }
+                        }));
+                    }
+
+                    // Send completion message
                     await SendToClientAsync(clientId, JsonConvert.SerializeObject(new
                     {
-                        messageType = "searchResults",
-                        content = new 
-                        { 
-                            searchId,
-                            results = results.Select(r => new
-                            {
-                                conversationId = r.ConversationId,
-                                matchingMessageIds = r.MatchingMessageIds,
-                                summary = r.ConversationSummary,
-                                lastModified = r.LastModified
-                            })
+                        messageType = "searchResultsComplete",
+                        content = new
+                        {
+                            searchId
                         }
                     }));
                 }

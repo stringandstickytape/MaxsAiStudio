@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Services
@@ -171,50 +173,53 @@ namespace AiStudio4.Services
         // Methods removed as they're no longer needed with flat structure
 
         /// <summary>
-        /// Searches all conversations for content matching the search term
+        /// Streams all conversations for content matching the search term
         /// </summary>
         /// <param name="searchTerm">The term to search for</param>
         /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
-        /// <returns>List of search results containing matching conversations and message IDs</returns>
-        public async Task<List<ConversationSearchResult>> SearchConversationsAsync(string searchTerm, CancellationToken cancellationToken)
+        /// <returns>Yields search results as they are found</returns>
+        public async IAsyncEnumerable<ConversationSearchResult> SearchConversationsStreamingAsync(string searchTerm, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var results = new List<ConversationSearchResult>();
             var allConvs = await GetAllConvs();
-            
             foreach (var conv in allConvs)
-            {   
+            {
                 cancellationToken.ThrowIfCancellationRequested();
-                
                 var matchingMessageIds = new List<string>();
                 foreach (var message in conv.Messages)
-                {   
+                {
                     // Skip system messages
                     if (message.Role == v4BranchedConvMessageRole.System)
                         continue;
-                        
                     // Case-insensitive search in message content
-                    if (message.UserMessage!= null && 
+                    if (message.UserMessage != null &&
                         message.UserMessage.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
                         matchingMessageIds.Add(message.Id);
                     }
                 }
-                
                 if (matchingMessageIds.Count > 0)
                 {
                     var filePath = Path.Combine(_basePath, $"{conv.ConvId}.json");
                     var fileInfo = new FileInfo(filePath);
-                    
-                    results.Add(new ConversationSearchResult
+                    yield return new ConversationSearchResult
                     {
                         ConversationId = conv.ConvId,
                         MatchingMessageIds = matchingMessageIds,
                         ConversationSummary = conv.Summary ?? "Untitled Conversation",
                         LastModified = fileInfo.LastWriteTime
-                    });
+                    };
                 }
             }
-            
+        }
+
+        // Legacy batch search method for compatibility (can be removed if not used elsewhere)
+        public async Task<List<ConversationSearchResult>> SearchConversationsAsync(string searchTerm, CancellationToken cancellationToken)
+        {
+            var results = new List<ConversationSearchResult>();
+            await foreach (var result in SearchConversationsStreamingAsync(searchTerm, cancellationToken))
+            {
+                results.Add(result);
+            }
             return results;
         }
     }

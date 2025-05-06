@@ -44,8 +44,8 @@ namespace AiStudio4.Core.Interfaces
         /// </summary>
         /// <param name="searchTerm">The term to search for</param>
         /// <param name="cancellationToken">Cancellation token to cancel the operation</param>
-        /// <returns>List of search results containing matching conversations and message IDs</returns>
-        Task<List<ConversationSearchResult>> SearchConversationsAsync(string searchTerm, CancellationToken cancellationToken);
+        /// <returns>Yields search results as they are found</returns>
+        IAsyncEnumerable<ConversationSearchResult> SearchConversationsStreamingAsync(string searchTerm, CancellationToken cancellationToken);
     }
 
     /// <summary>

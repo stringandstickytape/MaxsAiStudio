@@ -14,7 +14,7 @@ interface SearchState {
   searchTerm: string;
   isSearching: boolean;
   searchId: string | null;
-  searchResults: SearchResult[] | null;
+  searchResults: SearchResult[]; // Always an array, never null for streaming
   searchError: string | null;
   highlightedMessageId: string | null;
   
@@ -23,7 +23,8 @@ interface SearchState {
   startSearch: () => void;
   cancelSearch: () => void;
   clearSearch: () => void;
-  setSearchResults: (results: SearchResult[]) => void;
+  addSearchResult: (result: SearchResult) => void;
+  markSearchComplete: () => void;
   setSearchError: (error: string | null) => void;
   highlightMessage: (messageId: string | null) => void;
 }
@@ -31,45 +32,32 @@ interface SearchState {
 export const useSearchStore = create<SearchState>((set, get) => {
   // Initialize WebSocket event listeners
   if (typeof window !== 'undefined') {
-    // Listen for search results
     window.addEventListener('websocket:message', (event: any) => {
       const data = event.detail;
-      
-      if (data.messageType === 'searchResults') {
-        const { searchId, results } = data.content;
-        const currentSearchId = get().searchId;
-        
-        // Only process if this is the current search
+      const currentSearchId = get().searchId;
+
+      if (data.messageType === 'searchStarted') {
+        const { searchId } = data.content;
+        if (searchId === currentSearchId) set({ isSearching: true });
+      }
+      else if (data.messageType === 'searchResultPartial') {
+        const { searchId, result } = data.content;
         if (searchId === currentSearchId) {
-          set({
-            searchResults: results,
-            isSearching: false
-          });
+          get().addSearchResult(result);
         }
       }
-      else if (data.messageType === 'searchStarted') {
+      else if (data.messageType === 'searchResultsComplete') {
         const { searchId } = data.content;
-        const currentSearchId = get().searchId;
-        
-        // Only process if this is the current search
         if (searchId === currentSearchId) {
-          set({ isSearching: true });
+          get().markSearchComplete();
         }
       }
       else if (data.messageType === 'searchCancelled') {
         const { searchId } = data.content;
-        const currentSearchId = get().searchId;
-        
-        // Only process if this is the current search
-        if (searchId === currentSearchId) {
-          set({ isSearching: false });
-        }
+        if (searchId === currentSearchId) set({ isSearching: false });
       }
       else if (data.messageType === 'searchError') {
-        set({
-          searchError: data.content.error,
-          isSearching: false
-        });
+        set({ searchError: data.content.error, isSearching: false });
       }
     });
   }
@@ -78,27 +66,23 @@ export const useSearchStore = create<SearchState>((set, get) => {
     searchTerm: '',
     isSearching: false,
     searchId: null,
-    searchResults: null,
+    searchResults: [],
     searchError: null,
     highlightedMessageId: null,
     
     setSearchTerm: (term) => set({ searchTerm: term }),
-    
+
     startSearch: () => {
       const { searchTerm } = get();
-      
-      // Don't search if term is empty
       if (!searchTerm.trim()) {
         set({
-          searchResults: null,
+          searchResults: [],
           searchError: null,
           searchId: null,
           isSearching: false
         });
         return;
       }
-      
-      // Cancel previous search if any
       const prevSearchId = get().searchId;
       if (prevSearchId) {
         webSocketService.send({
@@ -106,20 +90,14 @@ export const useSearchStore = create<SearchState>((set, get) => {
           content: { searchId: prevSearchId }
         });
       }
-      
-      // Generate new search ID
       const searchId = uuidv4();
-      
-      // Update state
       set({
         searchId,
-        searchResults: null,
+        searchResults: [],
         searchError: null,
         isSearching: true,
         highlightedMessageId: null
       });
-      
-      // Send search request
       webSocketService.send({
         messageType: 'searchConversations',
         content: {
@@ -166,10 +144,20 @@ export const useSearchStore = create<SearchState>((set, get) => {
       });
     },
     
-    setSearchResults: (results) => set({ searchResults: results }),
-    
+    addSearchResult: (result) => {
+      // Avoid duplicates
+      set((state) => {
+        if (state.searchResults.some(r => r.conversationId === result.conversationId)) {
+          return {};
+        }
+        return { searchResults: [...state.searchResults, result] };
+      });
+    },
+
+    markSearchComplete: () => set({ isSearching: false }),
+
     setSearchError: (error) => set({ searchError: error }),
-    
+
     highlightMessage: (messageId) => set({ highlightedMessageId: messageId })
   };
 });
