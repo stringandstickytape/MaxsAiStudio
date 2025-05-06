@@ -33,3 +33,8 @@
    - Avoid referencing variables defined inside one effect scope from functions or callbacks outside that scope.  
    - Define shared variables at the hook level (outside any effects), pass them as dependencies to `useCallback` functions, or recreate the values where needed.  
    - Always verify that variables used in callbacks or functions are accessible in their scope to prevent runtime errors.
+
+8. **Undefined Variable References**  
+   - Always verify variable scope and availability before using variables in code modifications.  
+   - Check if variables need to be imported, fetched from an API, or passed as props before using them in component logic.  
+   - Do not assume variables used in one component are available in another without explicit definition or import.

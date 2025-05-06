@@ -1,5 +1,4 @@
-﻿
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -415,25 +414,103 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
             {/* Tool Association Multi-Select */}
             <div>
               <FormLabel className="form-label">Associated Tools</FormLabel>
-              <div className="flex flex-wrap gap-2 mt-2 mb-2">
-                {tools.map((tool) => (
-                  <label key={tool.guid} className="flex items-center gap-2 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.watch('associatedTools').includes(tool.guid)}
-                      onChange={(e) => {
-                        const current = form.getValues('associatedTools') || [];
-                        if (e.target.checked) {
-                          form.setValue('associatedTools', [...current, tool.guid]);
-                        } else {
-                          form.setValue('associatedTools', current.filter((id) => id !== tool.guid));
+              <div className="mt-2 mb-2 space-y-4">
+                {/* Group tools by category */}
+                {(() => {
+                  // Get categories from the useToolsManagement hook
+                  const { categories } = useToolsManagement();
+                  
+                  // Create a map of category ID to tools
+                  const toolsByCategory: Record<string, Tool[]> = {};
+                  
+                  // Add an "Uncategorized" group
+                  toolsByCategory['uncategorized'] = [];
+                  
+                  // Group tools by their categories
+                  tools.forEach(tool => {
+                    if (tool.categories.length === 0) {
+                      toolsByCategory['uncategorized'].push(tool);
+                    } else {
+                      tool.categories.forEach(categoryId => {
+                        if (!toolsByCategory[categoryId]) {
+                          toolsByCategory[categoryId] = [];
                         }
-                      }}
-                      disabled={isProcessing}
-                    />
-                    <span className="text-sm text-gray-200">{tool.name}</span>
-                  </label>
-                ))}
+                        toolsByCategory[categoryId].push(tool);
+                      });
+                    }
+                  });
+                  
+                  // Sort categories by priority (if available) or name
+                  const sortedCategories = [...categories].sort((a, b) => {
+                    if (a.priority !== b.priority) {
+                      return b.priority - a.priority; // Higher priority first
+                    }
+                    return a.name.localeCompare(b.name);
+                  });
+                  
+                  // Render each category group
+                  return (
+                    <>
+                      {sortedCategories.map(category => {
+                        const categoryTools = toolsByCategory[category.id] || [];
+                        if (categoryTools.length === 0) return null;
+                        
+                        return (
+                          <div key={category.id} className="border border-gray-700 rounded-md p-3">
+                            <h4 className="text-sm font-medium text-gray-300 mb-2">{category.name}</h4>
+                            <div className="flex flex-wrap gap-2">
+                              {categoryTools.map((tool) => (
+                                <label key={tool.guid} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={form.watch('associatedTools').includes(tool.guid)}
+                                    onChange={(e) => {
+                                      const current = form.getValues('associatedTools') || [];
+                                      if (e.target.checked) {
+                                        form.setValue('associatedTools', [...current, tool.guid]);
+                                      } else {
+                                        form.setValue('associatedTools', current.filter((id) => id !== tool.guid));
+                                      }
+                                    }}
+                                    disabled={isProcessing}
+                                  />
+                                  <span className="text-sm text-gray-200">{tool.name}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                      
+                      {/* Show uncategorized tools if any */}
+                      {toolsByCategory['uncategorized'].length > 0 && (
+                        <div className="border border-gray-700 rounded-md p-3">
+                          <h4 className="text-sm font-medium text-gray-300 mb-2">Uncategorized</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {toolsByCategory['uncategorized'].map((tool) => (
+                              <label key={tool.guid} className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={form.watch('associatedTools').includes(tool.guid)}
+                                  onChange={(e) => {
+                                    const current = form.getValues('associatedTools') || [];
+                                    if (e.target.checked) {
+                                      form.setValue('associatedTools', [...current, tool.guid]);
+                                    } else {
+                                      form.setValue('associatedTools', current.filter((id) => id !== tool.guid));
+                                    }
+                                  }}
+                                  disabled={isProcessing}
+                                />
+                                <span className="text-sm text-gray-200">{tool.name}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
               <FormDescription className="form-description">
                 Select one or more tools to associate with this system prompt. These tools will be activated when the prompt is used.
@@ -546,4 +623,3 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
     </div>
   );
 }
-
