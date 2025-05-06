@@ -6,7 +6,7 @@ This feature provides a UI component listing all TSX files that export `themeabl
 ## List of TSX Files with `themeableProps` Export
 
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/AppHeader.tsx
-- [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/HistoricalConvTreeList.tsx
+- [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/HistoricalConvTreeList.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/MarkdownPane.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/PinnedShortcuts.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/Sidebar.tsx

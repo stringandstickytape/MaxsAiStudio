@@ -234,11 +234,11 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
     return (
         <div className="HistoricalConvTreeList flex flex-col h-full" 
             style={{
-                backgroundColor: 'var(--historylist-bg, var(--global-background-color, transparent))',
-                color: 'var(--historylist-text-color, var(--global-text-color, #e5e7eb))',
-                borderColor: 'var(--historylist-border-color, var(--global-border-color, #374151))',
-                fontFamily: 'var(--historylist-font-family, var(--global-font-family, inherit))',
-                fontSize: 'var(--historylist-font-size, var(--global-font-size, inherit))',
+                backgroundColor: 'var(--global-backgroundColor, transparent)',
+                color: 'var(--global-textColor, #e5e7eb)',
+                borderColor: 'var(--global-borderColor, #374151)',
+                fontFamily: 'var(--global-fontFamily, inherit)',
+                fontSize: 'var(--global-fontSize, inherit)',
                 ...(window?.theme?.HistoricalConvTreeList?.style || {})
             }}
         >
@@ -253,7 +253,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                 {displayedConvs.length === 0 ? (
                     <div className="HistoricalConvTreeList p-4 text-center flex flex-col items-center"
                         style={{
-                            color: 'var(--historylist-text-color, #9ca3af)',
+                            color: 'var(--global-textColor, #9ca3af)',
                             ...(window?.theme?.HistoricalConvTreeList?.style || {})
                         }}
                     >
@@ -261,7 +261,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                             <>
                                 <MessageSquare size={24} className="HistoricalConvTreeList mb-2" 
                                     style={{
-                                        color: 'var(--historylist-text-color, #6b7280)',
+                                        color: 'var(--global-textColor, #6b7280)',
                                         ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                     }}
                                 />
@@ -271,7 +271,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                             <>
                                 <MessageSquare size={24} className="HistoricalConvTreeList mb-2" 
                                     style={{
-                                        color: 'var(--historylist-text-color, #6b7280)',
+                                        color: 'var(--global-textColor, #6b7280)',
                                         ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                     }}
                                 />
@@ -293,11 +293,11 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                                     style={{ 
                                         display: 'block', 
                                         wordBreak: 'break-word',
-                                        color: 'var(--historylist-text-color, var(--global-text-color, #e5e7eb))',
-                                        backgroundColor: 'var(--historylist-bg, var(--global-background-color, transparent))',
+                                        color: 'var(--global-textColor, #e5e7eb)',
+                                        backgroundColor: 'var(--global-backgroundColor, transparent)',
                                         border: 'none',
                                         ':hover': {
-                                            backgroundColor: 'var(--historylist-accent-color, var(--global-primary-color, rgba(31, 41, 55, 0.4)))',
+                                            backgroundColor: 'var(--global-primaryColor, rgba(31, 41, 55, 0.4))',
                                             opacity: 0.7
                                         },
                                         ...(window?.theme?.HistoricalConvTreeList?.style || {})
@@ -340,35 +340,4 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
 
 // Export themeable properties for ThemeManager
 export const themeableProps = {
-    backgroundColor: {
-        cssVar: '--historylist-bg',
-        description: 'History list background color',
-        default: 'transparent',
-    },
-    textColor: {
-        cssVar: '--historylist-text-color',
-        description: 'History list text color',
-        default: '#e5e7eb',
-    },
-    borderColor: {
-        cssVar: '--historylist-border-color',
-        description: 'History list border color',
-        default: '#374151',
-    },
-    accentColor: {
-        cssVar: '--historylist-accent-color',
-        description: 'History list accent color (used for highlights, focus states)',
-        default: '#3b82f6',
-    },
-    // Only keeping one extra property that's essential for this component
-    searchBackground: {
-        cssVar: '--historylist-search-bg',
-        description: 'Search bar background color',
-        default: 'rgba(17, 24, 39, 0.9)',
-    },
-    // Style override
-    style: {
-        description: 'Arbitrary CSS style for HistoricalConvTreeList root',
-        default: {},
-    }
 }
