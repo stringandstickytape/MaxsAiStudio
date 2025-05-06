@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeForm } from './ThemeForm';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UnifiedModalDialog, UnifiedModalContent, UnifiedModalHeader } from '@/components/ui/unified-modal-dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Theme } from '@/types/theme';
 import { useThemeManagement } from '@/hooks/useThemeManagement';
@@ -343,29 +343,26 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
       )}
 
       {/* Add Theme Dialog */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent className="max-w-xl bg-gray-800 border-gray-700 text-gray-100" description="Add a new theme">
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Add New Theme</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={addOpen} onOpenChange={setAddOpen} size="xl" variant="form">
+        <UnifiedModalHeader>
+          <h2 className="text-lg font-semibold text-gray-100">Add New Theme</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           {displayError && (
             <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
               {displayError}
             </div>
           )}
           <ThemeForm onSubmit={handleAddTheme} isProcessing={isProcessing} />
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+      </UnifiedModalDialog>
 
       {/* Edit Theme Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent
-          className="max-w-xl bg-gray-800 border-gray-700 text-gray-100"
-          description="Edit an existing theme"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Edit Theme</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={editOpen} onOpenChange={setEditOpen} size="xl" variant="form">
+        <UnifiedModalHeader>
+          <h2 className="text-lg font-semibold text-gray-100">Edit Theme</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           {displayError && (
             <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
               {displayError}
@@ -379,18 +376,15 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
               initialValues={editingTheme}
             />
           )}
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+      </UnifiedModalDialog>
 
       {/* Delete Theme Dialog */}
-      <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-        <DialogContent
-          className="bg-gray-800 border-gray-700 text-gray-100"
-          description="Confirm deletion of a theme"
-        >
-          <DialogHeader>
-            <DialogTitle className="text-gray-100">Confirm Deletion</DialogTitle>
-          </DialogHeader>
+      <UnifiedModalDialog open={deleteOpen} onOpenChange={setDeleteOpen} size="md" variant="confirmation">
+        <UnifiedModalHeader>
+          <h2 className="text-lg font-semibold text-gray-100">Confirm Deletion</h2>
+        </UnifiedModalHeader>
+        <UnifiedModalContent>
           <div className="py-4 text-gray-200">
             Are you sure you want to delete the theme <strong>{themeToDelete?.name}</strong>? This action cannot
             be undone.
@@ -418,8 +412,8 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
               {isProcessing ? 'Deleting...' : 'Delete'}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
+        </UnifiedModalContent>
+      </UnifiedModalDialog>
     </>
   );
 };
