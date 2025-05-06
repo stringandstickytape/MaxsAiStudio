@@ -181,7 +181,7 @@ namespace AiStudio4.Services
         public async IAsyncEnumerable<ConversationSearchResult> SearchConversationsStreamingAsync(string searchTerm, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // Get all conversation file paths without loading content
-            var convFiles = Directory.GetFiles(_basePath, "*.json");
+            var convFiles = Directory.GetFiles(_basePath, "*.json").OrderByDescending(file => File.GetLastWriteTime(file));
 
             foreach (var filePath in convFiles)
             {

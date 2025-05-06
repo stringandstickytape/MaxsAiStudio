@@ -14,7 +14,7 @@ interface SearchState {
   searchTerm: string;
   isSearching: boolean;
   searchId: string | null;
-  searchResults: SearchResult[]; // Always an array, never null for streaming
+  searchResults: SearchResult[] | null; // Can be null when no search is active
   searchError: string | null;
   highlightedMessageId: string | null;
   
@@ -63,7 +63,7 @@ export const useSearchStore = create<SearchState>((set, get) => {
     searchTerm: '',
     isSearching: false,
     searchId: null,
-    searchResults: [],
+    searchResults: null,
     searchError: null,
     highlightedMessageId: null,
     
@@ -73,7 +73,7 @@ export const useSearchStore = create<SearchState>((set, get) => {
       const { searchTerm } = get();
       if (!searchTerm.trim()) {
         set({
-          searchResults: [],
+          searchResults: null,
           searchError: null,
           searchId: null,
           isSearching: false
@@ -90,7 +90,7 @@ export const useSearchStore = create<SearchState>((set, get) => {
       const searchId = uuidv4();
       set({
         searchId,
-        searchResults: [],
+        searchResults: [],  // Initialize as empty array when starting a search
         searchError: null,
         isSearching: true,
         highlightedMessageId: null
@@ -145,6 +145,11 @@ export const useSearchStore = create<SearchState>((set, get) => {
     addSearchResult: (result) => {
       // Avoid duplicates
       set((state) => {
+        // Handle case where searchResults is null
+        if (!state.searchResults) {
+          return { searchResults: [result] };
+        }
+        // Avoid duplicates
         if (state.searchResults.some(r => r.conversationId === result.conversationId)) {
           return {};
         }

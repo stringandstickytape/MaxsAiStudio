@@ -138,7 +138,6 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
           {searchResults ? `Search Results (${searchResults.length})` : null}
           {searchResults && (
             <Button
-              variant="link"
               size="sm"
               className="ml-2 p-0 h-auto text-xs"
               onClick={handleClearSearch}
