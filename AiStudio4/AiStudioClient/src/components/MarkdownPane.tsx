@@ -8,6 +8,30 @@ import { CodeBlock } from './MarkdownPane/CodeBlock';
 
 // Themeable properties for MarkdownPane code headers
 export const themeableProps = {
+    codeHeaderBackground: {
+        cssVar: '--markdownpane-codeheader-bg',
+        description: 'Background color for code block header',
+        default: '#181c20',
+    },
+    codeHeaderText: {
+        cssVar: '--markdownpane-codeheader-text',
+        description: 'Text color for code block header',
+        default: '#bfc7d5',
+    },
+    codeHeaderBorder: {
+        cssVar: '--markdownpane-codeheader-border',
+        description: 'Border color for code block header',
+        default: '#283040',
+    },
+    codeHeaderAccent: {
+        cssVar: '--markdownpane-codeheader-accent',
+        description: 'Accent color for code block header buttons/highlights',
+        default: '#4f8cff',
+    },
+    style: {
+        description: 'Arbitrary CSS style for MarkdownPane root',
+        default: {},
+    },
 };
 
 interface MarkdownPaneProps {
