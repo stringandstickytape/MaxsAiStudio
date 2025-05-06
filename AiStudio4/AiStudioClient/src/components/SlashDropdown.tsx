@@ -401,43 +401,4 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
 
 // Define themeable properties for the SlashDropdown component
 export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--global-background-color',
-    description: 'Background color for the dropdown',
-    default: '#1f2937',
-  },
-  textColor: {
-    cssVar: '--global-text-color',
-    description: 'Text color for dropdown items',
-    default: '#e2e8f0',
-  },
-  borderColor: {
-    cssVar: '--global-border-color',
-    description: 'Border color for the dropdown',
-    default: '#4a5568',
-  },
-  borderRadius: {
-    cssVar: '--global-border-radius',
-    description: 'Border radius for the dropdown',
-    default: '4px',
-  },
-  boxShadow: {
-    cssVar: '--global-box-shadow',
-    description: 'Box shadow for the dropdown',
-    default: '0 2px 8px rgba(0, 0, 0, 0.15)',
-  },
-  fontFamily: {
-    cssVar: '--global-font-family',
-    description: 'Font family for dropdown text',
-    default: 'inherit',
-  },
-  fontSize: {
-    cssVar: '--global-font-size',
-    description: 'Font size for dropdown text',
-    default: 'inherit',
-  },
-  style: {
-    description: 'Arbitrary CSS style for the dropdown container',
-    default: {},
-  },
 };

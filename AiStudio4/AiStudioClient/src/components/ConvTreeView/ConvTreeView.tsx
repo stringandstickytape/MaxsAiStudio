@@ -139,13 +139,13 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
     return (
         <div className="ConvTreeView flex flex-col h-full w-full"
             style={{
-                backgroundColor: 'var(--convtree-bg, var(--global-background-color, #111827))',
-                color: 'var(--convtree-text-color, var(--global-text-color, #e5e7eb))',
-                fontFamily: 'var(--convtree-font-family, var(--global-font-family, inherit))',
-                fontSize: 'var(--convtree-font-size, var(--global-font-size, 0.875rem))',
-                borderRadius: 'var(--convtree-border-radius, var(--global-border-radius, 0))',
-                boxShadow: 'var(--convtree-box-shadow, var(--global-box-shadow, none))',
-                borderColor: 'var(--convtree-border-color, var(--global-border-color, #1f2937))',
+                backgroundColor: 'var(--global-background-color, #111827)',
+                color: 'var(--global-text-color, #e5e7eb)',
+                fontFamily: 'var(--global-font-family, inherit)',
+                fontSize: 'var(--global-font-size, 0.875rem)',
+                borderRadius: 'var(--global-border-radius, 0)',
+                boxShadow: 'var(--global-box-shadow, none)',
+                borderColor: 'var(--global-border-color, #1f2937)',
                 ...(window?.theme?.ConvTreeView?.style || {})
             }}
         >
@@ -161,7 +161,7 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                     className="ConvTreeView w-full h-full"
                     key={`tree-${convId}-${updateKey}`}
                     style={{
-                        backgroundColor: 'var(--convtree-bg, var(--global-background-color, #111827))'
+                        backgroundColor: 'var(--global-background-color, #111827)'
                     }}
                 />
                 
@@ -175,7 +175,7 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                             padding: '4px 12px',
                             borderRadius: '9999px',
                             boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                            border: `1px solid var(--convtree-accent-color, #4f46e5)`
+                            border: `1px solid #4f46e5`
                         }}
                     >
                         {searchResults
@@ -203,110 +203,4 @@ export const ConvTreeView = memo(ConvTreeViewComponent);
 
 // Export themeable properties for ThemeManager
 export const themeableProps = {
-    backgroundColor: {
-        cssVar: '--convtree-bg',
-        description: 'Conversation tree background color',
-        default: '#111827',
-    },
-    textColor: {
-        cssVar: '--convtree-text-color',
-        description: 'Conversation tree text color',
-        default: '#e5e7eb',
-    },
-    borderColor: {
-        cssVar: '--convtree-border-color',
-        description: 'Conversation tree border color',
-        default: '#1f2937',
-    },
-    accentColor: {
-        cssVar: '--convtree-accent-color',
-        description: 'Conversation tree accent color for highlights and active elements',
-        default: '#4f46e5',
-    },
-    borderRadius: {
-        cssVar: '--convtree-border-radius',
-        description: 'Conversation tree border radius',
-        default: '0',
-    },
-    boxShadow: {
-        cssVar: '--convtree-box-shadow',
-        description: 'Conversation tree box shadow',
-        default: 'none',
-    },
-    fontFamily: {
-        cssVar: '--convtree-font-family',
-        description: 'Conversation tree font family',
-        default: 'inherit',
-    },
-    fontSize: {
-        cssVar: '--convtree-font-size',
-        description: 'Conversation tree font size',
-        default: '0.875rem',
-    },
-    style: {
-        description: 'Arbitrary CSS style for ConvTreeView root',
-        default: {},
-    },
-    // Keeping node colors as they're essential for the tree visualization
-    userNodeColor: {
-        cssVar: '--convtree-user-node-color',
-        description: 'User message node background color',
-        default: '#1e40af',
-    },
-    systemNodeColor: {
-        cssVar: '--convtree-system-node-color',
-        description: 'System message node background color',
-        default: '#4B5563',
-    },
-    aiNodeColor: {
-        cssVar: '--convtree-ai-node-color',
-        description: 'AI message node background color',
-        default: '#4f46e5',
-    },
-    linkColor: {
-        cssVar: '--convtree-link-color',
-        description: 'Tree connection line color',
-        default: '#6b7280',
-    },
-    // Add message styling properties from ConvView for consistency
-    userMessageBackground: {
-        cssVar: '--user-message-background',
-        description: 'Background for user messages (supports gradients, images, etc.)',
-        default: '#1e40af', // blue-800
-    },
-    aiMessageBackground: {
-        cssVar: '--ai-message-background',
-        description: 'Background for assistant messages (supports gradients, images, etc.)',
-        default: '#1f2937', // gray-800
-    },
-    userMessageBorderColor: {
-        cssVar: '--user-message-border-color',
-        description: 'Border color for user messages',
-        default: 'rgba(55, 65, 81, 0.3)', // gray-700/30
-    },
-    aiMessageBorderColor: {
-        cssVar: '--ai-message-border-color',
-        description: 'Border color for assistant messages',
-        default: 'rgba(55, 65, 81, 0.3)', // gray-700/30
-    },
-    userMessageBorderWidth: {
-        cssVar: '--user-message-border-width',
-        description: 'Border width for user messages',
-        default: '0px',
-    },
-    aiMessageBorderWidth: {
-        cssVar: '--ai-message-border-width',
-        description: 'Border width for assistant messages',
-        default: '0px',
-    },
-    userMessageBorderStyle: {
-        cssVar: '--user-message-border-style',
-        description: 'Border style for user messages',
-        default: 'solid',
-    },
-    aiMessageBorderStyle: {
-        cssVar: '--ai-message-border-style',
-        description: 'Border style for assistant messages',
-        default: 'solid',
-    }
 };
