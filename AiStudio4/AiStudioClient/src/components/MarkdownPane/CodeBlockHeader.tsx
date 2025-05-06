@@ -27,9 +27,9 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
         <div
             className={`MarkdownPane flex items-center justify-between px-2 py-1 rounded-t-xl border-b text-sm`}
             style={{
-                background: 'var(--markdownpane-codeheader-bg, var(--global-background-color, #181c20))',
-                color: 'var(--markdownpane-codeheader-text, var(--global-text-color, #bfc7d5))',
-                borderColor: 'var(--markdownpane-codeheader-border, var(--global-border-color, #283040))',
+                background: 'var(--global-backgroundColor, #181c20)',
+                color: 'var(--global-textColor, #bfc7d5)',
+                borderColor: 'var(--global-borderColor, #283040)',
                 borderStyle: 'solid',
                 borderBottomWidth: '1px',
                 borderTopWidth: 0,
@@ -39,7 +39,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 <button
                     onClick={onToggleCollapse}
                     className="transition-colors p-1"
-                    style={{ color: 'var(--markdownpane-codeheader-accent, #4f8cff)' }}
+                    style={{ color: 'var(--global-primaryColor, #4f8cff)' }}
                 >
                     {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                 </button>
@@ -51,8 +51,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                         onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
                         className="px-2 py-1 rounded transition-colors"
                         style={{
-                            background: 'var(--markdownpane-codeheader-accent, var(--global-primary-color, #4f8cff))',
-                            color: 'var(--markdownpane-codeheader-bg, var(--global-background-color, #181c20))',
+                            background: 'var(--global-primaryColor, #4f8cff)',
+                            color: 'var(--global-backgroundColor, #181c20)',
                         }}
                     >
                         Apply Diff
@@ -71,8 +71,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                     onClick={() => navigator.clipboard.writeText(content)}
                     className="px-2 py-1 rounded transition-colors"
                     style={{
-                        background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
-                        color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                        background: 'var(--global-primaryColor, #4f8cff)',
+                        color: 'var(--global-backgroundColor, #181c20)',
                     }}
                 >
                     Copy
@@ -81,8 +81,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                     onClick={onToggleRaw}
                     className="px-2 py-1 rounded transition-colors"
                     style={{
-                        background: 'var(--markdownpane-codeheader-accent, #4f8cff)',
-                        color: 'var(--markdownpane-codeheader-bg, #181c20)',
+                        background: 'var(--global-primaryColor, #4f8cff)',
+                        color: 'var(--global-backgroundColor, #181c20)',
                     }}
                 >
                     {isRawView ? 'Show Rendered' : 'Show Raw'}
