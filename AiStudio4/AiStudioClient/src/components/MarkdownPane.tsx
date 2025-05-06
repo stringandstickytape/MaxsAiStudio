@@ -169,7 +169,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                 />
             );
         },
-        hr: ({ children }: any) => <hr className="my-2"/>,
+        hr: () => <hr className="my-2"/>,
         pre: ({ children }: any) => <pre className="leading-snug whitespace-pre-wrap break-words">{children}</pre>,
         p: ({ children }: any) => <p className="leading-snug mb-1 whitespace-pre-wrap break-words">{children}</p>,
         h1: ({ children }: any) => <h1 className="mb-1 leading-relaxed text-3xl font-bold my-6">{children}</h1>,
