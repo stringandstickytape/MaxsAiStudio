@@ -8,8 +8,8 @@ This feature provides a UI component listing all TSX files that export `themeabl
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/AppHeader.tsx
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/HistoricalConvTreeList.tsx
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/MarkdownPane.tsx
-- [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/PinnedShortcuts.tsx
-- [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/Sidebar.tsx
+- [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/PinnedShortcuts.tsx
+- [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/Sidebar.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/SlashDropdown.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/common/GenericForm.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/ConvTreeView/ConvTreeView.tsx

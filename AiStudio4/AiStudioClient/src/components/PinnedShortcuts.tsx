@@ -310,9 +310,9 @@ export function PinnedShortcuts({
                         className,
                     )}
                     style={{
-                        fontFamily: 'var(--pinnedshortcuts-font-family, var(--global-font-family, inherit))',
-                        fontSize: 'var(--pinnedshortcuts-font-size, var(--global-font-size, inherit))',
-                        color: 'var(--pinnedshortcuts-text-color, var(--global-text-color, #e5e7eb))',
+                        fontFamily: 'var(--global-fontFamily, inherit)',
+                        fontSize: 'var(--global-fontSize, inherit)',
+                        color: 'var(--global-textColor, #e5e7eb)',
                         ...(window?.theme?.PinnedShortcuts?.style || {})
                     }}
                 >
@@ -398,47 +398,4 @@ export function PinnedShortcuts({
 
 // Expose themeable properties for ThemeManager
 export const themeableProps = {
-  borderColor: {
-    cssVar: '--pinnedshortcuts-border-color',
-    description: 'Border color for pinned shortcut buttons',
-    default: '', // Default will use category-based colors
-  },
-  borderStyle: {
-    cssVar: '--pinnedshortcuts-border-style',
-    description: 'Border style for pinned shortcut buttons',
-    default: 'solid',
-  },
-  borderWidth: {
-    cssVar: '--pinnedshortcuts-border-width',
-    description: 'Border width for pinned shortcut buttons',
-    default: '1px',
-  },
-  textColor: {
-    cssVar: '--pinnedshortcuts-text-color',
-    description: 'Text color for pinned shortcut buttons',
-    default: '#e5e7eb', // Equivalent to text-gray-300
-  },
-  textColorHover: {
-    cssVar: '--pinnedshortcuts-text-color-hover',
-    description: 'Text color for pinned shortcut buttons on hover',
-    default: '#f9fafb', // Equivalent to text-gray-100
-  },
-  fontWeight: {
-    cssVar: '--pinnedshortcuts-font-weight',
-    description: 'Font weight for pinned shortcut buttons',
-    default: '500', // Equivalent to font-medium
-  },
-  fontFamily: {
-    cssVar: '--pinnedshortcuts-font-family',
-    description: 'Font family for pinned shortcut buttons',
-    default: 'inherit',
-  },
-  style: {
-    description: 'Arbitrary CSS style for the root PinnedShortcuts container',
-    default: {},
-  },
-  buttonStyle: {
-    description: 'Arbitrary CSS style for individual shortcut buttons',
-    default: {},
-  },
 };
