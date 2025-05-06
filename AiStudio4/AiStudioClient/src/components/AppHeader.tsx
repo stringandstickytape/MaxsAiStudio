@@ -48,12 +48,12 @@ export function AppHeader({
                 'AppHeader header-section relative z-2 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
             )}
             style={{
-                backgroundColor: 'var(--appheader-bg, var(--global-background-color, #1a1f2c))', // Default dark blue-gray
-                color: 'var(--appheader-text-color, var(--global-text-color, #e0e0e0))',
-                borderColor: 'var(--appheader-border-color, var(--global-border-color, #3a3f4c))',
-                fontFamily: 'var(--appheader-font-family, var(--global-font-family, inherit))',
-                fontSize: 'var(--appheader-font-size, var(--global-font-size, 0.875rem))',
-                boxShadow: 'var(--appheader-box-shadow, var(--global-box-shadow, 0 2px 4px rgba(0,0,0,0.2)))',
+                backgroundColor: 'var(--global-backgroundColor, #1a1f2c)', // Default dark blue-gray
+                color: 'var(--global-textColor, #e0e0e0)',
+                borderColor: 'var(--global-borderColor, #3a3f4c)',
+                fontFamily: 'var(--global-fontFamily, inherit)',
+                fontSize: 'var(--global-fontSize, 0.875rem)',
+                boxShadow: 'var(--global-boxShadow, 0 2px 4px rgba(0,0,0,0.2))',
                 ...(window?.theme?.AppHeader?.style || {})
             }}
             >
@@ -107,41 +107,6 @@ export function AppHeader({
     );
 }
 
-// Expose themeable properties for ThemeManager
+// This component now uses global theme properties instead of custom ones
 export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--appheader-bg',
-    description: 'App header background color',
-    default: '#1a1f2c', // Default dark blue-gray
-  },
-  textColor: {
-    cssVar: '--appheader-text-color',
-    description: 'App header text color',
-    default: '#e0e0e0',
-  },
-  borderColor: {
-    cssVar: '--appheader-border-color',
-    description: 'App header border color (used for bottom border)',
-    default: '#3a3f4c',
-  },
-  accentColor: {
-    cssVar: '--appheader-accent-color',
-    description: 'App header accent color for highlights and active elements',
-    default: '#3b82f6',
-  },
-  style: {
-    description: 'Arbitrary CSS style for the root AppHeader container',
-    default: {},
-  },
-  // Keeping font properties as they're essential for readability
-  fontFamily: {
-    cssVar: '--appheader-font-family',
-    description: 'App header font family',
-    default: 'inherit',
-  },
-  fontSize: {
-    cssVar: '--appheader-font-size',
-    description: 'App header base font size',
-    default: '0.875rem',
-  }
 };

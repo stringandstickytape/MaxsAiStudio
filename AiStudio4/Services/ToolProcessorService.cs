@@ -28,7 +28,7 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly IBuiltinToolService _builtinToolService;
-        private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(5);
+        private readonly TimeSpan _minimumRequestInterval = TimeSpan.FromSeconds(1);
         private DateTime _lastRequestTime = DateTime.MinValue;
         private readonly object _rateLimitLock = new object(); // Lock object for thread safety
         private readonly Services.Interfaces.INotificationFacade _notificationFacade;
