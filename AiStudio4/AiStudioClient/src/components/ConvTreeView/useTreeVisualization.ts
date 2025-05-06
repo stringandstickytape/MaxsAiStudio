@@ -151,6 +151,8 @@ export const useTreeVisualization = ({
     
     // Create a glow filter for search matches
     const defs = d3.select(svgRef.current).append('defs');
+    
+    // Standard glow filter
     const filter = defs.append('filter')
       .attr('id', 'glow');
     
@@ -159,6 +161,23 @@ export const useTreeVisualization = ({
       .attr('result', 'blur');
       
     filter.append('feComposite')
+      .attr('in', 'SourceGraphic')
+      .attr('in2', 'blur')
+      .attr('operator', 'over');
+      
+    // Create a stronger glow filter for highlighted messages
+    const strongGlow = defs.append('filter')
+      .attr('id', 'strongGlow')
+      .attr('x', '-50%')
+      .attr('y', '-50%')
+      .attr('width', '200%')
+      .attr('height', '200%');
+    
+    strongGlow.append('feGaussianBlur')
+      .attr('stdDeviation', '5')
+      .attr('result', 'blur');
+      
+    strongGlow.append('feComposite')
       .attr('in', 'SourceGraphic')
       .attr('in2', 'blur')
       .attr('operator', 'over');
@@ -270,6 +289,56 @@ export const useTreeVisualization = ({
       .attr('cursor', 'pointer')
       .on('click', (e, d) => onNodeClick(d.data.id, d.data.source, d.data.content))
       .on('mousedown', (e, d) => onNodeMiddleClick(e, d.data.id));
+      
+    // Add scale-invariant indicators for search matches
+    nodeGroups.each(function(d) {
+      const node = d3.select(this);
+      const isSearchMatch = searchResults?.some(result => 
+        result.matchingMessageIds.includes(d.data.id)
+      );
+      const isHighlighted = d.data.id === highlightedMessageId;
+      
+      // Add indicators only for search matches
+      if (isSearchMatch || isHighlighted) {
+        // Add a scale-invariant indicator that will remain visible at any zoom level
+        node.append('circle')
+          .attr('class', 'search-indicator')
+          .attr('r', 8) // Size of the indicator
+          .attr('cx', containerWidth < 400 ? -100 : -120) // Position at top-left of node
+          .attr('cy', -40)
+          .attr('fill', getThemeColor('--convtree-accent-color', '#4f46e5'))
+          .attr('stroke', 'white')
+          .attr('stroke-width', 1.5)
+          .attr('opacity', isHighlighted ? 1 : 0.8);
+        
+        // Add a pulsing animation for highlighted messages
+        if (isHighlighted) {
+          const pulseCircle = node.append('circle')
+            .attr('class', 'pulse-indicator')
+            .attr('r', 8)
+            .attr('cx', containerWidth < 400 ? -100 : -120)
+            .attr('cy', -40)
+            .attr('fill', 'none')
+            .attr('stroke', getThemeColor('--convtree-accent-color', '#4f46e5'))
+            .attr('stroke-width', 2)
+            .attr('opacity', 0.6);
+          
+          // Add pulsing animation
+          function pulse() {
+            pulseCircle
+              .attr('r', 8)
+              .attr('opacity', 0.6)
+              .transition()
+              .duration(1500)
+              .attr('r', 20)
+              .attr('opacity', 0)
+              .on('end', pulse);
+          }
+          
+          pulse();
+        }
+      }
+    });
 
     // Add tooltip for middle-click delete
     nodeGroups.append('title')
@@ -363,9 +432,9 @@ export const useTreeVisualization = ({
         const isHighlighted = d.data.id === highlightedMessageId;
         
         if (isHighlighted) {
-          return '3px';
+          return '4px'; // Increased from 3px for better visibility
         } else if (isSearchMatch) {
-          return '2px';
+          return '3px'; // Increased from 2px for better visibility
         } else if (d.data.id === selectedMessageId) {
           return '2px';
         }
@@ -374,8 +443,13 @@ export const useTreeVisualization = ({
         return '1px';
       })
       .attr('filter', (d) => {
-        // Apply glow effect to highlighted message
-        return d.data.id === highlightedMessageId ? 'url(#glow)' : null;
+        // Apply glow effect to highlighted message with stronger glow
+        if (d.data.id === highlightedMessageId) {
+          return 'url(#strongGlow)';
+        } else if (searchResults?.some(result => result.matchingMessageIds.includes(d.data.id))) {
+          return 'url(#glow)';
+        }
+        return null;
       });
 
     // Create label groups
@@ -540,12 +614,12 @@ export const useTreeVisualization = ({
       // Update stroke color and width based on status
       if (isHighlighted) {
         nodeRect.attr('stroke', getThemeColorForUpdate('--convtree-accent-color', '#4f46e5'));
-        nodeRect.attr('stroke-width', '3px');
-        nodeRect.attr('filter', 'url(#glow)');
+        nodeRect.attr('stroke-width', '4px'); // Increased from 3px
+        nodeRect.attr('filter', 'url(#strongGlow)');
       } else if (isSearchMatch) {
         nodeRect.attr('stroke', getThemeColorForUpdate('--convtree-accent-color', '#4f46e5'));
-        nodeRect.attr('stroke-width', '2px');
-        nodeRect.attr('filter', null);
+        nodeRect.attr('stroke-width', '3px'); // Increased from 2px
+        nodeRect.attr('filter', 'url(#glow)');
       } else if (isSelected) {
         nodeRect.attr('stroke', '#f59e0b');
         nodeRect.attr('stroke-width', '2px');
@@ -564,6 +638,53 @@ export const useTreeVisualization = ({
           nodeRect.attr('stroke-width', aiBorderWidth);
         }
         nodeRect.attr('filter', null);
+      }
+      
+      // Update or create scale-invariant indicators
+      // First remove any existing indicators
+      node.selectAll('.search-indicator, .pulse-indicator').remove();
+      
+      // Add new indicators if needed
+      if (isHighlighted || isSearchMatch) {
+        const accentColor = getThemeColorForUpdate('--convtree-accent-color', '#4f46e5');
+        
+        // Add a scale-invariant indicator that will remain visible at any zoom level
+        node.append('circle')
+          .attr('class', 'search-indicator')
+          .attr('r', 8) // Size of the indicator
+          .attr('cx', containerRef.current ? (containerRef.current.clientWidth < 400 ? -100 : -120) : -120) // Position at top-left of node
+          .attr('cy', -40)
+          .attr('fill', accentColor)
+          .attr('stroke', 'white')
+          .attr('stroke-width', 1.5)
+          .attr('opacity', isHighlighted ? 1 : 0.8);
+        
+        // Add a pulsing animation for highlighted messages
+        if (isHighlighted) {
+          const pulseCircle = node.append('circle')
+            .attr('class', 'pulse-indicator')
+            .attr('r', 8)
+            .attr('cx', containerRef.current ? (containerRef.current.clientWidth < 400 ? -100 : -120) : -120)
+            .attr('cy', -40)
+            .attr('fill', 'none')
+            .attr('stroke', accentColor)
+            .attr('stroke-width', 2)
+            .attr('opacity', 0.6);
+          
+          // Add pulsing animation
+          function pulse() {
+            pulseCircle
+              .attr('r', 8)
+              .attr('opacity', 0.6)
+              .transition()
+              .duration(1500)
+              .attr('r', 20)
+              .attr('opacity', 0)
+              .on('end', pulse);
+          }
+          
+          pulse();
+        }
       }
     });
     
@@ -628,6 +749,32 @@ export const useTreeVisualization = ({
       }
     }
   }, [searchResults, highlightedMessageId, svgRef, containerRef, zoomRef, updateSelectedNode, selectedMessageId]);
+  
+  // Add a zoom event listener to adjust scale-invariant indicators
+  useEffect(() => {
+    if (!svgRef.current || !zoomRef.current) return;
+    
+    // Add zoom event listener
+    const handleZoom = () => {
+      // Get current zoom transform
+      const transform = d3.zoomTransform(svgRef.current!);
+      
+      // Adjust the size of indicators based on zoom level
+      d3.select(svgRef.current!).selectAll('.search-indicator, .pulse-indicator')
+        .attr('r', (d) => 8 / transform.k) // Inverse scale based on zoom level
+        .attr('stroke-width', (d) => 1.5 / transform.k); // Adjust stroke width too
+    };
+    
+    // Attach the zoom event listener
+    d3.select(svgRef.current).call(zoomRef.current.on('zoom.indicators', handleZoom));
+    
+    // Cleanup
+    return () => {
+      if (zoomRef.current) {
+        zoomRef.current.on('zoom.indicators', null);
+      }
+    };
+  }, [svgRef, zoomRef, updateKey]);
 
   // Track previous hierarchicalData to detect new messages
   const [prevHierarchicalData, setPrevHierarchicalData] = useState<TreeNode | null>(null);
