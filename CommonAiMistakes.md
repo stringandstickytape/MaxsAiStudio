@@ -5,10 +5,10 @@
    - Define keyframe animations in CSS files or inject them dynamically into the document's stylesheet.
 
 2. **Theme Implementation**  
-   - Carefully read and understand the theming requirements before implementation.  
+   - Carefully read and understand theming requirements before implementation.  
    - Use global theme properties directly unless component-specific variables are explicitly required.  
-   - Avoid overcomplicating by adding unnecessary component-specific theming layers or removing required exports like `themeableProps`.  
-   - When in doubt, ask clarifying questions and review implementation guides thoroughly.
+   - Avoid unnecessary component-specific theming layers or removing required exports like `themeableProps`.  
+   - When uncertain, ask clarifying questions and review implementation guides thoroughly.
 
 3. **CSS Variable Naming Conventions**  
    - Follow the project’s documented naming conventions strictly.  
