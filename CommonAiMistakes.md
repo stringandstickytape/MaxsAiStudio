@@ -69,7 +69,7 @@ Repeated attempts to read a directory that does not exist or is inaccessible, le
 The directory path provided for the code search is incorrect or the directory has been moved/deleted, causing the File not found error.
 
 ### Prevention Strategy
-Avoid redundant directory searches for non-existent paths. Confirm the directory exists before attempting to read or search it, and use static analysis or code review to identify duplication.
+Avoid redundant directory searches for non-existent paths.
 
 ---
 
