@@ -13,9 +13,9 @@ This feature provides a UI component listing all TSX files that export `themeabl
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/SlashDropdown.tsx
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/common/GenericForm.tsx
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/ConvTreeView/ConvTreeView.tsx
-- [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/ConvView/ConvView.tsx
-- [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/InputBar/InputBar.tsx
-- [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/modals/ServerModal.tsx
+- [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/ConvView/ConvView.tsx
+- [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/InputBar/InputBar.tsx
+- [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/modals/ServerModal.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/modals/ToolEditorModal.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/navigation/NavigationContainer.tsx
 - [ ] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/servers/ServerForm.tsx

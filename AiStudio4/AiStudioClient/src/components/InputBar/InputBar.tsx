@@ -270,13 +270,13 @@ export function InputBar({
     return (
         <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
             style={{
-                backgroundColor: "var(--inputbar-bg, var(--global-background-color, #1f2937))",
-                color: "var(--inputbar-text-color, var(--global-text-color, #e2e8f0))",
-                borderColor: "var(--inputbar-border-color, var(--global-border-color, #4a5568))",
-                borderRadius: "var(--inputbar-border-radius, var(--global-border-radius, 8px))",
-                boxShadow: "var(--inputbar-box-shadow, var(--global-box-shadow, 0 4px 12px rgba(0,0,0,0.3)))",
-                fontFamily: "var(--inputbar-font-family, var(--global-font-family, inherit))",
-                fontSize: "var(--inputbar-font-size, var(--global-font-size, inherit))",
+                backgroundColor: "var(--global-background-color, #1f2937)",
+                color: "var(--global-text-color, #e2e8f0)",
+                borderColor: "var(--global-border-color, #4a5568)",
+                borderRadius: "var(--global-border-radius, 8px)",
+                boxShadow: "var(--global-box-shadow, 0 4px 12px rgba(0,0,0,0.3))",
+                fontFamily: "var(--global-font-family, inherit)",
+                fontSize: "var(--global-font-size, inherit)",
                 ...(window?.theme?.InputBar?.style || {})
             }}
         >
@@ -371,39 +371,4 @@ window.setPrompt = text => {
 
 // Expose simplified themeable properties for ThemeManager
 export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--inputbar-bg',
-    description: 'Input bar background color',
-    default: '#1f2937',
-  },
-  textColor: {
-    cssVar: '--inputbar-text-color',
-    description: 'Input bar text color',
-    default: '#e2e8f0',
-  },
-  borderColor: {
-    cssVar: '--inputbar-border-color',
-    description: 'Input bar border color',
-    default: '#4a5568',
-  },
-  accentColor: {
-    cssVar: '--inputbar-accent-color',
-    description: 'Input bar accent color for highlights and active elements',
-    default: '#3b82f6',
-  },
-  // Additional properties needed for this component's unique features
-  editBackground: {
-    cssVar: '--inputbar-edit-bg',
-    description: 'Textarea background color',
-    default: '#2d3748',
-  },
-  buttonBackground: {
-    cssVar: '--inputbar-button-bg',
-    description: 'Input bar button background color',
-    default: '#2d3748',
-  },
-  style: {
-    description: 'Arbitrary CSS style for InputBar root',
-    default: {},
-  },
 };

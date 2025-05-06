@@ -12,70 +12,6 @@ import { ScrollManager } from './ScrollManager';
 
 // Define themeable properties for the ConvView component
 export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--convview-bg',
-    description: 'Background color for the conversation view',
-    default: 'transparent',
-  },
-  textColor: {
-    cssVar: '--convview-text-color',
-    description: 'Text color for messages',
-    default: '#ffffff',
-  },
-  borderColor: {
-    cssVar: '--convview-border-color',
-    description: 'Border color for dividers',
-    default: 'rgba(55, 65, 81, 0.3)', // gray-700/30
-  },
-  accentColor: {
-    cssVar: '--convview-accent-color',
-    description: 'Accent color for buttons and highlights',
-    default: '#2563eb', // blue-600
-  },
-  style: {
-    description: 'Arbitrary CSS style for the root container',
-    default: {},
-  },
-  userMessageBackground: {
-    cssVar: '--user-message-background',
-    description: 'Background for user messages (supports gradients, images, etc.)',
-    default: '#1e40af', // blue-800
-  },
-  aiMessageBackground: {
-    cssVar: '--ai-message-background',
-    description: 'Background for assistant messages (supports gradients, images, etc.)',
-    default: '#1f2937', // gray-800
-  },
-  userMessageBorderColor: {
-    cssVar: '--user-message-border-color',
-    description: 'Border color for user messages',
-    default: 'rgba(55, 65, 81, 0.3)', // gray-700/30
-  },
-  aiMessageBorderColor: {
-    cssVar: '--ai-message-border-color',
-    description: 'Border color for assistant messages',
-    default: 'rgba(55, 65, 81, 0.3)', // gray-700/30
-  },
-  userMessageBorderWidth: {
-    cssVar: '--user-message-border-width',
-    description: 'Border width for user messages',
-    default: '0px',
-  },
-  aiMessageBorderWidth: {
-    cssVar: '--ai-message-border-width',
-    description: 'Border width for assistant messages',
-    default: '0px',
-  },
-  userMessageBorderStyle: {
-    cssVar: '--user-message-border-style',
-    description: 'Border style for user messages',
-    default: 'solid',
-  },
-  aiMessageBorderStyle: {
-    cssVar: '--ai-message-border-style',
-    description: 'Border style for assistant messages',
-    default: 'solid',
-  }
 };
 
 interface ConvViewProps {
@@ -177,13 +113,13 @@ export const ConvView = ({
       initial="smooth"
       ref={stickToBottomRef}
       style={{
-        backgroundColor: 'var(--convview-bg, var(--global-background-color, transparent))',
-        color: 'var(--convview-text-color, var(--global-text-color, #ffffff))',
-        borderColor: 'var(--convview-border-color, var(--global-border-color, rgba(55, 65, 81, 0.3)))',
-        fontFamily: 'var(--convview-font-family, var(--global-font-family, inherit))',
-        fontSize: 'var(--convview-font-size, var(--global-font-size, inherit))',
-        borderRadius: 'var(--convview-border-radius, var(--global-border-radius, 0))',
-        boxShadow: 'var(--convview-box-shadow, var(--global-box-shadow, none))',
+        backgroundColor: 'var(--global-background-color, transparent)',
+        color: 'var(--global-text-color, #ffffff)',
+        borderColor: 'var(--global-border-color, rgba(55, 65, 81, 0.3))',
+        fontFamily: 'var(--global-font-family, inherit)',
+        fontSize: 'var(--global-font-size, inherit)',
+        borderRadius: 'var(--global-border-radius, 0)',
+        boxShadow: 'var(--global-box-shadow, none)',
         ...(window?.theme?.ConvView?.style || {})
       }}
       // Add throttle option to reduce ResizeObserver frequency during streaming
