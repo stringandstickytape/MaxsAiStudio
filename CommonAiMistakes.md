@@ -59,3 +59,17 @@ Always verify the exact naming conventions used in the project by checking docum
 
 ---
 
+## Excessive codebase search attempts without success
+*Recorded: 2025-05-06 01:19:39*
+
+### Description
+Repeated attempts to read a directory that does not exist or is inaccessible, leading to unnecessary delays and no new information.
+
+### Root Cause
+The directory path provided for the code search is incorrect or the directory has been moved/deleted, causing the File not found error.
+
+### Prevention Strategy
+Avoid redundant directory searches for non-existent paths. Confirm the directory exists before attempting to read or search it, and use static analysis or code review to identify duplication.
+
+---
+
