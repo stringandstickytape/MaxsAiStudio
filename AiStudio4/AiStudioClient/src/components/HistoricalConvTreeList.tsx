@@ -294,8 +294,8 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                                         display: 'block', 
                                         wordBreak: 'break-word',
                                         color: 'var(--historylist-text-color, var(--global-text-color, #e5e7eb))',
-                                        backgroundColor: searchResult ? 'var(--historylist-accent-color, var(--global-primary-color, rgba(59, 130, 246, 0.2)))' : 'var(--historylist-bg, var(--global-background-color, transparent))',
-                                        border: searchResult ? '1px solid var(--historylist-accent-color, var(--global-primary-color, rgba(59, 130, 246, 0.5)))' : 'none',
+                                        backgroundColor: 'var(--historylist-bg, var(--global-background-color, transparent))',
+                                        border: 'none',
                                         ':hover': {
                                             backgroundColor: 'var(--historylist-accent-color, var(--global-primary-color, rgba(31, 41, 55, 0.4)))',
                                             opacity: 0.7
