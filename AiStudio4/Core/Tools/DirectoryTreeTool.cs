@@ -120,9 +120,11 @@ Returns a structured view of the directory tree with files and subdirectories. D
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing DirectoryTree tool");
-                SendStatusUpdate($"Error processing DirectoryTree tool: {ex.Message}");
-                return Task.FromResult(CreateResult(true, true, $"Error processing DirectoryTree tool: {ex.Message}"));
+                // Include request parameters in error message for better debugging
+                string paramInfo = $"Parameters: path='{(parameters.ContainsKey("path") ? parameters["path"] : "<not specified>")}', depth='{(parameters.ContainsKey("depth") ? parameters["depth"] : "<default>")}', include_filtered='{(parameters.ContainsKey("include_filtered") ? parameters["include_filtered"] : "<default>")}'"; 
+                _logger.LogError(ex, $"Error processing DirectoryTree tool. {paramInfo}");
+                SendStatusUpdate($"Error processing DirectoryTree tool: {ex.Message}. {paramInfo}");
+                return Task.FromResult(CreateResult(true, true, $"Error processing DirectoryTree tool: {ex.Message}. {paramInfo}"));
             }
         }
 
