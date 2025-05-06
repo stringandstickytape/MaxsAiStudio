@@ -180,38 +180,63 @@ namespace AiStudio4.Services
         /// <returns>Yields search results as they are found</returns>
         public async IAsyncEnumerable<ConversationSearchResult> SearchConversationsStreamingAsync(string searchTerm, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
-            var allConvs = await GetAllConvs();
-            foreach (var conv in allConvs)
+            // Get all conversation file paths without loading content
+            var convFiles = Directory.GetFiles(_basePath, "*.json");
+
+            foreach (var filePath in convFiles)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var matchingMessageIds = new List<string>();
-                foreach (var message in conv.Messages)
+
+                ConversationSearchResult result = null;
+
+                try
                 {
-                    // Skip system messages
-                    if (message.Role == v4BranchedConvMessageRole.System)
-                        continue;
-                    // Case-insensitive search in message content
-                    if (message.UserMessage != null &&
-                        message.UserMessage.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                    // Extract conversation ID from filename
+                    var convId = Path.GetFileNameWithoutExtension(filePath);
+                    var fileInfo = new FileInfo(filePath);
+
+                    // Load conversation individually
+                    var conv = await LoadConv(convId);
+
+                    // Search for matches in this conversation
+                    var matchingMessageIds = new List<string>();
+                    foreach (var message in conv.Messages)
                     {
-                        matchingMessageIds.Add(message.Id);
+                        // Skip system messages
+                        if (message.Role == v4BranchedConvMessageRole.System)
+                            continue;
+                        // Case-insensitive search in message content
+                        if (message.UserMessage != null &&
+                            message.UserMessage.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                        {
+                            matchingMessageIds.Add(message.Id);
+                        }
+                    }
+
+                    if (matchingMessageIds.Count > 0)
+                    {
+                        result = new ConversationSearchResult
+                        {
+                            ConversationId = conv.ConvId,
+                            MatchingMessageIds = matchingMessageIds,
+                            ConversationSummary = conv.Summary ?? "Untitled Conversation",
+                            LastModified = fileInfo.LastWriteTime
+                        };
                     }
                 }
-                if (matchingMessageIds.Count > 0)
+                catch (Exception ex)
                 {
-                    var filePath = Path.Combine(_basePath, $"{conv.ConvId}.json");
-                    var fileInfo = new FileInfo(filePath);
-                    yield return new ConversationSearchResult
-                    {
-                        ConversationId = conv.ConvId,
-                        MatchingMessageIds = matchingMessageIds,
-                        ConversationSummary = conv.Summary ?? "Untitled Conversation",
-                        LastModified = fileInfo.LastWriteTime
-                    };
+                    _logger.LogError(ex, "Error searching conversation file {FilePath}", filePath);
+                    // Continue with next file instead of failing the entire search
+                }
+
+                // Yield outside the try-catch
+                if (result != null)
+                {
+                    yield return result;
                 }
             }
         }
-
         // Legacy batch search method for compatibility (can be removed if not used elsewhere)
         public async Task<List<ConversationSearchResult>> SearchConversationsAsync(string searchTerm, CancellationToken cancellationToken)
         {
