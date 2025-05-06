@@ -8,42 +8,7 @@ import { modalVariants } from './variants';
 export interface UnifiedModalFooterProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 // Define themeable properties for the UnifiedModalFooter component
-export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--unifiedmodalfooter-bg',
-    description: 'Background color of the modal footer',
-    default: 'transparent',
-  },
-  textColor: {
-    cssVar: '--unifiedmodalfooter-text-color',
-    description: 'Text color of the modal footer',
-    default: 'var(--foreground)',
-  },
-  borderColor: {
-    cssVar: '--unifiedmodalfooter-border-color',
-    description: 'Border color of the modal footer',
-    default: 'var(--border)',
-  },
-  buttonSpacing: {
-    cssVar: '--unifiedmodalfooter-button-spacing',
-    description: 'Spacing between buttons in the footer',
-    default: '0.5rem',
-  },
-  padding: {
-    cssVar: '--unifiedmodalfooter-padding',
-    description: 'Padding of the modal footer',
-    default: 'inherit',
-  },
-  // Arbitrary style overrides
-  style: {
-    description: 'Arbitrary CSS style for the modal footer',
-    default: {},
-  },
-  buttonStyle: {
-    description: 'Arbitrary CSS style for buttons in the footer',
-    default: {},
-  },
-};
+export const themeableProps = {};
 
 export const UnifiedModalFooter: React.FC<UnifiedModalFooterProps> = ({ className, children, ...props }) => {
   const { variant = 'default' } = useUnifiedModalContext();

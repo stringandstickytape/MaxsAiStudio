@@ -8,43 +8,7 @@ import { modalVariants } from './variants';
 export interface UnifiedModalHeaderProps extends React.HTMLAttributes<HTMLDivElement> {}
 
 // Define themeable properties for the UnifiedModalHeader component
-export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--unifiedmodalheader-bg',
-    description: 'Background color of the modal header',
-    default: 'transparent',
-  },
-  textColor: {
-    cssVar: '--unifiedmodalheader-text-color',
-    description: 'Text color of the modal header',
-    default: 'var(--foreground)',
-  },
-  borderColor: {
-    cssVar: '--unifiedmodalheader-border-color',
-    description: 'Border color of the modal header',
-    default: 'var(--border)',
-  },
-  fontSize: {
-    cssVar: '--unifiedmodalheader-font-size',
-    description: 'Font size of the modal header',
-    default: '1.25rem',
-  },
-  fontWeight: {
-    cssVar: '--unifiedmodalheader-font-weight',
-    description: 'Font weight of the modal header',
-    default: '600',
-  },
-  padding: {
-    cssVar: '--unifiedmodalheader-padding',
-    description: 'Padding of the modal header',
-    default: 'inherit',
-  },
-  // Arbitrary style overrides
-  style: {
-    description: 'Arbitrary CSS style for the modal header',
-    default: {},
-  },
-};
+export const themeableProps = {};
 
 export const UnifiedModalHeader: React.FC<UnifiedModalHeaderProps> = ({ className, children, ...props }) => {
   const { variant = 'default' } = useUnifiedModalContext();

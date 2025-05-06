@@ -9,66 +9,7 @@ import { modalVariants, modalSizeClasses, modalHeightClasses, modalPositionClass
 import { UnifiedModalProvider } from './UnifiedModalContext';
 
 // Define themeable properties for the UnifiedModalDialog component
-export const themeableProps = {
-  backgroundColor: {
-    cssVar: '--unifiedmodaldialog-bg',
-    description: 'Background color of the modal',
-    default: 'var(--background)',
-  },
-  borderColor: {
-    cssVar: '--unifiedmodaldialog-border-color',
-    description: 'Border color of the modal',
-    default: 'var(--border)',
-  },
-  textColor: {
-    cssVar: '--unifiedmodaldialog-text-color',
-    description: 'Text color of the modal',
-    default: 'var(--foreground)',
-  },
-  borderRadius: {
-    cssVar: '--unifiedmodaldialog-border-radius',
-    description: 'Border radius of the modal',
-    default: '0.5rem',
-  },
-  boxShadow: {
-    cssVar: '--unifiedmodaldialog-box-shadow',
-    description: 'Box shadow of the modal',
-    default: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-  },
-  overlayColor: {
-    cssVar: '--unifiedmodaldialog-overlay-color',
-    description: 'Background color of the overlay',
-    default: 'rgba(0, 0, 0, 0.8)',
-  },
-  closeButtonColor: {
-    cssVar: '--unifiedmodaldialog-close-button-color',
-    description: 'Color of the close button',
-    default: 'var(--foreground)',
-  },
-  closeButtonHoverColor: {
-    cssVar: '--unifiedmodaldialog-close-button-hover-color',
-    description: 'Hover color of the close button',
-    default: 'var(--foreground)',
-  },
-  closeButtonBgHover: {
-    cssVar: '--unifiedmodaldialog-close-button-bg-hover',
-    description: 'Background color of the close button on hover',
-    default: 'var(--accent)',
-  },
-  // Arbitrary style overrides
-  style: {
-    description: 'Arbitrary CSS style for the modal container',
-    default: {},
-  },
-  overlayStyle: {
-    description: 'Arbitrary CSS style for the modal overlay',
-    default: {},
-  },
-  closeButtonStyle: {
-    description: 'Arbitrary CSS style for the close button',
-    default: {},
-  },
-};
+export const themeableProps = {};
 
 export const UnifiedModalDialog: React.FC<UnifiedModalDialogProps> = ({
   open,
