@@ -446,6 +446,22 @@ namespace AiStudio4.Services
 
             systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _generalSettingsService.CurrentSettings.ProjectPath);
 
+            // Replace CommonAiMistakes token if it exists
+            if(systemPromptContent.Contains("{CommonAiMistakes}"))
+            {
+                string commonMistakesPath = Path.Combine(Path.GetDirectoryName(_generalSettingsService.CurrentSettings.ProjectPath), "CommonAiMistakes.md");
+                if(File.Exists(commonMistakesPath))
+                {
+                    string mistakesContent = File.ReadAllText(commonMistakesPath);
+                    systemPromptContent = systemPromptContent.Replace("{CommonAiMistakes}", mistakesContent);
+                }
+                else
+                {
+                    // If file doesn't exist, just remove the token
+                    systemPromptContent = systemPromptContent.Replace("{CommonAiMistakes}", "");
+                }
+            }
+
             if(systemPromptContent.Contains("{ToolList}"))
             {
                 StringBuilder sb = new StringBuilder();

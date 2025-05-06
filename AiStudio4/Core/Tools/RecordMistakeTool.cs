@@ -208,8 +208,6 @@ namespace AiStudio4.Core.Tools
                 SendStatusUpdate("Processing AI response...");
                 var consolidatedContent = new StringBuilder();
                 consolidatedContent.Append(response.Response.Trim());
-                consolidatedContent.AppendLine("\n\n\nNew mistakes since last consolidation:\n");
-                consolidatedContent.Append(newMistakeEntry.ToString());
                 
                 // Write the consolidated content back to the file
                 SendStatusUpdate("Writing consolidated content to file...");
