@@ -1,5 +1,9 @@
 ﻿# Common AI Mistakes
-This document records mistakes made by the AI to help avoid similar issues in the future.## Attempted to define CSS keyframes inline in React style object
+This document records mistakes made by the AI to help avoid similar issues in the future.
+
+---
+
+## Attempted to define CSS keyframes inline in React style object
 *Recorded: 2025-05-05 19:25:53*
 
 ### Description

@@ -133,34 +133,45 @@ namespace AiStudio4.InjectedDependencies
 
         private void ProcessDirectory(string directoryPath)
         {
-            // Get immediate child directories
-            var childDirectories = Directory.GetDirectories(directoryPath)
-                .Select(d => d.Replace("\\", "/"))  // Normalize path separators
-                .ToList();
-
-            // Process each non-ignored directory
-            foreach (var dir in childDirectories)
+            try
             {
-                if (!_gitIgnoreFilter.PathIsIgnored($"{dir}/"))
+                // Get immediate child directories
+                var childDirectories = Directory.GetDirectories(directoryPath)
+                    .Select(d => d.Replace("\\", "/"))  // Normalize path separators
+                    .ToList();
+
+                // Process each non-ignored directory
+                foreach (var dir in childDirectories)
                 {
-                    _directories.Add(dir);
-                    
-                    // Recursively process this directory
-                    ProcessDirectory(dir);
+                    if (!_gitIgnoreFilter.PathIsIgnored($"{dir}/"))
+                    {
+                        _directories.Add(dir);
+
+                        // Recursively process this directory
+                        ProcessDirectory(dir);
+                    }
+                }
+
+                // Get and filter files in this directory
+                var files = Directory.GetFiles(directoryPath)
+                    .Select(f => f.Replace("\\", "/"))  // Normalize path separators
+                    .ToList();
+
+                foreach (var file in files)
+                {
+                    if (!_gitIgnoreFilter.PathIsIgnored(file))
+                    {
+                        _files.Add(file);
+                    }
                 }
             }
-
-            // Get and filter files in this directory
-            var files = Directory.GetFiles(directoryPath)
-                .Select(f => f.Replace("\\", "/"))  // Normalize path separators
-                .ToList();
-
-            foreach (var file in files)
+            catch (UnauthorizedAccessException)
             {
-                if (!_gitIgnoreFilter.PathIsIgnored(file))
-                {
-                    _files.Add(file);
-                }
+                // Ignore directories we don't have access to
+            }
+            catch (IOException)
+            {
+                // Handle IO exceptions (e.g., file in use)
             }
         }
 
