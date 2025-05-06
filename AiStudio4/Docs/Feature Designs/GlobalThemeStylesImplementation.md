@@ -1,4 +1,4 @@
-﻿# Global Theme Styles Implementation Guide
+# Global Theme Styles Implementation Guide
 
 ## Overview
 
@@ -8,19 +8,19 @@ This document provides detailed instructions for implementing global theme style
 
 The following global theme properties should be applied to all TSX components:
 
-- `global-backgroundColor` - Background color for components
-- `global-textColor` - Text color for components
-- `global-primaryColor` - Primary accent color
-- `global-secondaryColor` - Secondary accent color
-- `global-borderColor` - Border color for elements
-- `global-borderRadius` - Border radius for elements
-- `global-fontFamily` - Font family for text
-- `global-fontSize` - Base font size
-- `global-boxShadow` - Box shadow for elevated elements
+- `global-background-color` - Background color for components
+- `global-text-color` - Text color for components
+- `global-primary-color` - Primary accent color
+- `global-secondary-color` - Secondary accent color
+- `global-border-color` - Border color for elements
+- `global-border-radius` - Border radius for elements
+- `global-font-family` - Font family for text
+- `global-font-size` - Base font size
+- `global-box-shadow` - Box shadow for elevated elements
 
 ## Implementation Pattern
 
-The implementation pattern follows the example found in `ConvView.tsx`, which already applies the `global-backgroundColor` property:
+The implementation pattern follows the example found in `ConvView.tsx`, which already applies the `global-background-color` property:
 
 ```tsx
 style={{

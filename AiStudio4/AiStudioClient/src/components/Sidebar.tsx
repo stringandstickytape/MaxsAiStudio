@@ -1,4 +1,4 @@
-﻿import { WebSocketState } from '@/types/websocket';
+import { WebSocketState } from '@/types/websocket';
 import { HistoricalConvTreeList } from './HistoricalConvTreeList';
 import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -67,18 +67,18 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
   return (
     <div className="Sidebar flex flex-col h-full border-r" 
       style={{
-        backgroundColor: 'var(--global-backgroundColor, #111827)',
-        borderColor: 'var(--global-borderColor, #1f2937)',
-        color: 'var(--global-textColor, #e5e7eb)',
-        fontFamily: 'var(--global-fontFamily, inherit)',
-        fontSize: 'var(--global-fontSize, 0.875rem)',
-        borderRadius: 'var(--global-borderRadius, 0)',
-        boxShadow: 'var(--global-boxShadow, none)',
+        backgroundColor: 'var(--global-background-color, #111827)',
+        borderColor: 'var(--global-border-color, #1f2937)',
+        color: 'var(--global-text-color, #e5e7eb)',
+        fontFamily: 'var(--global-font-family, inherit)',
+        fontSize: 'var(--global-font-size, 0.875rem)',
+        borderRadius: 'var(--global-border-radius, 0)',
+        boxShadow: 'var(--global-box-shadow, none)',
         ...(window?.theme?.Sidebar?.style || {})
       }}
     >
       {/* Search input */}
-      <div className="p-2 border-b" style={{ borderColor: 'var(--global-borderColor, #1f2937)' }}>
+      <div className="p-2 border-b" style={{ borderColor: 'var(--global-border-color, #1f2937)' }}>
         <form onSubmit={handleSearchSubmit} className="flex items-center gap-1">
           <Input
             type="text"
@@ -87,8 +87,8 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
             onChange={handleSearchChange}
             className="flex-1 h-8 text-sm bg-transparent border-gray-700"
             style={{
-              color: 'var(--global-textColor, #e5e7eb)',
-              borderColor: 'var(--global-borderColor, rgba(75, 85, 99, 0.5))'
+              color: 'var(--global-text-color, #e5e7eb)',
+              borderColor: 'var(--global-border-color, rgba(75, 85, 99, 0.5))'
             }}
           />
           {searchTerm && (
@@ -125,14 +125,14 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
       {/* Split container - top half */}
       <div className="Sidebar h-[calc(50%-24px)] border-b" 
         style={{
-          borderColor: 'var(--global-borderColor, #1f2937)'
+          borderColor: 'var(--global-border-color, #1f2937)'
         }}
       >
         <div className="Sidebar p-2 px-3 text-sm font-medium border-b" 
           style={{
-            backgroundColor: 'var(--global-backgroundColor, rgba(31, 41, 55, 0.7))',
-            borderColor: 'var(--global-borderColor, rgba(75, 85, 99, 0.5))',
-            color: 'var(--global-textColor, #d1d5db)'
+            backgroundColor: 'var(--global-background-color, rgba(31, 41, 55, 0.7))',
+            borderColor: 'var(--global-border-color, rgba(75, 85, 99, 0.5))',
+            color: 'var(--global-text-color, #d1d5db)'
           }}
         >
           {searchResults ? `Search Results (${searchResults.length})` : null}
@@ -148,7 +148,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
         </div>
         <div className="Sidebar h-[calc(100%-32px)]" 
           style={{
-            backgroundColor: 'var(--global-backgroundColor, #111827)'
+            backgroundColor: 'var(--global-background-color, #111827)'
           }}
         >
           <HistoricalConvTreeList searchResults={searchResults} />
@@ -159,16 +159,16 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
       <div className="Sidebar h-[calc(50%-24px)]">
         <div className="Sidebar p-2 px-3 text-sm font-medium border-b" 
           style={{
-            backgroundColor: 'var(--global-backgroundColor, rgba(31, 41, 55, 0.7))',
-            borderColor: 'var(--global-borderColor, rgba(75, 85, 99, 0.5))',
-            color: 'var(--global-textColor, #d1d5db)'
+            backgroundColor: 'var(--global-background-color, rgba(31, 41, 55, 0.7))',
+            borderColor: 'var(--global-border-color, rgba(75, 85, 99, 0.5))',
+            color: 'var(--global-text-color, #d1d5db)'
           }}
         >
 
         </div>
         <div className="Sidebar h-[calc(100%-32px)] overflow-auto" 
           style={{
-            backgroundColor: 'var(--global-backgroundColor, #111827)'
+            backgroundColor: 'var(--global-background-color, #111827)'
           }}
         >
           {currentConvId && convs[currentConvId] ? (
@@ -180,7 +180,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
           ) : (
             <div className="Sidebar text-center p-4" 
               style={{
-                color: 'var(--global-textColor, #9ca3af)'
+                color: 'var(--global-text-color, #9ca3af)'
               }}
             >
               <p>Select a conversation to view its structure</p>
@@ -198,11 +198,11 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
         onClick={!wsState.isConnected ? onReconnectClick : undefined}
         title={!wsState.isConnected ? 'Click to reconnect' : undefined}
         style={{
-          backgroundColor: 'var(--global-backgroundColor, #1f2937)',
-          borderColor: 'var(--global-borderColor, #1f2937)',
+          backgroundColor: 'var(--global-background-color, #1f2937)',
+          borderColor: 'var(--global-border-color, #1f2937)',
           ...((!wsState.isConnected) ? {
             '&:hover': {
-              backgroundColor: 'var(--global-backgroundColor, rgba(55, 65, 81, 0.5))'
+              backgroundColor: 'var(--global-background-color, rgba(55, 65, 81, 0.5))'
             }
           } : {})
         }}
@@ -212,7 +212,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
             className="w-2 h-2 rounded-full shadow-glow"
             style={{
               backgroundColor: wsState.isConnected ? 
-                'var(--global-primaryColor, #10b981)' : 
+                'var(--global-primary-color, #10b981)' : 
                 '#ef4444',
               boxShadow: wsState.isConnected ?
                 '0 0 8px rgba(16, 185, 129, 0.6)' :
@@ -221,7 +221,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
           />
           <span className="Sidebar text-xs" 
             style={{
-              color: 'var(--global-textColor, #d1d5db)'
+              color: 'var(--global-text-color, #d1d5db)'
             }}
           >
             WebSocket: {wsState.isConnected ? 'Connected' : 'Disconnected'}
@@ -230,7 +230,7 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
         {wsState.clientId && 
           <div className="Sidebar mt-1 text-xs truncate" 
             style={{
-              color: 'var(--global-textColor, #9ca3af)'
+              color: 'var(--global-text-color, #9ca3af)'
             }}
           >
             ID: {wsState.clientId}

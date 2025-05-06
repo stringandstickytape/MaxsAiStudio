@@ -1,4 +1,4 @@
-﻿import { Command } from 'lucide-react';
+import { Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
@@ -48,12 +48,12 @@ export function AppHeader({
                 'AppHeader header-section relative z-2 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
             )}
             style={{
-                backgroundColor: 'var(--global-backgroundColor, #1a1f2c)', // Default dark blue-gray
-                color: 'var(--global-textColor, #e0e0e0)',
-                borderColor: 'var(--global-borderColor, #3a3f4c)',
-                fontFamily: 'var(--global-fontFamily, inherit)',
-                fontSize: 'var(--global-fontSize, 0.875rem)',
-                boxShadow: 'var(--global-boxShadow, 0 2px 4px rgba(0,0,0,0.2))',
+                backgroundColor: 'var(--global-background-color, #1a1f2c)', // Default dark blue-gray
+                color: 'var(--global-text-color, #e0e0e0)',
+                borderColor: 'var(--global-border-color, #3a3f4c)',
+                fontFamily: 'var(--global-font-family, inherit)',
+                fontSize: 'var(--global-font-size, 0.875rem)',
+                boxShadow: 'var(--global-box-shadow, 0 2px 4px rgba(0,0,0,0.2))',
                 ...(window?.theme?.AppHeader?.style || {})
             }}
             >

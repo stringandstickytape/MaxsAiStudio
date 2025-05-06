@@ -1,4 +1,4 @@
-﻿# Font CDN URL Implementation
+# Font CDN URL Implementation
 
 ## Overview
 
@@ -43,7 +43,7 @@ AI models can now specify a font CDN URL when creating or modifying themes by in
 {
   "theme-name": "Custom Font Theme",
   "global-fontCdnUrl": "https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap",
-  "global-fontFamily": "'Roboto', sans-serif"
+  "global-font-family": "'Roboto', sans-serif"
 }
 ```
 

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { processAttachments } from '@/utils/attachmentUtils';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
@@ -234,11 +234,11 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
     return (
         <div className="HistoricalConvTreeList flex flex-col h-full" 
             style={{
-                backgroundColor: 'var(--global-backgroundColor, transparent)',
-                color: 'var(--global-textColor, #e5e7eb)',
-                borderColor: 'var(--global-borderColor, #374151)',
-                fontFamily: 'var(--global-fontFamily, inherit)',
-                fontSize: 'var(--global-fontSize, inherit)',
+                backgroundColor: 'var(--global-background-color, transparent)',
+                color: 'var(--global-text-color, #e5e7eb)',
+                borderColor: 'var(--global-border-color, #374151)',
+                fontFamily: 'var(--global-font-family, inherit)',
+                fontSize: 'var(--global-font-size, inherit)',
                 ...(window?.theme?.HistoricalConvTreeList?.style || {})
             }}
         >
@@ -253,7 +253,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                 {displayedConvs.length === 0 ? (
                     <div className="HistoricalConvTreeList p-4 text-center flex flex-col items-center"
                         style={{
-                            color: 'var(--global-textColor, #9ca3af)',
+                            color: 'var(--global-text-color, #9ca3af)',
                             ...(window?.theme?.HistoricalConvTreeList?.style || {})
                         }}
                     >
@@ -261,7 +261,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                             <>
                                 <MessageSquare size={24} className="HistoricalConvTreeList mb-2" 
                                     style={{
-                                        color: 'var(--global-textColor, #6b7280)',
+                                        color: 'var(--global-text-color, #6b7280)',
                                         ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                     }}
                                 />
@@ -271,7 +271,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                             <>
                                 <MessageSquare size={24} className="HistoricalConvTreeList mb-2" 
                                     style={{
-                                        color: 'var(--global-textColor, #6b7280)',
+                                        color: 'var(--global-text-color, #6b7280)',
                                         ...(window?.theme?.HistoricalConvTreeList?.style || {})
                                     }}
                                 />
@@ -293,11 +293,11 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                                     style={{ 
                                         display: 'block', 
                                         wordBreak: 'break-word',
-                                        color: 'var(--global-textColor, #e5e7eb)',
-                                        backgroundColor: 'var(--global-backgroundColor, transparent)',
+                                        color: 'var(--global-text-color, #e5e7eb)',
+                                        backgroundColor: 'var(--global-background-color, transparent)',
                                         border: 'none',
                                         ':hover': {
-                                            backgroundColor: 'var(--global-primaryColor, rgba(31, 41, 55, 0.4))',
+                                            backgroundColor: 'var(--global-primary-color, rgba(31, 41, 55, 0.4))',
                                             opacity: 0.7
                                         },
                                         ...(window?.theme?.HistoricalConvTreeList?.style || {})

@@ -26,3 +26,4 @@ This feature provides a UI component listing all TSX files that export `themeabl
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/ui/unified-modal-dialog/UnifiedModalDialog.tsx
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/ui/unified-modal-dialog/UnifiedModalFooter.tsx
 - [x] C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudioClient/src/components/ui/unified-modal-dialog/UnifiedModalHeader.tsx
+- [x] C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\AiStudioClient\src\components\CommandBar.tsx

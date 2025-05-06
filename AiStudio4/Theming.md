@@ -1,4 +1,4 @@
-﻿# Theming.md - How to Add Flexible Theming Support to AiStudio4 Components
+# Theming.md - How to Add Flexible Theming Support to AiStudio4 Components
 
 This guide explains how to make any React component in AiStudio4 **extensively themeable** using the project's ThemeManager system. It includes best practices and lessons learned.
 
@@ -313,9 +313,9 @@ See `SystemPromptComponent.tsx` and `main.tsx` for a full example of this approa
 ```json
 {
   "properties": {
-    "global-backgroundColor": "#f5f5f5",
-    "global-textColor": "#333333",
-    "global-primaryColor": "#007acc",
+    "global-background-color": "#f5f5f5",
+    "global-text-color": "#333333",
+    "global-primary-color": "#007acc",
     "SystemPromptComponent-backgroundColor": "#f5f5f5",
     "SystemPromptComponent-borderColor": "#3498db",
     "SystemPromptComponent-borderRadius": "8px",
@@ -386,7 +386,7 @@ window.applyLLMTheme(yourJson)
 
 ```
 SystemPromptComponent-pillInactiveBg
-global-backgroundColor
+global-background-color
 ```
 
 - Example of **invalid** keys:

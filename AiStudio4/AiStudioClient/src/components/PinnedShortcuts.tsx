@@ -1,4 +1,4 @@
-﻿// AiStudioClient\src\components\PinnedShortcuts.tsx
+// AiStudioClient\src\components\PinnedShortcuts.tsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -310,9 +310,9 @@ export function PinnedShortcuts({
                         className,
                     )}
                     style={{
-                        fontFamily: 'var(--global-fontFamily, inherit)',
-                        fontSize: 'var(--global-fontSize, inherit)',
-                        color: 'var(--global-textColor, #e5e7eb)',
+                        fontFamily: 'var(--global-font-family, inherit)',
+                        fontSize: 'var(--global-font-size, inherit)',
+                        color: 'var(--global-text-color, #e5e7eb)',
                         ...(window?.theme?.PinnedShortcuts?.style || {})
                     }}
                 >
