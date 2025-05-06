@@ -32,31 +32,28 @@ interface SearchState {
 export const useSearchStore = create<SearchState>((set, get) => {
   // Initialize WebSocket event listeners
   if (typeof window !== 'undefined') {
-    window.addEventListener('websocket:message', (event: any) => {
+    // Listen for search events dispatched as 'message:received' (see WebSocketService)
+    window.addEventListener('message:received', (event: any) => {
       const data = event.detail;
       const currentSearchId = get().searchId;
-
-      if (data.messageType === 'searchStarted') {
+      const type = data.messageType;
+      if (type === 'searchStarted') {
         const { searchId } = data.content;
         if (searchId === currentSearchId) set({ isSearching: true });
-      }
-      else if (data.messageType === 'searchResultPartial') {
+      } else if (type === 'searchResultPartial') {
         const { searchId, result } = data.content;
         if (searchId === currentSearchId) {
           get().addSearchResult(result);
         }
-      }
-      else if (data.messageType === 'searchResultsComplete') {
+      } else if (type === 'searchResultsComplete') {
         const { searchId } = data.content;
         if (searchId === currentSearchId) {
           get().markSearchComplete();
         }
-      }
-      else if (data.messageType === 'searchCancelled') {
+      } else if (type === 'searchCancelled') {
         const { searchId } = data.content;
         if (searchId === currentSearchId) set({ isSearching: false });
-      }
-      else if (data.messageType === 'searchError') {
+      } else if (type === 'searchError') {
         set({ searchError: data.content.error, isSearching: false });
       }
     });
@@ -98,6 +95,7 @@ export const useSearchStore = create<SearchState>((set, get) => {
         isSearching: true,
         highlightedMessageId: null
       });
+        
       webSocketService.send({
         messageType: 'searchConversations',
         content: {
