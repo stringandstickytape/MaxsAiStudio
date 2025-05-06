@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace AiStudio4.Core.Tools
 {
@@ -17,9 +18,11 @@ namespace AiStudio4.Core.Tools
     public class RecordMistakeTool : BaseToolImplementation
     {
         private const string MISTAKES_FILE_PATH = "CommonAiMistakes.md";
+        private readonly ISecondaryAiService _secondaryAiService;
 
-        public RecordMistakeTool(ILogger<RecordMistakeTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public RecordMistakeTool(ILogger<RecordMistakeTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, ISecondaryAiService secondaryAiService) : base(logger, generalSettingsService, statusMessageService)
         {
+            _secondaryAiService = secondaryAiService ?? throw new ArgumentNullException(nameof(secondaryAiService));
         }
 
         /// <summary>
@@ -73,7 +76,7 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a RecordMistake tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
             {
@@ -131,14 +134,93 @@ namespace AiStudio4.Core.Tools
                     }
                 }
 
-                SendStatusUpdate("Mistake recorded successfully.");
-                return Task.FromResult(CreateResult(true, true, $"Mistake '{mistakeTitle}' has been recorded in {MISTAKES_FILE_PATH}"));
+                SendStatusUpdate("Mistake recorded successfully. Starting consolidation process...");
+                
+                // Consolidate mistakes using the secondary AI and await the result
+                await ConsolidateMistakesAsync(mistakeTitle, mistakeDescription, rootCause, preventionStrategy);
+                
+                return CreateResult(true, true, $"Mistake '{mistakeTitle}' has been recorded in {MISTAKES_FILE_PATH} and the file has been consolidated");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing RecordMistake tool");
                 SendStatusUpdate($"Error processing RecordMistake tool: {ex.Message}");
-                return Task.FromResult(CreateResult(true, true, $"Error processing RecordMistake tool: {ex.Message}"));
+                return CreateResult(true, true, $"Error processing RecordMistake tool: {ex.Message}");
+            }
+        }
+        
+        /// <summary>
+        /// Consolidates the mistakes file using the secondary AI
+        /// </summary>
+        private async Task ConsolidateMistakesAsync(string newMistakeTitle, string newMistakeDescription, string newRootCause, string newPreventionStrategy)
+        {
+            try
+            {
+                SendStatusUpdate("Starting mistake consolidation process...");
+                var mistakesFilePath = Path.Combine(_projectRoot, MISTAKES_FILE_PATH);
+                
+                // Check if file exists
+                if (!File.Exists(mistakesFilePath))
+                {
+                    _logger.LogWarning("Mistakes file not found for consolidation");
+                    SendStatusUpdate("Mistakes file not found for consolidation");
+                    return;
+                }
+                
+                // Read the entire file content
+                SendStatusUpdate("Reading mistakes file...");
+                string fileContent = await File.ReadAllTextAsync(mistakesFilePath);
+                
+                // Create a record of the new mistake to preserve after consolidation
+                var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                var newMistakeEntry = new StringBuilder(fileContent);
+                newMistakeEntry.AppendLine($"## {newMistakeTitle}");
+                newMistakeEntry.AppendLine($"*Recorded: {timestamp}*");
+                newMistakeEntry.AppendLine();
+                newMistakeEntry.AppendLine("### Description");
+                newMistakeEntry.AppendLine(newMistakeDescription);
+                newMistakeEntry.AppendLine();
+                newMistakeEntry.AppendLine("### Root Cause");
+                newMistakeEntry.AppendLine(newRootCause);
+                newMistakeEntry.AppendLine();
+                newMistakeEntry.AppendLine("### Prevention Strategy");
+                newMistakeEntry.AppendLine(newPreventionStrategy);
+                newMistakeEntry.AppendLine();
+                newMistakeEntry.AppendLine("---");
+                newMistakeEntry.AppendLine();
+                
+                // Create the prompt for the secondary AI
+                SendStatusUpdate("Preparing consolidation request...");
+                string prompt = $"Produce a single consolidated guide to error prevention based on this file. Do not add anything, merely consolidate and \"boil down\".\n\n```\n{newMistakeEntry}\n```";
+                
+                // Process the request with the secondary AI
+                SendStatusUpdate("Sending mistake consolidation request to secondary AI...");
+                var response = await _secondaryAiService.ProcessRequestAsync(prompt);
+                
+                if (!response.Success)
+                {
+                    _logger.LogError("Secondary AI consolidation failed: {Error}", response.Error);
+                    SendStatusUpdate($"Consolidation failed: {response.Error}");
+                    return;
+                }
+                
+                // Create the consolidated content with the new mistakes section
+                SendStatusUpdate("Processing AI response...");
+                var consolidatedContent = new StringBuilder();
+                consolidatedContent.Append(response.Response.Trim());
+                consolidatedContent.AppendLine("\n\n\nNew mistakes since last consolidation:\n");
+                consolidatedContent.Append(newMistakeEntry.ToString());
+                
+                // Write the consolidated content back to the file
+                SendStatusUpdate("Writing consolidated content to file...");
+                await File.WriteAllTextAsync(mistakesFilePath, consolidatedContent.ToString());
+                
+                SendStatusUpdate("Mistake consolidation completed successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error consolidating mistakes");
+                SendStatusUpdate($"Error during mistake consolidation: {ex.Message}");
             }
         }
     }
