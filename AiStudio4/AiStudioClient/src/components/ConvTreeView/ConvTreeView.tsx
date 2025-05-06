@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { Message } from '@/types/conv';
 import { useConvStore } from '@/stores/useConvStore';
 import { useThemeStore } from '@/stores/useThemeStore';
+import { useSearchStore } from '@/stores/useSearchStore';
 import { TreeViewProps } from './types';
 import { useMessageTree } from './useMessageTree';
 import { useTreeVisualization } from './useTreeVisualization';
@@ -14,6 +15,7 @@ import { TreeControls } from './TreeControls';
 const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const [updateKey, setUpdateKey] = useState(0);
     const { setActiveConv, convs, slctdMsgId } = useConvStore();
+    const { searchResults, highlightedMessageId } = useSearchStore();
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     
@@ -112,7 +114,9 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
         onNodeClick: handleNodeClick,
         onNodeMiddleClick: handleNodeMiddleClick,
         updateKey,
-        selectedMessageId: slctdMsgId
+        selectedMessageId: slctdMsgId,
+        searchResults,
+        highlightedMessageId
     });
     
     // Update selected node when slctdMsgId changes without full re-initialization
@@ -160,6 +164,26 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                         backgroundColor: 'var(--convtree-bg, var(--global-background-color, #111827))'
                     }}
                 />
+                
+                {/* Display search match count if available */}
+                {searchResults && searchResults.some(result => result.conversationId === convId) && (
+                    <div 
+                        className="ConvTreeView absolute top-4 right-4 text-xs"
+                        style={{
+                            backgroundColor: 'rgba(31, 41, 55, 0.8)',
+                            color: 'white',
+                            padding: '4px 12px',
+                            borderRadius: '9999px',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                            border: `1px solid var(--convtree-accent-color, #4f46e5)`
+                        }}
+                    >
+                        {searchResults
+                            .filter(result => result.conversationId === convId)
+                            .map(result => `${result.matchingMessageIds.length} matching ${result.matchingMessageIds.length === 1 ? 'message' : 'messages'}`)
+                            .join(', ')}
+                    </div>
+                )}
 
                 {/* Tree controls */
                     <TreeControls

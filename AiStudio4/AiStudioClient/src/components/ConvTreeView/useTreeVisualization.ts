@@ -12,6 +12,8 @@ interface UseTreeVisualizationParams {
   onNodeMiddleClick: (event: any, nodeId: string) => void;
   updateKey: number;
   selectedMessageId?: string | null;
+  searchResults?: { conversationId: string; matchingMessageIds: string[] }[] | null;
+  highlightedMessageId?: string | null;
 }
 
 export const useTreeVisualization = ({
@@ -21,7 +23,9 @@ export const useTreeVisualization = ({
   onNodeClick,
   onNodeMiddleClick,
   updateKey,
-  selectedMessageId
+  selectedMessageId,
+  searchResults,
+  highlightedMessageId
 }: UseTreeVisualizationParams) => {
   // Ref to store the zoom behavior
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
@@ -144,6 +148,20 @@ export const useTreeVisualization = ({
   // D3 visualization effect
     useEffect(() => {
     if (!svgRef.current || !containerRef.current || !hierarchicalData) return;
+    
+    // Create a glow filter for search matches
+    const defs = d3.select(svgRef.current).append('defs');
+    const filter = defs.append('filter')
+      .attr('id', 'glow');
+    
+    filter.append('feGaussianBlur')
+      .attr('stdDeviation', '2')
+      .attr('result', 'blur');
+      
+    filter.append('feComposite')
+      .attr('in', 'SourceGraphic')
+      .attr('in2', 'blur')
+      .attr('operator', 'over');
     
     // Get theme values from CSS variables
     const getThemeColor = (varName: string, fallback: string) => {
@@ -268,6 +286,17 @@ export const useTreeVisualization = ({
       .attr('ry', 10)
       .attr('fill', (d) => {
         const source = d.data.source;
+        const isSearchMatch = searchResults?.some(result => 
+          result.matchingMessageIds.includes(d.data.id)
+        );
+        
+        // Apply a slightly different color for search matches
+        if (isSearchMatch) {
+          if (source === 'user') return d3.color(userNodeColor)?.brighter(0.3)?.toString() || userNodeColor;
+          if (source === 'system') return d3.color(systemNodeColor)?.brighter(0.3)?.toString() || systemNodeColor;
+          return d3.color(aiNodeColor)?.brighter(0.3)?.toString() || aiNodeColor;
+        }
+        
         if (source === 'user') return userNodeColor;
         if (source === 'system') return systemNodeColor;
         return aiNodeColor;
@@ -300,6 +329,53 @@ export const useTreeVisualization = ({
       .attr('class', (d) => {
         // Add selected class if this node matches the selectedMessageId
         return `node-rect ConvTreeView ${d.data.id === selectedMessageId ? 'selected' : ''}`;
+      })
+      .attr('stroke', (d) => {
+        // Check if this node is in search results
+        const isSearchMatch = searchResults?.some(result => 
+          result.matchingMessageIds.includes(d.data.id)
+        );
+        
+        // Check if this is the highlighted message
+        const isHighlighted = d.data.id === highlightedMessageId;
+        
+        if (isHighlighted) {
+          return getThemeColor('--convtree-accent-color', '#4f46e5');
+        } else if (isSearchMatch) {
+          return getThemeColor('--convtree-accent-color', '#4f46e5');
+        } else if (d.data.id === selectedMessageId) {
+          return '#f59e0b'; // Amber color for selected nodes
+        }
+        
+        // Default stroke based on message source
+        const source = d.data.source;
+        if (source === 'user') return userNodeBorderColor;
+        if (source === 'system') return systemNodeBorderColor;
+        return aiNodeBorderColor;
+      })
+      .attr('stroke-width', (d) => {
+        // Check if this node is in search results
+        const isSearchMatch = searchResults?.some(result => 
+          result.matchingMessageIds.includes(d.data.id)
+        );
+        
+        // Check if this is the highlighted message
+        const isHighlighted = d.data.id === highlightedMessageId;
+        
+        if (isHighlighted) {
+          return '3px';
+        } else if (isSearchMatch) {
+          return '2px';
+        } else if (d.data.id === selectedMessageId) {
+          return '2px';
+        }
+        
+        // Default stroke width
+        return '1px';
+      })
+      .attr('filter', (d) => {
+        // Apply glow effect to highlighted message
+        return d.data.id === highlightedMessageId ? 'url(#glow)' : null;
       });
 
     // Create label groups
@@ -417,17 +493,102 @@ export const useTreeVisualization = ({
   const updateSelectedNode = useCallback((messageId: string) => {
     if (!svgRef.current) return;
     
-    // Remove previous selection highlight
-    d3.select(svgRef.current).selectAll('.node-rect').classed('selected', false);
+    // Helper function to get theme colors - duplicated from the main effect
+    // to ensure we have access to these values in this callback
+    const getThemeColorForUpdate = (varName: string, fallback: string) => {
+      let value = '';
+      if (containerRef.current && document.body.contains(containerRef.current)) {
+        value = getComputedStyle(containerRef.current).getPropertyValue(varName);
+      }
+      if (!value || value.trim() === '') {
+        value = getComputedStyle(document.documentElement).getPropertyValue(varName);
+      }
+      return value && value.trim() !== '' ? value : fallback;
+    };
     
-    // Find and highlight the new selected node
+    // Get theme colors for borders
+    const userBorderColor = getThemeColorForUpdate('--user-message-border-color', getThemeColorForUpdate('--convtree-user-node-border', '#1e3a8a'));
+    const systemBorderColor = getThemeColorForUpdate('--convtree-system-node-border', '#374151');
+    const aiBorderColor = getThemeColorForUpdate('--ai-message-border-color', getThemeColorForUpdate('--convtree-ai-node-border', '#4338ca'));
+    
+    // Get border widths
+    const userBorderWidth = getThemeColorForUpdate('--user-message-border-width', '1px');
+    const aiBorderWidth = getThemeColorForUpdate('--ai-message-border-width', '1px');
+    
+    // Find all nodes
     const nodes = d3.select(svgRef.current).selectAll('.node');
-    const selectedNode = nodes.filter((d: any) => d.data.id === messageId);
     
-    if (!selectedNode.empty()) {
-      selectedNode.select('.node-rect').classed('selected', true);
+    // Update all nodes to reflect current selection, search results, and highlighted message
+    nodes.each(function(d: any) {
+      const node = d3.select(this);
+      const nodeRect = node.select('.node-rect');
+      
+      // Check if this node is in search results
+      const isSearchMatch = searchResults?.some(result => 
+        result.matchingMessageIds.includes(d.data.id)
+      );
+      
+      // Check if this is the highlighted message
+      const isHighlighted = d.data.id === highlightedMessageId;
+      
+      // Check if this is the selected message
+      const isSelected = d.data.id === messageId;
+      
+      // Update class for selection
+      nodeRect.classed('selected', isSelected);
+      
+      // Update stroke color and width based on status
+      if (isHighlighted) {
+        nodeRect.attr('stroke', getThemeColorForUpdate('--convtree-accent-color', '#4f46e5'));
+        nodeRect.attr('stroke-width', '3px');
+        nodeRect.attr('filter', 'url(#glow)');
+      } else if (isSearchMatch) {
+        nodeRect.attr('stroke', getThemeColorForUpdate('--convtree-accent-color', '#4f46e5'));
+        nodeRect.attr('stroke-width', '2px');
+        nodeRect.attr('filter', null);
+      } else if (isSelected) {
+        nodeRect.attr('stroke', '#f59e0b');
+        nodeRect.attr('stroke-width', '2px');
+        nodeRect.attr('filter', null);
+      } else {
+        // Reset to default
+        const source = d.data.source;
+        if (source === 'user') {
+          nodeRect.attr('stroke', userBorderColor);
+          nodeRect.attr('stroke-width', userBorderWidth);
+        } else if (source === 'system') {
+          nodeRect.attr('stroke', systemBorderColor);
+          nodeRect.attr('stroke-width', '1px');
+        } else {
+          nodeRect.attr('stroke', aiBorderColor);
+          nodeRect.attr('stroke-width', aiBorderWidth);
+        }
+        nodeRect.attr('filter', null);
+      }
+    });
+    
+    // If this is also the highlighted message from search, scroll to it
+    if (messageId === highlightedMessageId) {
+      const selectedNode = nodes.filter((d: any) => d.data.id === messageId);
+      if (!selectedNode.empty() && containerRef.current && zoomRef.current) {
+        const nodeData = selectedNode.datum() as any;
+        const containerWidth = containerRef.current.clientWidth;
+        const containerHeight = containerRef.current.clientHeight;
+        
+        // Smoothly zoom to the highlighted node
+        d3.select(svgRef.current)
+          .transition()
+          .duration(500)
+          .call(
+            zoomRef.current.transform,
+            d3.zoomIdentity
+              .translate(containerWidth / 2, containerHeight / 2)
+              .scale(1.2)
+              .translate(-nodeData.x, -nodeData.y)
+          );
+      }
     }
-  }, [svgRef]);
+  }, [svgRef, highlightedMessageId, searchResults, containerRef, zoomRef]);
   
   // Apply initial selection if selectedMessageId is provided
   useEffect(() => {
@@ -435,6 +596,38 @@ export const useTreeVisualization = ({
       updateSelectedNode(selectedMessageId);
     }
   }, [selectedMessageId, updateSelectedNode, updateKey]);
+  
+  // Update search match highlighting when search results change
+  useEffect(() => {
+    if (!svgRef.current) return;
+    
+    // Update all nodes to reflect current search results
+    updateSelectedNode(selectedMessageId || '');
+    
+    // If we have a highlighted message, scroll to it
+    if (highlightedMessageId) {
+      const nodes = d3.select(svgRef.current).selectAll('.node');
+      const highlightedNode = nodes.filter((d: any) => d.data.id === highlightedMessageId);
+      
+      if (!highlightedNode.empty() && containerRef.current && zoomRef.current) {
+        const nodeData = highlightedNode.datum() as any;
+        const containerWidth = containerRef.current.clientWidth;
+        const containerHeight = containerRef.current.clientHeight;
+        
+        // Smoothly zoom to the highlighted node
+        d3.select(svgRef.current)
+          .transition()
+          .duration(500)
+          .call(
+            zoomRef.current.transform,
+            d3.zoomIdentity
+              .translate(containerWidth / 2, containerHeight / 2)
+              .scale(1.2)
+              .translate(-nodeData.x, -nodeData.y)
+          );
+      }
+    }
+  }, [searchResults, highlightedMessageId, svgRef, containerRef, zoomRef, updateSelectedNode, selectedMessageId]);
 
   // Track previous hierarchicalData to detect new messages
   const [prevHierarchicalData, setPrevHierarchicalData] = useState<TreeNode | null>(null);

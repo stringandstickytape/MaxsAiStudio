@@ -23,3 +23,13 @@
    - Use properly structured JSON objects, not string-escaped JSON, when calling tools like ModifyFiles.  
    - Ensure arrays such as the modifications array are direct JSON arrays, not strings.  
    - Prefer using the tool’s function call interface over manual JSON construction to avoid formatting errors.
+
+6. **CSS File Modification Restrictions**  
+   - Do not modify global CSS files to add styles for search matches, highlighted messages, or tree view elements if not allowed.  
+   - Use inline styles or component-specific styling approaches instead.  
+   - For D3 visualizations, apply styles directly through D3's API or SVG attributes rather than modifying CSS files.
+
+7. **Variable Scope in React Hooks**  
+   - Avoid referencing variables defined inside one effect scope from functions or callbacks outside that scope.  
+   - Define shared variables at the hook level (outside any effects), pass them as dependencies to `useCallback` functions, or recreate the values where needed.  
+   - Always verify that variables used in callbacks or functions are accessible in their scope to prevent runtime errors.
