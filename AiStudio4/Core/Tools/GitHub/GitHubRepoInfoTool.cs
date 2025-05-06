@@ -80,19 +80,19 @@ namespace AiStudio4.Core.Tools.GitHub
                 // Extract parameters
                 if (!parameters.TryGetValue("owner", out var ownerObj) || !(ownerObj is string owner) || string.IsNullOrWhiteSpace(owner))
                 {
-                    return CreateResult(true, true, "Error: 'owner' parameter is required.");
+                    return CreateResult(true, true, $"Parameters: owner=<missing>, repo=<unknown>\n\nError: 'owner' parameter is required.");
                 }
 
                 if (!parameters.TryGetValue("repo", out var repoObj) || !(repoObj is string repo) || string.IsNullOrWhiteSpace(repo))
                 {
-                    return CreateResult(true, true, "Error: 'repo' parameter is required.");
+                    return CreateResult(true, true, $"Parameters: owner={owner}, repo=<missing>\n\nError: 'repo' parameter is required.");
                 }
 
                 // Get API key from settings
                 string apiKey = _generalSettingsService?.CurrentSettings?.GitHubApiKey;
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
-                    return CreateResult(true, true, "Error: GitHub API Key is not configured. Please set it in File > Settings > Set GitHub API Key.");
+                    return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}\n\nError: GitHub API Key is not configured. Please set it in File > Settings > Set GitHub API Key.");
                 }
 
                 // Set up authentication header
@@ -104,12 +104,12 @@ namespace AiStudio4.Core.Tools.GitHub
             catch (JsonException jsonEx)
             {
                 _logger.LogError(jsonEx, "Error deserializing GitHub tool parameters");
-                return CreateResult(true, true, $"Error processing GitHub tool parameters: Invalid JSON format. {jsonEx.Message}");
+                return CreateResult(true, true, $"Parameters: <invalid JSON>\n\nError processing GitHub tool parameters: Invalid JSON format. {jsonEx.Message}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing GitHub tool");
-                return CreateResult(true, true, $"Error processing GitHub tool: {ex.Message}");
+                return CreateResult(true, true, $"Parameters: <unknown>\n\nError processing GitHub tool: {ex.Message}");
             }
         }
 
@@ -127,7 +127,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 {
                     var errorObj = JObject.Parse(content);
                     string errorMessage = errorObj["message"]?.ToString() ?? "Unknown error";
-                    return CreateResult(true, true, $"GitHub API Error: {errorMessage} (Status code: {response.StatusCode})");
+                    return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}\n\nGitHub API Error: {errorMessage} (Status code: {response.StatusCode})");
                 }
                 
                 var formattedContent = FormatRepositoryInfo(content);
@@ -138,7 +138,7 @@ namespace AiStudio4.Core.Tools.GitHub
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "Error fetching repository information");
-                return CreateResult(true, true, $"Error fetching repository information: {ex.Message}");
+                return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}\n\nError fetching repository information: {ex.Message}");
             }
         }
 

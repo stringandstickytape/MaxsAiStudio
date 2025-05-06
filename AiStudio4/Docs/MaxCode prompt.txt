@@ -47,7 +47,6 @@ When using ModifyFile:
   - Include 3-5 lines of context before and after the change point
   - Ensure your selection uniquely identifies the specific instance
   - Include all whitespace and indentation exactly
-  - Make one change instance per tool call if multiple instances exist
   - Verify how many instances of target text exist before modifying
 - For larger changes (over 30% of file), use ReplaceFile instead
 - Ensure edits result in correct, idiomatic code

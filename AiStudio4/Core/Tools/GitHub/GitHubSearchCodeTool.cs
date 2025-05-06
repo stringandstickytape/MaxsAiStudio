@@ -95,7 +95,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 // Extract required parameter
                 if (!parameters.TryGetValue("q", out var queryObj) || !(queryObj is string query) || string.IsNullOrWhiteSpace(query))
                 {
-                    return CreateResult(true, true, "Error: 'q' parameter is required.");
+                    return CreateResult(true, true, $"Parameters: q=<missing>, per_page=<unknown>, page=<unknown>, sort=<unknown>, order=<unknown>\n\nError: 'q' parameter is required.");
                 }
 
                 // Extract optional parameters
@@ -130,24 +130,25 @@ namespace AiStudio4.Core.Tools.GitHub
                 page = Math.Max(1, page);
 
                 string sort = null;
+                string order = null;
                 if (parameters.TryGetValue("sort", out var sortObj) && sortObj is string sortStr && !string.IsNullOrWhiteSpace(sortStr))
                 {
                     sort = sortStr.ToLowerInvariant();
                     // Validate sort value
                     if (sort != "indexed" && sort != "best-match")
                     {
-                        return CreateResult(true, true, "Error: 'sort' parameter must be 'indexed' or 'best-match'.");
+                        return CreateResult(true, true, $"Parameters: q={query}, per_page={perPage}, page={page}, sort={sort}, order={order}\n\nError: 'sort' parameter must be 'indexed' or 'best-match'.");
                     }
                 }
 
-                string order = null;
+                
                 if (parameters.TryGetValue("order", out var orderObj) && orderObj is string orderStr && !string.IsNullOrWhiteSpace(orderStr))
                 {
                     order = orderStr.ToLowerInvariant();
                     // Validate order value
                     if (order != "desc" && order != "asc")
                     {
-                        return CreateResult(true, true, "Error: 'order' parameter must be 'desc' or 'asc'.");
+                        return CreateResult(true, true, $"Parameters: q={query}, per_page={perPage}, page={page}, sort={sort}, order={order}\n\nError: 'order' parameter must be 'desc' or 'asc'.");
                     }
                 }
 
@@ -155,7 +156,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 string apiKey = _generalSettingsService?.CurrentSettings?.GitHubApiKey;
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
-                    return CreateResult(true, true, "Error: GitHub API Key is not configured. Please set it in File > Settings > Set GitHub API Key.");
+                    return CreateResult(true, true, $"Parameters: q={query}, per_page={perPage}, page={page}, sort={sort}, order={order}\n\nError: GitHub API Key is not configured. Please set it in File > Settings > Set GitHub API Key.");
                 }
 
                 // Set up authentication header
@@ -167,12 +168,12 @@ namespace AiStudio4.Core.Tools.GitHub
             catch (JsonException jsonEx)
             {
                 _logger.LogError(jsonEx, "Error deserializing GitHub tool parameters");
-                return CreateResult(true, true, $"Error processing GitHub tool parameters: Invalid JSON format. {jsonEx.Message}");
+                return CreateResult(true, true, $"Parameters: <invalid JSON>\n\nError processing GitHub tool parameters: Invalid JSON format. {jsonEx.Message}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing GitHub tool");
-                return CreateResult(true, true, $"Error processing GitHub tool: {ex.Message}");
+                return CreateResult(true, true, $"Parameters: <unknown>\n\nError processing GitHub tool: {ex.Message}");
             }
         }
 
@@ -207,7 +208,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 {
                     var errorObj = JObject.Parse(content);
                     string errorMessage = errorObj["message"]?.ToString() ?? "Unknown error";
-                    return CreateResult(true, true, $"GitHub API Error: {errorMessage} (Status code: {response.StatusCode})");
+                    return CreateResult(true, true, $"Parameters: q={query}, per_page={perPage}, page={page}, sort={sort}, order={order}\n\nGitHub API Error: {errorMessage} (Status code: {response.StatusCode})");
                 }
                 
                 var formattedContent = FormatSearchResults(content, query, page, perPage);
@@ -218,7 +219,7 @@ namespace AiStudio4.Core.Tools.GitHub
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "Error searching code");
-                return CreateResult(true, true, $"Error searching code: {ex.Message}");
+                return CreateResult(true, true, $"Parameters: q={query}, per_page={perPage}, page={page}, sort={sort}, order={order}\n\nError searching code: {ex.Message}");
             }
         }
 
