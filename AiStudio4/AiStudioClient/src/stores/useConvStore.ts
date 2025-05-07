@@ -32,9 +32,12 @@ export const useConvStore = create<ConvState>((set, get) => {
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             
-            if (activeConvId) {
+            // Get the convId from the message if available, otherwise use activeConvId
+            const targetConvId = content.convId || activeConvId;
+            
+            if (targetConvId) {
                 
-                const conv = getConv(activeConvId);
+                const conv = getConv(targetConvId);
                 let parentId = content.parentId;
 
                 if (!parentId && content.source === 'user') parentId = slctdMsgId;
@@ -57,7 +60,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
                 // First add the message to the conversation
                 addMessage({
-                    convId: activeConvId,
+                    convId: targetConvId,
                     message: {
                         id: content.id,
                         content: content.content,

@@ -52,7 +52,7 @@ namespace AiStudio4.Services
                             durationMs = update.DurationMs
                         }
                     };
-                    await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
+                    await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
                 }
                 // If Content is a conv load message
                 else
