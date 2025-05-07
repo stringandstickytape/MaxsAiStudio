@@ -1,6 +1,7 @@
-﻿import React from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { ServiceProvider } from '@/types/settings';
 import { GenericForm, FormFieldDefinition } from '@/components/common/GenericForm';
+import { createApiRequest } from '@/utils/apiUtils';
 
 interface ServiceProviderFormProps {
   initialValues?: ServiceProvider;
@@ -9,6 +10,40 @@ interface ServiceProviderFormProps {
 }
 
 export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initialValues, onSubmit, isProcessing }) => {
+  const [availableServiceProviders, setAvailableServiceProviders] = useState<{value: string, label: string}[]>([]);
+  const [isLoadingProviders, setIsLoadingProviders] = useState(false);
+
+  useEffect(() => {
+    const fetchAvailableServiceProviders = async () => {
+      setIsLoadingProviders(true);
+      try {
+        // This endpoint needs to be implemented on the server side
+        const response = await createApiRequest('/api/getAvailableServiceProviders', 'POST')({});
+        if (response.serviceProviders) {
+          const providers = response.serviceProviders.map((provider: string) => ({
+            value: provider,
+            label: provider
+          }));
+          setAvailableServiceProviders(providers);
+        }
+      } catch (error) {
+        console.error('Failed to fetch available service providers:', error);
+        // Fallback to some common providers if the API fails
+        setAvailableServiceProviders([
+          { value: 'OpenAI', label: 'OpenAI' },
+          { value: 'Claude', label: 'Claude' },
+          { value: 'Gemini', label: 'Gemini' },
+          { value: 'Mistral', label: 'Mistral' },
+          { value: 'Llama', label: 'Llama' },
+          { value: 'Custom', label: 'Custom' }
+        ]);
+      } finally {
+        setIsLoadingProviders(false);
+      }
+    };
+
+    fetchAvailableServiceProviders();
+  }, []);
   const fields: FormFieldDefinition[] = [
     {
       name: 'friendlyName',
@@ -20,9 +55,11 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
     {
       name: 'serviceName',
       label: 'Service Name',
-      type: 'text',
-      placeholder: 'e.g., OpenAI',
-      description: 'Internal service name (e.g., OpenAI, Claude, Gemini)',
+      type: 'select',
+      description: 'Select the service provider type',
+      options: availableServiceProviders,
+      placeholder: isLoadingProviders ? 'Loading...' : 'Select a service provider',
+      required: true,
       colSpan: 1,
     },
     {

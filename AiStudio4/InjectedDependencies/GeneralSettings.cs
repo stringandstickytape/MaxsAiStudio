@@ -21,6 +21,7 @@ namespace AiStudio4.InjectedDependencies
         public string YouTubeApiKey { get; set; }
         public string GitHubApiKey { get; set; }
         public string CondaPath { get; set; }
+        public bool AllowConnectionsOutsideLocalhost { get; set; } = false;
 
         // New properties using GUIDs for model identification
         public string DefaultModelGuid { get; set; } = string.Empty;

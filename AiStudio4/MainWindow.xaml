@@ -20,6 +20,8 @@
                     <MenuItem Header="_Set Youtube API Key..." Name="SetYouTubeApiKeyMenuItem" Click="SetYouTubeApiKeyMenuItem_Click"/>
                     <MenuItem Header="_Set GitHub API Key..." Name="SetGitHubApiKeyMenuItem" Click="SetGitHubApiKeyMenuItem_Click"/>
                     <MenuItem Header="_Set Conda Path..." Name="SetCondaPathMenuItem" Click="SetCondaPathMenuItem_Click"/>
+                    <Separator/>
+                    <MenuItem Header="_Allow Connections Outside Localhost" Name="AllowConnectionsOutsideLocalhostMenuItem" IsCheckable="True" Click="AllowConnectionsOutsideLocalhostMenuItem_Click"/>
                 </MenuItem>
                 <Separator/>
                 <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>

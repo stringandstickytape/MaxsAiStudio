@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.WebSockets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
@@ -19,28 +20,16 @@ namespace AiStudio4.InjectedDependencies
         private readonly UiRequestBroker _uiRequestBroker;
         private readonly FileServer _fileServer;
         private readonly WebSocketServer _wsServer;
+        private readonly IGeneralSettingsService _generalSettingsService;
 
-        public WebServer(IConfiguration configuration, UiRequestBroker uiRequestBroker, FileServer fileServer, WebSocketServer wsServer)
+        public WebServer(IConfiguration configuration, UiRequestBroker uiRequestBroker, FileServer fileServer, WebSocketServer wsServer, IGeneralSettingsService generalSettingsService)
         {
             _configuration = configuration;
             _uiRequestBroker = uiRequestBroker;
             _fileServer = fileServer;
             _wsServer = wsServer;
+            _generalSettingsService = generalSettingsService;
         }
-
-        //public async Task StartAsync()
-        //{
-        //    var builder = WebApplication.CreateBuilder();
-        //    var port = _configuration.GetValue("WebServer:Port", 35005);
-        //    builder.WebHost.UseUrls($"http://*:{port}");
-        //
-        //    app = builder.Build();
-        //    app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
-        //
-        //    ConfigureRoutes();
-        //
-        //    await app.RunAsync();
-        //}
 
         public async Task StartAsync()
         {
@@ -69,19 +58,42 @@ namespace AiStudio4.InjectedDependencies
             // Configure Kestrel for HTTPS
             builder.WebHost.UseKestrel(options =>
             {
-                options.ListenAnyIP(port, listenOptions =>
+                // Check if connections outside localhost are allowed
+                var allowOutsideConnections = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
+                
+                if (allowOutsideConnections)
                 {
-                    // Load the certificate from the file
-                    string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
+                    // Listen on any IP address
+                    options.ListenAnyIP(port, listenOptions =>
+                    {
+                        string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
 
-                    using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-                    store.Open(OpenFlags.ReadOnly);
-                    string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
-                    var cert = store.Certificates
-                        .Find(X509FindType.FindByThumbprint, thumbprint, false)[0]; //YourStrongPassword
+                        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                        store.Open(OpenFlags.ReadOnly);
+                        string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
+                        var cert = store.Certificates
+                            .Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
 
-                    listenOptions.UseHttps(cert);
-                });
+                        listenOptions.UseHttps(cert);
+                    });
+                }
+                else
+                {
+                    // Listen only on localhost
+                    options.ListenLocalhost(port, listenOptions =>
+                    {
+                        // Load the certificate from the file
+                        string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
+
+                        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                        store.Open(OpenFlags.ReadOnly);
+                        string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
+                        var cert = store.Certificates
+                            .Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
+
+                        listenOptions.UseHttps(cert);
+                    });
+                }
             });
 
             app = builder.Build();

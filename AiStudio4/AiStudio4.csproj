@@ -51,6 +51,7 @@
 		<TypeScriptFiles Include="AiStudioClient\src\**\*.jsx" />
 		<TypeScriptFiles Include="AiStudioClient\src\**\*.js" />
 		<Compile Remove="AiServices\MockAiService.cs" />
+		<Compile Remove="AiServices\OpenAI.cs" />
 		<Content Include="@(TypeScriptFiles)">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>

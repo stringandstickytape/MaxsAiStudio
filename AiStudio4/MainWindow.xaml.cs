@@ -49,6 +49,7 @@ public partial class WebViewWindow : Window
         InitializeComponent();
         UpdateWindowTitle(); // Set initial window title
         UpdateRecentProjectsMenu(); // Populate recent projects menu
+        UpdateAllowConnectionsOutsideLocalhostMenuItem(); // Set initial checkbox state
         webView.Initialize();
     }
     private void UpdateWindowTitle()
@@ -372,6 +373,40 @@ public partial class WebViewWindow : Window
                     MessageBox.Show("Unable to transcribe file.");
                 }
             }
+        }
+    }
+
+    private void AllowConnectionsOutsideLocalhostMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Toggle the setting
+            bool currentValue = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
+            _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost = !currentValue;
+            _generalSettingsService.SaveSettings();
+            
+            // Update the menu item
+            UpdateAllowConnectionsOutsideLocalhostMenuItem();
+            
+            // Show a message to restart the application
+            MessageBox.Show(
+                "The server connection setting has been changed. Please restart the application for the changes to take effect.",
+                "Restart Required",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error updating connection setting: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+    
+    private void UpdateAllowConnectionsOutsideLocalhostMenuItem()
+    {
+        // Update the checkbox state based on the current setting
+        if (AllowConnectionsOutsideLocalhostMenuItem != null)
+        {
+            AllowConnectionsOutsideLocalhostMenuItem.IsChecked = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
         }
     }
 
