@@ -17,6 +17,8 @@ interface UseTreeVisualizationParams {
 }
 
 export const useTreeVisualization = ({
+
+
   svgRef,
   containerRef,
   hierarchicalData,
@@ -29,6 +31,9 @@ export const useTreeVisualization = ({
 }: UseTreeVisualizationParams) => {
   // Ref to store the zoom behavior
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  
+  // Ref to track previous highlighted message ID to avoid unnecessary updates
+  const previousHighlightRef = useRef<string | null>(null);
 
   // Setup zoom and pan handlers
   const handleZoomIn = () => {
@@ -718,35 +723,61 @@ export const useTreeVisualization = ({
     }
   }, [selectedMessageId, updateSelectedNode, updateKey]);
   
+  // Debounce function for search result updates
+  const debounce = (func: Function, wait: number) => {
+    let timeout: NodeJS.Timeout | null = null;
+    return (...args: any[]) => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
+  
+  // Debounced version of updateSelectedNode
+  const debouncedUpdateNodes = useCallback(
+    debounce((messageId: string) => {
+      if (!svgRef.current) return;
+      updateSelectedNode(messageId);
+    }, 150), // 150ms debounce delay
+    [updateSelectedNode, svgRef]
+  );
+  
   // Update search match highlighting when search results change
   useEffect(() => {
     if (!svgRef.current) return;
     
-    // Update all nodes to reflect current search results
-    updateSelectedNode(selectedMessageId || '');
+    // Use debounced update for search results to prevent excessive re-rendering
+    debouncedUpdateNodes(selectedMessageId || '');
     
-    // If we have a highlighted message, scroll to it
-    if (highlightedMessageId) {
-      const nodes = d3.select(svgRef.current).selectAll('.node');
-      const highlightedNode = nodes.filter((d: any) => d.data.id === highlightedMessageId);
+    // If we have a highlighted message, scroll to it - but only when explicitly highlighted
+    // not on every search result update
+    if (highlightedMessageId && highlightedMessageId !== previousHighlightRef.current) {
+      previousHighlightRef.current = highlightedMessageId;
       
-      if (!highlightedNode.empty() && containerRef.current && zoomRef.current) {
-        const nodeData = highlightedNode.datum() as any;
-        const containerWidth = containerRef.current.clientWidth;
-        const containerHeight = containerRef.current.clientHeight;
+      // Delay the zoom operation to avoid doing it during batch updates
+      setTimeout(() => {
+        if (!svgRef.current) return;
         
-        // Smoothly zoom to the highlighted node
-        d3.select(svgRef.current)
-          .transition()
-          .duration(500)
-          .call(
-            zoomRef.current.transform,
-            d3.zoomIdentity
-              .translate(containerWidth / 2, containerHeight / 2)
-              .scale(1.2)
-              .translate(-nodeData.x, -nodeData.y)
-          );
-      }
+        const nodes = d3.select(svgRef.current).selectAll('.node');
+        const highlightedNode = nodes.filter((d: any) => d.data.id === highlightedMessageId);
+        
+        if (!highlightedNode.empty() && containerRef.current && zoomRef.current) {
+          const nodeData = highlightedNode.datum() as any;
+          const containerWidth = containerRef.current.clientWidth;
+          const containerHeight = containerRef.current.clientHeight;
+          
+          // Smoothly zoom to the highlighted node
+          d3.select(svgRef.current)
+            .transition()
+            .duration(500)
+            .call(
+              zoomRef.current.transform,
+              d3.zoomIdentity
+                .translate(containerWidth / 2, containerHeight / 2)
+                .scale(1.2)
+                .translate(-nodeData.x, -nodeData.y)
+            );
+        }
+      }, 100);
     }
   }, [searchResults, highlightedMessageId, svgRef, containerRef, zoomRef, updateSelectedNode, selectedMessageId]);
   
