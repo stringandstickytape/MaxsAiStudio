@@ -110,6 +110,7 @@ export function useStreamTokens() {
         const handleStreamEnd = () => {
             resetStreamTokens();
             setIsStreaming(false);
+            setStreamTokens([]); // Explicitly clear tokens when stream ends
         };
 
         const handleCancelled = () => {
