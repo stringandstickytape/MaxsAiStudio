@@ -228,6 +228,46 @@ namespace AiStudio4.Core.Tools
                 MessageBox.Show(_validationErrorMessages.ToString(), "ModifyFiles Validation Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return CreateResult(false, false, $"Validation failed: {_validationErrorMessages.ToString()}");
             }
+            
+            // --- Preprocess Modifications to Consolidate Changes by File Path ---
+            if (modifications != null && modifications.Count > 0)
+            {
+                // Group changes by file path
+                var changesByFilePath = new Dictionary<string, List<JObject>>();
+                
+                foreach (JObject modification in modifications)
+                {
+                    string filePath = modification["path"].ToString();
+                    var changes = modification["changes"] as JArray;
+                    
+                    if (!changesByFilePath.ContainsKey(filePath))
+                    {
+                        changesByFilePath[filePath] = new List<JObject>();
+                    }
+                    
+                    // Add all changes for this file path
+                    foreach (JObject change in changes)
+                    {
+                        changesByFilePath[filePath].Add(change);
+                    }
+                }
+                
+                // Rebuild modifications array with consolidated changes
+                var consolidatedModifications = new JArray();
+                foreach (var kvp in changesByFilePath)
+                {
+                    var newModification = new JObject
+                    {
+                        ["path"] = kvp.Key,
+                        ["changes"] = new JArray(kvp.Value)
+                    };
+                    consolidatedModifications.Add(newModification);
+                }
+                
+                // Replace the original modifications array
+                modifications = consolidatedModifications;
+                SendStatusUpdate($"Consolidated changes for {changesByFilePath.Count} file(s)...");
+            }
 
             // --- Process the Modifications ---
             try
