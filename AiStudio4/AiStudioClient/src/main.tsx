@@ -3,6 +3,7 @@ import './index.css';
 import App from './App.tsx';
 import ThemeManager from './lib/ThemeManager';
 import { useThemeStore, debugThemeStore, applyRandomTheme, addThemeToStore } from './stores/useThemeStore';
+import { initDebugUtils } from './utils/debugUtils';
 import { useSystemPromptStore } from './stores/useSystemPromptStore';
 import { useToolStore } from './stores/useToolStore';
 import { createApiRequest } from '@/utils/apiUtils';
@@ -88,6 +89,9 @@ async function loadDefaultSystemPromptAndTools() {
   
   // Load default system prompt and its associated tools
   await loadDefaultSystemPromptAndTools();
+  
+  // Initialize debug utilities
+  initDebugUtils();
 
   try {
     // Render the app

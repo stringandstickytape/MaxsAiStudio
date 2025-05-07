@@ -13,7 +13,7 @@
 		<PackageReference Include="Ignore" Version="0.2.1" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.1" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
 		<PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.11" />
 		<PackageReference Include="OpenAI" Version="2.2.0-beta.4" />
 	</ItemGroup>
@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3179.45" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
     <PackageReference Include="Whisper.net.AllRuntimes" Version="1.8.1" />
   </ItemGroup>
 

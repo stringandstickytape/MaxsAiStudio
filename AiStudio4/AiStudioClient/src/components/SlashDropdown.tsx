@@ -319,6 +319,11 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         
         // Call the callback to add the file as an attachment
         onAttachFile(file);
+
+        // Remove the slash token from the input (like regular select)
+        if (typeof onSelect === 'function') {
+          onSelect('');
+        }
         
         // Close the dropdown
         onCancel();

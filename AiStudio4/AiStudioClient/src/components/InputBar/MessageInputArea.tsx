@@ -143,7 +143,7 @@ export function MessageInputArea({
 
     // Handle selection from dropdown
     const handleSlashItemSelect = (text: string) => {
-        // Replace the slash command with the selected text
+        // Replace the slash command with the selected text (or remove it if text is empty)
         if (textareaRef.current) {
             const value = textareaRef.current.value;
             const selectionStart = textareaRef.current.selectionStart;
@@ -164,15 +164,16 @@ export function MessageInputArea({
                 // Calculate the start position of the slash command (not including any leading space)
                 const slashStart = matchStart + slashIndex;
                 
-                // Construct the new value by replacing only the /command part
-                const newValue = textBeforeCursor.substring(0, slashStart) + 
-                    text + 
-                    textAfterCursor;
+                // If text is empty, just remove the slash command
+                // Otherwise, replace with the selected text
+                const newValue = text === ''
+                    ? textBeforeCursor.substring(0, slashStart) + textAfterCursor
+                    : textBeforeCursor.substring(0, slashStart) + text + textAfterCursor;
                 
                 setInputText(newValue);
                 
-                // Set cursor position after the inserted text
-                const newCursorPosition = slashStart + text.length;
+                // Set cursor position after the inserted text (or at slashStart if removed)
+                const newCursorPosition = text === '' ? slashStart : (slashStart + text.length);
                 
                 setTimeout(() => {
                     if (textareaRef.current) {
