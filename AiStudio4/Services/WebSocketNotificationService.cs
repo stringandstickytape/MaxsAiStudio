@@ -38,6 +38,7 @@ namespace AiStudio4.Services
                         messageType = "conv",
                         content = new
                         {
+                            convId = update.ConvId,
                             id = update.MessageId,
                             content = update.Content,
                             source = update.Source ?? "ai", // Use provided source or default to "ai"

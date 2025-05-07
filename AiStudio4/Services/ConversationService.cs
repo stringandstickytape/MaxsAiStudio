@@ -116,6 +116,7 @@ namespace AiStudio4.Services
                 // Notify client of success
                 await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
                 {
+                    ConvId = conv.ConvId,
                     MessageId = messageId,
                     Content = new { type = "messageDeleted", messageId, descendantCount = toDelete.Count - 1 }
                 });
@@ -146,6 +147,7 @@ namespace AiStudio4.Services
                     // Notify client of success via WebSocket
                     await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
                     {
+                        ConvId = convId,
                         MessageId = null,
                         Content = new { type = "conversationDeleted", convId }
                     });
