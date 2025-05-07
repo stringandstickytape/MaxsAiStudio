@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import { processAttachments } from '@/utils/attachmentUtils';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
@@ -88,9 +88,11 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
         // Find if this conv has search results
         const searchResult = searchResults?.find(r => r.conversationId === convId);
         
-        // If there are matching messages, highlight the first one
+        // If there are matching messages, highlight the first one and reset index
         if (searchResult?.matchingMessageIds?.length) {
             highlightMessage(searchResult.matchingMessageIds[0]);
+            // Reset the current match index to 0 when selecting a conversation
+            useSearchStore.getState().currentMatchIndex = 0;
         } else {
             // Otherwise clear any highlighted message
             highlightMessage(null);

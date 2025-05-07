@@ -15,7 +15,7 @@ import { TreeControls } from './TreeControls';
 const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const [updateKey, setUpdateKey] = useState(0);
     const { setActiveConv, convs, slctdMsgId } = useConvStore();
-    const { searchResults, highlightedMessageId } = useSearchStore();
+    const { searchResults, highlightedMessageId, cycleToNextMatch } = useSearchStore();
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     
@@ -168,7 +168,7 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                 {/* Display search match count if available */}
                 {searchResults && searchResults.some(result => result.conversationId === convId) && (
                     <div 
-                        className="ConvTreeView absolute top-4 right-4 text-xs"
+                        className="ConvTreeView absolute top-4 right-4 text-xs cursor-pointer hover:bg-indigo-700 transition-colors"
                         style={{
                             backgroundColor: 'rgba(31, 41, 55, 0.8)',
                             color: 'white',
@@ -177,11 +177,38 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                             boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                             border: `1px solid #4f46e5`
                         }}
+                        onClick={() => {
+                            // Get the current search store state
+                            const searchStore = useSearchStore.getState();
+                            // Cycle to the next match
+                            searchStore.cycleToNextMatch(convId);
+                            // Get the updated match stats
+                            const stats = searchStore.getMatchStats(convId);
+                            if (stats) {
+                                // Get the search result for this conversation
+                                const result = searchResults.find(r => r.conversationId === convId);
+                                if (result) {
+                                    // Find the message ID for the current match
+                                    const messageId = result.matchingMessageIds[searchStore.currentMatchIndex];
+                                    // Highlight the message
+                                    searchStore.highlightMessage(messageId);
+                                    // Navigate to the message
+                                    handleNodeClick(messageId, '', '');
+                                }
+                            }
+                        }}
+                        title="Click to cycle through matches"
                     >
-                        {searchResults
-                            .filter(result => result.conversationId === convId)
-                            .map(result => `${result.matchingMessageIds.length} matching ${result.matchingMessageIds.length === 1 ? 'message' : 'messages'}`)
-                            .join(', ')}
+                        {(() => {
+                            const result = searchResults.find(r => r.conversationId === convId);
+                            const stats = useSearchStore.getState().getMatchStats(convId);
+                            if (result && stats) {
+                                return `${result.matchingMessageIds.length} matching ${result.matchingMessageIds.length === 1 ? 'message' : 'messages'} (${stats.current}/${stats.total})`;
+                            } else if (result) {
+                                return `${result.matchingMessageIds.length} matching ${result.matchingMessageIds.length === 1 ? 'message' : 'messages'}`;
+                            }
+                            return '';
+                        })()}
                     </div>
                 )}
 

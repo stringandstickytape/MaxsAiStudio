@@ -17,6 +17,7 @@ interface SearchState {
   searchResults: SearchResult[] | null; // Can be null when no search is active
   searchError: string | null;
   highlightedMessageId: string | null;
+  currentMatchIndex: number; // Track the current match index for cycling
   
   // Actions
   setSearchTerm: (term: string) => void;
@@ -27,6 +28,9 @@ interface SearchState {
   markSearchComplete: () => void;
   setSearchError: (error: string | null) => void;
   highlightMessage: (messageId: string | null) => void;
+  cycleToNextMatch: (convId: string) => void;
+  cycleToPrevMatch: (convId: string) => void;
+  getMatchStats: (convId: string) => { current: number, total: number } | null;
 }
 
 export const useSearchStore = create<SearchState>((set, get) => {
@@ -66,6 +70,7 @@ export const useSearchStore = create<SearchState>((set, get) => {
     searchResults: null,
     searchError: null,
     highlightedMessageId: null,
+    currentMatchIndex: 0,
     
     setSearchTerm: (term) => set({ searchTerm: term }),
 
@@ -93,7 +98,8 @@ export const useSearchStore = create<SearchState>((set, get) => {
         searchResults: [],  // Initialize as empty array when starting a search
         searchError: null,
         isSearching: true,
-        highlightedMessageId: null
+        highlightedMessageId: null,
+        currentMatchIndex: 0
       });
       
       // Add a small delay to ensure UI is responsive during search initialization
@@ -142,7 +148,8 @@ export const useSearchStore = create<SearchState>((set, get) => {
         searchId: null,
         searchResults: null,
         searchError: null,
-        highlightedMessageId: null
+        highlightedMessageId: null,
+        currentMatchIndex: 0
       });
     },
     
@@ -187,6 +194,57 @@ export const useSearchStore = create<SearchState>((set, get) => {
 
     setSearchError: (error) => set({ searchError: error }),
 
-    highlightMessage: (messageId) => set({ highlightedMessageId: messageId })
+    highlightMessage: (messageId) => set({ highlightedMessageId: messageId }),
+
+    // Cycle to the next matching message in the current conversation
+    cycleToNextMatch: (convId) => {
+      const state = get();
+      const searchResult = state.searchResults?.find(result => result.conversationId === convId);
+      
+      if (!searchResult || searchResult.matchingMessageIds.length === 0) return;
+      
+      // Calculate the next index, wrapping around if needed
+      const currentIndex = state.currentMatchIndex;
+      const totalMatches = searchResult.matchingMessageIds.length;
+      const nextIndex = (currentIndex + 1) % totalMatches;
+      
+      // Update the highlighted message and current index
+      set({
+        highlightedMessageId: searchResult.matchingMessageIds[nextIndex],
+        currentMatchIndex: nextIndex
+      });
+    },
+
+    // Cycle to the previous matching message in the current conversation
+    cycleToPrevMatch: (convId) => {
+      const state = get();
+      const searchResult = state.searchResults?.find(result => result.conversationId === convId);
+      
+      if (!searchResult || searchResult.matchingMessageIds.length === 0) return;
+      
+      // Calculate the previous index, wrapping around if needed
+      const currentIndex = state.currentMatchIndex;
+      const totalMatches = searchResult.matchingMessageIds.length;
+      const prevIndex = (currentIndex - 1 + totalMatches) % totalMatches;
+      
+      // Update the highlighted message and current index
+      set({
+        highlightedMessageId: searchResult.matchingMessageIds[prevIndex],
+        currentMatchIndex: prevIndex
+      });
+    },
+
+    // Get current match statistics for a conversation
+    getMatchStats: (convId) => {
+      const state = get();
+      const searchResult = state.searchResults?.find(result => result.conversationId === convId);
+      
+      if (!searchResult || searchResult.matchingMessageIds.length === 0) return null;
+      
+      return {
+        current: state.currentMatchIndex + 1, // 1-based for display
+        total: searchResult.matchingMessageIds.length
+      };
+    }
   };
 });
