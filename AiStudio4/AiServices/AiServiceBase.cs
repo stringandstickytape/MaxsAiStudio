@@ -38,7 +38,7 @@ namespace AiStudio4.AiServices
         public string ApiModel { get; set; }
 
         protected virtual void InitializeHttpClient(ServiceProvider serviceProvider,
-            Model model, ApiSettings apiSettings, int timeout = 100)
+            Model model, ApiSettings apiSettings, int timeout = 300)
         {
             ApiKey = serviceProvider.ApiKey;
             ApiModel = model.ModelName;

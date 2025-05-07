@@ -1,6 +1,5 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
+import { useForm, Controller, FieldValues, FieldErrors } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
@@ -42,6 +41,40 @@ interface GenericFormProps {
   title?: string;
 }
 
+// Custom form components to replace shadcn/ui form components
+const FormLabel = ({ children, className = '', ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
+  <label className={`block text-sm font-medium mb-1 ${className}`} {...props}>
+    {children}
+  </label>
+);
+
+const FormDescription = ({ children, className = '', ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+  <p className={`text-sm text-gray-400 mt-1 ${className}`} {...props}>
+    {children}
+  </p>
+);
+
+const FormMessage = ({ children, className = '', ...props }: React.HTMLAttributes<HTMLSpanElement>) => (
+  children ? (
+    <span className={`text-sm text-red-400 mt-1 block ${className}`} {...props}>
+      {children}
+    </span>
+  ) : null
+);
+
+interface FormItemProps extends React.HTMLAttributes<HTMLDivElement> {
+  isCheckbox?: boolean;
+}
+
+const FormItem = ({ children, className = '', isCheckbox = false, ...props }: FormItemProps) => (
+  <div 
+    className={`${isCheckbox ? 'flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md' : 'mb-4'} ${className}`}
+    {...props}
+  >
+    {children}
+  </div>
+);
+
 export function GenericForm({
   fields,
   initialValues,
@@ -77,17 +110,17 @@ export function GenericForm({
     return defaultValues;
   };
 
-  const form = useForm({
+  const { control, handleSubmit: rhfHandleSubmit, formState: { errors }, reset } = useForm({
     defaultValues: initialValues || getDefaultValues(),
   });
 
   useEffect(() => {
     if (initialValues) {
-      form.reset(initialValues);
+      reset(initialValues);
     }
-  }, [initialValues, form]);
+  }, [initialValues, reset]);
 
-  const handleSubmit = async (data: any) => {
+  const handleFormSubmit = async (data: any) => {
     setError(null);
     try {
       if (generateUuid && !data[uuidField]) {
@@ -168,13 +201,7 @@ export function GenericForm({
     return fields.map((field) => renderField(field));
   };
 
-  
-  const handleChange = (formField: any, fieldDef: FormFieldDefinition, value: any) => {
-    formField.onChange(value);
-    fieldDef.onChange?.(value);
-  };
-
-  
+  // Common form field wrapper component
   const CommonFormField = ({
     field,
     children,
@@ -185,75 +212,79 @@ export function GenericForm({
     children: React.ReactNode;
     className?: string;
     isCheckbox?: boolean;
-  }) => (
-    <FormField
-      key={field.name}
-      control={form.control}
-      name={field.name}
-      render={({ field: formField }) => (
-        <FormItem 
-          className={isCheckbox ? "flex flex-row items-start space-x-3 space-y-0 p-4 border rounded-md" : className}
-          style={isCheckbox ? {
-            backgroundColor: 'var(--global-background-color, rgba(31, 41, 55, 0.5))',
-            color: 'var(--global-text-color, inherit)',
-            borderColor: 'var(--global-border-color, #374151)',
-            borderRadius: 'var(--global-border-radius, 0.375rem)',
-          } : {}}
-        >
-          {children(formField)}
-          {!isCheckbox && field.description && (
-            <FormDescription 
-              className={formDescriptionClass}
-              style={{
-                color: 'var(--global-secondary-color, inherit)'
-              }}
-            >
-              {field.description}
-            </FormDescription>
-          )}
-          <FormMessage 
-            className={formMessageClass} 
+  }) => {
+    const fieldError = errors[field.name];
+    
+    return (
+      <FormItem 
+        className={className}
+        isCheckbox={isCheckbox}
+        style={isCheckbox ? {
+          backgroundColor: 'var(--global-background-color, rgba(31, 41, 55, 0.5))',
+          color: 'var(--global-text-color, inherit)',
+          borderColor: 'var(--global-border-color, #374151)',
+          borderRadius: 'var(--global-border-radius, 0.375rem)',
+        } : {}}
+      >
+        {children}
+        {!isCheckbox && field.description && (
+          <FormDescription 
+            className={formDescriptionClass}
             style={{
-              color: '#f87171'
+              color: 'var(--global-secondary-color, inherit)'
             }}
-          />
-        </FormItem>
-      )}
-    />
-  );
+          >
+            {field.description}
+          </FormDescription>
+        )}
+        <FormMessage>
+          {fieldError?.message as string}
+        </FormMessage>
+      </FormItem>
+    );
+  };
 
-  // --- ICON FIELD SUPPORT ---
-  const IconFormField = ({ field }: { field: FormFieldDefinition }) => (
-    <FormField
-      key={field.name}
-      control={form.control}
-      name={field.name}
-      render={({ field: formField }) => (
-        <FormItem>
-          <FormLabel className={formLabelClass}>{field.label}</FormLabel>
-          <FormDescription className={formDescriptionClass}>{field.description}</FormDescription>
-          <FormControl>
-            <IconSelector
-              value={formField.value}
-              onChange={formField.onChange}
-              disabled={isProcessing}
-            />
-          </FormControl>
-          <FormMessage className={formMessageClass} />
-        </FormItem>
-      )}
-    />
-  );
+  // Icon field component
+  const IconFormField = ({ field }: { field: FormFieldDefinition }) => {
+    return (
+      <Controller
+        control={control}
+        name={field.name}
+        rules={{ required: field.required ? 'This field is required' : false }}
+        render={({ field: formField }) => (
+          <FormItem>
+            <FormLabel className={formLabelClass} style={{ color: 'var(--global-text-color, inherit)' }}>
+              {field.label}
+            </FormLabel>
+            <FormDescription className={formDescriptionClass}>{field.description}</FormDescription>
+            <div>
+              <IconSelector
+                value={formField.value}
+                onChange={formField.onChange}
+                disabled={isProcessing}
+              />
+            </div>
+            <FormMessage>{errors[field.name]?.message as string}</FormMessage>
+          </FormItem>
+        )}
+      />
+    );
+  };
 
   const renderField = (field: FormFieldDefinition) => {
     switch (field.type) {
       case 'icon':
-        return <IconFormField field={field} />;
+        return <IconFormField key={field.name} field={field} />;
+        
       case 'textarea':
         return (
-          <CommonFormField field={field}>
-            {(formField) => (
-              <>
+          <Controller
+            key={field.name}
+            control={control}
+            name={field.name}
+            rules={{ required: field.required ? 'This field is required' : false }}
+            render={({ field: formField }) => (
+              <CommonFormField field={field}>
                 <FormLabel 
                   className={formLabelClass}
                   style={{
@@ -262,7 +293,7 @@ export function GenericForm({
                 >
                   {field.label}
                 </FormLabel>
-                <FormControl>
+                <div>
                   <Textarea
                     placeholder={field.placeholder}
                     {...formField}
@@ -274,23 +305,33 @@ export function GenericForm({
                       borderRadius: 'var(--global-border-radius, inherit)',
                     }}
                     disabled={isProcessing}
-                    onChange={(e) => handleChange(formField, field, e.target.value)}
+                    onChange={(e) => {
+                      formField.onChange(e);
+                      field.onChange?.(e.target.value);
+                    }}
                   />
-                </FormControl>
-              </>
+                </div>
+              </CommonFormField>
             )}
-          </CommonFormField>
+          />
         );
 
       case 'checkbox':
         return (
-          <CommonFormField field={field} isCheckbox={true}>
-            {(formField) => (
-              <>
-                <FormControl>
+          <Controller
+            key={field.name}
+            control={control}
+            name={field.name}
+            rules={{ required: field.required ? 'This field is required' : false }}
+            render={({ field: formField }) => (
+              <CommonFormField field={field} isCheckbox={true}>
+                <div>
                   <Checkbox
                     checked={formField.value}
-                    onCheckedChange={(checked) => handleChange(formField, field, checked)}
+                    onCheckedChange={(checked) => {
+                      formField.onChange(checked);
+                      field.onChange?.(checked);
+                    }}
                     className="data-[state=checked]:bg-blue-600 border-gray-500"
                     style={{
                       borderColor: 'var(--global-border-color, inherit)',
@@ -299,7 +340,7 @@ export function GenericForm({
                     } as React.CSSProperties}
                     disabled={isProcessing}
                   />
-                </FormControl>
+                </div>
                 <div className="space-y-1 leading-none">
                   <FormLabel 
                     className={formLabelClass}
@@ -313,16 +354,20 @@ export function GenericForm({
                     <FormDescription className={formDescriptionClass}>{field.description}</FormDescription>
                   )}
                 </div>
-              </>
+              </CommonFormField>
             )}
-          </CommonFormField>
+          />
         );
 
       case 'select':
         return (
-          <CommonFormField field={field}>
-            {(formField) => (
-              <>
+          <Controller
+            key={field.name}
+            control={control}
+            name={field.name}
+            rules={{ required: field.required ? 'This field is required' : false }}
+            render={({ field: formField }) => (
+              <CommonFormField field={field}>
                 <FormLabel 
                   className={formLabelClass}
                   style={{
@@ -331,12 +376,15 @@ export function GenericForm({
                 >
                   {field.label}
                 </FormLabel>
-                <Select
-                  onValueChange={(value) => handleChange(formField, field, value)}
-                  defaultValue={formField.value}
-                  disabled={isProcessing}
-                >
-                  <FormControl>
+                <div>
+                  <Select
+                    onValueChange={(value) => {
+                      formField.onChange(value);
+                      field.onChange?.(value);
+                    }}
+                    defaultValue={formField.value}
+                    disabled={isProcessing}
+                  >
                     <SelectTrigger 
                       className="input-base"
                       style={{
@@ -348,44 +396,48 @@ export function GenericForm({
                     >
                       <SelectValue placeholder={field.placeholder || `Select a ${field.label.toLowerCase()}`} />
                     </SelectTrigger>
-                  </FormControl>
-                  <SelectContent 
-                    className="border rounded-md shadow-md" 
-                    style={{
-                      backgroundColor: 'var(--global-background-color, #1f2937)',
-                      color: 'var(--global-text-color, #f9fafb)',
-                      borderColor: 'var(--global-border-color, #374151)',
-                      borderRadius: 'var(--global-border-radius, 0.375rem)',
-                      boxShadow: 'var(--global-box-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1))',
-                      fontFamily: 'var(--global-font-family, inherit)',
-                      fontSize: 'var(--global-font-size, inherit)'
-                    }}
-                  >
-                    {field.options?.map((option) => (
-                      <SelectItem
-                        key={option.value}
-                        value={option.value}
-                        className="focus:bg-gray-700 focus:text-gray-100"
-                        style={{
-                          backgroundColor: 'transparent',
-                          color: 'inherit'
-                        }}
-                      >
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
+                    <SelectContent 
+                      className="border rounded-md shadow-md" 
+                      style={{
+                        backgroundColor: 'var(--global-background-color, #1f2937)',
+                        color: 'var(--global-text-color, #f9fafb)',
+                        borderColor: 'var(--global-border-color, #374151)',
+                        borderRadius: 'var(--global-border-radius, 0.375rem)',
+                        boxShadow: 'var(--global-box-shadow, 0 4px 6px -1px rgba(0, 0, 0, 0.1))',
+                        fontFamily: 'var(--global-font-family, inherit)',
+                        fontSize: 'var(--global-font-size, inherit)'
+                      }}
+                    >
+                      {field.options?.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="focus:bg-gray-700 focus:text-gray-100"
+                          style={{
+                            backgroundColor: 'transparent',
+                            color: 'inherit'
+                          }}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </CommonFormField>
             )}
-          </CommonFormField>
+          />
         );
 
       case 'color':
         return (
-          <CommonFormField field={field}>
-            {(formField) => (
-              <>
+          <Controller
+            key={field.name}
+            control={control}
+            name={field.name}
+            rules={{ required: field.required ? 'This field is required' : false }}
+            render={({ field: formField }) => (
+              <CommonFormField field={field}>
                 <FormLabel 
                   className={formLabelClass}
                   style={{
@@ -395,18 +447,24 @@ export function GenericForm({
                   {field.label}
                 </FormLabel>
                 <div className="flex gap-2">
-                  <FormControl>
+                  <div>
                     <Input
                       type="color"
                       className={getInputStyles('color')}
                       {...formField}
                       disabled={isProcessing}
-                      onChange={(e) => handleChange(formField, field, e.target.value)}
+                      onChange={(e) => {
+                        formField.onChange(e);
+                        field.onChange?.(e.target.value);
+                      }}
                     />
-                  </FormControl>
+                  </div>
                   <Input
                     value={formField.value}
-                    onChange={(e) => handleChange(formField, field, e.target.value)}
+                    onChange={(e) => {
+                      formField.onChange(e);
+                      field.onChange?.(e.target.value);
+                    }}
                     className="flex-1 bg-gray-700 border-gray-600 text-gray-100 focus:ring-blue-500 focus:border-blue-500"
                     style={{
                       backgroundColor: 'var(--global-background-color, inherit)',
@@ -417,16 +475,24 @@ export function GenericForm({
                     disabled={isProcessing}
                   />
                 </div>
-              </>
+              </CommonFormField>
             )}
-          </CommonFormField>
+          />
         );
       
       case 'number':
         return (
-          <CommonFormField field={field}>
-            {(formField) => (
-              <>
+          <Controller
+            key={field.name}
+            control={control}
+            name={field.name}
+            rules={{
+              required: field.required ? 'This field is required' : false,
+              min: field.min !== undefined ? { value: field.min, message: `Minimum value is ${field.min}` } : undefined,
+              max: field.max !== undefined ? { value: field.max, message: `Maximum value is ${field.max}` } : undefined,
+            }}
+            render={({ field: formField }) => (
+              <CommonFormField field={field}>
                 <FormLabel 
                   className={formLabelClass}
                   style={{
@@ -435,7 +501,7 @@ export function GenericForm({
                 >
                   {field.label}
                 </FormLabel>
-                <FormControl>
+                <div>
                   <Input
                     type="number"
                     step={field.step || '1'}
@@ -445,7 +511,8 @@ export function GenericForm({
                     {...formField}
                     onChange={(e) => {
                       const value = parseFloat(e.target.value);
-                      handleChange(formField, field, value);
+                      formField.onChange(e);
+                      field.onChange?.(value);
                     }}
                     className={getInputStyles('number')}
                     style={{
@@ -456,18 +523,22 @@ export function GenericForm({
                     }}
                     disabled={isProcessing}
                   />
-                </FormControl>
-              </>
+                </div>
+              </CommonFormField>
             )}
-          </CommonFormField>
+          />
         );
       
       
       default:
         return (
-          <CommonFormField field={field}>
-            {(formField) => (
-              <>
+          <Controller
+            key={field.name}
+            control={control}
+            name={field.name}
+            rules={{ required: field.required ? 'This field is required' : false }}
+            render={({ field: formField }) => (
+              <CommonFormField field={field}>
                 <FormLabel 
                   className={formLabelClass}
                   style={{
@@ -476,12 +547,15 @@ export function GenericForm({
                 >
                   {field.label}
                 </FormLabel>
-                <FormControl>
+                <div>
                   <Input
                     type={field.type}
                     placeholder={field.placeholder}
                     {...formField}
-                    onChange={(e) => handleChange(formField, field, e.target.value)}
+                    onChange={(e) => {
+                      formField.onChange(e);
+                      field.onChange?.(e.target.value);
+                    }}
                     className={getInputStyles(field.type)}
                     style={{
                       backgroundColor: 'var(--global-background-color, inherit)',
@@ -491,10 +565,10 @@ export function GenericForm({
                     }}
                     disabled={isProcessing}
                   />
-                </FormControl>
-              </>
+                </div>
+              </CommonFormField>
             )}
-          </CommonFormField>
+          />
         );
     }
   };
@@ -520,8 +594,8 @@ export function GenericForm({
 
       {error && <div className="bg-red-950/30 text-red-400 p-3 rounded-md border border-red-800/50 mb-4">{error}</div>}
 
-      <Form {...form} className="flex-1 overflow-hidden">
-        <form onSubmit={form.handleSubmit(handleSubmit)} className={`flex flex-col h-full ${className || ''}`}>
+      <div className="flex-1 overflow-hidden">
+        <form onSubmit={rhfHandleSubmit(handleFormSubmit)} className={`flex flex-col h-full ${className || ''}`}>
           <div className="space-y-6 flex-1 overflow-y-auto pr-2">
             {renderFormFields()}
           </div>
@@ -557,7 +631,7 @@ export function GenericForm({
             </Button>
           </div>
         </form>
-      </Form>
+      </div>
     </div>
   );
 }

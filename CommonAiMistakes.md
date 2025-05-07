@@ -38,3 +38,7 @@
    - Always verify variable scope and availability before using variables in code modifications.  
    - Check if variables need to be imported, fetched from an API, or passed as props before using them in component logic.  
    - Do not assume variables used in one component are available in another without explicit definition or import.
+
+9. **React.memo Syntax**  
+   - When wrapping components with `React.memo`, ensure the memo comparison function is passed as the second argument to `React.memo`.  
+   - Maintain proper syntax by keeping the component function structure intact and placing the comparison function correctly to avoid syntax errors.
