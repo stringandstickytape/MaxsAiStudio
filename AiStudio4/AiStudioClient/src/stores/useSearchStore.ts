@@ -95,14 +95,18 @@ export const useSearchStore = create<SearchState>((set, get) => {
         isSearching: true,
         highlightedMessageId: null
       });
+      
+      // Add a small delay to ensure UI is responsive during search initialization
+      setTimeout(() => {
         
-      webSocketService.send({
-        messageType: 'searchConversations',
-        content: {
-          searchTerm,
-          searchId
-        }
-      });
+        webSocketService.send({
+          messageType: 'searchConversations',
+          content: {
+            searchTerm,
+            searchId
+          }
+        });
+      }, 50); // Small delay to allow UI to update before search begins
     },
     
     cancelSearch: () => {
@@ -142,19 +146,41 @@ export const useSearchStore = create<SearchState>((set, get) => {
       });
     },
     
+    // Batch update timer reference
+    _batchUpdateTimer: null as NodeJS.Timeout | null,
+    _pendingResults: [] as SearchResult[],
+    
     addSearchResult: (result) => {
-      // Avoid duplicates
-      set((state) => {
-        // Handle case where searchResults is null
-        if (!state.searchResults) {
-          return { searchResults: [result] };
-        }
-        // Avoid duplicates
-        if (state.searchResults.some(r => r.conversationId === result.conversationId)) {
-          return {};
-        }
-        return { searchResults: [...state.searchResults, result] };
-      });
+      const state = get();
+      
+      // Add to pending results if not a duplicate
+      if (!state._pendingResults.some(r => r.conversationId === result.conversationId) && 
+          !state.searchResults?.some(r => r.conversationId === result.conversationId)) {
+        state._pendingResults.push(result);
+      }
+      
+      // If we already have a timer, let it complete
+      if (state._batchUpdateTimer) return;
+      
+      // Set a timer to batch update the UI
+      const timer = setTimeout(() => {
+        set((currentState) => {
+          // Apply all pending results at once
+          if (currentState._pendingResults.length === 0) return {};
+          
+          const newResults = currentState.searchResults || [];
+          const updatedResults = [...newResults, ...currentState._pendingResults];
+          
+          return { 
+            searchResults: updatedResults,
+            _pendingResults: [],
+            _batchUpdateTimer: null
+          };
+        });
+      }, 200); // Update UI every 200ms at most
+      
+      // Store the timer reference
+      set({ _batchUpdateTimer: timer });
     },
 
     markSearchComplete: () => set({ isSearching: false }),
