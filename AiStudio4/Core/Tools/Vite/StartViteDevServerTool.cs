@@ -124,9 +124,10 @@ namespace AiStudio4.Core.Tools.Vite
                 string npmCommand = "npm";
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
-                // Use the helper to create the process
-                _runningDevServer = ViteCommandHelper.CreateProcess(npmCommand, command.Replace("npm ", ""), useCmd, workingPath, _logger);
+                // Use the helper to create the process with window shown
+                _runningDevServer = ViteCommandHelper.CreateProcess(npmCommand, command.Replace("npm ", ""), useCmd, workingPath, _logger, true);
 
+                // Start the process and don't redirect output/error since we want to show the window
                 _runningDevServer.Start();
 
                 // Read the first few lines of output to get the server URL
@@ -142,45 +143,11 @@ namespace AiStudio4.Core.Tools.Vite
                 //    }
                 //}
 
-                // Start a background task to continue reading output
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        while (!_runningDevServer.StandardOutput.EndOfStream)
-                        {
-                            string line = await _runningDevServer.StandardOutput.ReadLineAsync();
-                            if (line != null)
-                            {
-                                _logger.LogInformation($"Vite server: {line}");
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error reading Vite server output");
-                    }
-                });
+                // We don't need to read output if we're showing the window
+                // The user will see the output directly in the cmd window
 
-                // Start a background task to read error output
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        while (!_runningDevServer.StandardError.EndOfStream)
-                        {
-                            string line = await _runningDevServer.StandardError.ReadLineAsync();
-                            if (line != null)
-                            {
-                                _logger.LogError($"Vite server error: {line}");
-                            }
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error reading Vite server error output");
-                    }
-                });
+                // We don't need to read error output if we're showing the window
+                // The user will see the errors directly in the cmd window
 
                 SendStatusUpdate("Vite dev server started successfully.");
                 return CreateResult(true, true, $"Vite dev server started successfully on http://{host}:{port}\n\nInitial output:\n");
