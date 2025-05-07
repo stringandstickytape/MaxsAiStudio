@@ -53,9 +53,6 @@ namespace AiStudio4.Core.Tools
                         case ToolFormat.Gemini:
                             ConfigureGeminiFormat(request, obj);
                             break;
-                        case ToolFormat.Ollama:
-                            ConfigureOllamaFormat(request, obj);
-                            break;
                         case ToolFormat.Claude:
                             ConfigureClaudeFormat(request, obj);
                             break;
@@ -97,9 +94,6 @@ namespace AiStudio4.Core.Tools
                     break;
                 case ToolFormat.Gemini:
                     ConfigureGeminiFormat(request, toolConfig);
-                    break;
-                case ToolFormat.Ollama:
-                    ConfigureOllamaFormat(request, toolConfig);
                     break;
                 case ToolFormat.Claude:
                     ConfigureClaudeFormat(request, toolConfig);
