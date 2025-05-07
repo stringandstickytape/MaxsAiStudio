@@ -175,7 +175,7 @@ namespace AiStudio4.Services
                         Timestamp = new DateTimeOffset(newUserMessage.Timestamp).ToUnixTimeMilliseconds(),
                         Source = "user", // Explicitly set source as "user"
                         Attachments = newUserMessage.Attachments,
-                        DurationMs = 0 // User messages have zero processing duration
+                        DurationMs = 0, // User messages have zero processing duration
                     });
 
                     // Replace tree builder with direct message processing for conv list notification
@@ -183,9 +183,9 @@ namespace AiStudio4.Services
                     await _notificationService.NotifyConvList(new ConvListDto
                     {
                         ConvId = conv.ConvId,
-                        Summary = conv.Messages.Count > 1
+                        Summary = conv.Summary ?? (conv.Messages.Count > 1
                             ? conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.UserMessage ?? "New Conv"
-                            : "New Conv",
+                            : "New Conv"),
                         LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         FlatMessageStructure = messagesForClient
                     });
