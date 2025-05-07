@@ -14,7 +14,13 @@ export const StreamingMessage = ({
 }: StreamingMessageProps) => {
   const { isCancelling: isCancel } = useWebSocketStore();
   
-  if (!streamTokens.length && !isStreaming) {
+  // Hide the component when not streaming, regardless of streamTokens
+  if (!isStreaming) {
+    return null;
+  }
+  
+  // Also hide if there are no tokens to display
+  if (!streamTokens.length) {
     return null;
   }
   
