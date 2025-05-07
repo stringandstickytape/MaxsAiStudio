@@ -32,8 +32,8 @@ namespace AiStudio4.Services
         public Task NotifyStreamingUpdate(string clientId, object update)
             => _webSocketNotificationService.NotifyStreamingUpdate(clientId, (StreamingUpdateDto)update);
 
-        public Task NotifyConvList(string clientId, object convs)
-            => _webSocketNotificationService.NotifyConvList(clientId, (ConvListDto)convs);
+        public Task NotifyConvList(object convs)
+            => _webSocketNotificationService.NotifyConvList((ConvListDto)convs);
 
         public Task NotifyTranscription(string transcriptionText)
             => _webSocketNotificationService.NotifyTranscription(transcriptionText);

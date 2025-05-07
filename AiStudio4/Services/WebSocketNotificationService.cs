@@ -91,11 +91,10 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task NotifyConvList(string clientId, ConvListDto convs)
+        public async Task NotifyConvList(ConvListDto convs)
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
                 if (convs == null) throw new ArgumentNullException(nameof(convs));
 
                 // Format matches client expectations for WebSocket messages
@@ -111,12 +110,12 @@ namespace AiStudio4.Services
                     }
                 };
 
-                await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
-                _logger.LogDebug("Sent conv list to client {ClientId}", clientId);
+                await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
+                _logger.LogDebug("Sent conv list to clients");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send conv list to client {ClientId}", clientId);
+                _logger.LogError(ex, "Failed to send conv list to clients");
                 throw new WebSocketNotificationException("Failed to send conv list", ex);
             }
         }

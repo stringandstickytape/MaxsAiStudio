@@ -25,7 +25,7 @@ namespace AiStudio4.Core.Interfaces
         /// </summary>
         /// <param name="clientId">The ID of the client to notify</param>
         /// <param name="convs">The convs to send</param>
-        Task NotifyConvList(string clientId, ConvListDto convs);
+        Task NotifyConvList( ConvListDto convs);
 
         /// <summary>
         /// Notifies a client about an audio transcription result

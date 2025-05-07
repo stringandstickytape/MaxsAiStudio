@@ -180,7 +180,7 @@ namespace AiStudio4.Services
 
                     // Replace tree builder with direct message processing for conv list notification
                     var messagesForClient = BuildFlatMessageStructure(conv);
-                    await _notificationService.NotifyConvList(clientId, new ConvListDto
+                    await _notificationService.NotifyConvList(new ConvListDto
                     {
                         ConvId = conv.ConvId,
                         Summary = conv.Messages.Count > 1
@@ -263,7 +263,7 @@ namespace AiStudio4.Services
                                                     // Update client using scoped notification service, with error handling
                                                     try
                                                     {
-                                                        await scopedNotificationService.NotifyConvList(clientId, new ConvListDto
+                                                        await scopedNotificationService.NotifyConvList(new ConvListDto
                                                         {
                                                             ConvId = currentConv.ConvId,
                                                             Summary = summary,

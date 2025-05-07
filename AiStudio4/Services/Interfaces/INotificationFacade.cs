@@ -12,7 +12,7 @@ namespace AiStudio4.Services.Interfaces
         Task ClearStatusMessageAsync(string clientId);
         Task NotifyConvUpdate(string clientId, object update);
         Task NotifyStreamingUpdate(string clientId, object update);
-        Task NotifyConvList(string clientId, object convs);
+        Task NotifyConvList( object convs);
         Task NotifyTranscription(string transcriptionText);
     }
 }
