@@ -128,25 +128,25 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
           borderColor: 'var(--global-border-color, #1f2937)'
         }}
       >
-        <div className="Sidebar p-2 px-3 text-sm font-medium border-b" 
+        <div className="Sidebar text-sm font-medium border-b" 
           style={{
             backgroundColor: 'var(--global-background-color, rgba(31, 41, 55, 0.7))',
             borderColor: 'var(--global-border-color, rgba(75, 85, 99, 0.5))',
             color: 'var(--global-text-color, #d1d5db)'
           }}
         >
-          {searchResults ? `Search Results (${searchResults.length})` : null}
+          {searchResults ? (<span className="p-3">Search Results ({searchResults.length})</span>) : null}
           {searchResults && (
             <Button
               size="sm"
-              className="ml-2 p-0 h-auto text-xs"
+              className="ml-2 px-2 h-auto text-xs"
               onClick={handleClearSearch}
             >
               Clear
             </Button>
           )}
         </div>
-        <div className="Sidebar h-[calc(100%-32px)]" 
+        <div className="Sidebar h-[calc(100%-24px)]" 
           style={{
             backgroundColor: 'var(--global-background-color, #111827)'
           }}
@@ -157,15 +157,6 @@ export function Sidebar({ wsState, onReconnectClick }: SidebarProps) {
 
       {/* Split container - bottom half */}
       <div className="Sidebar h-[calc(50%-24px)]">
-        <div className="Sidebar p-2 px-3 text-sm font-medium border-b" 
-          style={{
-            backgroundColor: 'var(--global-background-color, rgba(31, 41, 55, 0.7))',
-            borderColor: 'var(--global-border-color, rgba(75, 85, 99, 0.5))',
-            color: 'var(--global-text-color, #d1d5db)'
-          }}
-        >
-
-        </div>
         <div className="Sidebar h-[calc(100%-32px)] overflow-auto" 
           style={{
             backgroundColor: 'var(--global-background-color, #111827)'

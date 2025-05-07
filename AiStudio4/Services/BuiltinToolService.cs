@@ -61,6 +61,9 @@ namespace AiStudio4.Services
             var toolDefs = _builtinTools.Select(t => t.GetToolDefinition()).ToList();
             foreach (var tool in toolDefs)
             {
+                // Mark all tools from this service as built-in
+                tool.IsBuiltIn = true;
+                
                 // Load persisted extra properties for this tool
                 var lower = $"{tool.Name.Substring(0, 1).ToLower()}{tool.Name.Substring(1)}";
                 var persisted = _builtInToolExtraPropertiesService.GetExtraProperties(lower);

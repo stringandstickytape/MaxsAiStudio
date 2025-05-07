@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -140,6 +140,12 @@ namespace AiStudio4.Services
                 throw new KeyNotFoundException($"Tool with ID {tool.Guid} not found");
             }
 
+            // Prevent modification of built-in tools
+            if (existingTool.IsBuiltIn)
+            {
+                throw new InvalidOperationException("Built-in tools cannot be modified");
+            }
+
             // Ensure FileType is not null
             if (tool.Filetype == null)
             {
@@ -162,6 +168,12 @@ namespace AiStudio4.Services
             if (tool == null)
             {
                 return await Task.FromResult(false);
+            }
+
+            // Prevent deletion of built-in tools
+            if (tool.IsBuiltIn)
+            {
+                throw new InvalidOperationException("Built-in tools cannot be deleted");
             }
 
             _toolLibrary.Tools.Remove(tool);

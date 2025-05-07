@@ -324,6 +324,9 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                       <div>
                         <div className="flex items-center gap-2">
                           <h3 className="text-title text-lg">{tool.name}</h3>
+                          {tool.isBuiltIn && (
+                            <span className="text-xs px-2 py-1 bg-blue-700 rounded-full">Built-in</span>
+                          )}
                         </div>
                         <p className="text-body">{tool.description}</p>
                         <div className="flex flex-wrap gap-1 mt-2">
@@ -349,8 +352,9 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEditTool(tool)}
-                            className="h-8 w-8 text-gray-400 hover:text-gray-100"
-                            title="Edit Tool"
+                            className={`h-8 w-8 ${tool.isBuiltIn ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-gray-100'}`}
+                            title={tool.isBuiltIn ? 'Built-in tools cannot be edited' : 'Edit Tool'}
+                            disabled={tool.isBuiltIn}
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -366,9 +370,9 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteTool(tool.guid)}
-                            className="h-8 w-8 text-gray-400 hover:text-red-400"
-                            disabled={isDeleting}
-                            title="Delete Tool"
+                            className={`h-8 w-8 ${tool.isBuiltIn ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-red-400'}`}
+                            disabled={isDeleting || tool.isBuiltIn}
+                            title={tool.isBuiltIn ? 'Built-in tools cannot be deleted' : 'Delete Tool'}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

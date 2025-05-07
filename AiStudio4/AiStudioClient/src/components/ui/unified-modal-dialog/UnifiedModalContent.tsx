@@ -22,7 +22,7 @@ export const UnifiedModalContent: React.FC<UnifiedModalContentProps> = ({ classN
 
   return (
     <div 
-      className={cn('UnifiedModalContent', baseClasses, variantConfig.contentClassName, className)} 
+      className={cn('UnifiedModalContent', baseClasses, variantConfig.contentClassName, className,' p-6')} 
       style={{
         backgroundColor: 'var(--global-background-color)',
         color: 'var(--global-text-color)',

@@ -126,7 +126,7 @@ export const UnifiedModalDialog: React.FC<UnifiedModalDialogProps> = ({
             aria-describedby={ariaDescribedBy ?? (id ? `${id}-description` : undefined)} // Auto-generate describedby if id exists
             aria-modal="true" // Explicitly mark as modal
             className={cn(
-              'UnifiedModalDialog relative z-50 flex flex-col border shadow-lg',
+              'UnifiedModalDialog p-3 relative z-50 flex flex-col border shadow-lg',
               'm-4', // Add some margin to prevent touching edges unless fullScreen
               fullScreen ? 'w-full h-full m-0 border-0 rounded-none' :
               cn(
