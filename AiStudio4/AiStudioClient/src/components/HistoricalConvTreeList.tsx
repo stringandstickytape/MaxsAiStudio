@@ -292,6 +292,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                                 <div
                                     key={conv.convGuid}
                                     className="HistoricalConvTreeList text-sm cursor-pointer px-2 py-0.5 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1"
+                                    title="Middle-click to delete conversation"
                                     style={{ 
                                         display: 'block', 
                                         wordBreak: 'break-word',

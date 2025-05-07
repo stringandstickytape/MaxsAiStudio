@@ -88,7 +88,7 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
           <div
             className="text-sm text-gray-300 group-hover:text-white cursor-pointer overflow-hidden text-ellipsis whitespace-normal break-words flex-grow max-w-[calc(100%-24px)] pr-1 transition-colors duration-150"
             style={{ display: 'block', wordBreak: 'break-word' }}
-            title={node.text}
+            title={`${node.text} (Middle-click to delete)`}
           >
             {node.text}
           </div>
