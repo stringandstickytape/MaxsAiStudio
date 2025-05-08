@@ -1,15 +1,14 @@
 ﻿// AiStudioClient\src\components\ConvView\ConvView.tsx
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { useProjectPotatoStore } from '@/stores/useProjectPotatoStore';
+import { StickToBottom } from 'use-stick-to-bottom';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
-// StickToBottom removed
 
 import { MessageItem } from './MessageItem';
 import { StreamingMessage } from './StreamingMessage';
 // import { ConversationControls } from './ConversationControls';
-import { ScrollManager } from './ScrollManager';
 
 // Define themeable properties for the ConvView component
 export const themeableProps = {
@@ -30,6 +29,9 @@ export const ConvView = ({
 }: ConvViewProps) => {
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    
+    // Get the stick-to-bottom state from ProjectPotato store
+    const { isEnabled } = useProjectPotatoStore();
     // Get necessary state from stores
     const { activeConvId, slctdMsgId, convs } = useConvStore();
 
@@ -156,9 +158,10 @@ export const ConvView = ({
     }
 
     return (
-        <div
+        <StickToBottom 
             className="ConvView ConvViewMain h-full relative overflow-y-auto"
             ref={scrollContainerRef}
+            stickToBottom={isEnabled}
             style={{
                 backgroundColor: 'var(--global-background-color, transparent)',
                 color: 'var(--global-text-color, #ffffff)',
@@ -170,7 +173,7 @@ export const ConvView = ({
                 ...(window?.theme?.ConvView?.style || {})
             }}
         >
-            <div className="ConvView flex flex-col gap-4 p-4">
+            <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4">
                 {/* ConversationControls removed: always show all messages */}
 
                 {visibleMessages.map((message) => {
@@ -212,8 +215,7 @@ export const ConvView = ({
                     isStreaming={isStreaming}
                     lastStreamedContent={lastStreamedContent}
                 />
-            </div>
-
-        </div>
+            </StickToBottom.Content>
+        </StickToBottom>
     );
 };
