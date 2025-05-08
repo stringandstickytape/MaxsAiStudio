@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { FilePlus, X, File, FileText, Image } from 'lucide-react';
+import { FilePlus, X, File, FileText, Image, Download } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Attachment } from '@/types/attachment';
 import { getIconForFileType, formatFileSize } from '@/utils/attachmentUtils';
@@ -20,6 +20,18 @@ const getIconComponent = (type: string) => {
         case 'FileText': return <FileText className="h-5 w-5" />;
         default: return <File className="h-5 w-5" />;
     }
+};
+
+const downloadAttachment = (attachment: Attachment) => {
+    const blob = new Blob([attachment.content]);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = attachment.name;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
 };
 
 export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
@@ -58,13 +70,22 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         getIconComponent(attachment.type)
                     )}
                 </div>
-                <button
-                    onClick={() => onRemove(attachment.id)}
-                    className="absolute -top-1 -right-1 h-5 w-5 bg-gray-700 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
-                    title={`Remove ${attachment.name}`}
-                >
-                    <X className="h-3 w-3" />
-                </button>
+                <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100">
+                    <button
+                        onClick={() => downloadAttachment(attachment)}
+                        className="h-5 w-5 bg-gray-700 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-blue-600 transition-colors mb-0.5"
+                        title={`Download ${attachment.name}`}
+                    >
+                        <Download className="h-3 w-3" />
+                    </button>
+                    <button
+                        onClick={() => onRemove(attachment.id)}
+                        className="h-5 w-5 bg-gray-700 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-red-600 transition-colors"
+                        title={`Remove ${attachment.name}`}
+                    >
+                        <X className="h-3 w-3" />
+                    </button>
+                </div>
             </div>
         );
     }
@@ -102,15 +123,26 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                 </div>
             )}
 
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => onRemove(attachment.id)}
-                className="h-6 w-6 p-0 text-gray-400 hover:text-gray-100 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
-                title={`Remove ${attachment.name}`}
-            >
-                <X className="h-3 w-3" />
-            </Button>
+            <div className="flex flex-col gap-1">
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => downloadAttachment(attachment)}
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title={`Download ${attachment.name}`}
+                >
+                    <Download className="h-3 w-3" />
+                </Button>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => onRemove(attachment.id)}
+                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-100 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                    title={`Remove ${attachment.name}`}
+                >
+                    <X className="h-3 w-3" />
+                </Button>
+            </div>
         </div>
     );
 };
