@@ -35,6 +35,9 @@ public partial class WebViewWindow : Window
     private readonly IBuiltinToolService _builtinToolService;
     private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
     private readonly IWebSocketNotificationService _notificationService;
+    private readonly string _licensesJsonPath;
+    private readonly string _nugetLicense1Path;
+    private readonly string _nugetLicense2Path;
 
     public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService)
     {
@@ -46,6 +49,13 @@ public partial class WebViewWindow : Window
         _builtinToolService = builtinToolService;
         _audioTranscriptionService = audioTranscriptionService;
         _notificationService = notificationService; // Assign injected service
+        
+        // Initialize license file paths
+        string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        _licensesJsonPath = Path.Combine(baseDir, "Licenses", "licenses.json");
+        _nugetLicense1Path = Path.Combine(baseDir, "Licenses", "nuget-license1.txt");
+        _nugetLicense2Path = Path.Combine(baseDir, "Licenses", "nuget-license2.txt");
+        
         InitializeComponent();
         UpdateWindowTitle(); // Set initial window title
         UpdateRecentProjectsMenu(); // Populate recent projects menu
@@ -410,6 +420,22 @@ public partial class WebViewWindow : Window
         }
     }
 
+    private void LicensesMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var licensesWindow = new Dialogs.LicensesWindow(_licensesJsonPath, _nugetLicense1Path, _nugetLicense2Path)
+            {
+                Owner = this
+            };
+            licensesWindow.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error displaying licenses: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+    
     private async void TestReapplyMergeMenuItem_Click(object sender, RoutedEventArgs e)
     {
         // Create OpenFileDialog to browse for merge failure JSON files
