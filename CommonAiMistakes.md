@@ -31,3 +31,10 @@
 
 10. **Syntax Errors in C# Code**  
     - Always review code for basic syntax errors before submission; specifically check for missing semicolons at the end of statements. Use an IDE or code linter when possible to catch these errors.
+
+11. **Using Existing Event Systems Instead of CustomEvent**  
+    - Before implementing any cross-component communication mechanism, thoroughly investigate the codebase for existing event handling patterns and utilities.  
+    - Search for terms like 'event', 'service', 'bus', or 'emitter' to identify existing event systems.  
+    - When multiple components communicate, trace how they do so rather than assuming a new mechanism is needed.  
+    - Never implement direct `CustomEvent` dispatching without confirming that no existing event system is in place.  
+    - Always prioritize using the application's existing event system (e.g., `windowEventService`) to maintain consistency and avoid redundant or conflicting event handling mechanisms.

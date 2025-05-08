@@ -1,5 +1,6 @@
 ﻿// AiStudioClient/src/components/modals/SystemPromptModal.tsx
 import React from 'react';
+import { useToolStore } from '@/stores/useToolStore';
 import { useModalStore, ModalRegistry } from '@/stores/useModalStore';
 import {
   UnifiedModalDialog,
@@ -34,7 +35,8 @@ export function SystemPromptModal() {
           initialShowEditor={props.createNew}
           onApplyPrompt={(prompt) => {
             // Synchronize active tools on modal apply
-            require('@/stores/useToolStore').useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
+            console.log('SystemPromptModal: onApplyPrompt called with prompt:', prompt.guid, 'includeGitDiff:', prompt.includeGitDiff);
+            useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
             closeModal();
           }}
           onEditorClosed={closeModal} // Close modal when editor part closes

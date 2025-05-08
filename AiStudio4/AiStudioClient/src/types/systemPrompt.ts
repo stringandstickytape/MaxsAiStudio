@@ -12,6 +12,7 @@
   associatedMcpServers?: string[]; // MCP Server IDs
   primaryModelGuid?: string; // Associated primary model GUID
   secondaryModelGuid?: string; // Associated secondary model GUID
+  includeGitDiff?: boolean; // Whether to include git diff when this prompt is applied
 }
 
 export interface SystemPromptFormValues {
@@ -25,4 +26,5 @@ export interface SystemPromptFormValues {
   associatedMcpServers?: string[]; // MCP Server IDs
   primaryModelGuid?: string; // Associated primary model GUID
   secondaryModelGuid?: string; // Associated secondary model GUID
+  includeGitDiff?: boolean; // Whether to include git diff when this prompt is applied
 }

@@ -191,7 +191,7 @@ namespace AiStudio4.Core.Tools
                 
                 // Create the prompt for the secondary AI
                 SendStatusUpdate("Preparing consolidation request...");
-                string prompt = $"Produce a single consolidated guide to error prevention based on this file. Do not add anything, merely consolidate.  Don't remove any detail; when consolidating a new mistake into the existing list, strengthen the language a little each time.\n\n```\n{newMistakeEntry}\n```";
+                string prompt = $"Produce a single consolidated guide to error prevention based on this file. Do not add anything, merely consolidate.  Don't remove any detail.  When consolidating a newly logged mistake of an existing type, into an existing target, strengthen the language of that target a little each time.\n\n```\n{newMistakeEntry}\n```";
                 
                 // Process the request with the secondary AI
                 SendStatusUpdate("Sending mistake consolidation request to secondary AI...");

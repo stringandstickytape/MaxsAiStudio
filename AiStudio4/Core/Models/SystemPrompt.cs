@@ -20,5 +20,6 @@ namespace AiStudio4.Core.Models
         // NEW: Model associations
         public string PrimaryModelGuid { get; set; } = string.Empty; // Associated primary model GUID
         public string SecondaryModelGuid { get; set; } = string.Empty; // Associated secondary model GUID
+        public bool IncludeGitDiff { get; set; } = false; // Whether to include git diff when this prompt is applied
     }
 }

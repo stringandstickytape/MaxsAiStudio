@@ -77,13 +77,7 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
     // Set current prompt in store for UI purposes
     setCurrentPrompt(prompt);
     
-    // If there's a custom handler, use it instead of default behavior
-    if (onApplyPrompt) {
-      onApplyPrompt(prompt);
-      return; 
-    }
-
-    // Otherwise use our centralized hook to handle all side effects
+    // Use our centralized hook to handle all side effects (including Git diff attachment)
     const effectiveConvId = convId || storeConvId;
     if (effectiveConvId) {
       try {
@@ -91,6 +85,11 @@ export function SystemPromptLibrary({ onApplyPrompt, convId, initialEditPromptId
       } catch (error) {
         console.error('Failed to set conv system prompt:', error);
       }
+    }
+    
+    // If there's a custom handler, call it after applying the prompt
+    if (onApplyPrompt) {
+      onApplyPrompt(prompt);
     }
   };
 

@@ -49,6 +49,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
           primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
           secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
+          includeGitDiff: initialPrompt.includeGitDiff || false,
         }
       : {
           title: '',
@@ -61,6 +62,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           associatedUserPromptId: 'none',
           primaryModelGuid: 'none',
           secondaryModelGuid: 'none',
+          includeGitDiff: false,
+          includeGitDiff: false,
         },
   });
 
@@ -82,6 +85,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         associatedUserPromptId: initialPrompt.associatedUserPromptId || 'none',
         primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
         secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
+        includeGitDiff: initialPrompt.includeGitDiff || false,
       });
       setIsCreating(false);
     } else {
@@ -334,6 +338,29 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                     <FormLabel className="form-label">Set as Default Prompt</FormLabel>
                     <FormDescription className="form-description">
                       This prompt will be used for all new convs
+                    </FormDescription>
+                  </div>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="includeGitDiff"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 p-4 border border-gray-700 rounded-md bg-gray-800/50">
+                  <FormControl>
+                    <Checkbox
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      className="data-[state=checked]:bg-blue-600 border-gray-500"
+                      disabled={isProcessing}
+                    />
+                  </FormControl>
+                  <div className="space-y-1 leading-none">
+                    <FormLabel className="form-label">Include Git Diff</FormLabel>
+                    <FormDescription className="form-description">
+                      Automatically attach the current Git diff when this prompt is applied
                     </FormDescription>
                   </div>
                 </FormItem>
