@@ -1,6 +1,6 @@
-import { ConvView } from './ConvView';
+﻿import { ConvView } from './ConvView';
 import { useStreamTokens } from '@/hooks/useStreamTokens';
-import { StickToBottom } from 'use-stick-to-bottom';
+// StickToBottom removed
 
 interface ChatContainerProps {
   streamTokens: string[];

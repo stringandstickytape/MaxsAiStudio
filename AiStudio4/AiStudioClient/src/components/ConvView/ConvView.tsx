@@ -1,9 +1,10 @@
 ﻿// AiStudioClient\src\components\ConvView\ConvView.tsx
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import { useProjectPotatoStore } from '@/stores/useProjectPotatoStore';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
-import { StickToBottom } from 'use-stick-to-bottom';
+// StickToBottom removed
 
 import { MessageItem } from './MessageItem';
 import { StreamingMessage } from './StreamingMessage';
@@ -27,14 +28,108 @@ export const ConvView = ({
   isStreaming = false, 
   lastStreamedContent = '' 
 }: ConvViewProps) => {
+  // Create a ref for the scroll container
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   // Get necessary state from stores
   const { activeConvId, slctdMsgId, convs } = useConvStore();
   
   // Get search results from search store
   const { searchResults } = useSearchStore();
   
-  // Ref for StickToBottom component
-  const stickToBottomRef = useRef<any>(null);
+  // Add scroll event listener to detect manual scrolling
+  useEffect(() => {
+    console.log('Setting up scroll detection - effect running');
+    
+    // Try multiple approaches to detect scrolling
+    
+    // 1. Direct ref approach
+    const scrollContainer = scrollContainerRef.current;
+    console.log('Scroll container ref:', scrollContainer);
+    
+    // 2. Query selector approach
+    const convViewElement = document.querySelector('.ConvView');
+    console.log('ConvView element from querySelector:', convViewElement);
+    
+    // 3. Document/window approach
+    console.log('Will also try document and window events');
+    
+    // Common handler function
+    const handleScroll = (e: Event) => {
+      const target = e.target as HTMLElement;
+      console.log('SCROLL EVENT FIRED!', target);
+      console.log('Target classList:', target.classList ? Array.from(target.classList) : 'no classes');
+      console.log('Target id:', target.id || 'no id');
+      
+      // Check if this is a ConvView-related scroll
+      let isConvViewScroll = false;
+      
+      // Check if the target is the ConvView or a child of it
+      if (scrollContainer && (target === scrollContainer || scrollContainer.contains(target))) {
+        isConvViewScroll = true;
+      }
+      
+      // Also check if the target has ConvView class or is a child of an element with ConvView class
+      if (target.classList?.contains('ConvView')) {
+        isConvViewScroll = true;
+      }
+      
+      let parent = target.parentElement;
+      while (parent && !isConvViewScroll) {
+        if (parent.classList?.contains('ConvView')) {
+          isConvViewScroll = true;
+        }
+        parent = parent.parentElement;
+      }
+      
+      console.log('Is ConvView scroll:', isConvViewScroll);
+      
+      // Only process if it's a ConvView scroll
+      if (isConvViewScroll) {
+        // Get the current state
+        const { isEnabled } = useProjectPotatoStore.getState();
+        console.log('Current ProjectPotato state:', isEnabled);
+        
+        // If ProjectPotato is enabled, disable it on ConvView scroll
+        if (isEnabled) {
+          console.log('Disabling ProjectPotato due to ConvView scroll');
+          useProjectPotatoStore.getState().setIsEnabled(false);
+          console.log('New ProjectPotato state:', useProjectPotatoStore.getState().isEnabled);
+        }
+      }
+    };
+    
+    // Add event listeners to all possible elements
+    if (scrollContainer) {
+      console.log('Adding listener to scrollContainer');
+      scrollContainer.addEventListener('scroll', handleScroll, { capture: true });
+    }
+    
+    if (convViewElement) {
+      console.log('Adding listener to convViewElement');
+      convViewElement.addEventListener('scroll', handleScroll, { capture: true });
+    }
+    
+    console.log('Adding listener to document');
+    document.addEventListener('scroll', handleScroll, { capture: true });
+    
+    console.log('Adding listener to window');
+    window.addEventListener('scroll', handleScroll, { capture: true });
+    
+    return () => {
+      console.log('Cleaning up scroll event listeners');
+      if (scrollContainer) {
+        scrollContainer.removeEventListener('scroll', handleScroll, { capture: true });
+      }
+      if (convViewElement) {
+        convViewElement.removeEventListener('scroll', handleScroll, { capture: true });
+      }
+      document.removeEventListener('scroll', handleScroll, { capture: true });
+      window.removeEventListener('scroll', handleScroll, { capture: true });
+    };
+  }, []);
+  
+  // Log when component renders
+  console.log('ConvView rendered, scrollContainerRef:', scrollContainerRef.current);
   
   // No need for visibleCount or debouncedScrollTrigger, always show all messages
 
@@ -107,11 +202,9 @@ export const ConvView = ({
   }
 
   return (
-    <StickToBottom 
-      className="ConvView h-full relative overflow-y-auto" 
-      resize="smooth" 
-      initial="smooth"
-      ref={stickToBottomRef}
+    <div 
+      className="ConvView h-full relative overflow-y-auto"
+      ref={scrollContainerRef}
       style={{
         backgroundColor: 'var(--global-background-color, transparent)',
         color: 'var(--global-text-color, #ffffff)',
@@ -122,10 +215,8 @@ export const ConvView = ({
         boxShadow: 'var(--global-box-shadow, none)',
         ...(window?.theme?.ConvView?.style || {})
       }}
-      // Add throttle option to reduce ResizeObserver frequency during streaming
-      throttle={isStreaming ? 100 : 0}
     >
-      <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4">
+      <div className="ConvView flex flex-col gap-4 p-4">
         {/* ConversationControls removed: always show all messages */}
 
         {visibleMessages.map((message) => {
@@ -167,12 +258,8 @@ export const ConvView = ({
           isStreaming={isStreaming}
           lastStreamedContent={lastStreamedContent}
         />
-      </StickToBottom.Content>
+      </div>
       
-      <ScrollManager 
-        isStreaming={isStreaming} 
-        streamTokens={streamTokens} 
-      />
-    </StickToBottom>
+    </div>
   );
 };

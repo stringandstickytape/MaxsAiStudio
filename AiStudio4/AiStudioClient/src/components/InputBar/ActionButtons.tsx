@@ -7,6 +7,8 @@ import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { webSocketService } from '@/services/websocket/WebSocketService';
+import { useProjectPotatoStore } from '@/stores/useProjectPotatoStore';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface ActionButtonsProps {
     onSend: () => void;
@@ -34,6 +36,7 @@ export function ActionButtons({
     messageSent = false
 }: ActionButtonsProps) {
     const isConnected = useWebSocketStore(state => state.isConnected);
+    const { isEnabled, setIsEnabled } = useProjectPotatoStore();
     
     const handleInterjection = () => {
         if (inputText.trim()) {
@@ -44,6 +47,19 @@ export function ActionButtons({
     
     return (
         <div className="flex flex-col gap-2 justify-end">
+            <div className="flex justify-end mb-2">
+                <Checkbox 
+                    id="project-potato-checkbox"
+                    checked={isEnabled}
+                    onCheckedChange={setIsEnabled}
+                    style={{
+                        backgroundColor: isEnabled ? 'var(--inputbar-button-bg, #2d3748)' : 'transparent',
+                        borderColor: 'var(--inputbar-border-color, #4a5568)',
+                        color: 'var(--inputbar-text-color, #e2e8f0)',
+                        ...(window?.theme?.InputBar?.style || {})
+                    }}
+                />
+            </div>
             <FileAttachment
                 className="h-6"
                 disabled={isLoading || disabled}

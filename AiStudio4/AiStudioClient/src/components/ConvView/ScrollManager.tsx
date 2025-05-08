@@ -1,8 +1,17 @@
 ﻿// AiStudioClient\src\components\ConvView\ScrollManager.tsx
-import { useEffect, useRef } from 'react';
-import { useStickToBottomContext } from 'use-stick-to-bottom';
+import { useEffect, useRef, useCallback } from 'react';
+// useStickToBottomContext removed
 import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
 import { WindowEvents } from '@/services/windowEvents';
+
+// Add this to the global Window interface
+declare global {
+  interface Window {
+    scrollCheckTimeout?: NodeJS.Timeout;
+    scrollConversationToBottom?: () => boolean;
+    getScrollBottomState?: () => boolean;
+  }
+}
 
 interface ScrollManagerProps {
   isStreaming: boolean;
@@ -10,11 +19,30 @@ interface ScrollManagerProps {
 }
 
 export const ScrollManager = ({ isStreaming, streamTokens }: ScrollManagerProps) => {
-  const { isAtBottom, scrollToBottom } = useStickToBottomContext();
   const { jumpToEndEnabled, setJumpToEndEnabled } = useJumpToEndStore();
   
-  // Use a ref to track the last isAtBottom value to reduce state updates
-  const lastIsAtBottomRef = useRef(isAtBottom);
+  // Create refs for scroll management
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const isAtBottomRef = useRef(true);
+  
+  // Function to check if we're at the bottom
+  const checkIfAtBottom = useCallback(() => {
+    const container = document.querySelector('.ConvView');
+    if (!container) return true;
+    
+    const atBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 20;
+    isAtBottomRef.current = atBottom;
+    return atBottom;
+  }, []);
+  
+  // Function to scroll to bottom
+  const scrollToBottom = useCallback(() => {
+    const container = document.querySelector('.ConvView');
+    if (!container) return;
+    
+    container.scrollTop = container.scrollHeight;
+    isAtBottomRef.current = true;
+  }, []);
   
   // Expose the scrollToBottom function and isAtBottom state globally
   useEffect(() => {
@@ -27,7 +55,7 @@ export const ScrollManager = ({ isStreaming, streamTokens }: ScrollManagerProps)
     
     // Define a global function to check if we're at the bottom
     window.getScrollBottomState = () => {
-      return isAtBottom;
+      return checkIfAtBottom();
     };
     
     return () => {
@@ -35,20 +63,14 @@ export const ScrollManager = ({ isStreaming, streamTokens }: ScrollManagerProps)
       delete window.scrollConversationToBottom;
       delete window.getScrollBottomState;
     };
-  }, [scrollToBottom, setJumpToEndEnabled, isAtBottom]);
+  }, [scrollToBottom, setJumpToEndEnabled, checkIfAtBottom]);
   
   // Update jumpToEndEnabled when user manually scrolls, but with debouncing
   useEffect(() => {
-    // Skip frequent updates during streaming to improve performance
-    if (isStreaming && streamTokens.length > 0 && lastIsAtBottomRef.current === isAtBottom) {
-      return;
-    }
-    
-    // Update the ref
-    lastIsAtBottomRef.current = isAtBottom;
-    
-    // Use a timeout to debounce the state updates
-    const timeoutId = setTimeout(() => {
+    // Function to check scroll position and update state
+    const checkScrollPosition = () => {
+      const isAtBottom = checkIfAtBottom();
+      
       // When we detect we're at the bottom, update jumpToEndEnabled to true
       if (isAtBottom && !jumpToEndEnabled) {
         setJumpToEndEnabled(true);
@@ -57,10 +79,35 @@ export const ScrollManager = ({ isStreaming, streamTokens }: ScrollManagerProps)
       else if (!isAtBottom && jumpToEndEnabled) {
         setJumpToEndEnabled(false);
       }
-    }, 200);
+    };
     
-    return () => clearTimeout(timeoutId);
-  }, [isAtBottom, jumpToEndEnabled, setJumpToEndEnabled, isStreaming, streamTokens.length]);
+    // Set up an interval to periodically check scroll position
+    const intervalId = setInterval(checkScrollPosition, 200);
+    
+    // Also add a scroll event listener to the container
+    const container = document.querySelector('.ConvView');
+    if (container) {
+      container.addEventListener('scroll', () => {
+        // Clear any existing timeout to debounce
+        if (window.scrollCheckTimeout) {
+          clearTimeout(window.scrollCheckTimeout);
+        }
+        
+        // Set a new timeout
+        window.scrollCheckTimeout = setTimeout(checkScrollPosition, 100);
+      });
+    }
+    
+    return () => {
+      clearInterval(intervalId);
+      if (container) {
+        container.removeEventListener('scroll', checkScrollPosition);
+      }
+      if (window.scrollCheckTimeout) {
+        clearTimeout(window.scrollCheckTimeout);
+      }
+    };
+  }, [checkIfAtBottom, jumpToEndEnabled, setJumpToEndEnabled]);
   
   // Listen for scroll-to-bottom events from other components
   useEffect(() => {
@@ -73,11 +120,21 @@ export const ScrollManager = ({ isStreaming, streamTokens }: ScrollManagerProps)
       scrollToBottom();
     };
     
+    // Listen for jump-to-end events from the streaming hook
+    const handleJumpToEnd = () => {
+      if (jumpToEndEnabled) {
+        scrollToBottom();
+      }
+    };
+    
     window.addEventListener(WindowEvents.SCROLL_TO_BOTTOM, handleScrollToBottom);
+    window.addEventListener('jump-to-end', handleJumpToEnd);
+    
     return () => {
       window.removeEventListener(WindowEvents.SCROLL_TO_BOTTOM, handleScrollToBottom);
+      window.removeEventListener('jump-to-end', handleJumpToEnd);
     };
-  }, [setJumpToEndEnabled, scrollToBottom]);
+  }, [setJumpToEndEnabled, scrollToBottom, jumpToEndEnabled]);
   
   return null;
 };
