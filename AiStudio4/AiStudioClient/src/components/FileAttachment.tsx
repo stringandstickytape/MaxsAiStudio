@@ -220,24 +220,17 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                             // Git Diff option
                             setIsLoading(true);
                             try {
-                                const gitDiffRequest = createApiRequest('/api/gitDiff', 'POST');
-                                const data = await gitDiffRequest({ data: '{}' });
-                                if (data.success && data.attachment) {
-                                    // Convert base64 to ArrayBuffer for content
-                                    const arrBuf = base64ToArrayBuffer(data.attachment.content);
-                                    const file = new File([
-                                        arrBuf
-                                    ], data.attachment.name || 'git-diff.txt', {
-                                        type: data.attachment.type || 'text/plain',
-                                        lastModified: data.attachment.lastModified || Date.now()
-                                    });
+                                const { fetchGitDiffAsFile } = await import('@/utils/attachmentUtils');
+                                const file = await fetchGitDiffAsFile();
+                                
+                                if (file) {
                                     // Use the store directly and call the callback if provided
                                     addStagedAttachments([file]);
                                     if (onFilesSelected) {
                                         onFilesSelected([file]);
                                     }
                                 } else {
-                                    alert(data.error || 'Failed to get git diff.');
+                                    alert('Failed to get git diff.');
                                 }
                             } catch (err) {
                                 alert('Failed to get git diff.');

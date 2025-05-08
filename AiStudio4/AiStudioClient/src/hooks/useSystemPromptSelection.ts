@@ -1,5 +1,6 @@
 ﻿// AiStudioClient\src\hooks\useSystemPromptSelection.ts
 import { useCallback } from 'react';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { useModelStore } from '@/stores/useModelStore';
@@ -87,6 +88,22 @@ export function useSystemPromptSelection() {
           await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
         }
 
+        // 8. Attach git diff if the prompt has includeGitDiff set to true
+        if (prompt.includeGitDiff) {
+          try {
+            const { fetchGitDiffAsFile } = await import('@/utils/attachmentUtils');
+            const { addStagedAttachments } = await import('@/stores/useAttachmentStore').then(m => m.useAttachmentStore.getState());
+            
+            const gitDiffFile = await fetchGitDiffAsFile();
+            if (gitDiffFile) {
+              addStagedAttachments([gitDiffFile]);
+            }
+          } catch (err) {
+            console.error('Failed to attach git diff:', err);
+            // Continue even if git diff attachment fails
+          }
+        }
+
         return true;
       } catch (error) {
         console.error(`Failed to select system prompt ${prompt.guid}:`, error);
@@ -171,6 +188,21 @@ export async function selectSystemPromptStandalone(prompt: SystemPrompt, options
     if (prompt.secondaryModelGuid && prompt.secondaryModelGuid !== 'none') {
       useModelStore.getState().selectSecondaryModel(prompt.secondaryModelGuid);
       await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
+    }
+
+    // 8. Attach git diff if the prompt has includeGitDiff set to true
+    if (prompt.includeGitDiff) {
+      try {
+        const { fetchGitDiffAsFile } = await import('@/utils/attachmentUtils');
+        const gitDiffFile = await fetchGitDiffAsFile();
+        
+        if (gitDiffFile) {
+          useAttachmentStore.getState().addStagedAttachments([gitDiffFile]);
+        }
+      } catch (err) {
+        console.error('Failed to attach git diff:', err);
+        // Continue even if git diff attachment fails
+      }
     }
 
     return true;

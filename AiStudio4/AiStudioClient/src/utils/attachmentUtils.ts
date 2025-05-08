@@ -1,4 +1,4 @@
-import { Attachment } from '@/types/attachment';
+﻿import { Attachment } from '@/types/attachment';
 
 /**
  * Shared utility functions for handling attachments across the application
@@ -280,4 +280,33 @@ export function prepareAttachmentsForTransmission(attachments: Attachment[]): an
     }
     return attachment;
   });
+}
+
+/**
+ * Fetches a git diff from the server and returns it as a File object
+ * @returns Promise resolving to a File object containing the git diff, or null if there was an error
+ */
+export async function fetchGitDiffAsFile(): Promise<File | null> {
+  try {
+    const { createApiRequest } = await import('@/utils/apiUtils');
+    const gitDiffRequest = createApiRequest('/api/gitDiff', 'POST');
+    const data = await gitDiffRequest({ data: '{}' });
+    
+    if (data.success && data.attachment) {
+      // Convert base64 to ArrayBuffer for content
+      const arrBuf = base64ToArrayBuffer(data.attachment.content);
+      return new File(
+        [arrBuf],
+        data.attachment.name || 'git-diff.txt',
+        {
+          type: data.attachment.type || 'text/plain',
+          lastModified: data.attachment.lastModified || Date.now()
+        }
+      );
+    }
+    return null;
+  } catch (err) {
+    console.error('Failed to get git diff:', err);
+    return null;
+  }
 }
