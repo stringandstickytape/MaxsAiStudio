@@ -1,5 +1,4 @@
-// AiStudioClient\src\components\PinnedShortcuts.tsx
-import React, { useEffect, useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState, memo, useCallback, useMemo } from 'react';
 import { Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -21,25 +20,24 @@ interface PinnedShortcutsProps {
     maxRows?: number;
 }
 
-export function PinnedShortcuts({
+function PinnedShortcutsBase({
     orientation = 'horizontal',
     maxShown = 10,
     className,
     autoFit = true,
     maxRows = 3,
 }: PinnedShortcutsProps) {
-    const {
-        pinnedCommands,
-        loading,
-        error,
-        fetchPinnedCommands,
-        addPinnedCommand,
-        removePinnedCommand,
-        reorderPinnedCommands,
-        savePinnedCommands,
-        setPinnedCommands,
-        setIsModified,
-    } = usePinnedCommandsStore();
+    // Use selective selectors from the store to prevent unnecessary re-renders
+    const pinnedCommands = usePinnedCommandsStore(state => state.pinnedCommands);
+    const loading = usePinnedCommandsStore(state => state.loading);
+    const error = usePinnedCommandsStore(state => state.error);
+    const fetchPinnedCommands = usePinnedCommandsStore(state => state.fetchPinnedCommands);
+    const addPinnedCommand = usePinnedCommandsStore(state => state.addPinnedCommand);
+    const removePinnedCommand = usePinnedCommandsStore(state => state.removePinnedCommand);
+    const reorderPinnedCommands = usePinnedCommandsStore(state => state.reorderPinnedCommands);
+    const savePinnedCommands = usePinnedCommandsStore(state => state.savePinnedCommands);
+    const setPinnedCommands = usePinnedCommandsStore(state => state.setPinnedCommands);
+    const setIsModified = usePinnedCommandsStore(state => state.setIsModified);
 
     const clientId = localStorage.getItem('clientId');
 
@@ -159,8 +157,8 @@ export function PinnedShortcuts({
         };
     }, [autoFit, orientation, pinnedCommands.length, visibleCount, itemsPerRow, rowCount, maxRows]);
 
-    // Handle drag and drop reordering
-    const handleDragEnd = (result: DropResult) => {
+    // Handle drag and drop reordering - memoized to prevent recreation on each render
+    const handleDragEnd = useCallback((result: DropResult) => {
         if (!result.destination) return;
 
         const items = Array.from(pinnedCommands);
@@ -170,15 +168,15 @@ export function PinnedShortcuts({
         const reorderedIds = items.map((cmd) => cmd.id);
         reorderPinnedCommands(reorderedIds);
         setUserModified(true);
-    };
+    }, [pinnedCommands, reorderPinnedCommands, setUserModified]);
 
-    // Handle command click
-    const handleCommandClick = (commandId: string) => {
+    // Handle command click - memoized to prevent recreation on each render
+    const handleCommandClick = useCallback((commandId: string) => {
         useCommandStore.getState().executeCommand(commandId);
-    };
+    }, []);
 
-    // Handle pin/unpin command
-    const handlePinCommand = (commandId: string, isCurrentlyPinned: boolean) => {
+    // Handle pin/unpin command - memoized to prevent recreation on each render
+    const handlePinCommand = useCallback((commandId: string, isCurrentlyPinned: boolean) => {
         setUserModified(true);
 
         if (isCurrentlyPinned) {
@@ -204,20 +202,20 @@ export function PinnedShortcuts({
                 });
             }
         }
-    };
+    }, [setUserModified, removePinnedCommand, savePinnedCommands, addPinnedCommand]);
     
-    // Handle rename command
-    const handleRenameCommand = (command: PinnedCommand) => {
+    // Handle rename command - memoized to prevent recreation on each render
+    const handleRenameCommand = useCallback((command: PinnedCommand) => {
         setCommandToRename(command);
         setNewCommandName(command.name);
         setSelectedIconName(command.iconName);
         // Ensure we always have a valid icon set, defaulting to 'lucide' if undefined
         setSelectedIconSet((command.iconSet as IconSet) || 'lucide');
         setRenameDialogOpen(true);
-    };
+    }, [setCommandToRename, setNewCommandName, setSelectedIconName, setSelectedIconSet, setRenameDialogOpen]);
     
-    // Handle rename confirmation
-    const handleRenameConfirm = () => {
+    // Handle rename confirmation - memoized to prevent recreation on each render
+    const handleRenameConfirm = useCallback(() => {
         if (!commandToRename || !newCommandName.trim()) {
             setRenameDialogOpen(false);
             return;
@@ -245,36 +243,42 @@ export function PinnedShortcuts({
         
         // Close the dialog
         setRenameDialogOpen(false);
-    };
+    }, [commandToRename, newCommandName, pinnedCommands, selectedIconName, selectedIconSet, setPinnedCommands, setIsModified, savePinnedCommands, setRenameDialogOpen]);
     
-    // Handle rename cancellation
-    const handleRenameCancel = () => {
+    // Handle rename cancellation - memoized to prevent recreation on each render
+    const handleRenameCancel = useCallback(() => {
         setRenameDialogOpen(false);
-    };
+    }, [setRenameDialogOpen]);
     
-    // Handle icon selection
-    const handleIconSelect = (iconName: string, iconSet: IconSet) => {
+    // Handle icon selection - memoized to prevent recreation on each render
+    const handleIconSelect = useCallback((iconName: string, iconSet: IconSet) => {
         setSelectedIconName(iconName);
         setSelectedIconSet(iconSet);
-    };
+    }, [setSelectedIconName, setSelectedIconSet]);
 
-    // Calculate visible and hidden commands
-    const effectiveVisibleCount = autoFit && orientation === 'horizontal' ? visibleCount : maxShown;
-    const visibleCommands = pinnedCommands.slice(0, effectiveVisibleCount);
-    const hiddenCommands = pinnedCommands.slice(effectiveVisibleCount);
-    const hasMoreCommands = pinnedCommands.length > effectiveVisibleCount;
+    // Calculate visible and hidden commands - memoized to prevent recalculation on each render
+    const { effectiveVisibleCount, visibleCommands, hiddenCommands, hasMoreCommands } = useMemo(() => {
+        const effectiveCount = autoFit && orientation === 'horizontal' ? visibleCount : maxShown;
+        const visible = pinnedCommands.slice(0, effectiveCount);
+        const hidden = pinnedCommands.slice(effectiveCount);
+        const hasMore = pinnedCommands.length > effectiveCount;
+        return { effectiveVisibleCount: effectiveCount, visibleCommands: visible, hiddenCommands: hidden, hasMoreCommands: hasMore };
+    }, [autoFit, orientation, visibleCount, maxShown, pinnedCommands]);
 
-    // Create command rows for multi-row layout
-    const commandRows: typeof pinnedCommands[] = [];
-    if (orientation === 'horizontal' && autoFit && rowCount > 1) {
-        for (let i = 0; i < rowCount; i++) {
-            const startIdx = i * itemsPerRow;
-            const endIdx = Math.min(startIdx + itemsPerRow, visibleCommands.length);
-            commandRows.push(visibleCommands.slice(startIdx, endIdx));
+    // Create command rows for multi-row layout - memoized to prevent recalculation on each render
+    const commandRows = useMemo(() => {
+        const rows: typeof pinnedCommands[] = [];
+        if (orientation === 'horizontal' && autoFit && rowCount > 1) {
+            for (let i = 0; i < rowCount; i++) {
+                const startIdx = i * itemsPerRow;
+                const endIdx = Math.min(startIdx + itemsPerRow, visibleCommands.length);
+                rows.push(visibleCommands.slice(startIdx, endIdx));
+            }
+        } else {
+            rows.push(visibleCommands);
         }
-    } else {
-        commandRows.push(visibleCommands);
-    }
+        return rows;
+    }, [orientation, autoFit, rowCount, itemsPerRow, visibleCommands]);
 
     // Empty state
     if (pinnedCommands.length === 0) {
@@ -399,3 +403,15 @@ export function PinnedShortcuts({
 // Expose themeable properties for ThemeManager
 export const themeableProps = {
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export const PinnedShortcuts = memo(PinnedShortcutsBase, (prevProps, nextProps) => {
+    // Compare props to determine if re-render is needed
+    return (
+        prevProps.orientation === nextProps.orientation &&
+        prevProps.maxShown === nextProps.maxShown &&
+        prevProps.className === nextProps.className &&
+        prevProps.autoFit === nextProps.autoFit &&
+        prevProps.maxRows === nextProps.maxRows
+    );
+});
