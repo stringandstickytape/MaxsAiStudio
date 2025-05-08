@@ -1,0 +1,698 @@
+{
+  "@eslint/js@9.26.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/eslint/eslint",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@eslint\\js",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@eslint\\js\\LICENSE"
+  },
+  "@hookform/resolvers@4.1.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/react-hook-form/resolvers",
+    "publisher": "bluebill1049",
+    "email": "bluebill1049@hotmail.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@hookform\\resolvers",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@hookform\\resolvers\\LICENSE"
+  },
+  "@hpcc-js/wasm@2.22.4": {
+    "licenses": "Apache-2.0",
+    "repository": "https://github.com/hpcc-systems/hpcc-js-wasm",
+    "publisher": "hpcc-systems",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@hpcc-js\\wasm",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@hpcc-js\\wasm\\LICENSE"
+  },
+  "@lobehub/icons@1.97.2": {
+    "licenses": "MIT",
+    "repository": "https://github.com/lobehub/lobe-icons",
+    "publisher": "LobeHub",
+    "email": "i@lobehub.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@lobehub\\icons",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@lobehub\\icons\\LICENSE"
+  },
+  "@mdx-js/esbuild@3.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/mdx-js/mdx",
+    "publisher": "Titus Wormer",
+    "email": "tituswormer@gmail.com",
+    "url": "https://wooorm.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@mdx-js\\esbuild",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@mdx-js\\esbuild\\license"
+  },
+  "@mdx-js/react@3.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/mdx-js/mdx",
+    "publisher": "John Otander",
+    "email": "johnotander@gmail.com",
+    "url": "https://johno.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@mdx-js\\react",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@mdx-js\\react\\license"
+  },
+  "@radix-ui/react-accordion@1.2.10": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-accordion",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-accordion\\LICENSE"
+  },
+  "@radix-ui/react-alert-dialog@1.1.13": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-alert-dialog",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-alert-dialog\\LICENSE"
+  },
+  "@radix-ui/react-aspect-ratio@1.1.6": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-aspect-ratio",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-aspect-ratio\\LICENSE"
+  },
+  "@radix-ui/react-avatar@1.1.9": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-avatar",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-avatar\\LICENSE"
+  },
+  "@radix-ui/react-checkbox@1.3.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-checkbox",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-checkbox\\LICENSE"
+  },
+  "@radix-ui/react-collapsible@1.1.10": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-collapsible",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-collapsible\\LICENSE"
+  },
+  "@radix-ui/react-context-menu@2.2.14": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-context-menu",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-context-menu\\LICENSE"
+  },
+  "@radix-ui/react-dialog@1.1.13": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-dialog",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-dialog\\LICENSE"
+  },
+  "@radix-ui/react-dropdown-menu@2.1.14": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-dropdown-menu",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-dropdown-menu\\LICENSE"
+  },
+  "@radix-ui/react-hover-card@1.1.13": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-hover-card",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-hover-card\\LICENSE"
+  },
+  "@radix-ui/react-label@2.1.6": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-label",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-label\\LICENSE"
+  },
+  "@radix-ui/react-menubar@1.1.14": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-menubar",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-menubar\\LICENSE"
+  },
+  "@radix-ui/react-navigation-menu@1.2.12": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-navigation-menu",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-navigation-menu\\LICENSE"
+  },
+  "@radix-ui/react-popover@1.1.13": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-popover",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-popover\\LICENSE"
+  },
+  "@radix-ui/react-progress@1.1.6": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-progress",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-progress\\LICENSE"
+  },
+  "@radix-ui/react-radio-group@1.3.6": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-radio-group",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-radio-group\\LICENSE"
+  },
+  "@radix-ui/react-scroll-area@1.2.8": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-scroll-area",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-scroll-area\\LICENSE"
+  },
+  "@radix-ui/react-select@2.2.4": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-select",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-select\\LICENSE"
+  },
+  "@radix-ui/react-separator@1.1.6": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-separator",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-separator\\LICENSE"
+  },
+  "@radix-ui/react-slider@1.3.4": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-slider",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-slider\\LICENSE"
+  },
+  "@radix-ui/react-slot@1.2.2": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-slot",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-slot\\LICENSE"
+  },
+  "@radix-ui/react-switch@1.2.4": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-switch",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-switch\\LICENSE"
+  },
+  "@radix-ui/react-tabs@1.1.11": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-tabs",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-tabs\\LICENSE"
+  },
+  "@radix-ui/react-toast@1.2.13": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-toast",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-toast\\LICENSE"
+  },
+  "@radix-ui/react-toggle-group@1.1.9": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-toggle-group",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-toggle-group\\LICENSE"
+  },
+  "@radix-ui/react-toggle@1.1.8": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-toggle",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-toggle\\LICENSE"
+  },
+  "@radix-ui/react-tooltip@1.2.6": {
+    "licenses": "MIT",
+    "repository": "https://github.com/radix-ui/primitives",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-tooltip",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@radix-ui\\react-tooltip\\LICENSE"
+  },
+  "@reduxjs/toolkit@2.8.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/reduxjs/redux-toolkit",
+    "publisher": "Mark Erikson",
+    "email": "mark@isquaredsoftware.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@reduxjs\\toolkit",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@reduxjs\\toolkit\\LICENSE"
+  },
+  "@tailwindcss/typography@0.5.16": {
+    "licenses": "MIT",
+    "repository": "https://github.com/tailwindlabs/tailwindcss-typography",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@tailwindcss\\typography",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@tailwindcss\\typography\\LICENSE"
+  },
+  "@tanstack/react-virtual@3.13.8": {
+    "licenses": "MIT",
+    "repository": "https://github.com/TanStack/virtual",
+    "publisher": "Tanner Linsley",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@tanstack\\react-virtual",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@tanstack\\react-virtual\\LICENSE"
+  },
+  "@types/d3-hierarchy@3.1.7": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-hierarchy",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-hierarchy\\LICENSE"
+  },
+  "@types/d3-selection@3.0.11": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-selection",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-selection\\LICENSE"
+  },
+  "@types/d3-shape@3.1.7": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-shape",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-shape\\LICENSE"
+  },
+  "@types/d3-zoom@3.0.8": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-zoom",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3-zoom\\LICENSE"
+  },
+  "@types/d3@7.4.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\d3\\LICENSE"
+  },
+  "@types/mdx@2.0.13": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\mdx",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\mdx\\LICENSE"
+  },
+  "@types/node@22.15.15": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\node",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\node\\LICENSE"
+  },
+  "@types/react-dom@19.1.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\react-dom",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\react-dom\\LICENSE"
+  },
+  "@types/react-syntax-highlighter@15.5.13": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\react-syntax-highlighter",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\react-syntax-highlighter\\LICENSE"
+  },
+  "@types/react@19.1.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\react",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\react\\LICENSE"
+  },
+  "@types/styled-components@5.1.34": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\styled-components",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\styled-components\\LICENSE"
+  },
+  "@types/uuid@10.0.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/DefinitelyTyped/DefinitelyTyped",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\uuid",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@types\\uuid\\LICENSE"
+  },
+  "@typescript-eslint/eslint-plugin@8.32.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/typescript-eslint/typescript-eslint",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@typescript-eslint\\eslint-plugin",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@typescript-eslint\\eslint-plugin\\LICENSE"
+  },
+  "@typescript-eslint/parser@8.32.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/typescript-eslint/typescript-eslint",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@typescript-eslint\\parser",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@typescript-eslint\\parser\\LICENSE"
+  },
+  "@vitejs/plugin-react@4.4.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/vitejs/vite-plugin-react",
+    "publisher": "Evan You",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@vitejs\\plugin-react",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@vitejs\\plugin-react\\LICENSE"
+  },
+  "@viz-js/viz@3.12.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/mdaines/viz-js",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@viz-js\\viz",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\@viz-js\\viz\\README.md"
+  },
+  "aistudio4-web@0.0.0": {
+    "licenses": "UNLICENSED",
+    "private": true,
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\README.md"
+  },
+  "autoprefixer@10.4.21": {
+    "licenses": "MIT",
+    "repository": "https://github.com/postcss/autoprefixer",
+    "publisher": "Andrey Sitnik",
+    "email": "andrey@sitnik.ru",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\autoprefixer",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\autoprefixer\\LICENSE"
+  },
+  "axios@1.9.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/axios/axios",
+    "publisher": "Matt Zabriskie",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\axios",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\axios\\LICENSE"
+  },
+  "class-variance-authority@0.7.1": {
+    "licenses": "Apache-2.0",
+    "repository": "https://github.com/joe-bell/cva",
+    "publisher": "Joe Bell",
+    "url": "https://joebell.co.uk",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\class-variance-authority",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\class-variance-authority\\LICENSE"
+  },
+  "clsx@2.1.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/lukeed/clsx",
+    "publisher": "Luke Edwards",
+    "email": "luke.edwards05@gmail.com",
+    "url": "https://lukeed.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\clsx",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\clsx\\license"
+  },
+  "cmdk@1.0.0": {
+    "licenses": "MIT",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\cmdk",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\cmdk\\LICENSE.md"
+  },
+  "cypress@14.3.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/cypress-io/cypress",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\cypress",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\cypress\\README.md"
+  },
+  "d3@7.9.0": {
+    "licenses": "ISC",
+    "repository": "https://github.com/d3/d3",
+    "publisher": "Mike Bostock",
+    "url": "https://bost.ocks.org/mike",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\d3",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\d3\\LICENSE"
+  },
+  "date-fns@4.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/date-fns/date-fns",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\date-fns",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\date-fns\\LICENSE.md"
+  },
+  "embla-carousel-react@8.6.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/davidjerleke/embla-carousel",
+    "publisher": "David Jerleke",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\embla-carousel-react",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\embla-carousel-react\\README.md"
+  },
+  "eslint-plugin-react-hooks@5.2.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/facebook/react",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\eslint-plugin-react-hooks",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\eslint-plugin-react-hooks\\LICENSE"
+  },
+  "eslint-plugin-react-refresh@0.4.20": {
+    "licenses": "MIT",
+    "repository": "https://github.com/ArnaudBarre/eslint-plugin-react-refresh",
+    "publisher": "Arnaud Barré",
+    "url": "https://github.com/ArnaudBarre",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\eslint-plugin-react-refresh",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\eslint-plugin-react-refresh\\LICENSE"
+  },
+  "eslint@9.26.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/eslint/eslint",
+    "publisher": "Nicholas C. Zakas",
+    "email": "nicholas+npm@nczconsulting.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\eslint",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\eslint\\LICENSE"
+  },
+  "focus-trap-react@10.3.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/focus-trap/focus-trap-react",
+    "publisher": "David Clark",
+    "url": "http://davidtheclark.com/",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\focus-trap-react",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\focus-trap-react\\LICENSE"
+  },
+  "globals@15.15.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/sindresorhus/globals",
+    "publisher": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "https://sindresorhus.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\globals",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\globals\\license"
+  },
+  "input-otp@1.4.2": {
+    "licenses": "MIT",
+    "repository": "https://github.com/guilhermerodz/input-otp",
+    "publisher": "Guilherme Rodz",
+    "email": "g@rodz.dev",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\input-otp",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\input-otp\\README.md"
+  },
+  "lucide-react@0.475.0": {
+    "licenses": "ISC",
+    "repository": "https://github.com/lucide-icons/lucide",
+    "publisher": "Eric Fennis",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\lucide-react",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\lucide-react\\LICENSE"
+  },
+  "mermaid@11.6.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/mermaid-js/mermaid",
+    "publisher": "Knut Sveidqvist",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\mermaid",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\mermaid\\LICENSE"
+  },
+  "next-themes@0.4.6": {
+    "licenses": "MIT",
+    "repository": "https://github.com/pacocoursey/next-themes",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\next-themes",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\next-themes\\license.md"
+  },
+  "postcss@8.5.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/postcss/postcss",
+    "publisher": "Andrey Sitnik",
+    "email": "andrey@sitnik.ru",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\postcss",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\postcss\\LICENSE"
+  },
+  "prettier@3.5.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/prettier/prettier",
+    "publisher": "James Long",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\prettier",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\prettier\\LICENSE"
+  },
+  "react-beautiful-dnd@13.1.1": {
+    "licenses": "Apache-2.0",
+    "repository": "https://github.com/atlassian/react-beautiful-dnd",
+    "publisher": "Alex Reardon",
+    "email": "areardon@atlassian.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-beautiful-dnd",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-beautiful-dnd\\LICENSE"
+  },
+  "react-day-picker@8.10.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/gpbl/react-day-picker",
+    "publisher": "Giampaolo Bellavite",
+    "email": "io@gpbl.dev",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-day-picker",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-day-picker\\LICENSE"
+  },
+  "react-dom@19.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/facebook/react",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-dom",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-dom\\LICENSE"
+  },
+  "react-hook-form@7.56.2": {
+    "licenses": "MIT",
+    "repository": "https://github.com/react-hook-form/react-hook-form",
+    "publisher": "Beier",
+    "email": "bluebill1049@hotmail.com",
+    "url": "Bill",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-hook-form",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-hook-form\\LICENSE"
+  },
+  "react-markdown@9.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/remarkjs/react-markdown",
+    "publisher": "Espen Hovlandsdal",
+    "email": "espen@hovlandsdal.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-markdown",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-markdown\\license"
+  },
+  "react-redux@9.2.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/reduxjs/react-redux",
+    "publisher": "Dan Abramov",
+    "email": "dan.abramov@me.com",
+    "url": "https://github.com/gaearon",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-redux",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-redux\\LICENSE.md"
+  },
+  "react-resizable-panels@2.1.9": {
+    "licenses": "MIT",
+    "repository": "https://github.com/bvaughn/react-resizable-panels",
+    "publisher": "Brian Vaughn",
+    "email": "brian.david.vaughn@gmail.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-resizable-panels",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-resizable-panels\\LICENSE"
+  },
+  "react-syntax-highlighter@15.6.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/react-syntax-highlighter/react-syntax-highlighter",
+    "publisher": "Conor Hastings",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-syntax-highlighter",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-syntax-highlighter\\LICENSE"
+  },
+  "react-virtual@2.10.4": {
+    "licenses": "MIT",
+    "repository": "https://github.com/tannerlinsley/react-virtual",
+    "publisher": "tannerlinsley",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-virtual",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react-virtual\\LICENSE"
+  },
+  "react@19.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/facebook/react",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\react\\LICENSE"
+  },
+  "reactflow@11.11.4": {
+    "licenses": "MIT",
+    "repository": "https://github.com/xyflow/xyflow",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\reactflow",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\reactflow\\LICENSE"
+  },
+  "recharts@2.15.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/recharts/recharts",
+    "publisher": "recharts group",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\recharts",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\recharts\\LICENSE"
+  },
+  "rehype-raw@7.0.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/rehypejs/rehype-raw",
+    "publisher": "Titus Wormer",
+    "email": "tituswormer@gmail.com",
+    "url": "https://wooorm.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\rehype-raw",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\rehype-raw\\license"
+  },
+  "remark-gfm@4.0.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/remarkjs/remark-gfm",
+    "publisher": "Titus Wormer",
+    "email": "tituswormer@gmail.com",
+    "url": "https://wooorm.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\remark-gfm",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\remark-gfm\\license"
+  },
+  "sonner@2.0.3": {
+    "licenses": "MIT",
+    "repository": "https://github.com/emilkowalski/sonner",
+    "publisher": "Emil Kowalski",
+    "email": "e@emilkowal.ski",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\sonner",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\sonner\\LICENSE.md"
+  },
+  "strip-comments@2.0.1": {
+    "licenses": "MIT",
+    "repository": "https://github.com/jonschlinkert/strip-comments",
+    "publisher": "Jon Schlinkert",
+    "url": "https://github.com/jonschlinkert",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\strip-comments",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\strip-comments\\LICENSE"
+  },
+  "styled-components@6.1.17": {
+    "licenses": "MIT",
+    "repository": "https://github.com/styled-components/styled-components",
+    "publisher": "Glen Maddern",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\styled-components",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\styled-components\\LICENSE"
+  },
+  "tailwind-merge@3.2.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/dcastil/tailwind-merge",
+    "publisher": "Dany Castillo",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\tailwind-merge",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\tailwind-merge\\LICENSE.md"
+  },
+  "tailwindcss-animate@1.0.7": {
+    "licenses": "MIT",
+    "publisher": "Jamie Kyle",
+    "email": "me@thejameskyle.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\tailwindcss-animate",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\tailwindcss-animate\\LICENSE"
+  },
+  "tailwindcss@3.4.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/tailwindlabs/tailwindcss",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\tailwindcss",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\tailwindcss\\LICENSE"
+  },
+  "typescript-eslint@8.32.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/typescript-eslint/typescript-eslint",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\typescript-eslint",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\typescript-eslint\\LICENSE"
+  },
+  "typescript@5.7.3": {
+    "licenses": "Apache-2.0",
+    "repository": "https://github.com/microsoft/TypeScript",
+    "publisher": "Microsoft Corp.",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\typescript",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\typescript\\LICENSE.txt"
+  },
+  "use-stick-to-bottom@1.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/stackblitz/use-stick-to-bottom",
+    "publisher": "Sam Denty",
+    "email": "samddenty@gmail.com",
+    "url": "http://samdenty.com/",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\use-stick-to-bottom",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\use-stick-to-bottom\\LICENSE.txt"
+  },
+  "uuid@11.1.0": {
+    "licenses": "MIT",
+    "repository": "https://github.com/uuidjs/uuid",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\uuid",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\uuid\\LICENSE.md"
+  },
+  "vaul@1.1.2": {
+    "licenses": "MIT",
+    "repository": "https://github.com/emilkowalski/vaul",
+    "publisher": "Emil Kowalski",
+    "email": "e@emilkowal.ski",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\vaul",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\vaul\\LICENSE.md"
+  },
+  "vite@6.3.5": {
+    "licenses": "MIT",
+    "repository": "https://github.com/vitejs/vite",
+    "publisher": "Evan You",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\vite",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\vite\\LICENSE.md"
+  },
+  "viz.js@2.1.2": {
+    "licenses": "MIT",
+    "repository": "https://github.com/mdaines/viz.js",
+    "publisher": "Mike Daines",
+    "email": "mdaines@fastmail.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\viz.js",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\viz.js\\LICENSE"
+  },
+  "zod@3.24.4": {
+    "licenses": "MIT",
+    "repository": "https://github.com/colinhacks/zod",
+    "publisher": "Colin McDonnell",
+    "email": "colin@colinhacks.com",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\zod",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\zod\\LICENSE"
+  },
+  "zustand@5.0.4": {
+    "licenses": "MIT",
+    "repository": "https://github.com/pmndrs/zustand",
+    "publisher": "Paul Henschel",
+    "path": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\zustand",
+    "licenseFile": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\AiStudioClient\\node_modules\\zustand\\LICENSE"
+  }
+}
+
