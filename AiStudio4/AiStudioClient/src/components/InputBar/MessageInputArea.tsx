@@ -1,5 +1,5 @@
 ﻿// AiStudioClient\src\components\InputBar\MessageInputArea.tsx
-import React, { useState, KeyboardEvent, useRef, useEffect } from 'react';
+import React, { useState, KeyboardEvent, useRef, useEffect, useCallback, useMemo } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { SlashDropdown } from '@/components/SlashDropdown';
@@ -15,9 +15,9 @@ interface MessageInputAreaProps {
     onAttachFile?: (file: File) => void; // New prop for handling file attachments
 }
 
-export function MessageInputArea({
-    inputText,
-    setInputText,
+function MessageInputAreaComponent({
+    inputText: propInputText,
+    setInputText: propSetInputText,
     onSend,
     isLoading,
     disabled,
@@ -25,86 +25,81 @@ export function MessageInputArea({
     onAttachFile
 }: MessageInputAreaProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [localInputText, setLocalInputText] = useState<string>(propInputText);
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [showSlashDropdown, setShowSlashDropdown] = useState(false);
     const [slashQuery, setSlashQuery] = useState('');
-    // We don't need to track dropdown position anymore as it's calculated in the SlashDropdown component
+    
+    // Update local state when prop changes
+    useEffect(() => {
+        setLocalInputText(propInputText);
+    }, [propInputText]);
 
+    // Notify parent of cursor position changes
     useEffect(() => {
         if (onCursorPositionChange) {
             onCursorPositionChange(cursorPosition);
         }
     }, [cursorPosition, onCursorPositionChange]);
 
-    const handleTextAreaInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const value = e.target.value;
-        setInputText(value);
-        setCursorPosition(e.target.selectionStart);
-        
-        // Check for slash command trigger
-        const match = /(?:^|\s)\/([^\s]*)$/.exec(value);
+    // Consolidated function to check for slash commands
+    const checkSlashCommand = useCallback((value: string, selectionStart: number) => {
+        const textBeforeCursor = value.substring(0, selectionStart);
+        const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
         
         if (match) {
             const query = match[1];
             setSlashQuery(query);
             setShowSlashDropdown(true);
-            
-            // No need to calculate position as it's fixed above the input bar
         } else {
             setShowSlashDropdown(false);
         }
-    };
-
-    const handleTextAreaClick = (e: React.MouseEvent<HTMLTextAreaElement>) => {
-        setCursorPosition(e.currentTarget.selectionStart);
+    }, []);
+    
+    // Handle text input with debounced parent updates
+    const handleTextAreaInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        const selectionStart = e.target.selectionStart;
         
-        // Check if we should show the slash dropdown after click
+        // Update both local and parent state immediately
+        setLocalInputText(value);
+        propSetInputText(value);
+        
+        setCursorPosition(selectionStart);
+        checkSlashCommand(value, selectionStart);
+    }, [propSetInputText, checkSlashCommand]);
+
+    // Handle click events on textarea
+    const handleTextAreaClick = useCallback((e: React.MouseEvent<HTMLTextAreaElement>) => {
+        const selectionStart = e.currentTarget.selectionStart;
+        setCursorPosition(selectionStart);
+        
+        // Check for slash commands on click
         if (textareaRef.current) {
             const value = textareaRef.current.value;
-            const selectionStart = textareaRef.current.selectionStart;
-            const textBeforeCursor = value.substring(0, selectionStart);
-            const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
-            
-            if (match) {
-                const query = match[1];
-                setSlashQuery(query);
-                setShowSlashDropdown(true);
-                
-                // No need to calculate position as it's fixed above the input bar
-            } else {
-                setShowSlashDropdown(false);
-            }
+            checkSlashCommand(value, selectionStart);
         }
-    };
+    }, [checkSlashCommand]);
 
-    const handleTextAreaKeyUp = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-        setCursorPosition(e.currentTarget.selectionStart);
+    // Handle key up events
+    const handleTextAreaKeyUp = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        const selectionStart = e.currentTarget.selectionStart;
+        setCursorPosition(selectionStart);
         
         // Don't process special keys that are handled by the dropdown
         if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(e.key)) {
             return;
         }
         
-        // Check if we should show the slash dropdown after key press
+        // Check for slash commands on key up
         if (textareaRef.current) {
             const value = textareaRef.current.value;
-            const selectionStart = textareaRef.current.selectionStart;
-            const textBeforeCursor = value.substring(0, selectionStart);
-            const match = /(?:^|\s)\/([^\s]*)$/.exec(textBeforeCursor);
-            
-            if (match) {
-                const query = match[1];
-                setSlashQuery(query);
-                setShowSlashDropdown(true);
-                
-                // No need to calculate position as it's fixed above the input bar
-            } else {
-                setShowSlashDropdown(false);
-            }
+            checkSlashCommand(value, selectionStart);
         }
-    };
+    }, [checkSlashCommand]);
 
-    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    // Handle key down events
+    const handleKeyDown = useCallback((e: KeyboardEvent<HTMLTextAreaElement>) => {
         // If dropdown is open, let it handle these keys
         if (showSlashDropdown && ['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape', ' '].includes(e.key)) {
             e.preventDefault();
@@ -115,8 +110,9 @@ export function MessageInputArea({
                 const text = e.currentTarget.value;
                 const newText = text.substring(0, cursorPos) + ' ' + text.substring(cursorPos);
                 e.currentTarget.value = newText;
-                // Need to update React state to match the DOM change
-                setInputText(newText);
+                // Update both local and parent state
+                setLocalInputText(newText);
+                propSetInputText(newText);
                 // Set cursor position after the space
                 setTimeout(() => {
                     if (textareaRef.current) {
@@ -132,17 +128,18 @@ export function MessageInputArea({
             e.preventDefault();
             // If tool loop is running (isLoading), send interjection instead of normal send
             if (isLoading) {
-                webSocketService.sendInterjection(inputText);
-                setInputText('');
+                webSocketService.sendInterjection(localInputText);
+                setLocalInputText('');
+                propSetInputText('');
             } else {
                 onSend();
             }
             return;
         }
-    };
+    }, [showSlashDropdown, isLoading, localInputText, onSend, propSetInputText]);
 
     // Handle selection from dropdown
-    const handleSlashItemSelect = (text: string) => {
+    const handleSlashItemSelect = useCallback((text: string) => {
         // Replace the slash command with the selected text (or remove it if text is empty)
         if (textareaRef.current) {
             const value = textareaRef.current.value;
@@ -170,7 +167,9 @@ export function MessageInputArea({
                     ? textBeforeCursor.substring(0, slashStart) + textAfterCursor
                     : textBeforeCursor.substring(0, slashStart) + text + textAfterCursor;
                 
-                setInputText(newValue);
+                // Update both local and parent state
+                setLocalInputText(newValue);
+                propSetInputText(newValue);
                 
                 // Set cursor position after the inserted text (or at slashStart if removed)
                 const newCursorPosition = text === '' ? slashStart : (slashStart + text.length);
@@ -186,12 +185,12 @@ export function MessageInputArea({
         }
         
         setShowSlashDropdown(false);
-    };
+    }, [propSetInputText]);
 
     // Handle cancellation
-    const handleSlashDropdownCancel = () => {
+    const handleSlashDropdownCancel = useCallback(() => {
         setShowSlashDropdown(false);
-    };
+    }, []);
 
     // Expose focus method to parent component via ref
     React.useImperativeHandle(
@@ -210,15 +209,22 @@ export function MessageInputArea({
                 }, 0);
             }
         }),
-        [textareaRef]
+        []
     );
 
+    // Memoize the style object to prevent unnecessary re-renders
+    const textareaStyle = useMemo(() => ({
+        backgroundColor: 'var(--inputbar-edit-bg, #2d3748)',
+        color: 'var(--inputbar-text-color, #e2e8f0)',
+        ...(window?.theme?.InputBar?.style || {})
+    }), []);
+    
     return (
         <div className="relative flex-1 flex flex-col">
             <Textarea
                 ref={textareaRef}
                 className="flex-1 w-full p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
-                value={inputText}
+                value={localInputText}
                 onChange={handleTextAreaInput}
                 onClick={handleTextAreaClick}
                 onKeyUp={handleTextAreaKeyUp}
@@ -231,11 +237,7 @@ export function MessageInputArea({
 * SHIFT+select a file in the slash menu to attach it"
                 disabled={disabled}
                 showLineCount={true}
-                style={{
-                    backgroundColor: 'var(--inputbar-edit-bg, #2d3748)',
-                    color: 'var(--inputbar-text-color, #e2e8f0)',
-                    ...(window?.theme?.InputBar?.style || {})
-                }}
+                style={textareaStyle}
             />
             
             {showSlashDropdown && (
@@ -255,3 +257,16 @@ export function MessageInputArea({
 export type MessageInputAreaRef = {
     focusWithCursor: (length?: number | null) => void;
 } & HTMLTextAreaElement;
+
+// Export memoized component to prevent unnecessary re-renders
+export const MessageInputArea = React.memo(MessageInputAreaComponent, 
+    (prevProps, nextProps) => {
+        // Only re-render when these props change
+        return (
+            prevProps.isLoading === nextProps.isLoading &&
+            prevProps.disabled === nextProps.disabled &&
+            prevProps.inputText === nextProps.inputText
+            // We don't compare function props as they should be stable references
+        );
+    }
+);
