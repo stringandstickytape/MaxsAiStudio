@@ -22,6 +22,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.IO;
 using System.Diagnostics;
+using AiStudio4.Core.Services;
 
 namespace AiStudio4;
 
@@ -35,11 +36,12 @@ public partial class WebViewWindow : Window
     private readonly IBuiltinToolService _builtinToolService;
     private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
     private readonly IWebSocketNotificationService _notificationService;
+    private readonly IProjectPackager _projectPackager;
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService)
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
@@ -49,6 +51,7 @@ public partial class WebViewWindow : Window
         _builtinToolService = builtinToolService;
         _audioTranscriptionService = audioTranscriptionService;
         _notificationService = notificationService; // Assign injected service
+        _projectPackager = projectPackager;
         
         // Initialize license file paths
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -467,6 +470,71 @@ public partial class WebViewWindow : Window
         }
     }
     
+    private async void PackProjectSourceCode_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Validate project path
+            string projectPath = _generalSettingsService.CurrentSettings.ProjectPath;
+            if (string.IsNullOrWhiteSpace(projectPath))
+            {
+                MessageBox.Show("Project path is not set.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!Directory.Exists(projectPath))
+            {
+                MessageBox.Show($"Project directory does not exist: {projectPath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Configure SaveFileDialog
+            var saveFileDialog = new SaveFileDialog
+            {
+                Title = "Save Project Source Code Package",
+                Filter = "XML Files|*.xml|All Files|*.*",
+                FilterIndex = 1,
+                DefaultExt = ".xml",
+                FileName = $"{Path.GetFileName(projectPath)}_SourceCode.xml",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                // Define common text file extensions
+                var textFileExtensions = new List<string>
+                {
+                    ".cs", ".xaml", ".xml", ".json", ".txt", ".md", ".html", ".css", ".js", ".ts", ".tsx",
+                    ".config", ".yml", ".yaml", ".ini", ".bat", ".sh", ".ps1", ".psm1", ".gitignore",
+                    ".sln", ".csproj", ".vbproj", ".fsproj", ".editorconfig", ".gitattributes"
+                };
+
+                // Define binary file extensions to exclude
+                var binaryFileExtensions = new List<string>
+                {
+                    ".exe", ".dll", ".pdb", ".obj", ".bin", ".dat", ".zip", ".rar", ".7z", ".tar", ".gz",
+                    ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".ico", ".tif", ".tiff", ".mp3", ".mp4", ".wav",
+                    ".avi", ".mov", ".wmv", ".flv", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
+                };
+
+                // Show progress message
+                MessageBox.Show("Creating project source code package. This may take a while for large projects.", "Processing", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                // Create the package
+                string xmlContent = await _projectPackager.CreatePackageAsync(projectPath, textFileExtensions, binaryFileExtensions);
+
+                // Save the XML to the selected file
+                await File.WriteAllTextAsync(saveFileDialog.FileName, xmlContent);
+
+                MessageBox.Show($"Project source code package created successfully at:\n{saveFileDialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error creating project source code package: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private async void TestReapplyMergeMenuItem_Click(object sender, RoutedEventArgs e)
     {
         // Create OpenFileDialog to browse for merge failure JSON files

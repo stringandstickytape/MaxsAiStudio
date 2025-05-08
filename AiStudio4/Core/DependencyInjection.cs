@@ -1,7 +1,10 @@
 ﻿// AiStudio4.Core\DependencyInjection.cs
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
+using AiStudio4.Core.Services;
 using AiStudio4.Core.Tools;
 using AiStudio4.InjectedDependencies;
+using AiStudio4.InjectedDependencies.RequestHandlers;
 using AiStudio4.Services;
 using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
@@ -33,7 +36,7 @@ namespace AiStudio4.Core
         public static IServiceCollection AddToolServices(this IServiceCollection services)
         {
             // Register theme service
-            services.AddTransient<IThemeService, Services.ThemeService>();
+            services.AddTransient<IThemeService, ThemeService>();
             
             // Register individual tools by scanning the assembly for ITool implementations
             var toolInterfaceType = typeof(ITool);
@@ -51,6 +54,9 @@ namespace AiStudio4.Core
                 services.AddTransient<ITool>(sp => (ITool)sp.GetRequiredService(toolType));
                 // Example registration: services.AddTransient<ITool>(sp => sp.GetRequiredService<CodeDiffTool>());
             }
+
+            // Register project packager service
+            services.AddSingleton<IProjectPackager, ProjectPackager>();
 
             // Register the tool service that consumes the collection of tools
             // BuiltinToolService: Manages the available tools and provides a centralized way to access them.

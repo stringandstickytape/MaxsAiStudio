@@ -31,6 +31,8 @@
             <MenuItem Header="_Project">
                 <MenuItem Header="_Set Project Path..." Click="SetProjectPathMenuItem_Click"/>
                 <Separator/>
+                <MenuItem Header="_Pack Project Source Code" Click="PackProjectSourceCode_Click"/>
+                <Separator/>
                 <MenuItem Header="_Recent Projects" Name="RecentProjectsMenuItem"/>
             </MenuItem>
             <MenuItem Header="📂" ToolTip="Opens the project root folder in an Explorer window" Click="ExploreProjectMenuItem_Click"/>
