@@ -7,6 +7,7 @@ import { MessageEditor } from './MessageEditor';
 import { useState, useRef, useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 
 interface MessageItemProps {
   message: any;
@@ -16,6 +17,7 @@ interface MessageItemProps {
 export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
+  const attachmentsById = useAttachmentStore(state => state.attachmentsById);
   const [editContent, setEditContent] = useState<string>('');
   const messageRef = useRef<HTMLDivElement>(null);
   
@@ -98,11 +100,12 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
       </div>
 
       {/* Display message attachments */}
-      {message.attachments && message.attachments.length > 0 && (
+      {/* Get attachments from either the message prop or the centralized store */}
+      {((message.attachments && message.attachments.length > 0) || (attachmentsById[message.id] && attachmentsById[message.id].length > 0)) && (
         <div className="ConvView mt-3 pt-3 border-t" style={{
           borderColor: 'var(--convview-border-color, rgba(55, 65, 81, 0.3))'
         }}>
-          <MessageAttachments attachments={message.attachments} />
+          <MessageAttachments attachments={attachmentsById[message.id] || message.attachments} />
         </div>
       )}
 

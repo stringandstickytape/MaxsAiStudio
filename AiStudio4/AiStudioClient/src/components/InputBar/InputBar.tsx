@@ -8,7 +8,7 @@ import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { useAttachmentManager } from '@/hooks/useAttachmentManager';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { formatTextAttachments } from '@/utils/attachmentUtils';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
@@ -71,16 +71,13 @@ export function InputBar({
     const [isAtBottom, setIsAtBottom] = useState(true);
 
     const {
-        attachments,
-        error: attachmentError,
-        addAttachment,
-        addAttachments,
-        removeAttachment,
-        clearAttachments
-    } = useAttachmentManager({
-        maxCount: 5,
-        maxSize: 10 * 1024 * 1024
-    });
+        stagedAttachments: attachments,
+        attachmentErrors,
+        addStagedAttachment: addAttachment,
+        addStagedAttachments: addAttachments,
+        removeStagedAttachment: removeAttachment,
+        clearStagedAttachments: clearAttachments
+    } = useAttachmentStore();
 
     const inputText = inputValue ?? localInputText;
     const setInputText = onInputChange || setLocalInputText;
@@ -193,7 +190,7 @@ export function InputBar({
                 systemPromptId,
                 systemPromptContent,
                 messageId,
-                attachments: attachments.length > 0 ? attachments : undefined
+                attachments: attachments.length > 0 ? useAttachmentStore.getState().getStagedAttachments() : undefined
             });
             setCursorPosition(0);
         } catch (error) {
@@ -234,9 +231,10 @@ export function InputBar({
             const textFileContent = formatTextAttachments(textAttachments);
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
             
+            // Get attachments from store and pass them to handleChatMessage
+            const messageAttachments = useAttachmentStore.getState().getStagedAttachments();
             handleChatMessage(fullMessage);
             setInputText('');
-            clearAttachments();
         }
     };
 

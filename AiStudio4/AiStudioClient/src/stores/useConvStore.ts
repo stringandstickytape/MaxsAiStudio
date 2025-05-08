@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
-import { processAttachments, cleanupAttachmentUrls } from '@/utils/attachmentUtils';
+import { processAttachments } from '@/utils/attachmentUtils';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 
 interface ConvState {
     convs: Record<string, Conv>;
@@ -57,6 +58,11 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
                     : undefined;
+                
+                // Store processed attachments in the attachment store if they exist
+                if (attachments) {
+                    useAttachmentStore.getState().addAttachmentsForId(messageId, attachments);
+                }
 
                 // First add the message to the conversation
                 addMessage({
@@ -148,6 +154,11 @@ export const useConvStore = create<ConvState>((set, get) => {
                     const attachments = m.attachments && Array.isArray(m.attachments)
                         ? processAttachments(m.attachments)
                         : undefined;
+                    
+                    // Store processed attachments in the attachment store if they exist
+                    if (attachments) {
+                        useAttachmentStore.getState().addAttachmentsForId(m.id, attachments);
+                    }
 
                     addMessage({
                         convId,
@@ -308,7 +319,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                 if (convToDelete) {
                     convToDelete.messages.forEach(message => {
                         if (message.attachments) {
-                            cleanupAttachmentUrls(message.attachments);
+                            // Use the attachment store to clean up attachments
+                            useAttachmentStore.getState().removeAttachmentsForId(message.id);
                         }
                     });
                 }

@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BookMarked, Mic, Send, X, MessageSquarePlus } from 'lucide-react';
 import { FileAttachment } from '@/components/FileAttachment';
-import { Attachment } from '@/types/attachment';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { webSocketService } from '@/services/websocket/WebSocketService';
@@ -12,7 +12,7 @@ interface ActionButtonsProps {
     onSend: () => void;
     onCancel: () => void;
     onVoiceInputClick?: () => void;
-    addAttachments: (files: Attachment[]) => void;
+    addAttachments?: (files: File[]) => void; // Optional since we'll use the store directly
     isLoading: boolean;
     isCancelling: boolean;
     disabled: boolean;
@@ -46,7 +46,6 @@ export function ActionButtons({
         <div className="flex flex-col gap-2 justify-end">
             <FileAttachment
                 className="h-6"
-                onFilesSelected={addAttachments}
                 disabled={isLoading || disabled}
                 maxFiles={5}
                 style={{

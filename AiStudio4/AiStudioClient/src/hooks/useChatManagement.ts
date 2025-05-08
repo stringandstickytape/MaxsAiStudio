@@ -6,6 +6,7 @@ import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { v4 as uuidv4 } from 'uuid';
 import { createResourceHook } from './useResourceFactory';
 import { prepareAttachmentsForTransmission, isTextFile } from '@/utils/attachmentUtils';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 
 const useChatConfigResource = createResourceHook<{
     models: Array<{guid: string; name: string; friendlyName: string}>;
@@ -73,12 +74,14 @@ export function useChatManagement() {
                 let requestParams = { ...params };
 
                 if (params.attachments && params.attachments.length > 0) {
-                    
-                    
+                    // Process attachments from the parameter
                     const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
-
-                    
                     requestParams.attachments = prepareAttachmentsForTransmission(binaryAttachments);
+                    
+                    // Store the attachments in the attachment store
+                    if (newMessageId) {
+                        useAttachmentStore.getState().addAttachmentsForId(newMessageId, params.attachments);
+                    }
                 }
 
                 const sendMessageRequest = createApiRequest('/api/chat', 'POST');

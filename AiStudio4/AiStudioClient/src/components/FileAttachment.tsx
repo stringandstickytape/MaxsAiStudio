@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Paperclip, X, Upload, ClipboardPen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { DEFAULT_ATTACHMENT_OPTIONS, base64ToArrayBuffer } from '@/utils/attachmentUtils';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { createApiRequest } from '@/utils/apiUtils';
 import {
     DropdownMenu,
@@ -13,7 +14,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface FileAttachmentProps {
-    onFilesSelected: (files: FileList | File[]) => void;
+    onFilesSelected?: (files: FileList | File[]) => void; // Make optional since we'll use the store directly
     disabled?: boolean;
     className?: string;
     maxFiles?: number;
@@ -33,6 +34,7 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
     const inputRef = useRef<HTMLInputElement>(null);
     const [isDragging, setIsDragging] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const addStagedAttachments = useAttachmentStore(state => state.addStagedAttachments);
 
     const handleAttachFileClick = async () => {
         // If in Visual Studio, use the VS-specific approach
@@ -71,8 +73,11 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                     );
                 });
                 
-                // Pass the files to the callback
-                onFilesSelected(files);
+                // Use the store directly and call the callback if provided
+                addStagedAttachments(files);
+                if (onFilesSelected) {
+                    onFilesSelected(files);
+                }
             } else if (data.error) {
                 console.error('Error attaching file:', data.error);
             }
@@ -87,9 +92,12 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        onFilesSelected(files);
+        // Use the store directly and call the callback if provided
+        addStagedAttachments(files);
+        if (onFilesSelected) {
+            onFilesSelected(files);
+        }
 
-        
         if (inputRef.current) {
             inputRef.current.value = '';
         }
@@ -113,7 +121,11 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
         setIsDragging(false);
 
         if (!e.dataTransfer.files || e.dataTransfer.files.length === 0) return;
-        onFilesSelected(e.dataTransfer.files);
+        // Use the store directly and call the callback if provided
+        addStagedAttachments(e.dataTransfer.files);
+        if (onFilesSelected) {
+            onFilesSelected(e.dataTransfer.files);
+        }
     };
 
     return (
@@ -184,8 +196,11 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                                         type: data.attachment.type || 'image/png',
                                         lastModified: data.attachment.lastModified || Date.now()
                                     });
-                                    // Pass as array for addAttachments
-                                    onFilesSelected([file]);
+                                    // Use the store directly and call the callback if provided
+                                    addStagedAttachments([file]);
+                                    if (onFilesSelected) {
+                                        onFilesSelected([file]);
+                                    }
                                 } else {
                                     alert(data.error || 'No image found in clipboard.');
                                 }
@@ -216,8 +231,11 @@ export const FileAttachment: React.FC<FileAttachmentProps> = ({
                                         type: data.attachment.type || 'text/plain',
                                         lastModified: data.attachment.lastModified || Date.now()
                                     });
-                                    // Pass as array for addAttachments
-                                    onFilesSelected([file]);
+                                    // Use the store directly and call the callback if provided
+                                    addStagedAttachments([file]);
+                                    if (onFilesSelected) {
+                                        onFilesSelected([file]);
+                                    }
                                 } else {
                                     alert(data.error || 'Failed to get git diff.');
                                 }
