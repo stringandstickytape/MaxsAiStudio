@@ -8,6 +8,7 @@ import { useSearchStore } from '@/stores/useSearchStore';
 
 import { MessageItem } from './MessageItem';
 import { StreamingMessage } from './StreamingMessage';
+import { ScrollToBottomButton } from './ScrollToBottomButton';
 // import { ConversationControls } from './ConversationControls';
 
 // Define themeable properties for the ConvView component
@@ -216,6 +217,9 @@ export const ConvView = ({
                     lastStreamedContent={lastStreamedContent}
                 />
             </StickToBottom.Content>
+            
+            {/* Add scroll to bottom button */}
+            <ScrollToBottomButton />
         </StickToBottom>
     );
 };
