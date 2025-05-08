@@ -202,7 +202,7 @@ public partial class WebViewWindow : Window
     private void SetCondaPathMenuItem_Click(object sender, RoutedEventArgs e)
     {
         string currentKey = _generalSettingsService.CurrentSettings.CondaPath ?? string.Empty;
-        string prompt = "Enter conda path here, eg C:\\Users\\username\\miniconda3\\Scripts\\conda.exe:";
+        string prompt = "Enter conda path here, eg C:\\Users\\username\\miniconda3\\Scripts";
         string title = "Set conda path";
 
         var dialog = new WpfInputDialog(title, prompt, currentKey)
