@@ -35,6 +35,13 @@ namespace AiStudio4.InjectedDependencies
         [Obsolete("Use SecondaryModelGuid instead")]
         public string SecondaryModel { get; set; } = string.Empty;
 
+        public List<string> PackerIncludeFileTypes { get; set; } = new List<string>
+        {
+            ".cs", ".xaml", ".xml", ".json", ".txt", ".md", ".html", ".css", ".js", ".ts", ".tsx",
+                    ".config", ".yml", ".yaml", ".ini", ".bat", ".sh", ".ps1", ".psm1", ".gitignore",
+                    ".sln", ".csproj", ".vbproj", ".fsproj", ".editorconfig", ".gitattributes"
+        };
+
         public ApiSettings ToApiSettings() => new()
         {
             Temperature = this.Temperature,

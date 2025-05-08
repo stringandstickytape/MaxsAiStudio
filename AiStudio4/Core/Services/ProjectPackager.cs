@@ -21,10 +21,10 @@ namespace AiStudio4.Core.Services
         /// Creates a package of the project source code
         /// </summary>
         /// <param name="projectRootPath">The root path of the project</param>
-        /// <param name="textFileExtensions">Extensions to consider as text files</param>
+        /// <param name="includeExtensions">Extensions to include in the package</param>
         /// <param name="binaryFileExtensionsToExclude">Extensions to always exclude as binary</param>
         /// <returns>XML content as a string</returns>
-        Task<string> CreatePackageAsync(string projectRootPath, IEnumerable<string> textFileExtensions, IEnumerable<string> binaryFileExtensionsToExclude);
+        Task<string> CreatePackageAsync(string projectRootPath, IEnumerable<string> includeExtensions, IEnumerable<string> binaryFileExtensionsToExclude);
     }
 
     /// <summary>
@@ -45,10 +45,10 @@ namespace AiStudio4.Core.Services
         /// Creates a package of the project source code
         /// </summary>
         /// <param name="projectRootPath">The root path of the project</param>
-        /// <param name="textFileExtensions">Extensions to consider as text files</param>
+        /// <param name="includeExtensions">Extensions to consider as text files</param>
         /// <param name="binaryFileExtensionsToExclude">Extensions to always exclude as binary</param>
         /// <returns>XML content as a string</returns>
-        public async Task<string> CreatePackageAsync(string projectRootPath, IEnumerable<string> textFileExtensions, IEnumerable<string> binaryFileExtensionsToExclude)
+        public async Task<string> CreatePackageAsync(string projectRootPath, IEnumerable<string> includeExtensions, IEnumerable<string> binaryFileExtensionsToExclude)
         {
             try
             {
@@ -102,7 +102,7 @@ namespace AiStudio4.Core.Services
                 }
 
                 // Get all files
-                var files = GetAllFiles(projectRootPath, directories, gitIgnoreFilterManager, textFileExtensions, binaryFileExtensionsToExclude);
+                var files = GetAllFiles(projectRootPath, directories, gitIgnoreFilterManager, includeExtensions, binaryFileExtensionsToExclude);
                 var filesElement = xmlDoc.Root.Element("files");
 
                 // Add file contents
@@ -173,10 +173,10 @@ namespace AiStudio4.Core.Services
         /// Gets all text files in the project, respecting .gitignore rules
         /// </summary>
         private List<string> GetAllFiles(string rootPath, List<string> directories, GitIgnoreFilterManager gitIgnoreFilter, 
-            IEnumerable<string> textFileExtensions, IEnumerable<string> binaryFileExtensionsToExclude)
+            IEnumerable<string> includeExtensions, IEnumerable<string> binaryFileExtensionsToExclude)
         {
             var files = new List<string>();
-            var textExtensions = textFileExtensions.Select(ext => ext.ToLowerInvariant()).ToList();
+            var textExtensions = includeExtensions.Select(ext => ext.ToLowerInvariant()).ToList();
             var binaryExtensions = binaryFileExtensionsToExclude.Select(ext => ext.ToLowerInvariant()).ToList();
 
             // Add files from root directory

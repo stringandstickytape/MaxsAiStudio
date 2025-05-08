@@ -501,13 +501,8 @@ public partial class WebViewWindow : Window
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                // Define common text file extensions
-                var textFileExtensions = new List<string>
-                {
-                    ".cs", ".xaml", ".xml", ".json", ".txt", ".md", ".html", ".css", ".js", ".ts", ".tsx",
-                    ".config", ".yml", ".yaml", ".ini", ".bat", ".sh", ".ps1", ".psm1", ".gitignore",
-                    ".sln", ".csproj", ".vbproj", ".fsproj", ".editorconfig", ".gitattributes"
-                };
+                // Get file extensions to include from settings
+                var includeExtensions = _generalSettingsService.CurrentSettings.PackerIncludeFileTypes ?? new System.Collections.Generic.List<string>();
 
                 // Define binary file extensions to exclude
                 var binaryFileExtensions = new List<string>
@@ -521,7 +516,7 @@ public partial class WebViewWindow : Window
                 MessageBox.Show("Creating project source code package. This may take a while for large projects.", "Processing", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 // Create the package
-                string xmlContent = await _projectPackager.CreatePackageAsync(projectPath, textFileExtensions, binaryFileExtensions);
+                string xmlContent = await _projectPackager.CreatePackageAsync(projectPath, includeExtensions, binaryFileExtensions);
 
                 // Save the XML to the selected file
                 await File.WriteAllTextAsync(saveFileDialog.FileName, xmlContent);
@@ -586,6 +581,32 @@ public partial class WebViewWindow : Window
             {
                 MessageBox.Show($"Error reapplying merge: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+    }
+    
+    private void SetPackerIncludeTypesMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var currentList = _generalSettingsService.CurrentSettings.PackerIncludeFileTypes ?? new System.Collections.Generic.List<string>();
+        string defaultValue = string.Join(",", currentList);
+        var dialog = new WpfInputDialog(
+            "Set Packer Include File Types",
+            "Enter comma-separated file extensions to include (e.g., .cs,.xaml,.js):",
+            defaultValue)
+        {
+            Owner = this
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            var input = dialog.ResponseText;
+            var list = input.Split(',')
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Select(s => s.StartsWith(".") ? s : "." + s)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            _generalSettingsService.CurrentSettings.PackerIncludeFileTypes = list;
+            _generalSettingsService.SaveSettings();
+            MessageBox.Show("Packer include file types updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

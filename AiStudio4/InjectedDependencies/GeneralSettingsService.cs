@@ -41,6 +41,16 @@ namespace AiStudio4.InjectedDependencies
                 if (section != null)
                 {
                     CurrentSettings = section.ToObject<GeneralSettings>() ?? new GeneralSettings();
+                    // Ensure PackerIncludeFileTypes is initialized if missing (for backward compatibility)
+                    if (CurrentSettings.PackerIncludeFileTypes == null || !CurrentSettings.PackerIncludeFileTypes.Any())
+                    {
+                        CurrentSettings.PackerIncludeFileTypes = new System.Collections.Generic.List<string>
+                        {
+                            ".cs", ".xaml", ".xml", ".json", ".txt", ".md", ".html", ".css", ".js", ".ts", ".tsx",
+                    ".config", ".yml", ".yaml", ".ini", ".bat", ".sh", ".ps1", ".psm1", ".gitignore",
+                    ".sln", ".csproj", ".vbproj", ".fsproj", ".editorconfig", ".gitattributes"
+                        };
+                    }
                     // Notify subscribers that settings have changed
                     SettingsChanged?.Invoke(this, EventArgs.Empty);
                 }
