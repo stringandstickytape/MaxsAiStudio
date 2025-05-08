@@ -58,10 +58,10 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
                     : undefined;
-                
+
                 // Store processed attachments in the attachment store if they exist
                 if (attachments) {
-                    useAttachmentStore.getState().addAttachmentsForId(messageId, attachments);
+                    useAttachmentStore.getState().addAttachmentsForId(content.id, attachments);
                 }
 
                 // First add the message to the conversation
