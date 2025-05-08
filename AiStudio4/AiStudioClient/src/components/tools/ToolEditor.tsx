@@ -21,6 +21,9 @@ interface ToolEditorProps {
 export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
   
   const { addTool, updateTool, validateToolSchema, isLoading: isApiLoading } = useToolsManagement();
+  
+  // Check if the tool is built-in
+  const isBuiltIn = tool?.isBuiltIn || false;
 
   // Extra properties (string key-value pairs, keys fixed per tool)
   const [extraProperties, setExtraProperties] = useState<Record<string, string>>(tool?.extraProperties || {});
@@ -88,21 +91,32 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
       }
 
       const toolData: any = {
-        name,
-        description,
-        schema,
-        schemaType,
-        filetype,
-        categories: selectedCategories,
+        guid: tool?.guid,
+        isBuiltIn: tool?.isBuiltIn || false,
         lastModified: new Date().toISOString(),
         extraProperties: extraProperties,
       };
+      
+      // Only include editable fields for non-built-in tools
+      if (!isBuiltIn) {
+        toolData.name = name;
+        toolData.description = description;
+        toolData.schema = schema;
+        toolData.schemaType = schemaType;
+        toolData.filetype = filetype;
+        toolData.categories = selectedCategories;
+      }
 
       if (tool) {
-        toolData.guid = tool.guid;
-        toolData.isBuiltIn = tool.isBuiltIn;
         await updateTool(toolData);
       } else {
+        // New tools are never built-in, so include all fields
+        toolData.name = name;
+        toolData.description = description;
+        toolData.schema = schema;
+        toolData.schemaType = schemaType;
+        toolData.filetype = filetype;
+        toolData.categories = selectedCategories;
         await addTool(toolData);
       }
 
@@ -127,6 +141,11 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
       fontSize: 'var(--global-font-size)',
       padding: '1rem'
     }}>
+      {isBuiltIn && (
+        <div className="p-3 mb-4 bg-blue-900/30 border border-blue-700/50 rounded-md">
+          <p className="text-blue-300 text-sm">This is a built-in tool. You can only edit the extra properties.</p>
+        </div>
+      )}
       <div>
         <Label htmlFor="tool-name">Name</Label>
         <Input
@@ -135,7 +154,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           onChange={(e) => setName(e.target.value)}
           placeholder="Tool name"
           className="input-base"
-          disabled={isLoading}
+          disabled={isLoading || isBuiltIn}
           style={{
             backgroundColor: 'var(--global-background-color)',
             borderColor: 'var(--global-border-color)',
@@ -151,7 +170,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Tool description"
           className="input-base"
-          disabled={isLoading}
+          disabled={isLoading || isBuiltIn}
           style={{
             backgroundColor: 'var(--global-background-color)',
             borderColor: 'var(--global-border-color)',
@@ -166,14 +185,14 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           value={schemaType}
           onValueChange={(value) => setSchemaType(value as 'function' | 'custom' | 'template')}
           className="flex space-x-4 mt-2"
-          disabled={isLoading}
+          disabled={isLoading || isBuiltIn}
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem
               value="function"
               id="schema-function"
               className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-              disabled={isLoading}
+              disabled={isLoading || isBuiltIn}
             />
             <Label htmlFor="schema-function" className="cursor-pointer text-gray-100">
               Function
@@ -184,7 +203,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
               value="custom"
               id="schema-custom"
               className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-              disabled={isLoading}
+              disabled={isLoading || isBuiltIn}
             />
             <Label htmlFor="schema-custom" className="cursor-pointer text-gray-100">
               Custom
@@ -195,7 +214,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
               value="template"
               id="schema-template"
               className="border-gray-500 text-white data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
-              disabled={isLoading}
+              disabled={isLoading || isBuiltIn}
             />
             <Label htmlFor="schema-template" className="cursor-pointer text-gray-100">
               Template
@@ -212,7 +231,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
           onChange={(e) => setFiletype(e.target.value)}
           placeholder="e.g., 'json', 'csv', or leave blank for any file"
           className="input-base"
-          disabled={isLoading}
+          disabled={isLoading || isBuiltIn}
           style={{
             backgroundColor: 'var(--global-background-color)',
             borderColor: 'var(--global-border-color)',
@@ -230,7 +249,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
             onChange={(e) => setSchema(e.target.value)}
             placeholder="Enter JSON schema..."
             className="min-h-[200px] font-mono text-sm input-base"
-            disabled={isLoading}
+            disabled={isLoading || isBuiltIn}
             style={{
               backgroundColor: 'var(--global-background-color)',
               borderColor: 'var(--global-border-color)',
@@ -255,8 +274,8 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
             <Badge
               key={category.id}
               variant={selectedCategories.includes(category.id) ? 'default' : 'outline'}
-              className={`cursor-pointer ${selectedCategories.includes(category.id) ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'} ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={() => !isLoading && handleCategoryToggle(category.id)}
+              className={`cursor-pointer ${selectedCategories.includes(category.id) ? 'bg-blue-600' : 'bg-gray-800 hover:bg-gray-700'} ${(isLoading || isBuiltIn) ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => !(isLoading || isBuiltIn) && handleCategoryToggle(category.id)}
             >
               {category.name}
             </Badge>
@@ -316,7 +335,7 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
               alert('Failed to generate theme schema: ' + (e instanceof Error ? e.message : e));
             }
           }}
-          disabled={isLoading}
+          disabled={isLoading || isBuiltIn}
           className="btn-secondary"
           style={{
             backgroundColor: 'var(--global-background-color)',

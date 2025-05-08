@@ -352,9 +352,9 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEditTool(tool)}
-                            className={`h-8 w-8 ${tool.isBuiltIn ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-gray-100'}`}
-                            title={tool.isBuiltIn ? 'Built-in tools cannot be edited' : 'Edit Tool'}
-                            disabled={tool.isBuiltIn}
+                            className={`h-8 w-8 ${tool.isBuiltIn ? 'text-blue-400 hover:text-blue-600' : 'text-gray-400 hover:text-gray-100'}`}
+                            title={tool.isBuiltIn ? 'Edit extra properties for built-in tools' : 'Edit Tool'}
+                            // No longer disabled for built-in tools
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
