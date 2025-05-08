@@ -290,6 +290,37 @@ public partial class WebViewWindow : Window
             }
         }
     }
+    
+    private void SetAzureDevOpsPATMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentPAT = _generalSettingsService.CurrentSettings.AzureDevOpsPAT ?? string.Empty;
+        string prompt = "Enter your Azure DevOps Personal Access Token:";
+        string title = "Set Azure DevOps PAT";
+
+        var dialog = new WpfInputDialog(title, prompt, currentPAT)
+        {
+            Owner = this // Set the owner to center the dialog over the main window
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            string newPAT = dialog.ResponseText;
+
+            // Check if the PAT actually changed
+            if (newPAT != currentPAT)
+            {
+                try
+                {
+                    _generalSettingsService.UpdateAzureDevOpsPAT(newPAT);
+                    MessageBox.Show("Azure DevOps PAT updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving Azure DevOps PAT: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+    }
 
     private async void TestAudioTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
     {

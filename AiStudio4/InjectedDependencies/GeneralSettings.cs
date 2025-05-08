@@ -20,6 +20,7 @@ namespace AiStudio4.InjectedDependencies
         public string ProjectPath { get; set; } = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4";
         public string YouTubeApiKey { get; set; }
         public string GitHubApiKey { get; set; }
+        public string AzureDevOpsPAT { get; set; }
         public string CondaPath { get; set; }
         public bool AllowConnectionsOutsideLocalhost { get; set; } = false;
 

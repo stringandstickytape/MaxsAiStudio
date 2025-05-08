@@ -236,6 +236,12 @@ namespace AiStudio4.InjectedDependencies
             SaveSettings();
         }
 
+        public void UpdateAzureDevOpsPAT(string pat)
+        {
+            CurrentSettings.AzureDevOpsPAT = pat;
+            SaveSettings();
+        }
+
         public void UpdateCondaPath(string path)
         {
             CurrentSettings.CondaPath = path;

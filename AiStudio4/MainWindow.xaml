@@ -19,6 +19,7 @@
                 <MenuItem Header="_Settings">
                     <MenuItem Header="_Set Youtube API Key..." Name="SetYouTubeApiKeyMenuItem" Click="SetYouTubeApiKeyMenuItem_Click"/>
                     <MenuItem Header="_Set GitHub API Key..." Name="SetGitHubApiKeyMenuItem" Click="SetGitHubApiKeyMenuItem_Click"/>
+                    <MenuItem Header="_Set Azure DevOps PAT..." Name="SetAzureDevOpsPATMenuItem" Click="SetAzureDevOpsPATMenuItem_Click"/>
                     <MenuItem Header="_Set Conda Path..." Name="SetCondaPathMenuItem" Click="SetCondaPathMenuItem_Click"/>
                     <Separator/>
                     <MenuItem Header="_Allow Connections Outside Localhost" Name="AllowConnectionsOutsideLocalhostMenuItem" IsCheckable="True" Click="AllowConnectionsOutsideLocalhostMenuItem_Click"/>
