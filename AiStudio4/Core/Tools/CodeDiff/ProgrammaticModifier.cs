@@ -252,7 +252,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
             try
             {
                 // Create debug directory if it doesn't exist
-                string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DebugLogs", "MergeFailures");
+                string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "DebugLogs", "MergeFailures");
                 Directory.CreateDirectory(debugDir);
                 
                 // Create a unique filename based on timestamp and file being modified
