@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -17,25 +17,27 @@ namespace AiStudio4.Services
     public class SystemPromptService : ISystemPromptService
     {
         private readonly string _promptsPath;
-        private readonly string _conversationPromptsPath;
+        private readonly string _convPromptsPath;
         private readonly ILogger<SystemPromptService> _logger;
+        private readonly IUserPromptService _userPromptService;
         private readonly object _lockObject = new object();
         private bool _isInitialized = false;
 
-        public SystemPromptService(ILogger<SystemPromptService> logger)
+        public SystemPromptService(ILogger<SystemPromptService> logger, IUserPromptService userPromptService)
         {
             _logger = logger;
+            _userPromptService = userPromptService;
             _promptsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "AiStudio4",
                 "systemPrompts");
-            _conversationPromptsPath = Path.Combine(
+            _convPromptsPath = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "AiStudio4",
-                "conversationPrompts");
+                "convPrompts");
 
             Directory.CreateDirectory(_promptsPath);
-            Directory.CreateDirectory(_conversationPromptsPath);
+            Directory.CreateDirectory(_convPromptsPath);
 
             _logger.LogInformation("Initialized system prompt storage at {PromptsPath}", _promptsPath);
         }
@@ -60,7 +62,10 @@ namespace AiStudio4.Services
                     Content = "You are a helpful assistant. Answer as concisely as possible.",
                     Description = "Standard helpful assistant prompt",
                     IsDefault = true,
-                    Tags = new List<string> { "general", "default" }
+                    Tags = new List<string> { "general", "default" },
+                    AssociatedTools = new List<string>(), // No default tools
+                    PrimaryModelGuid = string.Empty, // No default model
+                    SecondaryModelGuid = string.Empty // No default secondary model
                 };
 
                 await CreateSystemPromptAsync(defaultPrompt);
@@ -214,11 +219,11 @@ namespace AiStudio4.Services
             }, "getting default system prompt");
         }
 
-        public async Task<SystemPrompt> GetConversationSystemPromptAsync(string conversationId)
+        public async Task<SystemPrompt> GetConvSystemPromptAsync(string convId)
         {
             try
             {
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
+                var path = Path.Combine(_convPromptsPath, $"{convId}.systemprompt.json");
                 if (!File.Exists(path))
                 {
                     return await GetDefaultSystemPromptAsync();
@@ -229,7 +234,7 @@ namespace AiStudio4.Services
 
                 if (prompt == null)
                 {
-                    await ClearConversationSystemPromptAsync(conversationId);
+                    await ClearConvSystemPromptAsync(convId);
                     return await GetDefaultSystemPromptAsync();
                 }
 
@@ -237,12 +242,12 @@ namespace AiStudio4.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting system prompt for conversation {ConversationId}", conversationId);
+                _logger.LogError(ex, "Error getting system prompt for conv {ConvId}", convId);
                 return await GetDefaultSystemPromptAsync();
             }
         }
 
-        public Task<bool> SetConversationSystemPromptAsync(string conversationId, string promptId)
+        public Task<bool> SetConvSystemPromptAsync(string convId, string promptId)
         {
             return ExecuteWithErrorHandlingAsync<bool>(async () =>
             {
@@ -252,25 +257,100 @@ namespace AiStudio4.Services
                     return false;
                 }
 
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
-                await File.WriteAllTextAsync(path, promptId);
+                var path = Path.Combine(_convPromptsPath, $"{convId}.systemprompt.json");
+
+                try
+                {
+                    await File.WriteAllTextAsync(path, promptId);
+                }
+                catch
+                {
+
+                }
 
                 return true;
-            }, $"setting system prompt for conversation {conversationId}");
+            }, $"setting system prompt for conv {convId}");
         }
 
-        public Task<bool> ClearConversationSystemPromptAsync(string conversationId)
+        public Task<bool> ClearConvSystemPromptAsync(string convId)
         {
             return ExecuteWithErrorHandlingAsync<bool>(() =>
             {
-                var path = Path.Combine(_conversationPromptsPath, $"{conversationId}.systemprompt.json");
+                var path = Path.Combine(_convPromptsPath, $"{convId}.systemprompt.json");
                 if (File.Exists(path))
                 {
                     File.Delete(path);
                 }
 
                 return Task.FromResult(true);
-            }, $"clearing system prompt for conversation {conversationId}");
+            }, $"clearing system prompt for conv {convId}");
+        }
+        
+        public Task<bool> SetAssociatedUserPromptAsync(string systemPromptId, string userPromptId)
+        {
+            return ExecuteWithErrorHandlingAsync<bool>(async () =>
+            {
+                // Verify the system prompt exists
+                var systemPrompt = await GetSystemPromptByIdAsync(systemPromptId);
+                if (systemPrompt == null)
+                {
+                    return false;
+                }
+                
+                // Handle 'none' value as clearing the association
+                if (userPromptId == "none")
+                {
+                    systemPrompt.AssociatedUserPromptId = string.Empty;
+                    await SavePromptAsync(systemPrompt);
+                    return true;
+                }
+                
+                // Verify the user prompt exists
+                var userPrompt = await _userPromptService.GetUserPromptByIdAsync(userPromptId);
+                if (userPrompt == null)
+                {
+                    return false;
+                }
+                
+                // Set the association
+                systemPrompt.AssociatedUserPromptId = userPromptId;
+                await SavePromptAsync(systemPrompt);
+                
+                return true;
+            }, $"setting associated user prompt {userPromptId} for system prompt {systemPromptId}");
+        }
+        
+        public Task<bool> ClearAssociatedUserPromptAsync(string systemPromptId)
+        {
+            return ExecuteWithErrorHandlingAsync<bool>(async () =>
+            {
+                var systemPrompt = await GetSystemPromptByIdAsync(systemPromptId);
+                if (systemPrompt == null)
+                {
+                    return false;
+                }
+                
+                systemPrompt.AssociatedUserPromptId = string.Empty;
+                await SavePromptAsync(systemPrompt);
+                
+                return true;
+            }, $"clearing associated user prompt for system prompt {systemPromptId}");
+        }
+        
+        public Task<UserPrompt> GetAssociatedUserPromptAsync(string systemPromptId)
+        {
+            return ExecuteWithErrorHandlingAsync<UserPrompt>(async () =>
+            {
+                var systemPrompt = await GetSystemPromptByIdAsync(systemPromptId);
+                if (systemPrompt == null || 
+                    string.IsNullOrEmpty(systemPrompt.AssociatedUserPromptId) ||
+                    systemPrompt.AssociatedUserPromptId == "none")
+                {
+                    return null;
+                }
+                
+                return await _userPromptService.GetUserPromptByIdAsync(systemPrompt.AssociatedUserPromptId);
+            }, $"getting associated user prompt for system prompt {systemPromptId}");
         }
 
         private async Task SavePromptAsync(SystemPrompt prompt)
@@ -304,47 +384,5 @@ namespace AiStudio4.Services
         }
     }
 
-    public class StartupService : IHostedService
-    {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly ILogger<StartupService> _logger;
 
-        public StartupService(IServiceProvider serviceProvider, ILogger<StartupService> logger)
-        {
-            _serviceProvider = serviceProvider;
-            _logger = logger;
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Starting initialization of services");
-
-            using (var scope = _serviceProvider.CreateScope())
-            {
-                try
-                {
-                    // Initialize all services that need initialization
-                    _logger.LogInformation("Initializing SystemPromptService...");
-                    var systemPromptService = scope.ServiceProvider.GetRequiredService<ISystemPromptService>();
-                    await systemPromptService.InitializeAsync();
-
-                    _logger.LogInformation("Initializing ToolService...");
-                    var toolService = scope.ServiceProvider.GetRequiredService<IToolService>();
-                    await toolService.InitializeAsync();
-
-                    _logger.LogInformation("Service initialization completed");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error during service initialization");
-                }
-            }
-        }
-
-        public Task StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Stopping services");
-            return Task.CompletedTask;
-        }
-    }
 }

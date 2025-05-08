@@ -70,6 +70,7 @@ namespace AiStudio4.Core.Interfaces
         /// Exports tools to JSON
         /// </summary>
         Task<string> ExportToolsAsync(List<string> toolIds = null);
-        Task<Tool> GetToolByNameAsync(string toolName);
+        Task<Tool> GetToolBySchemaNameAsync(string toolName);
+        Task<Tool> GetToolByToolNameAsync(string toolName);
     }
 }

@@ -13,7 +13,7 @@ namespace AiStudio4.InjectedDependencies
 
         public FileServer(IConfiguration configuration)
         {
-            _webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "AiStudio4.Web", "dist");
+            _webRootPath = Path.Combine(Directory.GetCurrentDirectory(), "AiStudioClient", "dist");
             _httpClient = new HttpClient();
         }
 

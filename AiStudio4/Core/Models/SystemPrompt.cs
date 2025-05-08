@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace AiStudio4.Core.Models
@@ -13,5 +13,12 @@ namespace AiStudio4.Core.Models
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime ModifiedDate { get; set; } = DateTime.UtcNow;
         public List<string> Tags { get; set; } = new List<string>();
+        public List<string> AssociatedTools { get; set; } = new List<string>(); // Tool GUIDs
+        public string AssociatedUserPromptId { get; set; } = string.Empty; // Associated User Prompt GUID
+        public List<string> AssociatedMcpServers { get; set; } = new List<string>(); // MCP Server IDs
+
+        // NEW: Model associations
+        public string PrimaryModelGuid { get; set; } = string.Empty; // Associated primary model GUID
+        public string SecondaryModelGuid { get; set; } = string.Empty; // Associated secondary model GUID
     }
 }

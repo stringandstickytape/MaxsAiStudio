@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -16,17 +16,19 @@ namespace AiStudio4.Services
         private readonly ILogger<ToolService> _logger;
         private readonly string _toolsDirectory;
         private ToolLibrary _toolLibrary;
+        private readonly IBuiltinToolService _builtinToolService;
         private const string LIBRARY_FILENAME = "toolLibrary.json";
         private bool _isInitialized = false;
 
-        public ToolService(ILogger<ToolService> logger)
+        public ToolService(ILogger<ToolService> logger, IBuiltinToolService builtinToolService)
         {
             _logger = logger;
+            _builtinToolService = builtinToolService; // Inject BuiltinToolService
             _toolsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "Tools");
 
             Directory.CreateDirectory(_toolsDirectory);
 
-            // We'll initialize in InitializeAsync now
+            // Initialization moved to InitializeAsync
         }
 
         public async Task InitializeAsync()
@@ -56,17 +58,35 @@ namespace AiStudio4.Services
                     _logger.LogError(ex, "Error loading tool library");
                     _toolLibrary = new ToolLibrary();
                 }
+
+
             }
             else
             {
                 _toolLibrary = new ToolLibrary();
                 // Initialize with default categories
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "API Tools", Priority = 100 });
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "Development", Priority = 90 });
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "Data Analysis", Priority = 80 });
-                _toolLibrary.Categories.Add(new ToolCategory { Name = "Productivity", Priority = 70 });
-                SaveToolLibrary();
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "MaxCode", Priority = 110, Id = "MaxCode" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "GitHub", Priority = 105, Id = "GitHub" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "API Tools", Priority = 100, Id = "APITools" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Development", Priority = 90, Id = "Development" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Data Analysis", Priority = 80, Id = "DataAnalysis" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Productivity", Priority = 70, Id = "Productivity" });
+                _toolLibrary.Categories.Add(new ToolCategory { Name = "Vite", Priority = 60, Id = "Vite" });
+
             }
+
+            var builtinTools = _builtinToolService.GetBuiltinTools();
+
+            foreach (var tool in builtinTools)
+            {
+                _toolLibrary.Tools.RemoveAll(x => x.SchemaName == tool.SchemaName);
+                if (!_toolLibrary.Tools.Any(x => x.SchemaName == tool.SchemaName))
+                {
+                    _toolLibrary.Tools.Add(tool);
+                }
+            }
+
+            SaveToolLibrary();
         }
 
         private void SaveToolLibrary()
@@ -120,6 +140,12 @@ namespace AiStudio4.Services
                 throw new KeyNotFoundException($"Tool with ID {tool.Guid} not found");
             }
 
+            // Prevent modification of built-in tools
+            if (existingTool.IsBuiltIn)
+            {
+                throw new InvalidOperationException("Built-in tools cannot be modified");
+            }
+
             // Ensure FileType is not null
             if (tool.Filetype == null)
             {
@@ -144,13 +170,19 @@ namespace AiStudio4.Services
                 return await Task.FromResult(false);
             }
 
+            // Prevent deletion of built-in tools
+            if (tool.IsBuiltIn)
+            {
+                throw new InvalidOperationException("Built-in tools cannot be deleted");
+            }
+
             _toolLibrary.Tools.Remove(tool);
             SaveToolLibrary();
 
             return await Task.FromResult(true);
         }
 
-        public async Task<Tool> GetToolByNameAsync(string toolName)
+        public async Task<Tool> GetToolBySchemaNameAsync(string toolName)
         {
             await EnsureInitialized();
 
@@ -162,6 +194,20 @@ namespace AiStudio4.Services
             // Case-insensitive search for a tool with the exact name
             return await Task.FromResult(_toolLibrary.Tools.FirstOrDefault(t =>
                 string.Equals(t.SchemaName, toolName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        public async Task<Tool> GetToolByToolNameAsync(string toolName)
+        {
+            await EnsureInitialized();
+
+            if (string.IsNullOrEmpty(toolName))
+            {
+                return null;
+            }
+
+            // Case-insensitive search for a tool with the exact name
+            return await Task.FromResult(_toolLibrary.Tools.FirstOrDefault(t =>
+                string.Equals(t.SchemaName.Replace(" ",""), toolName, StringComparison.OrdinalIgnoreCase)));
         }
 
         public async Task<List<ToolCategory>> GetToolCategoriesAsync()

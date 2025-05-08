@@ -6,34 +6,39 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Icon\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.2" />
+		<PackageReference Include="Ignore" Version="0.2.1" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
+		<PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.11" />
+		<PackageReference Include="OpenAI" Version="2.2.0-beta.4" />
 	</ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.2" />
-    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.2" />
-    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3065.39" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
+    <PackageReference Include="Whisper.net.AllRuntimes" Version="1.8.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AiTool3\AiTool3.csproj" />
     <ProjectReference Include="..\SharedClasses\SharedClasses.csproj" />
   </ItemGroup>
 
 
 	<ItemGroup>
-		<EmbeddedResource Include="..\AiStudio4.Web\dist\**\*.*">
-			<LogicalName>AiStudio4.WebviewResources.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
+		<EmbeddedResource Include="..\AiStudioClient\dist\**\*.*">
+			<LogicalName>AiStudioClientviewResources.%(RecursiveDir)%(Filename)%(Extension)</LogicalName>
 		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="AiStudio4.Web\dist\**\*.*">
+		<None Update="AiStudioClient\dist\**\*.*">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 
 		</None>
@@ -41,23 +46,40 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.tsx" />
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.ts" />
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.jsx" />
-		<TypeScriptFiles Include="AiStudio4.Web\src\**\*.js" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.tsx" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.ts" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.jsx" />
+		<TypeScriptFiles Include="AiStudioClient\src\**\*.js" />
+		<Compile Remove="AiServices\MockAiService.cs" />
+		<Compile Remove="AiServices\OpenAI.cs" />
 		<Content Include="@(TypeScriptFiles)">
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</Content>
+		<Content Include="AiStudioClient\src\components\LoadingTimer.css" />
+		<Content Include="Icon\icon.ico" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="AiStudio4.Web\src\services\websocket\" />
-	  <Folder Include="AiStudio4.Web\src\store\" />
+	  <Folder Include="AiStudioClient\dist\" />
+	  <Folder Include="AiStudioClient\src\services\websocket\" />
+	  <Folder Include="AiStudioClient\src\store\" />
 	</ItemGroup>
 
-	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun" Inputs="@(TypeScriptFiles)" Outputs="$(ProjectDir)AiStudio4.Web\dist\index.html">
+	<ItemGroup>
+	  <None Update="Licenses\licenses.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Licenses\nuget-license1.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Licenses\nuget-license2.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun" Inputs="@(TypeScriptFiles)" Outputs="$(ProjectDir)AiStudioClient\dist\index.html">
 		<Message Text="Running npm build..." Importance="high" />
-		<Exec Command="xcopy &quot;$(ProjectDir)AiStudio4.Web\dist\*&quot; &quot;$(TargetDir)&quot; /E /I /Y" />
+		<Exec Command="xcopy &quot;$(ProjectDir)AiStudioClient\dist\*&quot; &quot;$(TargetDir)&quot; /E /I /Y" />
 	</Target>
 
 

@@ -9,6 +9,35 @@
         Title="AiStudio4" Height="800" Width="1200"
         WindowStartupLocation="CenterScreen">
     <Grid>
-        <controls:AiStudioWebView2 x:Name="webView" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Settings">
+                    <MenuItem Header="_Set Youtube API Key..." Name="SetYouTubeApiKeyMenuItem" Click="SetYouTubeApiKeyMenuItem_Click"/>
+                    <MenuItem Header="_Set GitHub API Key..." Name="SetGitHubApiKeyMenuItem" Click="SetGitHubApiKeyMenuItem_Click"/>
+                    <MenuItem Header="_Set Conda Path..." Name="SetCondaPathMenuItem" Click="SetCondaPathMenuItem_Click"/>
+                    <Separator/>
+                    <MenuItem Header="_Allow Connections Outside Localhost" Name="AllowConnectionsOutsideLocalhostMenuItem" IsCheckable="True" Click="AllowConnectionsOutsideLocalhostMenuItem_Click"/>
+                </MenuItem>
+                <MenuItem Header="_Licenses" Name="LicensesMenuItem" Click="LicensesMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
+            </MenuItem>
+            <MenuItem Header="_Project">
+                <MenuItem Header="_Set Project Path..." Click="SetProjectPathMenuItem_Click"/>
+                <Separator/>
+                <MenuItem Header="_Recent Projects" Name="RecentProjectsMenuItem"/>
+            </MenuItem>
+            <MenuItem Header="📂" ToolTip="Opens the project root folder in an Explorer window" Click="ExploreProjectMenuItem_Click"/>
+            <MenuItem Header="_Test">
+                <MenuItem Header="_Test Audio Transcription..." Name="TestAudioTranscriptionMenuItem" Click="TestAudioTranscriptionMenuItem_Click"/>
+                <MenuItem Header="_Test Reapply Merge..." Name="TestReapplyMergeMenuItem" Click="TestReapplyMergeMenuItem_Click"/>
+            </MenuItem>
+        </Menu>
+        <controls:AiStudioWebView2 x:Name="webView" Grid.Row="1" />
     </Grid>
 </Window>

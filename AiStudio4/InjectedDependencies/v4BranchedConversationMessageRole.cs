@@ -1,6 +1,6 @@
 ﻿namespace AiStudio4.InjectedDependencies
 {
-    public enum v4BranchedConversationMessageRole
+    public enum v4BranchedConvMessageRole
     {
         System,
         Assistant,

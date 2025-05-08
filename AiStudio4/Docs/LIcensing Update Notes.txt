@@ -1,0 +1,3 @@
+nuget-license -i .\AiStudio4.csproj >nuget-license.txt -o jsonPretty
+nuget-license -i .\SharedClasses.csproj >nuget-license.txt -o jsonPretty
+

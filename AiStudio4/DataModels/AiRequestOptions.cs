@@ -1,4 +1,4 @@
-using AiStudio4.Conversations;
+﻿using AiStudio4.Convs;
 using SharedClasses.Providers;
 using System;
 using System.Collections.Generic;
@@ -11,8 +11,8 @@ namespace AiStudio4.DataModels
         public ServiceProvider ServiceProvider { get; set; }
         public Model Model { get; set; }
         
-        // Conversation content
-        public LinearConversation Conversation { get; set; }
+        // Conv content
+        public LinearConv Conv { get; set; }
         
         // Cancellation support
         public CancellationToken CancellationToken { get; set; } = new CancellationToken(false);
@@ -20,9 +20,10 @@ namespace AiStudio4.DataModels
         // API settings
         public ApiSettings ApiSettings { get; set; }
         
-        // Image support
-        public string Base64Image { get; set; }
-        public string Base64ImageType { get; set; }
+        // Attachment support
+        public string Base64Image { get; set; } // Kept for backward compatibility
+        public string Base64ImageType { get; set; } // Kept for backward compatibility
+        public List<Attachment> Attachments { get; set; } = new List<Attachment>();
         
         // Tools support
         public List<string> ToolIds { get; set; } = new List<string>();
@@ -35,11 +36,15 @@ namespace AiStudio4.DataModels
         // Custom system prompt override
         public string CustomSystemPrompt { get; set; }
 
+        // Callbacks for streaming updates
+        public Action<string> OnStreamingUpdate { get; set; }
+        public Action OnStreamingComplete { get; set; }
+
         // Factory method to create from the old parameter list for backward compatibility
         public static AiRequestOptions Create(
             ServiceProvider serviceProvider,
             Model model,
-            LinearConversation conversation,
+            LinearConv conv,
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
@@ -48,13 +53,14 @@ namespace AiStudio4.DataModels
             List<string> toolIds,
             bool useStreaming = false,
             bool addEmbeddings = false,
-            string customSystemPrompt = null)
+            string customSystemPrompt = null,
+            List<Attachment> attachments = null)
         {
             return new AiRequestOptions
             {
                 ServiceProvider = serviceProvider,
                 Model = model,
-                Conversation = conversation,
+                Conv = conv,
                 Base64Image = base64image,
                 Base64ImageType = base64ImageType,
                 CancellationToken = cancellationToken,
@@ -63,7 +69,11 @@ namespace AiStudio4.DataModels
                 ToolIds = toolIds ?? new List<string>(),
                 UseStreaming = useStreaming,
                 AddEmbeddings = addEmbeddings,
-                CustomSystemPrompt = customSystemPrompt
+                CustomSystemPrompt = customSystemPrompt,
+                Attachments = attachments ?? new List<Attachment>(),
+                // Initialize callbacks to null for backward compatibility
+                OnStreamingUpdate = null,
+                OnStreamingComplete = null
             };
         }
     }

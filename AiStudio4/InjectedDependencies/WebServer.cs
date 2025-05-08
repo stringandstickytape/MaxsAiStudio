@@ -1,11 +1,15 @@
-﻿using Microsoft.AspNetCore.WebSockets;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Configuration;
+using Microsoft.AspNetCore.WebSockets;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
+using AiStudio4.Core;
 
 namespace AiStudio4.InjectedDependencies
 {
@@ -16,54 +20,94 @@ namespace AiStudio4.InjectedDependencies
         private readonly UiRequestBroker _uiRequestBroker;
         private readonly FileServer _fileServer;
         private readonly WebSocketServer _wsServer;
+        private readonly IGeneralSettingsService _generalSettingsService;
 
-        public WebServer(IConfiguration configuration, UiRequestBroker uiRequestBroker, FileServer fileServer, WebSocketServer wsServer)
+        public WebServer(IConfiguration configuration, UiRequestBroker uiRequestBroker, FileServer fileServer, WebSocketServer wsServer, IGeneralSettingsService generalSettingsService)
         {
             _configuration = configuration;
             _uiRequestBroker = uiRequestBroker;
             _fileServer = fileServer;
             _wsServer = wsServer;
+            _generalSettingsService = generalSettingsService;
         }
-
-        //public async Task StartAsync()
-        //{
-        //    var builder = WebApplication.CreateBuilder();
-        //    var port = _configuration.GetValue("WebServer:Port", 35005);
-        //    builder.WebHost.UseUrls($"http://*:{port}");
-        //
-        //    app = builder.Build();
-        //    app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
-        //
-        //    ConfigureRoutes();
-        //
-        //    await app.RunAsync();
-        //}
 
         public async Task StartAsync()
         {
             var builder = WebApplication.CreateBuilder();
+
+            builder.Services.AddResponseCompression(options =>
+            {
+                options.EnableForHttps = true; // Enable for HTTPS since you're using it
+                options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+                options.MimeTypes = Microsoft.AspNetCore.ResponseCompression.ResponseCompressionDefaults.MimeTypes.Concat(
+                    new[] { "application/javascript", "text/css", "application/json", "text/html" });
+            });
+
+            builder.WebHost.ConfigureLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddFilter("Microsoft.AspNetCore", LogLevel.Error);
+                logging.AddFilter("Microsoft.Hosting", LogLevel.Error);
+                logging.AddFilter("Microsoft.Extensions", LogLevel.Error);
+            });
             var port = _configuration.GetValue("WebServer:Port", 35005);
+
+            // Register services (ThemeService, controllers, etc)
+            builder.Services.AddAiStudio4Services();
 
             // Configure Kestrel for HTTPS
             builder.WebHost.UseKestrel(options =>
             {
-                options.ListenAnyIP(port, listenOptions =>
+                // Check if connections outside localhost are allowed
+                var allowOutsideConnections = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
+                
+                if (allowOutsideConnections)
                 {
-                    // Load the certificate from the file
-                    string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
+                    // Listen on any IP address
+                    options.ListenAnyIP(port, listenOptions =>
+                    {
+                        string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
 
-                    using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-                    store.Open(OpenFlags.ReadOnly);
-                    string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
-                    var cert = store.Certificates
-                        .Find(X509FindType.FindByThumbprint, thumbprint, false)[0]; //YourStrongPassword
+                        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                        store.Open(OpenFlags.ReadOnly);
+                        string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
+                        var cert = store.Certificates
+                            .Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
 
-                    listenOptions.UseHttps(cert);
-                });
+                        listenOptions.UseHttps(cert);
+                    });
+                }
+                else
+                {
+                    // Listen only on localhost
+                    options.ListenLocalhost(port, listenOptions =>
+                    {
+                        // Load the certificate from the file
+                        string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
+
+                        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
+                        store.Open(OpenFlags.ReadOnly);
+                        string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
+                        var cert = store.Certificates
+                            .Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
+
+                        listenOptions.UseHttps(cert);
+                    });
+                }
             });
 
             app = builder.Build();
+
+            app.UseResponseCompression();
+
             app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromMinutes(2) });
+
+            // Enable routing and controllers for API
+            app.UseRouting();
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers(); // This exposes ThemeController at /api/themes
+            });
 
             ConfigureRoutes();
 
@@ -77,7 +121,35 @@ namespace AiStudio4.InjectedDependencies
 
             // API requests
             app.MapPost("/api/{requestType}", HandleApiRequest);
+            app.MapDelete("/api/{requestType}", HandleApiRequest);
+            app.MapGet("/api/{requestType}", HandleApiRequest);
+            app.MapPut("/api/{requestType}", HandleApiRequest);
             app.MapPost("/api/{requestType}/{action}", HandleApiRequest);
+            app.MapDelete("/api/{requestType}/{action}", HandleApiRequest);
+            app.MapGet("/api/{requestType}/{action}", HandleApiRequest);
+            app.MapPut("/api/{requestType}/{action}", HandleApiRequest);
+
+            // Clipboard image endpoint
+            app.MapPost("/api/clipboardImage", async context =>
+            {
+                var clientId = context.Request.Headers["X-Client-Id"].ToString();
+                using var reader = new StreamReader(context.Request.Body);
+                var requestData = await reader.ReadToEndAsync();
+                var response = await _uiRequestBroker.HandleClipboardImageRequest(clientId, requestData);
+                context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                context.Response.ContentType = "application/json";
+                await context.Response.WriteAsync(response);
+            });
+
+            // Add OPTIONS handler for CORS preflight requests
+            app.MapMethods("/api/{requestType}", new[] { "OPTIONS" }, context =>
+            {
+                context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                context.Response.Headers.Append("Access-Control-Allow-Methods", "POST, OPTIONS");
+                context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, X-Client-Id");
+                context.Response.StatusCode = 200;
+                return Task.CompletedTask;
+            });
 
             // Static files
             app.MapGet("/{*path}", _fileServer.HandleFileRequest);
@@ -109,6 +181,8 @@ namespace AiStudio4.InjectedDependencies
 
                 var response = await _uiRequestBroker.HandleRequestAsync(clientId, requestType, requestData);
                 context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
+                context.Response.Headers.Append("Access-Control-Allow-Methods", "POST, OPTIONS");
+                context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, X-Client-Id");
                 context.Response.ContentType = "application/json";
                 await context.Response.WriteAsync(response);
             }

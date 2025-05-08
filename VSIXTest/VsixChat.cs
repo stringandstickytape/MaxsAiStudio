@@ -1,4 +1,4 @@
-﻿using EnvDTE;
+using EnvDTE;
 using EnvDTE80;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.Web.WebView2.Core;
@@ -22,7 +22,7 @@ namespace VSIXTest
         private readonly SimpleClient simpleClient = new SimpleClient();
         private readonly ContentFormatter _contentFormatter;
         private readonly VsixWebViewManager _webViewManager;
-        private readonly ChangesetManager _changesetManager;
+        public readonly ChangesetManager _changesetManager;
         private readonly QuickButtonManager _quickButtonManager;
 
         private bool vsixInitialised = false;
@@ -50,7 +50,6 @@ namespace VSIXTest
         private readonly VsixMessageProcessor _messageProcessor;
         private readonly ButtonManager _buttonManager = new ButtonManager();
 
-        private Changeset CurrentChangeset { get; set; }
 
         private async void VsixChat_KeyDown(object sender, KeyEventArgs e)
         {
@@ -194,6 +193,16 @@ namespace VSIXTest
         internal void ShowQuickButtonOptionsWindow(VsixUiMessage message)
         {
             _quickButtonManager.ShowQuickButtonOptionsWindow(message);
+        }
+
+        internal async void SendHomeAsync(bool isCtrlPressed, bool isShiftPressed, bool isAltPressed)
+        {
+            await _webViewManager.SendHomeAsync(isCtrlPressed, isShiftPressed, isAltPressed).ConfigureAwait(true);
+        }
+
+        internal async void SendEndAsync(bool isCtrlPressed, bool isShiftPressed, bool isAltPressed)
+        {
+            await _webViewManager.SendEndAsync(isCtrlPressed, isShiftPressed, isAltPressed).ConfigureAwait(true);
         }
 
         private bool _changesetPaneInitted = false;

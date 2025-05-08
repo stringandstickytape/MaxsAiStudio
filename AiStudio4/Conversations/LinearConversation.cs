@@ -2,21 +2,21 @@
 
 using AiStudio4.DataModels;
 
-namespace AiStudio4.Conversations
+namespace AiStudio4.Convs
 {
-    public class LinearConversation
+    public class LinearConv
     {
-        public List<LinearConversationMessage> messages { get; set; }
+        public List<LinearConvMessage> messages { get; set; }
         public string systemprompt { get; set; }
-        public DateTime ConversationCreationDateTime { get; set; }
-        public LinearConversation(DateTime creationDateTime)
+        public DateTime ConvCreationDateTime { get; set; }
+        public LinearConv(DateTime creationDateTime)
         {
-            ConversationCreationDateTime = creationDateTime;
+            ConvCreationDateTime = creationDateTime;
 
         }
         public string SystemPromptWithDateTime()
         {
-            return $"{systemprompt}\r\n\r\nThis conversation began at {ConversationCreationDateTime.ToString("yyyy-MM-dd HH:mm:ss")}.";
+            return $"{systemprompt}\r\n\r\nThis conv began at {ConvCreationDateTime.ToString("yyyy-MM-dd HH:mm:ss")}.";
         }
     }
 }

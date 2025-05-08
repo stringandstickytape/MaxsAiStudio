@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,6 +13,9 @@ namespace AiStudio4.Core.Models
         public string Name { get; set; }
         public string Description { get; set; }
 
+        // Extra dynamic properties (string key-value pairs)
+        public Dictionary<string, string> ExtraProperties { get; set; } = new Dictionary<string, string>();
+
         public string SchemaName { get { return _schemaName; } }
         private string _schemaName;
         public string Schema { get => schema; 
@@ -26,6 +29,7 @@ namespace AiStudio4.Core.Models
         public DateTime LastModified { get; set; } = DateTime.UtcNow;
         public bool IsBuiltIn { get; set; } = false;
         public string Filetype { get; set; } = string.Empty;
+        public string OutputFileType { get; set; } = "unknown";
 
         public bool ValidateSchema()
         {
@@ -57,13 +61,5 @@ namespace AiStudio4.Core.Models
     public class ToolSelectionRequest
     {
         public List<string> ToolIds { get; set; } = new List<string>();
-    }
-
-    public class ToolResponse
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public Tool Tool { get; set; }
-        public List<Tool> Tools { get; set; }
     }
 }

@@ -1,5 +1,6 @@
-﻿using AiStudio4.Conversations;
+﻿using AiStudio4.Convs;
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using AiStudio4.Services.Interfaces;
@@ -19,10 +20,14 @@ namespace AiStudio4.AiServices
     public abstract class AiServiceBase : IAiService
     {
         public IToolService ToolService { get; set; }
-        public event EventHandler<string> StreamingTextReceived;
-        public event EventHandler<string> StreamingComplete;
+        public IMcpService McpService { get; set; }
+        // Events removed
+        // public event EventHandler<string> StreamingTextReceived;
+        // public event EventHandler<string> StreamingComplete;
 
         public string ChosenTool { get; set; } = null;
+
+        public ToolResponse ToolResponseSet { get; set; } = null;
 
         protected HttpClient client = new HttpClient();
         protected bool clientInitialised = false;
@@ -33,7 +38,7 @@ namespace AiStudio4.AiServices
         public string ApiModel { get; set; }
 
         protected virtual void InitializeHttpClient(ServiceProvider serviceProvider,
-            Model model, ApiSettings apiSettings, int timeout = 100)
+            Model model, ApiSettings apiSettings, int timeout = 300)
         {
             ApiKey = serviceProvider.ApiKey;
             ApiModel = model.ModelName;
@@ -58,17 +63,17 @@ namespace AiStudio4.AiServices
         }
 
         // New implementation using the options pattern
-        public virtual async Task<AiResponse> FetchResponse(AiRequestOptions options)
+        public virtual async Task<AiResponse> FetchResponse(AiRequestOptions options, bool forceNoTools = false)
         {
             // Default implementation that calls the legacy method to be overridden by derived classes
-            return await FetchResponseInternal(options);
+            return await FetchResponseInternal(options, forceNoTools);
         }
 
         // Legacy method for backward compatibility
         public Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,
             Model model,
-            LinearConversation conversation,
+            LinearConv conv,
             string base64image,
             string base64ImageType,
             CancellationToken cancellationToken,
@@ -81,18 +86,22 @@ namespace AiStudio4.AiServices
         {
             // Convert to options and call the new method
             var options = AiRequestOptions.Create(
-                serviceProvider, model, conversation, base64image, base64ImageType,
+                serviceProvider, model, conv, base64image, base64ImageType,
                 cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
                 useStreaming, addEmbeddings, customSystemPrompt);
+            
+            // Pass null for callbacks in the legacy overload
+            options.OnStreamingUpdate = null;
+            options.OnStreamingComplete = null;
             
             return FetchResponse(options);
         }
         
         // Internal method to be implemented by derived classes
-        protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options);
+        protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false);
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(
-            LinearConversation conversation,
+            LinearConv conv,
             ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             bool addEmbeddings,
@@ -101,16 +110,42 @@ namespace AiStudio4.AiServices
             //if (!addEmbeddings) 
             return content;
             //return await OllamaEmbeddingsHelper.AddEmbeddingsToInput(
-            //    conversation,
+            //    conv,
             //    apiSettings,
             //    content,
             //    mustNotUseEmbedding
             //);
         }
+        
+        protected virtual JArray CreateAttachmentsArray(List<Attachment> attachments)
+        {
+            var result = new JArray();
+            
+            if (attachments == null || !attachments.Any())
+                return result;
+                
+            foreach (var attachment in attachments)
+            {
+                if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
+                {
+                    result.Add(new JObject
+                    {
+                        ["type"] = "image_url",
+                        ["image_url"] = new JObject
+                        {
+                            ["url"] = $"data:{attachment.Type};base64,{attachment.Content}"
+                        }
+                    });
+                }
+                // Text attachments could be added here if needed
+            }
+            
+            return result;
+        }
 
         protected virtual JObject CreateRequestPayload(
             string modelName,
-            LinearConversation conversation,
+            LinearConv conv,
             bool useStreaming,
             ApiSettings apiSettings)
         {
@@ -122,15 +157,18 @@ namespace AiStudio4.AiServices
         }
 
         protected virtual async Task<AiResponse> HandleResponse(
-            HttpContent content,
-            bool useStreaming,
-            CancellationToken cancellationToken)
+            AiRequestOptions options,
+            HttpContent content)
         {
             try
             {
-                return useStreaming
-                    ? await HandleStreamingResponse(content, cancellationToken)
-                    : await HandleNonStreamingResponse(content, cancellationToken);
+                // Extract callbacks from options
+                var onStreamingUpdate = options.OnStreamingUpdate;
+                var onStreamingComplete = options.OnStreamingComplete;
+
+                return options.UseStreaming
+                    ? await HandleStreamingResponse(content, options.CancellationToken, onStreamingUpdate, onStreamingComplete)
+                    : await HandleNonStreamingResponse(content, options.CancellationToken, onStreamingUpdate, onStreamingComplete);
             }
             catch (Exception ex)
             {
@@ -140,21 +178,26 @@ namespace AiStudio4.AiServices
 
         protected abstract Task<AiResponse> HandleStreamingResponse(
             HttpContent content,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete);
 
         protected abstract Task<AiResponse> HandleNonStreamingResponse(
             HttpContent content,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate, 
+            Action onStreamingComplete);
 
-        protected virtual void OnStreamingDataReceived(string data)
-        {
-            StreamingTextReceived?.Invoke(this, data);
-        }
-
-        protected virtual void OnStreamingComplete()
-        {
-            StreamingComplete?.Invoke(this, null);
-        }
+        // Removed OnStreamingDataReceived and OnStreamingComplete methods
+        // protected virtual void OnStreamingDataReceived(string data)
+        // {
+        //     StreamingTextReceived?.Invoke(this, data);
+        // }
+        //
+        // protected virtual void OnStreamingComplete()
+        // {
+        //     StreamingComplete?.Invoke(this, null);
+        // }
 
         protected virtual AiResponse HandleError(Exception ex, string additionalContext = null)
         {
@@ -218,22 +261,23 @@ namespace AiStudio4.AiServices
             await Task.CompletedTask;
         }
 
-        protected virtual JObject CreateMessageObject(LinearConversationMessage message)
+        protected virtual JObject CreateMessageObject(LinearConvMessage message)
         {
             // Override in derived classes to implement specific message format
             return new JObject();
         }
 
-        protected virtual void AddToolsToRequest(JObject request, List<string> toolIDs)
+        protected virtual async Task AddToolsToRequestAsync(JObject request, List<string> toolIDs)
         {
-            if (toolIDs?.Any() != true) return;
-            var toolRequestBuilder = new ToolRequestBuilder(ToolService);
+            var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
             
             // Add each tool to the request
             foreach (var toolID in toolIDs)
             {
-                toolRequestBuilder.AddToolToRequest(request, toolID, GetToolFormat());
+                await toolRequestBuilder.AddToolToRequestAsync(request, toolID, GetToolFormat());
             }
+
+            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(request, GetToolFormat());
         }
 
         protected virtual ToolFormat GetToolFormat()

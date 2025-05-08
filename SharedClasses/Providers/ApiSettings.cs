@@ -8,7 +8,7 @@ namespace SharedClasses.Providers
     /// </summary>
     public class ApiSettings
     {
-        public float Temperature { get; set; } = 0.9f;
+        public float Temperature { get; set; } = 0.2f;
         public bool UsePromptCaching { get; set; } = true;
         public bool StreamResponses { get; set; } = true;
         public string EmbeddingModel { get; set; } = "mxbai-embed-large";

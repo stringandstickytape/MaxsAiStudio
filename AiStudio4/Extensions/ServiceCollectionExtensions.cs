@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -18,6 +18,7 @@ namespace AiStudio4.Extensions
 
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
             services.AddSingleton<WebSocketServer>();
+            
 
             return services;
         }

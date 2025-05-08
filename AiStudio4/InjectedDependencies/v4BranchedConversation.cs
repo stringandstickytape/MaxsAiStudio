@@ -1,3 +1,4 @@
+﻿using AiStudio4.Core.Models;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,114 +7,122 @@ using System.Linq;
 
 namespace AiStudio4.InjectedDependencies
 {
-    public class v4BranchedConversation
+    public class v4BranchedConv
     {
-        public string ConversationId { get; set; }
-        public List<v4BranchedConversationMessage> MessageHierarchy { get; set; } = new List<v4BranchedConversationMessage>();
+        public string ConvId { get; set; }
+        public List<v4BranchedConvMessage> Messages { get; set; } = new List<v4BranchedConvMessage>();
         public string Summary { get; set; }
         public string SystemPromptId { get; set; }
 
-        public v4BranchedConversation() { }
+        public v4BranchedConv() { }
 
-        public v4BranchedConversation(string conversationId)
+        public v4BranchedConv(string convId)
         {
-            ConversationId = string.IsNullOrWhiteSpace(conversationId) ? throw new ArgumentNullException(nameof(conversationId)) : conversationId;
+            ConvId = string.IsNullOrWhiteSpace(convId) ? throw new ArgumentNullException(nameof(convId)) : convId;
         }
 
         public void Save()
         {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "conversations", $"{ConversationId}.json");
+            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "convs", $"{ConvId}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, JsonConvert.SerializeObject(this));
         }
 
-        internal v4BranchedConversationMessage AddNewMessage(v4BranchedConversationMessageRole role, string newMessageId, string userMessage, string parentMessageId)
+        internal v4BranchedConvMessage AddNewMessage(v4BranchedConvMessageRole role, string newMessageId, string userMessage, string parentMessageId, List<DataModels.Attachment> attachments = null, TokenCost costInfo = null)
         {
-            var newMessage = new v4BranchedConversationMessage
+            var newMessage = new v4BranchedConvMessage
             {
                 Role = role,
                 UserMessage = userMessage ?? string.Empty,
-                Children = new List<v4BranchedConversationMessage>(),
                 Id = newMessageId,
                 ParentId = parentMessageId,
-                TokenUsage = null
+                Attachments = attachments ?? new List<DataModels.Attachment>(),
+                CostInfo = costInfo
             };
 
-            // If no parent is specified or the parent doesn't exist, add as a root message
-            if (string.IsNullOrEmpty(parentMessageId) || !AddToParent(newMessage, parentMessageId))
+            // If no messages exist, create a system message as the root
+            if (!Messages.Any())
             {
-                // If there are no messages yet, create a system message as the root
-                if (!MessageHierarchy.Any())
+                var systemRoot = new v4BranchedConvMessage
                 {
-                    var systemRoot = new v4BranchedConversationMessage
-                    {
-                        Role = v4BranchedConversationMessageRole.System,
-                        UserMessage = "Conversation Root",
-                        Children = new List<v4BranchedConversationMessage> { newMessage },
-                        Id = $"system_{Guid.NewGuid()}"
-                    };
-
-                    // Set the parent of the new message to the system root
-                    newMessage.ParentId = systemRoot.Id;
-
-                    MessageHierarchy.Add(systemRoot);
-                }
-                else
-                {
-                    // Add as child of the first root message
-                    var root = MessageHierarchy.First();
-                    root.Children.Add(newMessage);
-                    newMessage.ParentId = root.Id;
-                }
+                    Role = v4BranchedConvMessageRole.System,
+                    UserMessage = "Conversation Root",
+                    Id = newMessage.ParentId
+                };
+                
+                // Add system root to messages
+                Messages.Add(systemRoot);
             }
-
+            
+            // Calculate cumulative cost for assistant messages
+            if (role == v4BranchedConvMessageRole.Assistant && costInfo != null)
+            {
+                // Start with the current message cost
+                decimal cumulativeCost = costInfo.TotalCost;
+                
+                // Find parent message
+                var parentMessage = Messages.FirstOrDefault(m => m.Id == parentMessageId);
+                
+                // Traverse up the message tree to accumulate costs
+                while (parentMessage != null)
+                {
+                    // Add cost of parent assistant messages
+                    if (parentMessage.Role == v4BranchedConvMessageRole.Assistant && parentMessage.CostInfo != null)
+                    {
+                        cumulativeCost += parentMessage.CostInfo.TotalCost;
+                    }
+                    
+                    // Move to next parent
+                    parentMessage = Messages.FirstOrDefault(m => m.Id == parentMessage.ParentId);
+                }
+                
+                // Set the cumulative cost
+                newMessage.CumulativeCost = cumulativeCost;
+            }
+            
+            // Add the new message to our flat list
+            Messages.Add(newMessage);
+            
             return newMessage;
         }
 
-        private bool AddToParent(v4BranchedConversationMessage newMessage, string parentId)
+        public List<v4BranchedConvMessage> GetAllMessages()
         {
-            // Helper function to recursively find and add the message to its parent
-            bool FindAndAddToParent(List<v4BranchedConversationMessage> messages)
-            {
-                foreach (var message in messages)
-                {
-                    if (message.Id == parentId)
-                    {
-                        message.Children.Add(newMessage);
-                        return true;
-                    }
-
-                    if (message.Children.Any() && FindAndAddToParent(message.Children))
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-
-            return FindAndAddToParent(MessageHierarchy);
+            return Messages;
         }
 
-        // Helper method to get all messages in a flat list
-        public List<v4BranchedConversationMessage> GetAllMessages()
+        /// <summary>
+        /// Gets the sequence of messages from the root to the specified message ID.
+        /// </summary>
+        /// <param name="messageId">The ID of the message to trace back from.</param>
+        /// <returns>A list of cloned messages representing the path from the root to the target message.</returns>
+        public List<v4BranchedConvMessage> GetMessageHistory(string messageId)
         {
-            var allMessages = new List<v4BranchedConversationMessage>();
-            CollectAllMessages(MessageHierarchy, allMessages);
-            return allMessages;
-        }
+            var allMessages = GetAllMessages(); // Use the existing method to get all messages
+            var messageMap = allMessages.ToDictionary(m => m.Id);
+            var path = new List<v4BranchedConvMessage>();
 
-        private void CollectAllMessages(IEnumerable<v4BranchedConversationMessage> messages,
-            List<v4BranchedConversationMessage> allMessages)
-        {
-            foreach (var message in messages)
+            // Find the target message
+            if (!messageMap.TryGetValue(messageId, out var currentMessage))
             {
-                allMessages.Add(message);
-                if (message.Children.Any())
+                // Message not found, return empty path or handle as error?
+                return path;
+            }
+
+            // Build path from message to root
+            while (currentMessage != null)
+            {
+                // Add a clone of the message to the beginning of the path
+                path.Insert(0, currentMessage.Clone()); // Use the new Clone method
+
+                // Stop if we've reached a message with no parent or a non-existent parent
+                if (string.IsNullOrEmpty(currentMessage.ParentId) || !messageMap.TryGetValue(currentMessage.ParentId, out currentMessage))
                 {
-                    CollectAllMessages(message.Children, allMessages);
+                    break;
                 }
             }
+
+            return path;
         }
     }
 }

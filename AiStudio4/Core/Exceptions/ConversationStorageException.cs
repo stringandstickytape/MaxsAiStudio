@@ -1,12 +1,12 @@
 namespace AiStudio4.Core.Exceptions
 {
-    public class ConversationStorageException : Exception
+    public class ConvStorageException : Exception
     {
-        public ConversationStorageException(string message) : base(message)
+        public ConvStorageException(string message) : base(message)
         {
         }
 
-        public ConversationStorageException(string message, Exception innerException)
+        public ConvStorageException(string message, Exception innerException)
             : base(message, innerException)
         {
         }

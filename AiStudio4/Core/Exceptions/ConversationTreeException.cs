@@ -1,12 +1,12 @@
 namespace AiStudio4.Core.Exceptions
 {
-    public class ConversationTreeException : Exception
+    public class ConvTreeException : Exception
     {
-        public ConversationTreeException(string message) : base(message)
+        public ConvTreeException(string message) : base(message)
         {
         }
 
-        public ConversationTreeException(string message, Exception innerException)
+        public ConvTreeException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
