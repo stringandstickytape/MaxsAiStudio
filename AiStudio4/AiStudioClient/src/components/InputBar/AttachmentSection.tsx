@@ -19,14 +19,12 @@ export function AttachmentSection({
     }
     
     return (
-        <div className="w-14 flex-shrink-0 overflow-auto">
+        <div className="w-64 flex-shrink-0 overflow-auto">
             <AttachmentPreviewBar
                 attachments={attachments}
                 onRemove={removeAttachment}
                 onClear={clearAttachments}
                 className="h-full"
-                iconsOnly={true}
-                compact={true}
             />
         </div>
     );
