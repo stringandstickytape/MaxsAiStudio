@@ -102,23 +102,6 @@ export function InputBar({
         }
     }, [attachments, onAttachmentChange]);
     
-    // Check scroll position periodically to update button visibility
-    useEffect(() => {
-        const checkScrollPosition = () => {
-            if (window.getScrollBottomState) {
-                setIsAtBottom(window.getScrollBottomState());
-            }
-        };
-        
-        // Check immediately
-        checkScrollPosition();
-        
-        // Set up interval to check periodically
-        const intervalId = setInterval(checkScrollPosition, 500);
-        
-        return () => clearInterval(intervalId);
-    }, []);
-
     // Fetch MCP servers once on mount to populate enabled count badge
     useEffect(() => {
         fetchServers();
@@ -126,24 +109,7 @@ export function InputBar({
 
     useEffect(() => {
         setVisibleToolCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
-
-        //const observer = new ResizeObserver(() => {
-        //    if (!toolsContainerRef.current) return;
-        //    const containerWidth = toolsContainerRef.current.clientWidth;
-        //    const estimatedToolCapacity = Math.floor(containerWidth / 120);
-        //
-        //    let count = Math.max(1, estimatedToolCapacity);
-        //    count = isXs ? Math.min(count, 1) :
-        //        isSm ? Math.min(count, 2) :
-        //            isMd ? Math.min(count, 3) :
-        //                Math.min(count, 4);
-        //
-        //    count !== visibleToolCount && setVisibleToolCount(count);
-        //});
-
-       // toolsContainerRef.current && observer.observe(toolsContainerRef.current);
-        return;
-    }, [isXs, isSm, isMd, visibleToolCount]);
+    }, [isXs, isSm, isMd]);
 
     const handleChatMessage = useCallback(async (message: string) => {
         
