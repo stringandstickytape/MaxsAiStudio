@@ -40,17 +40,18 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     });
     
     
-    const updateLastMessageTime = () => {
+    // Listen for message:received events to update lastMessageTime
+    const messageReceivedUnsubscribe = listenToWebSocketEvent('message:received', () => {
       const time = webSocketService.getLastMessageTime();
       if (time !== get().lastMessageTime) {
         set({ lastMessageTime: time });
       }
-    };
+    });
     
-    const messageTimeInterval = setInterval(updateLastMessageTime, 1000);
-    
-    
-    window.addEventListener('beforeunload', () => clearInterval(messageTimeInterval));
+    // Clean up event listener on window unload
+    window.addEventListener('beforeunload', () => {
+      messageReceivedUnsubscribe();
+    });
     
     
     listenToWebSocketEvent('request:cancelled', (detail) => {
