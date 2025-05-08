@@ -46,19 +46,21 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
         className={`ConvView message-container px-3 py-2 shadow-md w-full`}
         style={{
           background: message.source === 'user' 
-            ? 'var(--user-message-background, #1e40af)' 
-            : 'var(--ai-message-background, #1f2937)',
-          color: 'var(--convview-text-color, #ffffff)',
-          borderRadius: 'var(--convview-border-radius, 0.5rem)',
+            ? 'var(--global-user-message-background, #1e40af)' 
+            : 'var(--global-ai-message-background, #1f2937)',
+          color: message.source === 'user'
+            ? 'var(--global-user-message-text-color, #ffffff)'
+            : 'var(--global-ai-message-text-color, #ffffff)',
+          borderRadius: 'var(--global-border-radius, 0.5rem)',
           borderColor: message.source === 'user'
-            ? 'var(--user-message-border-color, rgba(55, 65, 81, 0.3))'
-            : 'var(--ai-message-border-color, rgba(55, 65, 81, 0.3))',
+            ? 'var(--global-user-message-border-color, rgba(55, 65, 81, 0.3))'
+            : 'var(--global-ai-message-border-color, rgba(55, 65, 81, 0.3))',
           borderWidth: message.source === 'user'
-            ? 'var(--user-message-border-width, 0px)'
-            : 'var(--ai-message-border-width, 0px)',
+            ? 'var(--global-user-message-border-width, 0px)'
+            : 'var(--global-ai-message-border-width, 0px)',
           borderStyle: message.source === 'user'
-            ? 'var(--user-message-border-style, solid)'
-            : 'var(--ai-message-border-style, solid)',
+            ? 'var(--global-user-message-border-style, solid)'
+            : 'var(--global-ai-message-border-style, solid)',
           ...(isSearchMatch && {
             borderLeft: '3px solid var(--convview-accent-color, #2563eb)',
             paddingLeft: '0.5rem',

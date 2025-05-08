@@ -89,6 +89,58 @@ class ThemeManager {
         cssVar: '--global-box-shadow',
         description: 'Default box shadow for elevated elements',
         default: '0 2px 5px rgba(0,0,0,0.1)'
+      },
+      // User message theming
+      userMessageBackground: {
+        cssVar: '--global-user-message-background',
+        description: 'Background color for user messages',
+        default: '#1e40af'
+      },
+      userMessageTextColor: {
+        cssVar: '--global-user-message-text-color',
+        description: 'Text color for user messages',
+        default: '#ffffff'
+      },
+      userMessageBorderColor: {
+        cssVar: '--global-user-message-border-color',
+        description: 'Border color for user messages',
+        default: 'rgba(55, 65, 81, 0.3)'
+      },
+      userMessageBorderWidth: {
+        cssVar: '--global-user-message-border-width',
+        description: 'Border width for user messages',
+        default: '0px'
+      },
+      userMessageBorderStyle: {
+        cssVar: '--global-user-message-border-style',
+        description: 'Border style for user messages',
+        default: 'solid'
+      },
+      // AI message theming
+      aiMessageBackground: {
+        cssVar: '--global-ai-message-background',
+        description: 'Background color for AI messages',
+        default: '#1f2937'
+      },
+      aiMessageTextColor: {
+        cssVar: '--global-ai-message-text-color',
+        description: 'Text color for AI messages',
+        default: '#ffffff'
+      },
+      aiMessageBorderColor: {
+        cssVar: '--global-ai-message-border-color',
+        description: 'Border color for AI messages',
+        default: 'rgba(55, 65, 81, 0.3)'
+      },
+      aiMessageBorderWidth: {
+        cssVar: '--global-ai-message-border-width',
+        description: 'Border width for AI messages',
+        default: '0px'
+      },
+      aiMessageBorderStyle: {
+        cssVar: '--global-ai-message-border-style',
+        description: 'Border style for AI messages',
+        default: 'solid'
       }
     };
   }

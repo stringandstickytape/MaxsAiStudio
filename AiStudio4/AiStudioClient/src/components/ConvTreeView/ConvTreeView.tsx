@@ -230,4 +230,11 @@ export const ConvTreeView = memo(ConvTreeViewComponent);
 
 // Export themeable properties for ThemeManager
 export const themeableProps = {
+  // Tree-specific theming
+  '--convtree-user-node-color': '#1e40af',
+  '--convtree-ai-node-color': '#4f46e5',
+  '--convtree-user-node-border': '#1e3a8a',
+  '--convtree-ai-node-border': '#4338ca',
+  '--convtree-link-color': '#6b7280',
+  '--convtree-accent-color': '#4f46e5',
 };
