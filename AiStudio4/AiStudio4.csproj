@@ -65,6 +65,18 @@
 	  <Folder Include="AiStudioClient\src\store\" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="Licenses\licenses.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Licenses\nuget-license1.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Licenses\nuget-license2.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun" Inputs="@(TypeScriptFiles)" Outputs="$(ProjectDir)AiStudioClient\dist\index.html">
 		<Message Text="Running npm build..." Importance="high" />
 		<Exec Command="xcopy &quot;$(ProjectDir)AiStudioClient\dist\*&quot; &quot;$(TargetDir)&quot; /E /I /Y" />
