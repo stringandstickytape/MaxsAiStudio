@@ -33,6 +33,7 @@
                 <Separator/>
                 <MenuItem Header="_Pack Project Source Code" Click="PackProjectSourceCode_Click"/>
                 <MenuItem Header="_Set Packer Include File Types..." Click="SetPackerIncludeTypesMenuItem_Click"/>
+                <MenuItem Header="_Set Packer Exclude Filenames..." Click="SetPackerExcludeFilenamesMenuItem_Click"/>
                 <Separator/>
                 <MenuItem Header="_Recent Projects" Name="RecentProjectsMenuItem"/>
             </MenuItem>

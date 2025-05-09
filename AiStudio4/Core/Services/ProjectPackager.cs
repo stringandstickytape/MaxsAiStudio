@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
@@ -208,10 +209,19 @@ namespace AiStudio4.Core.Services
                     }
 
                     var extension = Path.GetExtension(file).ToLowerInvariant();
+                    var filename = Path.GetFileName(file);
 
                     // Skip binary files
                     if (binaryExtensions.Contains(extension))
                     {
+                        continue;
+                    }
+
+                    // Check if the filename matches any exclude patterns
+                    var excludePatterns = _generalSettingsService.CurrentSettings.PackerExcludeFilenames;
+                    if (excludePatterns != null && excludePatterns.Any() && IsFilenameExcluded(filename, excludePatterns))
+                    {
+                        _logger.LogInformation($"Skipping file {file} due to exclude filename pattern.");
                         continue;
                     }
 
@@ -230,6 +240,32 @@ namespace AiStudio4.Core.Services
             {
                 _logger.LogWarning(ex, $"Error accessing files in directory {directory}: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// Checks if a filename matches any of the exclude patterns
+        /// </summary>
+        private bool IsFilenameExcluded(string filename, List<string> excludePatterns)
+        {
+            if (excludePatterns == null || !excludePatterns.Any())
+            {
+                return false;
+            }
+
+            foreach (var pattern in excludePatterns)
+            {
+                if (string.IsNullOrWhiteSpace(pattern)) continue;
+
+                // Convert wildcard pattern to regex
+                // Escape regex special characters, then replace '*' with '.*'
+                // Match the entire filename case-insensitively
+                string regexPattern = "^" + Regex.Escape(pattern).Replace("\\*", ".*") + "$";
+                if (Regex.IsMatch(filename, regexPattern, RegexOptions.IgnoreCase))
+                {
+                    return true; // File matches an exclusion pattern
+                }
+            }
+            return false; // File does not match any exclusion patterns
         }
 
         /// <summary>

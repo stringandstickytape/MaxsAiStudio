@@ -609,4 +609,29 @@ public partial class WebViewWindow : Window
             MessageBox.Show("Packer include file types updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
+    
+    private void SetPackerExcludeFilenamesMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var currentList = _generalSettingsService.CurrentSettings.PackerExcludeFilenames ?? new System.Collections.Generic.List<string>();
+        string defaultValue = string.Join(Environment.NewLine, currentList);
+        var dialog = new WpfInputDialog(
+            "Set Packer Exclude Filenames",
+            "Enter filenames to exclude (one per line, '*' is wildcard):",
+            defaultValue)
+        {
+            Owner = this
+        };
+        if (dialog.ShowDialog() == true)
+        {
+            var input = dialog.ResponseText;
+            var list = input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
+                .Where(s => !string.IsNullOrEmpty(s))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            _generalSettingsService.CurrentSettings.PackerExcludeFilenames = list;
+            _generalSettingsService.SaveSettings();
+            MessageBox.Show("Packer exclude filenames updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
 }

@@ -42,6 +42,8 @@ namespace AiStudio4.InjectedDependencies
                     ".sln", ".csproj", ".vbproj", ".fsproj", ".editorconfig", ".gitattributes"
         };
 
+        public List<string> PackerExcludeFilenames { get; set; } = new List<string>();
+
         public ApiSettings ToApiSettings() => new()
         {
             Temperature = this.Temperature,
