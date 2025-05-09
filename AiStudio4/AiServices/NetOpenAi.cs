@@ -278,6 +278,7 @@ namespace AiStudio4.AiServices
             string chosenTool = null;
             int inputTokens = 0;
             int outputTokens = 0;
+            int cachedTokens = 0;
 
             try
             {
@@ -366,6 +367,8 @@ namespace AiStudio4.AiServices
                     {
                         inputTokens = update.Usage.InputTokenCount;
                         outputTokens = update.Usage.OutputTokenCount;
+                        cachedTokens = update.Usage.InputTokenDetails?.CachedTokenCount ?? 0;
+                        
                     }
                 }
 
@@ -375,7 +378,7 @@ namespace AiStudio4.AiServices
                 {
                     ResponseText = responseBuilder.ToString(),
                     Success = true,
-                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
+                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                     ChosenTool = chosenTool,
                     ToolResponseSet = ToolResponseSet,
                 };
@@ -401,7 +404,7 @@ namespace AiStudio4.AiServices
                 {
                     ResponseText = responseBuilder.ToString().TrimEnd(),
                     Success = true, // Still consider it a success, just partial
-                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
+                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                     ChosenTool = chosenTool,
                     ToolResponseSet = ToolResponseSet,
                 };

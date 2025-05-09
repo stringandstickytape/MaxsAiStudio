@@ -37,9 +37,7 @@ namespace AiStudio4.InjectedDependencies
 
         public List<string> PackerIncludeFileTypes { get; set; } = new List<string>
         {
-            ".cs", ".xaml", ".xml", ".json", ".txt", ".md", ".html", ".css", ".js", ".ts", ".tsx",
-                    ".config", ".yml", ".yaml", ".ini", ".bat", ".sh", ".ps1", ".psm1", ".gitignore",
-                    ".sln", ".csproj", ".vbproj", ".fsproj", ".editorconfig", ".gitattributes"
+
         };
 
         public List<string> PackerExcludeFilenames { get; set; } = new List<string>();

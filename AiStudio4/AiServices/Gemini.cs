@@ -279,7 +279,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                         {
                             ResponseText = toolArgs,
                             Success = true,
-                            TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
+                            TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
                             ChosenTool = toolName,
                             ToolResponseSet = ToolResponseSet,
                             IsCancelled = false // Explicitly false on normal completion
@@ -311,7 +311,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 {
                     ResponseText = fullResponse.ToString(),
                     Success = true,
-                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount),
+                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount ?? "0"),
                     ChosenTool = null,
                     Attachments = attachments.Count > 0 ? attachments : null,
                     ToolResponseSet = ToolResponseSet,
@@ -343,7 +343,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 {
                     ResponseText = fullResponse.ToString(),
                     Success = true, // Indicate successful handling of cancellation
-                    TokenUsage = new TokenUsage(inputTokenCount ?? "0", outputTokenCount ?? "0"),
+                    TokenUsage = new TokenUsage(inputTokenCount ?? "0", outputTokenCount ?? "0", "0", cachedTokenCount ?? "0"),
                     ChosenTool = chosenTool, // Use the tool identified so far
                     Attachments = attachments.Count > 0 ? attachments : null,
                     ToolResponseSet = ToolResponseSet, // Use partially populated set
@@ -533,7 +533,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 {
                     ResponseText = ExtractResponseText(completion),
                     Success = true,
-                    TokenUsage = new TokenUsage(inputTokens, outputTokens),
+                    TokenUsage = new TokenUsage(inputTokens, outputTokens, "0", completion["usageMetadata"]?["cachedContentTokenCount"]?.ToString()),
                     ChosenTool = chosenTool,
                     Attachments = attachments.Count > 0 ? attachments : null,
                     ToolResponseSet = ToolResponseSet
@@ -548,6 +548,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
 
         private string inputTokenCount = "";
         private string outputTokenCount = "";
+        private string cachedTokenCount = "";
         private string chosenTool = null;
         private ToolResponseItem currentResponseItem = null;
         private async Task<string> ProcessJsonObject(string jsonString, StringBuilder fullResponse, Action<string> onStreamingUpdate)
@@ -647,8 +648,9 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
 
                     if (streamData["usageMetadata"] != null)
                     {
-                        inputTokenCount = streamData["usageMetadata"]?["promptTokenCount"]?.ToString();
+                        inputTokenCount = ((int)(streamData["usageMetadata"]?["promptTokenCount"] ?? 0) + (int)(streamData["usageMetadata"]?["thoughtsTokenCount"] ?? 0)).ToString();
                         outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+                        cachedTokenCount = streamData["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
                     }
 
                     if (streamData["error"] != null)
@@ -668,7 +670,8 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             {
                 var inputTokens = response["usageMetadata"]?["promptTokenCount"]?.ToString();
                 var outputTokens = response["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-                return new TokenUsage(inputTokens, outputTokens);
+                var cachedTokens = response["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
+                return new TokenUsage(inputTokens, outputTokens, "0", cachedTokens);
             }
 
         protected override ToolFormat GetToolFormat()
