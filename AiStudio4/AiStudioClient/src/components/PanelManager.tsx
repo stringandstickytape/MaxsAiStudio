@@ -143,9 +143,12 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
         ) : (
           /* Panel without title bar, floating close button */
           <>
-            <div className="absolute top-2 right-2 z-10">
-              {closeButton}
-            </div>
+            {/* Don't show close button for sidebar */}
+            {panel.id !== 'sidebar' && (
+              <div className="absolute top-2 right-2 z-10">
+                {closeButton}
+              </div>
+            )}
             <div className="flex-1 overflow-hidden h-full">{panel.render(isVisible)}</div>
           </>
         )}

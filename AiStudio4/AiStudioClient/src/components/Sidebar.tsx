@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Search, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, X, ChevronLeft, ChevronRight, Menu } from 'lucide-react';
 
 interface SidebarProps {
   wsState: WebSocketState;
@@ -38,6 +38,19 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
     searchError 
   } = useSearchStore();
   const [currentConvId, setCurrentConvId] = useState<string | null>(null);
+  const [showContent, setShowContent] = useState(!isCollapsed);
+  
+  // Handle content visibility when collapse state changes
+  useEffect(() => {
+    if (isCollapsed) {
+      // Hide content immediately when collapsing
+      setShowContent(false);
+    } else {
+      // Show content after a small delay when expanding
+      const timer = setTimeout(() => setShowContent(true), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isCollapsed]);
 
   // Update currentConvId when activeConvId changes
   useEffect(() => {
@@ -69,7 +82,7 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
 
   return (
     <div 
-      className="Sidebar flex flex-col h-full border-r transition-all duration-300 ease-in-out"
+      className="Sidebar flex flex-col h-full border-r"
       style={{
         backgroundColor: 'var(--global-background-color, #111827)',
         borderColor: 'var(--global-border-color, #1f2937)',
@@ -82,19 +95,20 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
       }}
     >
       {/* Toggle button */}
-      <div className="p-2 flex justify-end border-b" style={{ borderColor: 'var(--global-border-color, #1f2937)' }}>
+      <div className="p-2 flex justify-end h-12 min-h-12">
         <button 
           onClick={toggleSidebarCollapse}
-          className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-gray-700/50"
+          className="h-8 w-8 p-2 flex items-center justify-center rounded-md hover:bg-gray-700/50 absolute left-2 top-2 z-10"
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          <Menu className="h-4 w-4" />
         </button>
+
       </div>
 
       {/* Search input - only visible when not collapsed */}
-      {!isCollapsed && (
-        <div className="p-2 border-b" style={{ borderColor: 'var(--global-border-color, #1f2937)' }}>
+      {!isCollapsed && showContent && (
+        <div className="p-2">
           <form onSubmit={handleSearchSubmit} className="flex items-center gap-1">
             <Input
               type="text"
@@ -140,16 +154,12 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
       )}
 
       {/* Split container - top half - only visible when not collapsed */}
-      {!isCollapsed && (
-        <div className="Sidebar h-[calc(50%-24px)] border-b" 
-          style={{
-            borderColor: 'var(--global-border-color, #1f2937)'
-          }}
+      {!isCollapsed && showContent && (
+        <div className="Sidebar h-[calc(50%-24px)] " 
         >
-          <div className="Sidebar text-sm font-medium border-b" 
+          <div className="Sidebar text-sm font-medium " 
             style={{
               backgroundColor: 'var(--global-background-color, rgba(31, 41, 55, 0.7))',
-              borderColor: 'var(--global-border-color, rgba(75, 85, 99, 0.5))',
               color: 'var(--global-text-color, #d1d5db)'
             }}
           >
@@ -175,7 +185,7 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
       )}
 
       {/* Split container - bottom half - only visible when not collapsed */}
-      {!isCollapsed && (
+      {!isCollapsed && showContent && (
         <div className="Sidebar h-[calc(50%-24px)]">
           <div className="Sidebar h-[calc(100%-32px)] overflow-auto" 
             style={{
@@ -202,7 +212,7 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
       )}
 
       {/* Connection status footer - only visible when not collapsed */} 
-      {!isCollapsed && (
+      {!isCollapsed && showContent && (
         <div 
           className={cn(
             'Sidebar p-3 border-t rounded-b-md',

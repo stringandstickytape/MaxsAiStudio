@@ -234,7 +234,6 @@
     --panel-right-width: 0px;
     --content-margin-left: 0px;
     --content-margin-right: 0px;
-    transition: --content-margin-left 0.3s ease, --content-margin-right 0.3s ease;
 }
 
 a {

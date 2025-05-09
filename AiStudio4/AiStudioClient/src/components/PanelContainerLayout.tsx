@@ -50,6 +50,13 @@ export function PanelContainerLayout({ children }: PanelContainerLayoutProps) {
       
       
       root.style.setProperty('--content-margin-left', hasLeftPanel ? `${sidebarWidth}px` : '0px');
+      
+      // Remove transition when sidebar is expanding to prevent jank
+      if (panels.sidebar?.isCollapsed === false) {
+        root.style.setProperty('transition', 'none');
+      } else {
+        root.style.setProperty('transition', '--content-margin-left 0.3s ease, --content-margin-right 0.3s ease');
+      }
       root.style.setProperty('--content-margin-right', hasRightPanel ? `${PANEL_WIDTH}px` : '0px');
     };
     
