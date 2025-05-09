@@ -1,10 +1,11 @@
-
+﻿
 import { create } from 'zustand';
 import { PanelState } from '@/types/ui';
 
 interface PanelStore {
   panels: Record<string, PanelState>;
   togglePanel: (id: string) => void;
+  toggleSidebarCollapse: () => void;
   closeAll: (except?: string) => void;
   getPanelState: (id: string) => PanelState | undefined;
   setSize: (id: string, size: string) => void;
@@ -22,13 +23,27 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
         return state;
       }
 
+      // Special handling for sidebar - toggle between collapsed and expanded
+      if (id === 'sidebar') {
+        return {
+          panels: {
+            ...state.panels,
+            sidebar: {
+              ...panel,
+              isOpen: true, // Always keep sidebar open
+              isCollapsed: !panel.isCollapsed // Toggle collapsed state instead
+            }
+          }
+        };
+      }
+
+      // Normal behavior for other panels
       const updatedPanels = { ...state.panels };
 
       updatedPanels[id] = {
         ...panel,
         isOpen: !panel.isOpen
       };
-
       
       if (!panel.isOpen) {
         Object.keys(updatedPanels).forEach((key) => {
@@ -44,6 +59,24 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       return { panels: updatedPanels };
     });
   },
+
+  // toggleSidebarCollapse is now handled by togglePanel for the sidebar
+  toggleSidebarCollapse: () => 
+    set((state) => {
+      const sidebar = state.panels['sidebar'];
+      if (!sidebar) return state;
+
+      return {
+        panels: {
+          ...state.panels,
+          sidebar: {
+            ...sidebar,
+            isOpen: true, // Always keep sidebar open
+            isCollapsed: !sidebar.isCollapsed
+          }
+        }
+      };
+    }),
 
   closeAll: (except) =>
     set((state) => {

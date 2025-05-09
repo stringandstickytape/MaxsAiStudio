@@ -80,6 +80,8 @@ export function CommandInitializer() {
   useEffect(() => {
     initializeCoreCommands({
       toggleSidebar: () => togglePanel('sidebar'),
+      // Use the same function for both commands to ensure consistent behavior
+      toggleSidebarCollapse: () => togglePanel('sidebar'),
       toggleSettings: () => togglePanel('settings'),
       openNewWindow: handleOpenNewWindow,
     });

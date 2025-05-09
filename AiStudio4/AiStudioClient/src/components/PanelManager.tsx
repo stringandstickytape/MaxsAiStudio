@@ -1,4 +1,4 @@
-
+﻿
 import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Panel, PanelGroup, PanelResizeHandle, ImperativePanelHandle } from 'react-resizable-panels';
@@ -88,6 +88,13 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
     if (!isVisible) return null;
 
     const handleClosePanel = () => {
+      // Special handling for sidebar - toggle collapse instead of closing
+      if (panel.id === 'sidebar') {
+        usePanelStore.getState().toggleSidebarCollapse();
+        return;
+      }
+      
+      // Normal close behavior for other panels
       usePanelStore.setState(state => ({
         panels: {
           ...state.panels,
@@ -115,8 +122,13 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
       </Button>
     );
 
+    // Adjust width based on collapsed state for sidebar panel
+    const panelStyle = panel.id === 'sidebar' && state.isCollapsed 
+      ? { width: '48px' } // Width when collapsed
+      : { width: 'var(--panel-width, 320px)' }; // Normal width
+      
     return (
-      <div className="flex flex-col h-full overflow-hidden relative" style={{ width: 'var(--panel-width, 320px)' }}>
+      <div className="flex flex-col h-full overflow-hidden relative transition-all duration-300 ease-in-out" style={panelStyle}>
         {showTitleBar ? (
           /* Panel with title bar */
           <>

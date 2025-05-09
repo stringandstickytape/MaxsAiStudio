@@ -100,7 +100,7 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
         maxWidth: '450px',
         width: '320px',
         zIndex: 40,
-        render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} onReconnectClick={connect} /> : null),
+        render: (isOpen) => (isOpen ? <Sidebar wsState={wsState} onReconnectClick={connect} isCollapsed={panels.sidebar?.isCollapsed} /> : null),
       },
     ],
     [wsState, connect], // Add connect to dependencies

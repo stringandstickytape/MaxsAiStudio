@@ -8,6 +8,7 @@ import { commandRegistry } from '@/services/commandRegistry';
 
 export function initializeCoreCommands(handlers: {
   toggleSidebar: () => void;
+  toggleSidebarCollapse: () => void;
   toggleConvTree: () => void;
   toggleSettings: () => void;
   openNewWindow: () => void;
@@ -86,6 +87,17 @@ export function initializeCoreCommands(handlers: {
     })),
   });
 
+  const createCommand = (id: string, name: string, keywords: string[], fn: () => void) => {
+    return [
+      id,
+      name,
+      '',
+      keywords,
+      React.createElement(Plus, { size: 16 }),
+      fn,
+    ];
+  };
+
   commandRegistry.registerGroup({
     id: 'view',
     name: 'View',
@@ -99,6 +111,13 @@ export function initializeCoreCommands(handlers: {
         React.createElement(Plus, { size: 16 }),
         handlers.toggleSidebar,
       ],
+      // We're using a single command for sidebar toggling now
+      // createCommand(
+      //   'toggle-sidebar-collapse',
+      //   'Collapse or expand the sidebar',
+      //   ['sidebar', 'collapse', 'expand', 'toggle', 'narrow', 'wide'],
+      //   handlers.toggleSidebarCollapse
+      // ),
       [
         'open-new-window',
         'Open New Window',
