@@ -1,0 +1,85 @@
+[
+  {
+    "PackageId": "HtmlAgilityPack",
+    "PackageVersion": "1.11.74",
+    "PackageProjectUrl": "http://html-agility-pack.net/",
+    "Copyright": "Copyright \u00A9 ZZZ Projects Inc.",
+    "Authors": "ZZZ Projects,Simon Mourrier,Jeff Klawiter,Stephan Grell",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "Ignore",
+    "PackageVersion": "0.2.1",
+    "PackageProjectUrl": "https://github.com/goelhardik/ignore",
+    "Authors": "Ignore",
+    "ValidationErrors": [
+      {
+        "Error": "No license information found",
+        "Context": "C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\SharedClasses\\SharedClasses.csproj"
+      }
+    ],
+    "LicenseInformationOrigin": 2
+  },
+  {
+    "PackageId": "Microsoft.CodeAnalysis",
+    "PackageVersion": "4.11.0",
+    "PackageProjectUrl": "https://github.com/dotnet/roslyn",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "Microsoft.CodeAnalysis.Common",
+    "PackageVersion": "4.11.0",
+    "PackageProjectUrl": "https://github.com/dotnet/roslyn",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "Microsoft.CodeAnalysis.CSharp",
+    "PackageVersion": "4.11.0",
+    "PackageProjectUrl": "https://github.com/dotnet/roslyn",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "NETStandard.Library",
+    "PackageVersion": "2.0.3",
+    "PackageProjectUrl": "https://dot.net/",
+    "Copyright": ".NET Foundation and Contributors",
+    "Authors": "Microsoft",
+    "License": "https://github.com/dotnet/standard/blob/master/LICENSE.TXT",
+    "LicenseUrl": "https://github.com/dotnet/standard/blob/master/LICENSE.TXT",
+    "LicenseInformationOrigin": 1
+  },
+  {
+    "PackageId": "Newtonsoft.Json",
+    "PackageVersion": "13.0.3",
+    "PackageProjectUrl": "https://www.newtonsoft.com/json",
+    "Copyright": "Copyright \u00A9 James Newton-King 2008",
+    "Authors": "James Newton-King",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "System.Drawing.Common",
+    "PackageVersion": "9.0.2",
+    "PackageProjectUrl": "https://github.com/dotnet/winforms",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  }
+]

@@ -1,6 +1,7 @@
 ﻿// MarkdownPane/CodeBlockHeader.tsx
 import React from 'react';
-import { ExternalLink, Clipboard, ChevronDown, ChevronUp } from 'lucide-react';
+import { ExternalLink, Clipboard, ChevronDown, ChevronUp, Save } from 'lucide-react';
+import { createApiRequest } from '@/utils/apiUtils';
 
 export interface CodeBlockHeaderProps {
     language: string;
@@ -23,13 +24,24 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
     onToggleCollapse,
     launchHtml,
 }) => {
+    const handleSaveToFile = async () => {
+        let suggestedFilename = `codeblock.${language || 'txt'}`; // Use language for extension, fallback to .txt
+        try {
+            const saveFileRequest = createApiRequest('/api/saveCodeBlockAsFile', 'POST');
+            await saveFileRequest({ content, suggestedFilename });
+        } catch (e) {
+            console.error('Save As failed:', e);
+            alert('Failed to save file. Check console for details.'); // Simple user feedback
+        }
+    };
+
     return (
         <div
             className={`MarkdownPane flex items-center justify-between px-2 py-1 rounded-t-xl border-b text-sm`}
             style={{
-                background: 'var(--global-background-color, #181c20)',
-                color: 'var(--global-text-color, #bfc7d5)',
-                borderColor: 'var(--global-border-color, #283040)',
+                background: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                color: 'var(--global-text-color, var(--markdownpane-codeheader-text, #bfc7d5))',
+                borderColor: 'var(--global-border-color, var(--markdownpane-codeheader-border, #283040))',
                 borderStyle: 'solid',
                 borderBottomWidth: '1px',
                 borderTopWidth: 0,
@@ -39,7 +51,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 <button
                     onClick={onToggleCollapse}
                     className="transition-colors p-1"
-                    style={{ color: 'var(--global-primary-color, #4f8cff)' }}
+                    style={{ color: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))' }}
+                    title={isCollapsed ? "Expand code block" : "Collapse code block"}
                 >
                     {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                 </button>
@@ -51,9 +64,10 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                         onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
                         className="px-2 py-1 rounded transition-colors"
                         style={{
-                            background: 'var(--global-primary-color, #4f8cff)',
-                            color: 'var(--global-background-color, #181c20)',
+                            background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
+                            color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                         }}
+                        title="Apply as Diff"
                     >
                         Apply Diff
                     </button>
@@ -62,6 +76,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                     <button
                         onClick={launchHtml}
                         className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
+                        title="Launch HTML in new tab"
                     >
                         <ExternalLink className="h-3 w-3" />
                         Launch
@@ -95,9 +110,10 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                             }}
                             className="px-2 py-1 rounded transition-colors mr-2"
                             style={{
-                                background: 'var(--global-primary-color, #4f8cff)',
-                                color: 'var(--global-background-color, #181c20)',
+                                background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
+                                color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                             }}
+                            title="Apply this theme"
                         >
                             Use Theme
                         </button>
@@ -149,9 +165,10 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                             }}
                             className="px-2 py-1 rounded transition-colors"
                             style={{
-                                background: 'var(--global-primary-color, #4f8cff)',
-                                color: 'var(--global-background-color, #181c20)',
+                                background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
+                                color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                             }}
+                            title="Install this theme"
                         >
                             Install Theme
                         </button>
@@ -159,23 +176,36 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 )}
                 <button
                     onClick={() => navigator.clipboard.writeText(content)}
-                    className="px-2 py-1 rounded transition-colors"
+                    className="px-2 py-1 rounded transition-colors flex items-center justify-center"
                     style={{
-                        background: 'var(--global-primary-color, #4f8cff)',
-                        color: 'var(--global-background-color, #181c20)',
+                        background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
+                        color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                     }}
+                    title="Copy code block"
                 >
-                    Copy
+                    <Clipboard size={14} />
+                </button>
+                <button
+                    onClick={handleSaveToFile}
+                    className="px-2 py-1 rounded transition-colors flex items-center justify-center"
+                    style={{
+                        background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
+                        color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                    }}
+                    title="Save code block to file"
+                >
+                    <Save size={14} />
                 </button>
                 <button
                     onClick={onToggleRaw}
                     className="px-2 py-1 rounded transition-colors"
                     style={{
-                        background: 'var(--global-primary-color, #4f8cff)',
-                        color: 'var(--global-background-color, #181c20)',
+                        background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
+                        color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                     }}
+                    title={isRawView ? "Show rendered content" : "Show raw content"}
                 >
-                    {isRawView ? 'Show Rendered' : 'Show Raw'}
+                    {isRawView ? 'Rendered' : 'Raw'}
                 </button>
             </div>
         </div>
