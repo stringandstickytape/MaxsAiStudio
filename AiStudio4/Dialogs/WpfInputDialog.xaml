@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AiStudio4.Dialogs"
         mc:Ignorable="d"
         Title="Input Dialog" SizeToContent="WidthAndHeight" WindowStartupLocation="CenterOwner"
-        MinWidth="300" MaxWidth="600" MinHeight="150" MaxHeight="400"
+        MinWidth="700" MaxWidth="700" MinHeight="150" MaxHeight="400"
         WindowStyle="ToolWindow" ShowInTaskbar="False">
     <Grid Margin="15">
         <Grid.RowDefinitions>
@@ -17,7 +17,7 @@
 
         <TextBlock x:Name="PromptTextBlock" Grid.Row="0" Margin="0,0,0,10" TextWrapping="Wrap"/>
 
-        <TextBox x:Name="InputTextBox" Grid.Row="1" MinHeight="25" VerticalContentAlignment="Center" AcceptsReturn="False"/>
+        <TextBox x:Name="InputTextBox" Grid.Row="1" MinHeight="25" VerticalContentAlignment="Center" AcceptsReturn="True" TextWrapping="Wrap"/>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
             <Button Content="_OK" x:Name="OkButton" IsDefault="True" MinWidth="75" Margin="0,0,10,0" Click="OkButton_Click"/>

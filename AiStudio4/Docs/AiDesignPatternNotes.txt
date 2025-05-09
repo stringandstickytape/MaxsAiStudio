@@ -1,4 +1,4 @@
-﻿A design in MaxsDesign format:
+﻿A design in cmdMaxsDesign format:
 
 * Includes a breakdown of the required functionality such that the reading AI will be able to make the required changes
 * Does not include any code as such

@@ -16,7 +16,7 @@ namespace AiStudio4.Dialogs
             this.Title = title;
             PromptTextBlock.Text = prompt;
             InputTextBox.Text = defaultValue;
-
+            
             // Set focus to the input box when the window loads
             this.Loaded += (sender, e) => InputTextBox.Focus();
         }
