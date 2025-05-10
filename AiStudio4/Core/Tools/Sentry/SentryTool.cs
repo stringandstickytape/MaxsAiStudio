@@ -11,7 +11,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AiStudio4.Core.Tools
+namespace AiStudio4.Core.Tools.Sentry
 {
     /// <summary>
     /// Implementation of the Sentry API tool

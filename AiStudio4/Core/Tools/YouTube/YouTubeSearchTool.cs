@@ -13,7 +13,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace AiStudio4.Core.Tools
+namespace AiStudio4.Core.Tools.YouTube
 {
     /// <summary>
     /// Tool to search YouTube using the Data API v3.
@@ -205,7 +205,7 @@ namespace AiStudio4.Core.Tools
             var searchResult = await SearchYouTube(query, maxResults, type);
 
             // Format results as a Markdown list
-            var outputBuilder = new System.Text.StringBuilder();
+            var outputBuilder = new StringBuilder();
             outputBuilder.AppendLine($"## YouTube Search Results for \\\"{query}\\\":");
             outputBuilder.AppendLine(); // Add a blank line for spacing
 

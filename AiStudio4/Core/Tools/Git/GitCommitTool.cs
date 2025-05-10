@@ -13,7 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AiStudio4.Core.Tools
+namespace AiStudio4.Core.Tools.Git
 {
     /// <summary>
     /// Implementation of the GitCommit tool
