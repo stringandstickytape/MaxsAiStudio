@@ -40,6 +40,7 @@ public partial class WebViewWindow : Window
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
+    private string _lastTranscriptionResult = null;
 
     public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager)
     {
@@ -325,55 +326,55 @@ public partial class WebViewWindow : Window
         }
     }
 
-    private async void TestAudioTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
+    private void TestAudioTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string audioExtensions = "*.wav;*.mp3;*.m4a;*.aac;*.ogg;*.oga;*.opus;*.flac;*.wma;*.aiff;*.aif;*.ape;*.ac3;*.dts;*.tta";
-        string videoExtensions = "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.mpg;*.mpeg;*.m2ts;*.ts;*.vob;*.3gp;*.3g2;*.ogv;*.m4v;*.asf";
-        string allSupportedExtensions = $"{audioExtensions};{videoExtensions}";
-
-        var openFileDialog = new OpenFileDialog
+        Task.Run(async () =>
         {
-            Title = "Select Audio or Video File",
+            string audioExtensions = "*.wav;*.mp3;*.m4a;*.aac;*.ogg;*.oga;*.opus;*.flac;*.wma;*.aiff;*.aif;*.ape;*.ac3;*.dts;*.tta";
+            string videoExtensions = "*.mp4;*.mkv;*.avi;*.mov;*.wmv;*.flv;*.webm;*.mpg;*.mpeg;*.m2ts;*.ts;*.vob;*.3gp;*.3g2;*.ogv;*.m4v;*.asf";
+            string allSupportedExtensions = $"{audioExtensions};{videoExtensions}";
 
-            Filter = $"All Supported Media|{allSupportedExtensions}|" +
-                     $"Audio Files|{audioExtensions}|" +
-                     $"Video Files|{videoExtensions}|" +
-                     "All Files|*.*",
+            OpenFileDialog openFileDialog = null;
+            bool? dialogResult = null;
+            Dispatcher.Invoke(() =>
+            {
+                openFileDialog = new OpenFileDialog
+                {
+                    Title = "Select Audio or Video File",
+                    Filter = $"All Supported Media|{allSupportedExtensions}|" +
+                             $"Audio Files|{audioExtensions}|" +
+                             $"Video Files|{videoExtensions}|" +
+                             "All Files|*.*",
+                    FilterIndex = 1,
+                    InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic),
+                    Multiselect = false
+                };
+                dialogResult = openFileDialog.ShowDialog();
+            });
 
-            FilterIndex = 1,
-            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), // Or MyVideos
-            Multiselect = false
-        };
+            if (dialogResult != true)
+                return;
 
-        var result = openFileDialog.ShowDialog();
-
-        if(result.Value)
-        {
             var filename = openFileDialog.FileName;
-
             var condaActivateScriptPath = _generalSettingsService.CurrentSettings.CondaPath;
-            
-                        // Path to the Miniconda installation
             string condaPath = Path.Combine(condaActivateScriptPath, "activate.bat");
 
             if (!File.Exists(condaPath))
             {
-                MessageBox.Show($"Conda activate script not found in the folder {condaPath}{Environment.NewLine}You can set the path in Edit -> Settings.");
+                Dispatcher.Invoke(() =>
+                {
+                    MessageBox.Show($"Conda activate script not found in the folder {condaPath}{Environment.NewLine}You can set the path in Edit -> Settings.");
+                });
                 return;
             }
 
             var destPath = Path.GetDirectoryName(filename);
-            // remove trailing slash if there is one
+            //destPath = destPath.Replace("\\", "/");
             if (destPath.EndsWith("/") || destPath.EndsWith("\\"))
                 destPath = destPath.Substring(0, destPath.Length - 1);
 
-            // Command to activate the WhisperX environment and run Whisper
             string arguments = $"/C {condaPath} && conda activate whisperx && whisperx \"{filename}\"  --language en --model  large-v3 --output_dir \"{destPath}\" ";
 
-            //if(!string.IsNullOrEmpty(hfToken))
-            //{
-            //    arguments += $"--hf_token {hfToken} --diarize ";
-            //}
             ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 FileName = "cmd.exe",
@@ -387,8 +388,8 @@ public partial class WebViewWindow : Window
             using (Process process = new Process())
             {
                 process.StartInfo = startInfo;
-                process.OutputDataReceived += (sender, e) => Debug.WriteLine(e.Data);
-                process.ErrorDataReceived += (sender, e) => Debug.WriteLine(e.Data);
+                process.OutputDataReceived += (sender2, e2) => Debug.WriteLine(e2.Data);
+                process.ErrorDataReceived += (sender2, e2) => Debug.WriteLine(e2.Data);
 
                 process.Start();
                 process.BeginOutputReadLine();
@@ -398,26 +399,30 @@ public partial class WebViewWindow : Window
                 if (process.ExitCode == 0)
                 {
                     var filenameOnly = filename.Split('\\').Last();
-
                     if (filenameOnly.Contains("."))
-                    {
                         filenameOnly = filenameOnly.Substring(0, filenameOnly.LastIndexOf('.')) + ".vtt";
-                    }
                     else
-                    {
                         filenameOnly += ".json";
-                    }
                     var fullFilename = Path.Combine(Path.GetDirectoryName(filename)!, filenameOnly);
-
                     var json = File.ReadAllText(fullFilename);
-                    await _notificationService.NotifyTranscription(json);
+                    _lastTranscriptionResult = json;
+                    Dispatcher.Invoke(() =>
+                    {
+                        InsertTranscriptionMenuItem.IsEnabled = true;
+                        MessageBox.Show(this, "Transcription complete and ready to be inserted.", "Transcription Ready", MessageBoxButton.OK, MessageBoxImage.Information);
+                    });
                 }
                 else
                 {
-                    MessageBox.Show("Unable to transcribe file.");
+                    _lastTranscriptionResult = null;
+                    Dispatcher.Invoke(() =>
+                    {
+                        InsertTranscriptionMenuItem.IsEnabled = false;
+                        MessageBox.Show(this, "Unable to transcribe file.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    });
                 }
             }
-        }
+        });
     }
 
     private void AllowConnectionsOutsideLocalhostMenuItem_Click(object sender, RoutedEventArgs e)
@@ -632,6 +637,19 @@ public partial class WebViewWindow : Window
             _generalSettingsService.CurrentSettings.PackerExcludeFilenames = list;
             _generalSettingsService.SaveSettings();
             MessageBox.Show("Packer exclude filenames updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private async void InsertTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrEmpty(_lastTranscriptionResult))
+        {
+            await _notificationService.NotifyTranscription(_lastTranscriptionResult);
+            MessageBox.Show(this, "Transcription inserted into the prompt.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+        else
+        {
+            MessageBox.Show(this, "No transcription available to insert.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
 }

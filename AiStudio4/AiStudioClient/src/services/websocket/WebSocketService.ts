@@ -244,15 +244,12 @@ export class WebSocketService {
                     content: message.content,
                 });
             } else if (message.messageType === 'transcription') {
+                console.log('received transcription');
                 // Handle transcription messages for appending to user prompt
                 dispatchWebSocketEvent('transcription:received', {
                     type: 'transcription',
                     content: message.content,
                 });
-                
-                // Note: Auto-insertion of text into input bar during tool loops has been removed
-                // If you need to manually append text, use the transcription:received event
-                // or implement a user-triggered action to append the text
             } else if (message.messageType === 'interjectionAck') {
                 // Handle interjection acknowledgment
                 if (message.content && message.content.success) {

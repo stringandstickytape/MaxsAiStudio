@@ -40,6 +40,7 @@
             <MenuItem Header="📂" ToolTip="Opens the project root folder in an Explorer window" Click="ExploreProjectMenuItem_Click"/>
             <MenuItem Header="_Transcribe">
                 <MenuItem Header="_Transcribe Media File..." Name="TestAudioTranscriptionMenuItem" Click="TestAudioTranscriptionMenuItem_Click"/>
+                <MenuItem Header="_Insert Last Transcription" Name="InsertTranscriptionMenuItem" Click="InsertTranscriptionMenuItem_Click" IsEnabled="False"/>
             </MenuItem>
         </Menu>
         <controls:AiStudioWebView2 x:Name="webView" Grid.Row="1" />
