@@ -23,7 +23,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
 
         protected override IEnumerable<string> SupportedRequestTypes => new[]
         {
-            "getConfig"
+            "getConfig",
+            "setTemperature" // <-- Add this
         };
 
         public override async Task<string> HandleAsync(string clientId, string requestType, JObject requestObject)
@@ -33,6 +34,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 return requestType switch
                 {
                     "getConfig" => HandleGetConfigRequest(),
+                    "setTemperature" => await HandleSetTemperatureRequest(requestObject), // <-- Add this
                     _ => SerializeError($"Unsupported request type: {requestType}")
                 };
             }
@@ -65,8 +67,39 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 defaultModel = _generalSettingsService.CurrentSettings.DefaultModel ?? "",
                 defaultModelGuid = defaultModelGuid ?? "",
                 secondaryModel = _generalSettingsService.CurrentSettings.SecondaryModel ?? "",
-                secondaryModelGuid = secondaryModelGuid ?? ""
+                secondaryModelGuid = secondaryModelGuid ?? "",
+                temperature = _generalSettingsService.CurrentSettings.Temperature // <-- ADD THIS LINE
             });
+        }
+
+        private async Task<string> HandleSetTemperatureRequest(JObject requestObject)
+        {
+            try
+            {
+                float? temperature = requestObject["temperature"]?.Value<float?>();
+                if (temperature == null) 
+                    return SerializeError("Temperature value is required and must be a number.");
+                
+                // Validate temperature range (e.g., 0.0 to 2.0)
+                if (temperature < 0.0f || temperature > 2.0f) 
+                    return SerializeError("Temperature must be between 0.0 and 2.0.");
+
+                _generalSettingsService.CurrentSettings.Temperature = temperature.Value;
+                _generalSettingsService.SaveSettings(); // Persist the change
+                
+                // Optionally, notify other connected clients if temperature changes should be real-time for all
+                // await _webSocketNotificationService.NotifyGeneralSettingsUpdate(_generalSettingsService.CurrentSettings);
+
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (JsonException jsonEx)
+            {
+                return SerializeError($"Invalid temperature format: {jsonEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error setting temperature: {ex.Message}");
+            }
         }
     }
 }

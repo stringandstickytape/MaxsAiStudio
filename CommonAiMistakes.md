@@ -46,3 +46,8 @@
     - Double-check the user's request to ensure only the specified elements are targeted.  
     - Avoid overly broad selections that span too large a section, which can lead to removal of desired text and malformed HTML structure.  
     - Confirm that HTML structure remains valid after modifications, avoiding self-closing tags that conflict with later closing tags.
+
+13. **ModifyFiles `oldContent` Too Short**  
+    - When using `ModifyFiles`, ensure `oldContent` includes enough surrounding lines (3-5 lines before and after the change) to uniquely identify the target modification block.  
+    - Avoid providing only a single line or too short a snippet that may appear multiple times or be ambiguous.  
+    - Double-check the file content before and after the call to confirm changes have been applied.

@@ -88,7 +88,7 @@ namespace AiStudio4.AiServices
                     messages.Add(chatMessage);
                 }
 
-                float temp = options.Model.Requires1fTemp ? 1f : 0.2f;
+                float temp = options.Model.Requires1fTemp ? 1f : options.ApiSettings.Temperature;
 
                 // for o3, o4 mini and possibly others
                 ChatCompletionOptions chatOptions = new ChatCompletionOptions

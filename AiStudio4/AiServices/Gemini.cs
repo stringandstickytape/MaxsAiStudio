@@ -68,7 +68,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 requestPayload["generationConfig"] = new JObject
                 {
                     ["responseModalities"] = new JArray { "Text", "Image" },
-                    ["temperature"] = 0.2
+                    ["temperature"] = options.ApiSettings.Temperature
                 };
             }
             else
@@ -82,7 +82,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 };
                 requestPayload["generationConfig"] = new JObject
                 {
-                    ["temperature"] = 0.2
+                    ["temperature"] = options.ApiSettings.Temperature
                 };
             }
 

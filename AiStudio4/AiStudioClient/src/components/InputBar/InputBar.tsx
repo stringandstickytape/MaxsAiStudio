@@ -24,6 +24,7 @@ import { ActionButtons } from './ActionButtons';
 import { ToolsSection } from './ToolsSection';
 import { ModelStatusSection } from './ModelStatusSection';
 import { StatusSection } from './StatusSection';
+import { TemperatureControl } from './TemperatureControl'; // Add this
 
 /*
  * InputBar.tsx
@@ -304,18 +305,26 @@ export function InputBar({
                     />
                 </div>
 
-                {/* Bottom Bar: Model Status, Tools, Servers */}
-                <div className="pt-2 border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5">
+                {/* Bottom Bar: Model Status, Tools, Servers, Temperature */}
+                <div className="pt-2 border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5 gap-x-4"> {/* Added gap-x-4 for spacing */}
                     {/* Model Status */}
                     <ModelStatusSection />
 
                     {/* Tools Section */}
-                    <div ref={toolsContainerRef}>
+                    <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
                         <ToolsSection
                             activeTools={activeTools}
                             removeActiveTool={removeActiveTool}
                             disabled={disabled}
                         />
+                    </div>
+
+                    {/* NEW: Temperature Control Section */}
+                    <TemperatureControl /> {/* Add this line */}
+
+                    {/* Status Message Section - Placed at the end for right alignment */}
+                    <div className="ml-auto"> {/* This will push StatusMessage to the right */}
+                        <StatusSection isAtBottom={isAtBottom} disabled={disabled} />
                     </div>
                 </div>
             </div>

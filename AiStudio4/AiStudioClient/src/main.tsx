@@ -7,6 +7,7 @@ import { initDebugUtils } from './utils/debugUtils';
 import { useSystemPromptStore } from './stores/useSystemPromptStore';
 import { useToolStore } from './stores/useToolStore';
 import { createApiRequest } from '@/utils/apiUtils';
+import { useGeneralSettingsStore } from './stores/useGeneralSettingsStore'; // Add this
 
 // Add TypeScript declarations for window object extensions
 declare global {
@@ -87,10 +88,13 @@ async function loadDefaultSystemPromptAndTools() {
     console.error('Failed to load and apply active theme at startup:', err);
   }
   
-  // Load default system prompt and its associated tools
+  // Load default system prompt and its associated tools (existing code)
   await loadDefaultSystemPromptAndTools();
   
-  // Initialize debug utilities
+  // Fetch general settings including temperature // <-- ADD THIS
+  await useGeneralSettingsStore.getState().fetchSettings();
+  
+  // Initialize debug utilities (existing code)
   initDebugUtils();
 
   try {
