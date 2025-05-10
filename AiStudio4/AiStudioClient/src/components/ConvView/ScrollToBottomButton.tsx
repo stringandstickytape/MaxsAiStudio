@@ -1,15 +1,17 @@
 ﻿// AiStudioClient\src\components\ConvView\ScrollToBottomButton.tsx
 import { useStickToBottomContext } from 'use-stick-to-bottom';
-import { useProjectPotatoStore } from '@/stores/useProjectPotatoStore';
 import { ArrowDown } from 'lucide-react';
 
-export const ScrollToBottomButton = () => {
+interface ScrollToBottomButtonProps {
+  onActivateSticking: () => void;
+}
+
+export const ScrollToBottomButton = ({ onActivateSticking }: ScrollToBottomButtonProps) => {
   const { isAtBottom, scrollToBottom } = useStickToBottomContext();
-  const { setIsEnabled } = useProjectPotatoStore();
 
   const handleScrollToBottom = () => {
     // Enable sticking to bottom when button is clicked
-    setIsEnabled(true);
+    onActivateSticking();
     // Scroll to bottom
     scrollToBottom();
   };

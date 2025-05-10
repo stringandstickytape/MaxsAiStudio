@@ -1,6 +1,5 @@
 ﻿// AiStudioClient\src\components\ConvView\ConvView.tsx
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
-import { useProjectPotatoStore } from '@/stores/useProjectPotatoStore';
 import { StickToBottom } from 'use-stick-to-bottom';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -30,9 +29,8 @@ export const ConvView = ({
 }: ConvViewProps) => {
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
+    const [isStickingEnabled, setIsStickingEnabled] = useState(true);
     
-    // Get the stick-to-bottom state from ProjectPotato store
-    const { isEnabled } = useProjectPotatoStore();
     // Get necessary state from stores
     const { activeConvId, slctdMsgId, convs } = useConvStore();
 
@@ -57,11 +55,9 @@ export const ConvView = ({
 
             // Only process if it's a ConvView scroll
             if (isConvViewScroll) {
-                // Get the current state
-                const { isEnabled } = useProjectPotatoStore.getState();
-
-                if (isEnabled) {
-                    useProjectPotatoStore.getState().setIsEnabled(false);
+                // If sticking was enabled, disable it upon manual scroll
+                if (isStickingEnabled) {
+                    setIsStickingEnabled(false);
                 }
             }
         };
@@ -89,7 +85,7 @@ export const ConvView = ({
             document.removeEventListener('scroll', handleScroll, { capture: true });
             window.removeEventListener('scroll', handleScroll, { capture: true });
         };
-    }, []);
+    }, [isStickingEnabled]); // Re-run effect if isStickingEnabled changes
 
     // Calculate message chain based on selected message or latest message
     const messageChain = useMemo(() => {
@@ -162,7 +158,7 @@ export const ConvView = ({
         <StickToBottom 
             className="ConvView ConvViewMain h-full relative overflow-y-auto"
             ref={scrollContainerRef}
-            stickToBottom={isEnabled}
+            stickToBottom={isStickingEnabled}
             style={{
                 backgroundColor: 'var(--global-background-color, transparent)',
                 color: 'var(--global-text-color, #ffffff)',
@@ -219,7 +215,7 @@ export const ConvView = ({
             </StickToBottom.Content>
             
             {/* Add scroll to bottom button */}
-            <ScrollToBottomButton />
+            <ScrollToBottomButton onActivateSticking={() => setIsStickingEnabled(true)} />
         </StickToBottom>
     );
 };

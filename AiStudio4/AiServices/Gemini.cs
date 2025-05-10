@@ -306,6 +306,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     });
                 }
                 currentResponseItem = null;
+                Thread.Sleep(5000);
                 Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set: {string.Join(",", ToolResponseSet.Tools.Select(x => x.ToolName))}... (2)");
                 return new AiResponse
                 {
