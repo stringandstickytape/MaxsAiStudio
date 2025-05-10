@@ -3,6 +3,7 @@ import { dispatchWebSocketEvent } from './websocketEvents';
 import { prepareAttachmentsForTransmission } from '@/utils/attachmentUtils';
 import { toast } from '@/hooks/use-toast';
 import { handleWebSocketMessage } from '@/utils/websocketUtils';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 export interface WebSocketMessage {
     messageType: string;
@@ -250,6 +251,13 @@ export class WebSocketService {
                     type: 'transcription',
                     content: message.content,
                 });
+                
+                // Extract transcription text and append to prompt
+                const transcriptionText = message.content?.text;
+                if (transcriptionText) {
+                    const textToAppend = " " + transcriptionText; // Prepend a space
+                    windowEventService.emit(WindowEvents.APPEND_TO_PROMPT, { text: textToAppend });
+                }
             } else if (message.messageType === 'interjectionAck') {
                 // Handle interjection acknowledgment
                 if (message.content && message.content.success) {
