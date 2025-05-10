@@ -18,30 +18,18 @@ namespace AiStudio4.Core.Tools
     protected readonly ILogger _logger; // Logger for diagnostic information
         protected readonly IGeneralSettingsService _generalSettingsService;
         protected readonly IStatusMessageService _statusMessageService;
-        private readonly PathSecurityManager _pathSecurityManager;
 
         /// <summary>
         /// Client ID for sending status messages directly via StatusMessageService
         /// </summary>
         protected string _clientId;
 
-        protected string _projectRoot;
         protected BaseToolImplementation(ILogger logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService)
         {
             _logger = logger;
             _generalSettingsService = generalSettingsService;
             _statusMessageService = statusMessageService;
-            if (_generalSettingsService != null)
-            {
-                UpdateProjectRoot();
-            }
             _clientId = null; // Initialize to null (no client ID by default)
-        }
-
-        public void UpdateProjectRoot()
-        {
-            _projectRoot = _generalSettingsService.CurrentSettings.ProjectPath;
-            _logger.LogInformation("Updated project root to: {ProjectRoot}", _projectRoot);
         }
 
         /// <summary>
@@ -55,8 +43,9 @@ namespace AiStudio4.Core.Tools
         /// </summary>
         /// <param name="toolParameters">The parameters passed to the tool</param>
         /// <param name="extraProperties">User-edited extra properties for this tool instance</param>
+        /// <param name="projectRootPathOverride">Optional override for the project root path</param>
         /// <returns>Result of the tool processing</returns>
-        public abstract Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties);
+        public abstract Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties, string projectRootPathOverride);
 
         /// <summary>
         /// Sets the client ID for sending status messages directly via StatusMessageService
@@ -92,23 +81,30 @@ namespace AiStudio4.Core.Tools
             }
         }
 
+        protected string GetActiveProjectRoot(string projectRootPathOverride)
+        {
+            // Priority: Override > Server Default from GeneralSettings
+            return !string.IsNullOrEmpty(projectRootPathOverride) ? projectRootPathOverride : _generalSettingsService.CurrentSettings.ProjectPath;
+        }
+
         /// <summary>
         /// Checks if a directory exists in any immediate child of the project root
         /// </summary>
         /// <param name="fullPath">The full path that was not found</param>
+        /// <param name="activeRoot">The active project root for the current request</param>
         /// <returns>A suggestion message if an alternative path is found, otherwise null</returns>
-        protected string FindAlternativeDirectory(string fullPath)
+        protected string FindAlternativeDirectory(string fullPath, string activeRoot)
         {
             try
             {
-                // Extract the relative path by removing the project root
-                if (!fullPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
+                // Extract the relative path by removing the activeRoot
+                if (string.IsNullOrEmpty(activeRoot) || !fullPath.StartsWith(activeRoot, StringComparison.OrdinalIgnoreCase))
                     return null;
                 
-                string relativePath = fullPath.Substring(_projectRoot.Length).TrimStart('\\', '/');
+                string relativePath = fullPath.Substring(activeRoot.Length).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
                 
-                // Check each immediate child directory of the project root
-                foreach (var childDir in Directory.GetDirectories(_projectRoot))
+                // Check each immediate child directory of the activeRoot
+                foreach (var childDir in Directory.GetDirectories(activeRoot))
                 {
                     string possiblePath = Path.Combine(childDir, relativePath);
                     if (Directory.Exists(possiblePath))

@@ -89,31 +89,19 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Recursively searches files within a directory for given search terms.
         /// </summary>
-        private void SearchFilesRecursively(string rootSearchPath, string currentPath, int remainingDepth, string[] searchTerms, GitIgnoreFilterManager gitIgnoreFilter, List<string> results)
+        private void SearchFilesRecursively(string activeRoot, string rootSearchPath, string currentPath, int initialDepth, int currentRemainingDepth, string[] searchTerms, GitIgnoreFilterManager gitIgnoreFilter, List<string> results, IReadOnlyDictionary<string, string> currentExtraProperties)
         {
-            // Base case: Invalid depth (0 means unlimited, so check for < 0 only if depth was initially > 0)
-            if (remainingDepth < 0 && GetToolDefinition().Schema.Contains("\"default\": 0")) // Check schema default if it matters, 0 here means infinite
-            {
-                // If the initial depth wasn't 0, then < 0 means we exceeded it.
-                // If initial depth was 0, we never decrement, so this condition isn't strictly needed unless we change depth handling.
-                // Let's assume initial depth > 0 implies limited search.
-                if (!parameters.ContainsKey("depth") || Convert.ToInt32(parameters["depth"]) > 0)
-                    return;
-            }
-            // Simplified depth check: If depth was specified > 0 initially, and remainingDepth becomes negative, stop.
-            int initialDepth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 0;
-            if (initialDepth > 0 && remainingDepth < 0)
+            // Depth check: If initialDepth was > 0 (limited search), and currentRemainingDepth becomes negative, stop.
+            if (initialDepth > 0 && currentRemainingDepth < 0)
             {
                 return;
             }
 
-
             // --- Process Files in Current Directory ---
             try
             {
-
-                var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : _extraProperties.TryGetValue("excludedFileExtensions (CSV)", out var extCsv2) ? extCsv2 : string.Empty;
-                var excludedPrefixesCsv = _extraProperties.TryGetValue("ExcludedFilePrefixes (CSV)", out var preCsv) ? preCsv : _extraProperties.TryGetValue("excludedFilePrefixes (CSV)", out var preCsv2) ? preCsv2 : string.Empty;
+                var excludedExtensionsCsv = currentExtraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : currentExtraProperties.TryGetValue("excludedFileExtensions (CSV)", out var extCsv2) ? extCsv2 : string.Empty;
+                var excludedPrefixesCsv = currentExtraProperties.TryGetValue("ExcludedFilePrefixes (CSV)", out var preCsv) ? preCsv : currentExtraProperties.TryGetValue("excludedFilePrefixes (CSV)", out var preCsv2) ? preCsv2 : string.Empty;
                 var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
                 var excludedPrefixes = excludedPrefixesCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
@@ -124,24 +112,19 @@ namespace AiStudio4.Core.Tools
                     // Check if file is ignored by .gitignore
                     if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(filePath))
                     {
-                        // _logger.LogTrace("Ignoring file due to .gitignore: {FilePath}", filePath);
                         continue;
                     }
 
                     var fileName = Path.GetFileName(filePath).ToLowerInvariant();
                     var fileExt = Path.GetExtension(filePath).ToLowerInvariant();
-                    // Exclude by extension
                     if (excludedExtensions.Contains(fileExt))
                         continue;
-                    // Exclude by prefix
                     if (excludedPrefixes.Any(prefix => fileName.StartsWith(prefix)))
                         continue;
 
-                    // Search within the file
                     try
                     {
                         Debug.WriteLine("Searchtool checking " + filePath);
-                        // Avoid reading huge files entirely into memory
                         using (var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
                         {
                             string line;
@@ -149,28 +132,23 @@ namespace AiStudio4.Core.Tools
                             var fileLines = new List<(int LineNumber, string Content)>();
                             var matchingLineNumbers = new List<int>();
 
-                            // First, read the file and find matching lines
-                            while ((line = reader.ReadLine()) != null)
-                                   // First, read the file and find matching lines
                             while ((line = reader.ReadLine()) != null)
                             {
                                 lineNumber++;
                                 fileLines.Add((lineNumber, line));
-
-                                // Case-insensitive search
                                 if (searchTerms.Any(term => line.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0))
                                 {
                                     matchingLineNumbers.Add(lineNumber);
                                 }
                             }
 
-                            // If we found matches, add the file path and context to the results
                             if (matchingLineNumbers.Any())
                             {
                                 var matchDetails = new StringBuilder();
+                                // Use Path.GetRelativePath to show path relative to activeRoot for consistency if needed, or keep absolute.
+                                // For now, keeping absolute path as per original logic.
                                 matchDetails.AppendLine(filePath);
 
-                                // Output only first 10 matching lines with line number and pipe prefix
                                 int maxMatchesToShow = 10;
                                 int matchesShown = 0;
                                 foreach (var lineNum in matchingLineNumbers)
@@ -181,7 +159,6 @@ namespace AiStudio4.Core.Tools
                                     matchDetails.AppendLine($"{lineNum}|{content}");
                                     matchesShown++;
                                 }
-
                                 results.Add(matchDetails.ToString());
                             }
                         }
@@ -189,11 +166,12 @@ namespace AiStudio4.Core.Tools
                     catch (IOException ioEx)
                     {
                         _logger.LogWarning(ioEx, "IO Error reading file {FilePath}. Skipping.", filePath);
-                    }                    catch (UnauthorizedAccessException uaEx)
+                    }
+                    catch (UnauthorizedAccessException uaEx)
                     {
                         _logger.LogWarning(uaEx, "Access denied reading file {FilePath}. Skipping.", filePath);
                     }
-                    catch (Exception fileEx) // Catch other potential file reading errors
+                    catch (Exception fileEx)
                     {
                         _logger.LogError(fileEx, "Unexpected error reading file {FilePath}. Skipping.", filePath);
                     }
@@ -202,34 +180,31 @@ namespace AiStudio4.Core.Tools
             catch (UnauthorizedAccessException uaEx)
             {
                 _logger.LogWarning(uaEx, "Access denied listing files in directory {CurrentPath}. Skipping directory.", currentPath);
-                return; // Can't proceed in this directory
+                return;
             }
             catch (Exception dirEx)
             {
                 _logger.LogError(dirEx, "Error listing files in directory {CurrentPath}. Skipping directory.", currentPath);
-                return; // Can't proceed in this directory
+                return;
             }
 
             // --- Recurse into Subdirectories ---
-            // Only recurse if depth allows (depth == 0 means unlimited, otherwise decrement)
-            if (initialDepth == 0 || remainingDepth > 0)
+            if (initialDepth == 0 || currentRemainingDepth > 0) // currentRemainingDepth is used here
             {
                 try
                 {
                     foreach (var dirPath in Directory.EnumerateDirectories(currentPath))
                     {
-                        if (dirPath.EndsWith("node_modules") || dirPath.EndsWith("bin") || dirPath.EndsWith("dist") || dirPath.EndsWith("obj") || dirPath.EndsWith("obj"))
+                        // Simplified exclusion for common build/dependency folders
+                        string dirName = Path.GetFileName(dirPath).ToLowerInvariant();
+                        if (dirName == "node_modules" || dirName == "bin" || dirName == "dist" || dirName == "obj")
                             continue;
-                        // Check if directory is ignored by .gitignore
-                        // Note: GitIgnoreFilterManager needs to correctly handle directory patterns (e.g., ending with '/')
-                        if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(dirPath + Path.DirectorySeparatorChar)) // Append slash for directory check
+                            
+                        if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(dirPath + Path.DirectorySeparatorChar))
                         {
-                            // _logger.LogTrace("Ignoring directory due to .gitignore: {DirPath}", dirPath);
                             continue;
                         }
-
-                        // Recurse with decremented depth if depth is limited
-                        SearchFilesRecursively(rootSearchPath, dirPath, initialDepth > 0 ? remainingDepth - 1 : 0, searchTerms, gitIgnoreFilter, results);
+                        SearchFilesRecursively(activeRoot, rootSearchPath, dirPath, initialDepth, initialDepth > 0 ? currentRemainingDepth - 1 : 0, searchTerms, gitIgnoreFilter, results, currentExtraProperties);
                     }
                 }
                 catch (UnauthorizedAccessException uaEx)
@@ -244,46 +219,27 @@ namespace AiStudio4.Core.Tools
         }
 
         // Helper to get parameters safely, needed for depth check inside recursive function
-        private Dictionary<string, object> parameters = new Dictionary<string, object>();
+        // private Dictionary<string, object> parameters = new Dictionary<string, object>(); // Removed
 
         // Override ProcessAsync to store parameters before calling the recursive function
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties, string projectRootPathOverride = null)
         {
             _extraProperties = extraProperties;
+            var activeRoot = GetActiveProjectRoot(projectRootPathOverride);
+            List<string> matchingFiles = new List<string>();
 
             try
             {
                 SendStatusUpdate("Starting FileSearch tool execution...");
-                parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
+                var localParameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
 
-                // Now call the main logic which uses this.parameters
-                return ProcessSearchInternal(toolParameters);
-            }
-            catch (JsonException jsonEx)
-            {
-                _logger.LogError(jsonEx, "Error deserializing FileSearch parameters");
-                return Task.FromResult(CreateResult(true, true, $"Error processing FileSearch tool parameters: Invalid JSON format. {jsonEx.Message}"));
-            }
-            catch (Exception ex) // Catch potential null reference if deserialization fails badly
-            {
-                _logger.LogError(ex, "Critical error during parameter setup for FileSearch tool");
-                return Task.FromResult(CreateResult(true, true, $"Critical error setting up FileSearch tool: {ex.Message}"));
-            }
-        }
-
-        // Renamed original ProcessAsync content to avoid recursion issues with parameter storing
-        private Task<BuiltinToolResult> ProcessSearchInternal(string toolParameters) // toolParameters string is technically redundant now but keeps signature
-        {
-            List<string> matchingFiles = new List<string>(); // Now contains formatted content with context
-            try
-            {
-                // --- Extract Parameters (using the class member 'parameters') ---
-                var path = parameters.ContainsKey("path") ? parameters["path"].ToString() : string.Empty;
-                var depth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 0;
-                var includeFiltered = parameters.ContainsKey("include_filtered") ? Convert.ToBoolean(parameters["include_filtered"]) : false;
+                // --- Extract Parameters (using localParameters) ---
+                var path = localParameters.ContainsKey("path") ? localParameters["path"].ToString() : string.Empty;
+                var depth = localParameters.ContainsKey("depth") ? Convert.ToInt32(localParameters["depth"]) : 0; // This is initialDepth
+                var includeFiltered = localParameters.ContainsKey("include_filtered") ? Convert.ToBoolean(localParameters["include_filtered"]) : false;
                 string[] searchTerms;
 
-                if (parameters.TryGetValue("search_terms", out var searchTermsObj) && searchTermsObj is JArray searchTermsArray)
+                if (localParameters.TryGetValue("search_terms", out var searchTermsObj) && searchTermsObj is JArray searchTermsArray)
                 {
                     searchTerms = searchTermsArray.ToObject<string[]>() ?? Array.Empty<string>();
                 }
@@ -293,7 +249,7 @@ namespace AiStudio4.Core.Tools
                     searchTerms = Array.Empty<string>();
                 }
 
-                // --- Validation (as before) ---
+                // --- Validation ---
                 if (string.IsNullOrWhiteSpace(path)) {
                     SendStatusUpdate("Error: 'path' parameter is required.");
                     return Task.FromResult(CreateResult(true, true, "Error: 'path' parameter is required."));
@@ -303,13 +259,13 @@ namespace AiStudio4.Core.Tools
                     return Task.FromResult(CreateResult(true, true, "Error: 'search_terms' parameter must contain at least one non-empty term."));
                 }
                 var validSearchTerms = searchTerms.Where(st => !string.IsNullOrWhiteSpace(st)).ToArray();
-                var searchPath = Path.GetFullPath(Path.Combine(_projectRoot, path));
-                if (!searchPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase)) {
+                var searchPath = Path.GetFullPath(Path.Combine(activeRoot, path));
+                if (!searchPath.StartsWith(activeRoot, StringComparison.OrdinalIgnoreCase)) {
                     SendStatusUpdate("Error: Path is outside the allowed directory.");
                     return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
                 }
                 if (!Directory.Exists(searchPath)) {
-                    string suggestion = FindAlternativeDirectory(searchPath);
+                    string suggestion = FindAlternativeDirectory(searchPath, activeRoot);
                     string errorMessage = $"Error: Directory not found: {searchPath}";
                     if (!string.IsNullOrEmpty(suggestion)) {
                         errorMessage += $"\n{suggestion}";
@@ -320,22 +276,21 @@ namespace AiStudio4.Core.Tools
                 
                 SendStatusUpdate($"Searching for terms: {string.Join(", ", validSearchTerms)} in {Path.GetFileName(searchPath)}...");
 
-                // --- GitIgnore Setup (as before) ---
+                // --- GitIgnore Setup ---
                 GitIgnoreFilterManager gitIgnoreFilterManager = null;
-                // (Code for finding and loading .gitignore remains the same)
                 if (!includeFiltered)
                 {
-                    // ... (same gitignore finding logic as above) ...
                     string currentIgnorePath = searchPath;
                     string gitIgnoreFilePath = null;
-                    while (currentIgnorePath != null && currentIgnorePath.Length >= _projectRoot.Length && currentIgnorePath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
+                    // Traverse up from searchPath to activeRoot to find .gitignore
+                    while (currentIgnorePath != null && currentIgnorePath.Length >= activeRoot.Length && currentIgnorePath.StartsWith(activeRoot, StringComparison.OrdinalIgnoreCase))
                     {
                         gitIgnoreFilePath = Path.Combine(currentIgnorePath, ".gitignore");
                         if (File.Exists(gitIgnoreFilePath))
                         {
                             break;
                         }
-                        if (currentIgnorePath.Equals(_projectRoot, StringComparison.OrdinalIgnoreCase)) break;
+                        if (currentIgnorePath.Equals(activeRoot, StringComparison.OrdinalIgnoreCase)) break; // Stop if we are at the activeRoot
                         currentIgnorePath = Directory.GetParent(currentIgnorePath)?.FullName;
                     }
 
@@ -345,9 +300,8 @@ namespace AiStudio4.Core.Tools
                         {
                             _logger.LogInformation("Using .gitignore: {GitIgnorePath}", gitIgnoreFilePath);
                             var gitignoreContent = File.ReadAllText(gitIgnoreFilePath);
-                            string gitignoreBaseDir = Path.GetDirectoryName(gitIgnoreFilePath);
-                            // Crucial: Pass the base directory of the .gitignore file
-                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignoreContent, _projectRoot);
+                            // Pass activeRoot as the base directory for GitIgnoreFilterManager relative path calculations
+                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignoreContent, activeRoot);
                         }
                         catch (Exception ex)
                         {
@@ -360,16 +314,14 @@ namespace AiStudio4.Core.Tools
                     }
                 }
 
-
                 // --- Perform Search ---
                 SendStatusUpdate($"Beginning file search with depth: {depth}...");
-                SearchFilesRecursively(searchPath, searchPath, depth, validSearchTerms, gitIgnoreFilterManager, matchingFiles);
-
+                // Pass 'depth' as both initialDepth and remainingDepth for the first call
+                SearchFilesRecursively(activeRoot, searchPath, searchPath, depth, depth, validSearchTerms, gitIgnoreFilterManager, matchingFiles, _extraProperties);
 
                 // --- Format Result with match context ---
                 if (matchingFiles.Any())
                 {
-                    // The results are now already formatted with context
                     string resultText = $"Found matches for specified search terms of {string.Join("/", searchTerms)} in {matchingFiles.Count} files (searching in '{path}'):\n\n" +
                                         string.Join("\n", matchingFiles);
                     SendStatusUpdate($"Search completed. Found matches in {matchingFiles.Count} files.");
@@ -381,12 +333,15 @@ namespace AiStudio4.Core.Tools
                     return Task.FromResult(CreateResult(true, true, $"No files found containing the specified search terms of {string.Join("/", searchTerms)}"));
                 }
             }
-            // Keep outer catch block for general errors during processing
-            catch (Exception ex)
+            catch (JsonException jsonEx)
             {
-                _logger.LogError(ex, "Error processing FileSearch tool");
-                SendStatusUpdate($"Error processing FileSearch tool: {ex.Message}");
-                return Task.FromResult(CreateResult(true, true, $"Error processing FileSearch tool: {ex.Message}"));
+                _logger.LogError(jsonEx, "Error deserializing FileSearch parameters");
+                return Task.FromResult(CreateResult(true, true, $"Error processing FileSearch tool parameters: Invalid JSON format. {jsonEx.Message}"));
+            }
+            catch (Exception ex) 
+            {
+                _logger.LogError(ex, "Critical error during FileSearch tool processing");
+                return Task.FromResult(CreateResult(true, true, $"Critical error processing FileSearch tool: {ex.Message}"));
             }
         }
     }

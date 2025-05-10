@@ -40,6 +40,9 @@ namespace AiStudio4.DataModels
         public Action<string> OnStreamingUpdate { get; set; }
         public Action OnStreamingComplete { get; set; }
 
+        // Project context path
+        public string ProjectRootPath { get; set; }
+
         // Factory method to create from the old parameter list for backward compatibility
         public static AiRequestOptions Create(
             ServiceProvider serviceProvider,
@@ -54,7 +57,8 @@ namespace AiStudio4.DataModels
             bool useStreaming = false,
             bool addEmbeddings = false,
             string customSystemPrompt = null,
-            List<Attachment> attachments = null)
+            List<Attachment> attachments = null,
+            string projectRootPath = null) // Added projectRootPath
         {
             return new AiRequestOptions
             {
@@ -73,7 +77,8 @@ namespace AiStudio4.DataModels
                 Attachments = attachments ?? new List<Attachment>(),
                 // Initialize callbacks to null for backward compatibility
                 OnStreamingUpdate = null,
-                OnStreamingComplete = null
+                OnStreamingComplete = null,
+                ProjectRootPath = projectRootPath // Added
             };
         }
     }

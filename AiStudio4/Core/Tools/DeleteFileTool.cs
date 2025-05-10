@@ -23,7 +23,6 @@ namespace AiStudio4.Core.Tools
     public class DeleteFileTool : BaseToolImplementation
     {
         private readonly StringBuilder _validationErrorMessages;
-        private  PathSecurityManager _pathSecurityManager;
 
         public DeleteFileTool(ILogger<DeleteFileTool> logger, IGeneralSettingsService generalSettingsService, 
             IStatusMessageService statusMessageService) 
@@ -68,9 +67,11 @@ namespace AiStudio4.Core.Tools
             };
         }
 
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties, string projectRootPathOverride = null)
         {
-            _pathSecurityManager = new PathSecurityManager(_logger, _projectRoot);
+            var activeRoot = GetActiveProjectRoot(projectRootPathOverride);
+            var pathSecurityManager = new PathSecurityManager(_logger, activeRoot); // Initialize with activeRoot
+
             _validationErrorMessages.Clear();
             var overallSuccess = true;
             
@@ -96,9 +97,9 @@ namespace AiStudio4.Core.Tools
                 description = parameters["description"]?.ToString() ?? "No description provided";
                 
                 // Validate file path security
-                if (!string.IsNullOrEmpty(filePath) && !_pathSecurityManager.IsPathSafe(filePath))
+                if (!string.IsNullOrEmpty(filePath) && !pathSecurityManager.IsPathSafe(filePath))
                 {
-                    _validationErrorMessages.AppendLine($"Error: Path '{filePath}' is outside the allowed project directory.");
+                    _validationErrorMessages.AppendLine($"Error: Path '{filePath}' is outside the allowed project directory ({activeRoot}).");
                     overallSuccess = false;
                 }
                 

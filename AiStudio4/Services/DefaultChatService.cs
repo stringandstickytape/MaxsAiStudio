@@ -128,7 +128,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<ChatResponse> ProcessChatRequest(ChatRequest request)
+        public async Task<ChatResponse> ProcessChatRequest(ChatRequest request, string projectRootPath) // Added projectRootPath
         {
             try
             {
@@ -148,7 +148,7 @@ namespace AiStudio4.Services
                 var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
-                string systemPromptContent = await GetSystemPrompt(request);
+                string systemPromptContent = await GetSystemPrompt(request, projectRootPath); // Pass projectRootPath
 
                 const int MAX_ITERATIONS = 50; // Maximum number of tool call iterations
 
@@ -239,7 +239,8 @@ namespace AiStudio4.Services
                         ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
                         UseStreaming = true, 
                         OnStreamingUpdate = request.OnStreamingUpdate,
-                        OnStreamingComplete = request.OnStreamingComplete
+                        OnStreamingComplete = request.OnStreamingComplete,
+                        ProjectRootPath = projectRootPath // Added projectRootPath
                     };
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
@@ -414,7 +415,7 @@ namespace AiStudio4.Services
             }
         }
 
-        private async Task<string> GetSystemPrompt(ChatRequest request)
+        private async Task<string> GetSystemPrompt(ChatRequest request, string projectRootPath) // Added projectRootPath
         {
             
             // Get the appropriate system prompt
@@ -444,12 +445,12 @@ namespace AiStudio4.Services
                 }
             }
 
-            systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _generalSettingsService.CurrentSettings.ProjectPath);
+            systemPromptContent = systemPromptContent.Replace("{ProjectPath}", projectRootPath); // Use projectRootPath
 
             // Replace CommonAiMistakes token if it exists
             if(systemPromptContent.Contains("{CommonAiMistakes}"))
             {
-                string commonMistakesPath = Path.Combine(_generalSettingsService.CurrentSettings.ProjectPath, "CommonAiMistakes.md");
+                string commonMistakesPath = Path.Combine(projectRootPath, "CommonAiMistakes.md"); // Use projectRootPath
                 if(File.Exists(commonMistakesPath))
                 {
                     string mistakesContent = File.ReadAllText(commonMistakesPath);

@@ -64,12 +64,14 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Processes a ReadFile tool call
         /// </summary>
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties, string projectRootPathOverride = null)
         {
             _extraProperties = extraProperties;
             _logger.LogInformation("ReadFile tool called");
             SendStatusUpdate("Starting ReadFiles tool execution...");
             var resultBuilder = new StringBuilder();
+
+            var activeRoot = GetActiveProjectRoot(projectRootPathOverride);
 
             // If user-edited extraProperties are provided, override defaults for excluded extensions
             var toolDef = GetToolDefinition();
@@ -108,14 +110,12 @@ namespace AiStudio4.Core.Tools
                 foreach (var relativePathL in pathsToRead)
                 {
                     var relativePath = relativePathL;
-                    //if (relativePath.EndsWith("cs"))
-                    //    continue;
 
                     if (relativePath.StartsWith("\"")) relativePath = relativePath.Substring(1);
                     if (relativePath.EndsWith("\"")) relativePath = relativePath.Substring(0, relativePath.Length - 2);
 
-                    // Security check: Ensure the path is within the project root
-                    var fullPath = Path.GetFullPath(Path.Combine(_projectRoot, relativePath));
+                    // Security check: Ensure the path is within the activeRoot
+                    var fullPath = Path.GetFullPath(Path.Combine(activeRoot, relativePath));
 
                     // Skip files with excluded extensions
                     var fileExt = Path.GetExtension(fullPath).ToLowerInvariant();
@@ -126,9 +126,9 @@ namespace AiStudio4.Core.Tools
                         continue;
                     }
 
-                    if (!fullPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
+                    if (!fullPath.StartsWith(activeRoot, StringComparison.OrdinalIgnoreCase))
                     {
-                        _logger.LogWarning($"Attempted to read file outside the project root: {relativePath} (Resolved: {fullPath})");
+                        _logger.LogWarning($"Attempted to read file outside the project root: {relativePath} (Resolved: {fullPath}, ActiveRoot: {activeRoot})");
                         SendStatusUpdate($"Error: Path is outside the allowed directory: {Path.GetFileName(relativePath)}");
                         resultBuilder.AppendLine($"---Error reading {relativePath}: Access denied - Path is outside the allowed directory.---");
                         continue; // Skip this file
