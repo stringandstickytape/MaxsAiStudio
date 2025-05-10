@@ -110,7 +110,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     lastButOneContent["parts"].Last["text"] = newInput;
                 }
             }
-
+            Debug.WriteLine(requestPayload);
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {
@@ -648,9 +648,13 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
 
                     if (streamData["usageMetadata"] != null)
                     {
+                        Debug.WriteLine(streamData["usageMetadata"].ToString());
                         inputTokenCount = ((int)(streamData["usageMetadata"]?["promptTokenCount"] ?? 0) + (int)(streamData["usageMetadata"]?["thoughtsTokenCount"] ?? 0)).ToString();
                         outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-                        cachedTokenCount = streamData["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
+
+                            //var x = streamData["usageMetadata"]?["cacheTokensDetails"];
+                            //if (x != null) Debugger.Break();
+                            cachedTokenCount = streamData["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
                     }
 
                     if (streamData["error"] != null)

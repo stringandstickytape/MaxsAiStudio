@@ -16,7 +16,8 @@ namespace AiStudio4.Convs
         }
         public string SystemPromptWithDateTime()
         {
-            return $"{systemprompt}\r\n\r\nThis conv began at {ConvCreationDateTime.ToString("yyyy-MM-dd HH:mm:ss")}.";
+            //return $"{systemprompt}\r\n\r\nThis conv began at {ConvCreationDateTime.ToString("yyyy-MM-dd HH:mm:ss")}.";
+            return systemprompt;
         }
     }
 }
