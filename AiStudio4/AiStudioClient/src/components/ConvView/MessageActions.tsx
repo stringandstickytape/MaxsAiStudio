@@ -1,6 +1,6 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageActions.tsx
 import { Clipboard, Pencil, Save, ArrowUp } from 'lucide-react';
-
+import { useConvStore } from '@/stores/useConvStore';
 interface MessageActionsProps {
   message: any;
   onEdit: () => void;
