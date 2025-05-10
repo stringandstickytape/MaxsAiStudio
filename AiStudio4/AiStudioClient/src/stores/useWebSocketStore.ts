@@ -56,6 +56,10 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     listenToWebSocketEvent('request:cancelled', (detail) => {
       set({ isCancelling: false, currentRequest: undefined });
     });
+    // Also clear currentRequest on stream:end (normal chat completion)
+    listenToWebSocketEvent('stream:end', () => {
+      set({ isCancelling: false, currentRequest: undefined });
+    });
   }
 
   return {

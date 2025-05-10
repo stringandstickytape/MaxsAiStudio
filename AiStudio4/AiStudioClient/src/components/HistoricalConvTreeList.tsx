@@ -22,12 +22,13 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
     const [searchTerm, setSearchTerm] = useState<string>('');
 
 
-    const { clientId, currentRequest } = useWebSocketStore();
+    const { clientId } = useWebSocketStore();
     const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
-    const { convs, isLoading, fetchAllConvs, addOrUpdateConv, deleteConv } = useHistoricalConvsStore();
+    const { convs, fetchAllConvs, addOrUpdateConv, deleteConv } = useHistoricalConvsStore();
     const { highlightMessage } = useSearchStore();
 
-
+    // Use currentRequest from useWebSocketStore for correct chat request lifecycle
+    const { currentRequest } = useWebSocketStore();
     const isChatRequestOngoing = !!currentRequest;
 
     useEffect(() => {
