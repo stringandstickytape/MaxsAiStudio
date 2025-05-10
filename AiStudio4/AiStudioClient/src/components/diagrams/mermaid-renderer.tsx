@@ -1,7 +1,38 @@
-// mermaid-renderer.tsx
+// AiStudio4/AiStudioClient/src/components/diagrams/mermaid-renderer.tsx
 import mermaid from 'mermaid';
 import { CodeBlockRenderer } from '@/components/diagrams/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
+
+// Helper function to get theme variable from CSS custom properties
+const getThemeVariable = (varName: string, fallback: string): string => {
+    if (typeof window === 'undefined') return fallback;
+    const value = getComputedStyle(document.documentElement).getPropertyValue(varName.trim()).trim();
+    return value || fallback;
+};
+
+// Function to configure Mermaid's theme based on current global CSS variables
+const configureMermaidTheme = () => {
+    mermaid.initialize({
+        startOnLoad: false, // Set to false, rendering is handled by the component
+        theme: 'dark', // Or 'base' if you want to control more with themeVariables
+        darkMode: true, // Assuming a dark mode context, can be dynamic
+        securityLevel: 'strict',
+        themeVariables: {
+            fontFamily: getThemeVariable('--global-font-family', 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif'),
+            primaryColor: getThemeVariable('--global-primary-color', '#3b82f6'),
+            primaryTextColor: getThemeVariable('--global-text-color', '#e0e0e0'),
+            primaryBorderColor: getThemeVariable('--global-border-color', '#374151'),
+            lineColor: getThemeVariable('--global-secondary-color', '#4b5563'),
+            secondaryColor: getThemeVariable('--global-secondary-color', '#475569'),
+            tertiaryColor: getThemeVariable('--global-background-color', '#1f2937'), // Often background for nodes
+            background: getThemeVariable('--global-background-color', '#111827'), // Diagram background
+            textColor: getThemeVariable('--global-text-color', '#e0e0e0'), // General text in diagrams
+            // You can map more Mermaid theme variables to global CSS variables as needed
+            // mainBkg: getThemeVariable('--global-background-color', '#1f2937'), // Example for main background
+            // nodeBorder: getThemeVariable('--global-border-color', '#374151'), // Example for node border
+        },
+    });
+};
 
 // Helper function to create wrapper for SVG with zoom/pan controls
 const wrapSvgWithZoomControls = (svgContent: string): string => {
@@ -27,7 +58,6 @@ const initializeZoomPan = (container: HTMLElement) => {
 
     if (!diagramContainer || !svg) return;
 
-    // Add necessary styles to SVG
     svg.style.transformOrigin = '0 0';
     svg.style.transition = 'transform 0.1s';
 
@@ -38,12 +68,10 @@ const initializeZoomPan = (container: HTMLElement) => {
     let lastX = 0;
     let lastY = 0;
 
-    // Apply transformation
     const applyTransform = () => {
         svg.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`;
     };
 
-    // Zoom in button
     const zoomInBtn = container.querySelector('.mermaid-zoom-in');
     if (zoomInBtn) {
         zoomInBtn.addEventListener('click', () => {
@@ -52,7 +80,6 @@ const initializeZoomPan = (container: HTMLElement) => {
         });
     }
 
-    // Zoom out button
     const zoomOutBtn = container.querySelector('.mermaid-zoom-out');
     if (zoomOutBtn) {
         zoomOutBtn.addEventListener('click', () => {
@@ -61,7 +88,6 @@ const initializeZoomPan = (container: HTMLElement) => {
         });
     }
 
-    // Reset button
     const resetBtn = container.querySelector('.mermaid-zoom-reset');
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
@@ -72,33 +98,28 @@ const initializeZoomPan = (container: HTMLElement) => {
         });
     }
 
-    // Mouse wheel zoom
     diagramContainer.addEventListener('wheel', (e) => {
         e.preventDefault();
-
         const rect = diagramContainer.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const mouseY = e.clientY - rect.top;
-
         const delta = e.deltaY < 0 ? 0.1 : -0.1;
         const newScale = Math.max(0.5, Math.min(3, scale + delta));
-
         if (newScale !== scale) {
             const scaleRatio = newScale / scale;
-            translateX = translateX - ((mouseX - translateX) * (scaleRatio - 1));
-            translateY = translateY - ((mouseY - translateY) * (scaleRatio - 1));
+            translateX -= (mouseX - translateX) * (scaleRatio - 1);
+            translateY -= (mouseY - translateY) * (scaleRatio - 1);
             scale = newScale;
             applyTransform();
         }
     });
 
-    // Mouse drag to pan
     diagramContainer.addEventListener('mousedown', (e) => {
-        if (e.button === 0) { // Left button only
+        if (e.button === 0) {
             dragging = true;
             lastX = e.clientX;
             lastY = e.clientY;
-            svg.style.transition = 'none'; // Disable transition during drag
+            svg.style.transition = 'none';
         }
     });
 
@@ -106,13 +127,10 @@ const initializeZoomPan = (container: HTMLElement) => {
         if (dragging) {
             const deltaX = e.clientX - lastX;
             const deltaY = e.clientY - lastY;
-
             translateX += deltaX;
             translateY += deltaY;
-
             lastX = e.clientX;
             lastY = e.clientY;
-
             applyTransform();
         }
     });
@@ -120,120 +138,117 @@ const initializeZoomPan = (container: HTMLElement) => {
     const endDrag = () => {
         if (dragging) {
             dragging = false;
-            svg.style.transition = 'transform 0.1s'; // Re-enable transition
+            svg.style.transition = 'transform 0.1s';
         }
     };
 
     diagramContainer.addEventListener('mouseup', endDrag);
     diagramContainer.addEventListener('mouseleave', endDrag);
 
-    // Add CSS for the container
-    const style = document.createElement('style');
-    style.textContent = `
-    .mermaid-zoom-container {
-      display: flex;
-      flex-direction: column;
-      width: 100%;
+    const styleId = 'mermaid-zoom-styles';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+        .mermaid-zoom-container {
+          display: flex;
+          flex-direction: column;
+          width: 100%;
+        }
+        .mermaid-zoom-controls {
+          display: flex;
+          justify-content: center;
+          margin-bottom: 8px;
+          gap: 8px;
+        }
+        .mermaid-zoom-controls button {
+          padding: 4px 8px;
+          background-color: var(--global-secondary-color, #374151);
+          border: none;
+          border-radius: var(--global-border-radius, 4px);
+          color: var(--global-text-color, white);
+          cursor: pointer;
+        }
+        .mermaid-zoom-controls button:hover {
+          background-color: var(--global-primary-color, #4b5563);
+        }
+        .mermaid-diagram-container {
+          overflow: hidden;
+          border: 1px solid var(--global-border-color, #374151);
+          border-radius: var(--global-border-radius, 4px);
+          padding: 16px;
+          height: 400px; /* Or make dynamic based on content */
+          position: relative;
+          cursor: move;
+          background-color: var(--global-background-color, #111827); /* Diagram background */
+        }
+        .mermaid-zoom-hint {
+          font-size: 0.75rem;
+          color: var(--global-secondary-color, #6b7280);
+          text-align: center;
+          margin-top: 4px;
+        }
+        /* Ensure SVG itself is transparent to show container background */
+        .mermaid-diagram-container svg {
+          background-color: transparent;
+        }
+      `;
+        document.head.appendChild(style);
     }
-    .mermaid-zoom-controls {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 8px;
-      gap: 8px;
-    }
-    .mermaid-zoom-controls button {
-      padding: 4px 8px;
-      background-color: #374151;
-      border: none;
-      border-radius: 4px;
-      color: white;
-      cursor: pointer;
-    }
-    .mermaid-zoom-controls button:hover {
-      background-color: #4b5563;
-    }
-    .mermaid-diagram-container {
-      overflow: hidden;
-      border: 1px solid #374151;
-      border-radius: 4px;
-      padding: 16px;
-      height: 400px;
-      position: relative;
-      cursor: move;
-    }
-    .mermaid-zoom-hint {
-      font-size: 0.75rem;
-      color: #6b7280;
-      text-align: center;
-      margin-top: 4px;
-    }
-  `;
-    document.head.appendChild(style);
 };
 
 export const MermaidRenderer: CodeBlockRenderer = {
     type: ['mermaid'],
     initialize: () => {
-        mermaid.initialize({
-            startOnLoad: true,
-            theme: 'dark',
-            securityLevel: 'strict',
-            darkMode: true,
-            themeVariables: {
-                fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
-                primaryColor: '#3b82f6',
-                primaryTextColor: '#e0e0e0',
-                primaryBorderColor: '#374151',
-                lineColor: '#4b5563',
-                secondaryColor: '#475569',
-                tertiaryColor: '#1f2937',
-            },
-        });
+        configureMermaidTheme(); // Initial theme configuration
     },
     render: async (content: string, element: HTMLElement) => {
+        // This direct render is less used now with the Component approach,
+        // but kept for compatibility or direct DOM manipulation scenarios.
         try {
             const id = 'mermaid-svg-' + Math.random().toString(36).substring(2, 9);
             const { svg } = await mermaid.render(id, content);
-
-            // Wrap the SVG with zoom controls
             element.innerHTML = wrapSvgWithZoomControls(svg);
-
-            // Initialize zoom/pan functionality
             initializeZoomPan(element);
         } catch (error) {
             console.error('Failed to render mermaid diagram:', error);
-            element.innerHTML = `<div class="error">Failed to render diagram: ${error.message}</div>`;
+            element.innerHTML = `<div class="error">Failed to render diagram: ${error instanceof Error ? error.message : String(error)}</div>`;
         }
     },
     Component: ({ content, className }) => {
         const containerRef = useRef<HTMLDivElement>(null);
         const [error, setError] = useState<string | null>(null);
+        const [diagramId] = useState('mermaid-diagram-' + Math.random().toString(36).substring(2, 9));
+
+        const renderDiagram = useCallback(async () => {
+            if (!containerRef.current) return;
+            try {
+                // Ensure mermaid is configured with the current theme before rendering
+                configureMermaidTheme();
+                const { svg } = await mermaid.render(diagramId, content);
+                if (containerRef.current) {
+                    containerRef.current.innerHTML = wrapSvgWithZoomControls(svg);
+                    initializeZoomPan(containerRef.current);
+                }
+                setError(null);
+            } catch (err) {
+                console.error('Failed to render mermaid diagram in component:', err);
+                setError(err instanceof Error ? err.message : String(err));
+            }
+        }, [content, diagramId]);
 
         useEffect(() => {
-            if (!containerRef.current) return;
+            renderDiagram(); // Initial render
 
-            const renderDiagram = async () => {
-                try {
-                    const id = 'mermaid-diagram-' + Math.random().toString(36).substring(2, 9);
-
-                    // First render to a temporary element
-                    const { svg } = await mermaid.render(id, content);
-
-                    // Set the HTML with the wrapper for zoom/pan controls
-                    containerRef.current.innerHTML = wrapSvgWithZoomControls(svg);
-
-                    // Initialize zoom/pan functionality
-                    initializeZoomPan(containerRef.current);
-
-                    setError(null);
-                } catch (error) {
-                    console.error('Failed to render mermaid diagram:', error);
-                    setError(error.message);
-                }
+            const handleThemeChange = () => {
+                renderDiagram(); // Re-render on theme change
             };
 
-            renderDiagram();
-        }, [content]);
+            window.addEventListener('themechange', handleThemeChange);
+            return () => {
+                window.removeEventListener('themechange', handleThemeChange);
+            };
+        }, [renderDiagram]); // renderDiagram dependency includes content and diagramId
 
         return (
             <div className={`${className || ''}`}>
