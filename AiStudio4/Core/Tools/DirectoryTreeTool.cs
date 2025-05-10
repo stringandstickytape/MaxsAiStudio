@@ -18,9 +18,11 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class DirectoryTreeTool : BaseToolImplementation
     {
+        private readonly IProjectFileWatcherService _projectFileWatcherService;
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
-        public DirectoryTreeTool(ILogger<DirectoryTreeTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public DirectoryTreeTool(ILogger<DirectoryTreeTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IProjectFileWatcherService projectFileWatcherService) : base(logger, generalSettingsService, statusMessageService)
         {
+            _projectFileWatcherService = projectFileWatcherService ?? throw new ArgumentNullException(nameof(projectFileWatcherService));
         }
 
         /// <summary>
@@ -51,12 +53,6 @@ Returns a structured view of the directory tree with files and subdirectories. D
                     ""type"": ""integer"",
                     ""description"": ""The maximum depth to traverse (0 for unlimited)""
                 },
-""include_filtered"": {
-                    ""default"": ""False"",
-                    ""title"": ""Include Filtered"",
-                    ""type"": ""boolean"",
-                    ""description"": ""Include directories that are normally filtered""
-                }
             },
            ""required"": [""path""],
             ""title"": ""DirectoryTreeArguments"",
@@ -85,182 +81,167 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 _extraProperties = extraProperties;
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
-                // Extract parameters with defaults
-                var path = parameters.ContainsKey("path") ? parameters["path"].ToString() : _projectRoot;
-                var depth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 2;
-                var includeFiltered = parameters.ContainsKey("include_filtered") ? Convert.ToBoolean(parameters["include_filtered"]) : false;
+                var path = parameters.ContainsKey("path") ? parameters["path"].ToString() : string.Empty; // Default to empty, resolve to _projectRoot if empty later
+                var depth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 3; // Default from schema
+                var searchPath = Path.GetFullPath(string.IsNullOrEmpty(path) ? _projectRoot : Path.Combine(_projectRoot, path));
 
-                // Get the search path (relative to project root for security)
-                var searchPath = _projectRoot;
-                if (!string.IsNullOrEmpty(path) && path != _projectRoot)
+                if (!searchPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
                 {
-                    searchPath = Path.GetFullPath(Path.Combine(_projectRoot, path));
-                    if (!searchPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
-                    {
-                        SendStatusUpdate("Error: Path is outside the allowed directory.");
-                        return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
-                    }
+                    SendStatusUpdate("Error: Path is outside the allowed directory.");
+                    return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
                 }
-                
-                SendStatusUpdate($"Generating directory tree for: {Path.GetFileName(searchPath)}...");
 
-                if (!Directory.Exists(searchPath)) {
+                SendStatusUpdate($"Generating directory tree for: {searchPath} with depth {depth}...");
+
+                if (!System.IO.Directory.Exists(searchPath)) // Use System.IO.Directory to avoid ambiguity
+                {
                     string suggestion = FindAlternativeDirectory(searchPath);
                     string errorMessage = $"Error: Directory not found: {searchPath}";
-                    if (!string.IsNullOrEmpty(suggestion)) {
-                        errorMessage += $"\n{suggestion}";
-                    }
+                    if (!string.IsNullOrEmpty(suggestion)) errorMessage += $"\n{suggestion}";
                     SendStatusUpdate(errorMessage);
                     return Task.FromResult(CreateResult(true, true, errorMessage));
                 }
 
-                string prettyPrintedResult = GetDirectoryTree(depth, includeFiltered, searchPath, _projectRoot);
+                List<string> excludedDirNames = new List<string>();
+                List<string> excludedExtensions = new List<string>();
+                    var excludedDirsCsv = extraProperties.TryGetValue("ExcludedDirectories (CSV)", out var dirCsv) ? dirCsv : string.Empty;
+                    excludedDirNames = excludedDirsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(d => d.Trim().ToLowerInvariant()).Where(d => !string.IsNullOrEmpty(d)).ToList();
+
+                    var excludedExtensionsCsv = extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : string.Empty;
+                    excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
+                
+                var searchPathDirName = Path.GetFileName(searchPath.Replace("\\", "/").TrimEnd('/'));
+                if (excludedDirNames.Contains(searchPathDirName.ToLowerInvariant()))
+                {
+                    var sbInfo = new StringBuilder();
+                    sbInfo.AppendLine(searchPath.Replace("\\", "/").TrimEnd('/'));
+                    sbInfo.AppendLine($"  (Directory '{searchPathDirName}' is excluded by tool's filter list)");
+                    SendStatusUpdate($"Directory tree for {searchPathDirName} skipped as it's an excluded name by tool's filter list.");
+                    return Task.FromResult(CreateResult(true, true, sbInfo.ToString()));
+                }
+
+                var itemsForTree = new List<string>();
+                var normalizedSearchPath = searchPath.Replace("\\", "/").TrimEnd('/') + "/";
+
+                // Process Directories from ProjectFileWatcherService
+                foreach (var dirAbsPath in _projectFileWatcherService.Directories)
+                {
+                    var normalizedDirAbsPath = dirAbsPath.Replace("\\", "/").TrimEnd('/') + "/";
+                    if (!normalizedDirAbsPath.StartsWith(normalizedSearchPath, StringComparison.OrdinalIgnoreCase)) continue;
+
+                    var relativePath = normalizedDirAbsPath.Substring(normalizedSearchPath.Length);
+                    var pathSegments = relativePath.TrimEnd('/').Split(new[]{'/'}, StringSplitOptions.RemoveEmptyEntries);
+
+                    if (depth > 0 && pathSegments.Length > depth) continue; // Directory itself is deeper than max depth
+
+                    bool isExcludedByName = false;
+                    foreach (var segment in pathSegments)
+                    {
+                        if (excludedDirNames.Contains(segment.ToLowerInvariant()))
+                        {
+                            isExcludedByName = true;
+                            break;
+                        }
+                    }
+                    if (isExcludedByName) continue;
+
+                    itemsForTree.Add(normalizedDirAbsPath);
+                }
+
+                // Process Files from ProjectFileWatcherService
+                foreach (var fileAbsPath in _projectFileWatcherService.Files)
+                {
+                    var normalizedFileAbsPath = fileAbsPath.Replace("\\", "/");
+                    if (!normalizedFileAbsPath.StartsWith(normalizedSearchPath, StringComparison.OrdinalIgnoreCase)) continue;
+
+                    var relativePath = normalizedFileAbsPath.Substring(normalizedSearchPath.Length);
+                    // pathSegments for file includes the filename itself as the last segment.
+                    var pathSegments = relativePath.Split(new[]{'/'}, StringSplitOptions.RemoveEmptyEntries); 
+
+                    // Depth for a file is its number of segments. 'file.txt' in searchPath is depth 1.
+                    if (depth > 0 && pathSegments.Length > depth) continue; 
+
+                    bool parentIsExcluded = false;
+                    for (int i = 0; i < pathSegments.Length - 1; i++) // Check parent directory segments
+                    {
+                        if (excludedDirNames.Contains(pathSegments[i].ToLowerInvariant()))
+                        {
+                            parentIsExcluded = true;
+                            break;
+                        }
+                    }
+                    if (parentIsExcluded) continue;
+
+                    var fileExt = Path.GetExtension(normalizedFileAbsPath).ToLowerInvariant();
+                    if (!string.IsNullOrEmpty(fileExt) && excludedExtensions.Contains(fileExt)) continue;
+
+                    itemsForTree.Add(normalizedFileAbsPath);
+                }
+                
+                var relativeItemPathsForTree = itemsForTree
+                    .Select(absPath => absPath.Substring(normalizedSearchPath.Length))
+                    .Distinct() // Ensure uniqueness, especially if a dir is listed and also inferred from a file path
+                    .OrderBy(relPath => relPath)
+                    .ToList();
+
+                string prettyPrintedResult = GeneratePrettyFileTreeStandard(relativeItemPathsForTree, searchPath.Replace("\\", "/").TrimEnd('/'));
                 SendStatusUpdate("Directory tree generated successfully.");
                 return Task.FromResult(CreateResult(true, true, prettyPrintedResult));
             }
             catch (Exception ex)
             {
-                // Include request parameters in error message for better debugging
-                string paramInfo = $"Parameters: {toolParameters}'"; 
+                string paramInfo = $"Parameters: {toolParameters}'";
                 _logger.LogError(ex, $"Error processing DirectoryTree tool. {paramInfo}");
                 SendStatusUpdate($"Error processing DirectoryTree tool: {ex.Message}. {paramInfo}");
                 return Task.FromResult(CreateResult(true, true, $"Error processing DirectoryTree tool: {ex.Message}. {paramInfo}"));
             }
         }
 
-        public string GetDirectoryTree(int depth, bool includeFiltered, string searchPath, string projectRoot)
+        private static string GeneratePrettyFileTreeStandard(IEnumerable<string> relativeItemPaths, string displayRootName)
         {
-            // Get files recursively
-            var files = GetFilesRecursively(searchPath, depth);
-
-            // Apply gitignore filtering if not including filtered files
-            if (!includeFiltered)
-            {
-                // First check for .gitignore in the project root
-                var gitIgnorePath = Path.Combine(projectRoot, ".gitignore");
-                // If not found, try one level higher
-                if (!File.Exists(gitIgnorePath))
-                {
-                    var parentDirectory = Directory.GetParent(projectRoot)?.FullName;
-                    if (parentDirectory != null)
-                    {
-                        gitIgnorePath = Path.Combine(parentDirectory, ".gitignore");
-                    }
-                }
-
-                // Only apply gitignore filtering if we found a .gitignore file
-                if (File.Exists(gitIgnorePath))
-                {
-                    var gitignore = File.ReadAllText(gitIgnorePath);
-                    var gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignore, projectRoot);
-                    files = gitIgnoreFilterManager.FilterNonIgnoredPaths(files);
-                }
-            }
-
-            // Generate pretty file tree
-            var prettyPrintedResult = GeneratePrettyFileTree(files, searchPath);
-            return prettyPrintedResult;
-        }
-
-        /// <summary>
-        /// Recursively fetches a list of files from the specified path up to the given depth.
-        /// </summary>
-        private List<string> GetFilesRecursively(string searchPath, int searchDepth)
-        {
-            var fileList = new List<string>();
-
-            // Base case: If the directory doesn't exist or we've reached an invalid depth
-            if (!Directory.Exists(searchPath) || searchDepth < 0)
-            {
-                return fileList;
-            }
-
-            // Get excluded extensions and directories from Tool definition (ExtraProperties)
-            var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : _extraProperties.TryGetValue("excludedFileExtensions (CSV)", out var extCsv2) ? extCsv2 : string.Empty;
-            var excludedDirsCsv = _extraProperties.TryGetValue("ExcludedDirectories (CSV)", out var dirCsv) ? dirCsv : _extraProperties.TryGetValue("excludedDirectories (CSV)", out var dirCsv2) ? dirCsv2 : string.Empty;
-            var excludedExtensions = excludedExtensionsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)  
-                .Select(e => e.Trim().ToLowerInvariant()).Where(e => e.StartsWith(".")).ToList();
-            var excludedDirs = excludedDirsCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
-                .Select(d => d.Trim().ToLowerInvariant()).Where(d => !string.IsNullOrEmpty(d)).ToList();
-
-            try
-            {
-                var files = Directory.GetFiles(searchPath).Where(x => !excludedExtensions.Contains(Path.GetExtension(x).ToLowerInvariant()));
-
-                // Add all files in the current directory
-                fileList.AddRange(files);
-
-                // If we haven't reached the maximum depth, continue recursively
-                if (searchDepth > 0)
-                {
-                    foreach (var directory in Directory.GetDirectories(searchPath))
-                    {
-                        var lastDirectory = directory.Split("\\").Last().ToLowerInvariant();
-
-                        if (!excludedDirs.Contains(lastDirectory))
-                        {
-                            // Recursively get files from subdirectories with a decremented depth
-                            fileList.AddRange(GetFilesRecursively(directory, searchDepth - 1));
-                        }
-                        else
-                        {
-                            // Directory is excluded
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                // Handle any exceptions (like access denied)
-                Console.WriteLine($"Error accessing {searchPath}: {ex.Message}");
-            }
-
-            return fileList;
-        }
-
-        /// <summary>
-        /// Generates a pretty-printed tree representation of file paths relative to a root directory.
-        /// </summary>
-        private static string GeneratePrettyFileTree(IEnumerable<string> files, string rootDirectory)
-        {
-            // Convert to relative paths and sort
-            var relativeFiles = files
-                .Select(file => Path.GetRelativePath(rootDirectory, file))
-                .OrderBy(path => path)
-                .ToList();
-
             var fileTree = new StringBuilder();
-            fileTree.AppendLine(rootDirectory);
+            fileTree.AppendLine(displayRootName);
 
-            // Track the last displayed directory structure
             List<string> previousPathParts = new List<string>();
 
-            foreach (var relativePath in relativeFiles)
+            foreach (var relativePath in relativeItemPaths)
             {
-                var pathParts = relativePath.Split(Path.DirectorySeparatorChar);
-                var fileName = pathParts[pathParts.Length - 1];
-                var dirParts = pathParts.Take(pathParts.Length - 1).ToList();
+                if (string.IsNullOrEmpty(relativePath)) continue; // Skip if somehow an empty relative path made it
 
-                // Compare with previous path to determine which directories to show
-                int commonDirLength = 0;
-                while (commonDirLength < previousPathParts.Count &&
-                       commonDirLength < dirParts.Count &&
-                       previousPathParts[commonDirLength] == dirParts[commonDirLength])
+                bool isDirectory = relativePath.EndsWith("/");
+                var pathParts = relativePath.TrimEnd('/').Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                var itemName = pathParts.LastOrDefault() ?? ""; 
+                
+                // Determine segments representing the directory structure for the current item
+                var dirPathSegments = isDirectory ? pathParts : pathParts.Take(pathParts.Length - 1).ToArray();
+
+                int commonPrefixLength = 0;
+                while (commonPrefixLength < previousPathParts.Count &&
+                       commonPrefixLength < dirPathSegments.Length &&
+                       previousPathParts[commonPrefixLength] == dirPathSegments[commonPrefixLength])
                 {
-                    commonDirLength++;
+                    commonPrefixLength++;
                 }
 
-                // Display new directories that weren't displayed before
-                for (int i = commonDirLength; i < dirParts.Count; i++)
+                // Print new directory levels
+                for (int i = commonPrefixLength; i < dirPathSegments.Length; i++)
                 {
-                    fileTree.AppendLine($"{new string(' ', i * 2)}> {dirParts[i]}/");
+                    fileTree.AppendLine($"{new string(' ', i * 2)}> {dirPathSegments[i]}/");
                 }
+                
+                // Print file name if it's a file
+                if (!isDirectory)
+                {
+                    fileTree.AppendLine($"{new string(' ', dirPathSegments.Length * 2)} {itemName}");
+                }
+                // If it's a directory and it's empty, its structure up to its name was printed by the loop above.
+                // If a directory is explicitly in relativeItemPaths (e.g. "dir1/"), and it's empty or contains other items,
+                // its name up to the trailing slash should have been printed by the dirPathSegments loop.
 
-                // Display the file
-                fileTree.AppendLine($"{new string(' ', dirParts.Count * 2)} {fileName}");
-
-                // Update previous path parts for next comparison
-                previousPathParts = dirParts;
+                previousPathParts = dirPathSegments.ToList(); // Update based on the directory structure processed
             }
 
             return fileTree.ToString();

@@ -60,7 +60,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             }
 
 
-            requestPayload["contents"] = contentsArray;
+            
 
             // Add response modalities for image generation model
             if (ApiModel == "gemini-2.0-flash-exp-image-generation")
@@ -87,30 +87,15 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             }
 
 
-            if (options.AddEmbeddings)
+
+            if (requestPayload["contents"] != null)
             {
-                var lastMessage = options.Conv.messages.Last().content;
-                var newInput = await AddEmbeddingsIfRequired(
-                    options.Conv, 
-                    options.ApiSettings, 
-                    options.MustNotUseEmbedding, 
-                    options.AddEmbeddings, 
-                    lastMessage);
-                    
-                // does the last content array thing have a text prop?
-                var lastContent = ((JArray)requestPayload["contents"]).Last;
-                if (lastContent["parts"].Last["text"] != null)
-                {
-                    lastContent["parts"].Last["text"] = newInput;
-                }
-                else
-                {
-                    // set the text prop on the last-but-one content instead
-                    var lastButOneContent = ((JArray)requestPayload["contents"]).Reverse().Skip(1).First();
-                    lastButOneContent["parts"].Last["text"] = newInput;
-                }
+                requestPayload.Remove("contents");
             }
-            Debug.WriteLine(requestPayload);
+
+            // Add "contents" at the end
+            requestPayload.Add("contents", contentsArray);
+            File.WriteAllText(DateTime.Now.Ticks + ".json", requestPayload.ToString());
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {
@@ -306,7 +291,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     });
                 }
                 currentResponseItem = null;
-                Thread.Sleep(5000);
+                
                 Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set: {string.Join(",", ToolResponseSet.Tools.Select(x => x.ToolName))}... (2)");
                 return new AiResponse
                 {

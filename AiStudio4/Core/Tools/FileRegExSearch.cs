@@ -22,10 +22,12 @@ namespace AiStudio4.Core.Tools
     /// </summary>
     public class FileRegExSearch : BaseToolImplementation
     {
+        private readonly IProjectFileWatcherService _projectFileWatcherService;
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
 
-        public FileRegExSearch(ILogger<FileRegExSearch> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
+        public FileRegExSearch(ILogger<FileRegExSearch> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IProjectFileWatcherService projectFileWatcherService) : base(logger, generalSettingsService, statusMessageService)
         {
+            _projectFileWatcherService = projectFileWatcherService ?? throw new ArgumentNullException(nameof(projectFileWatcherService));
         }
 
         /// <summary>
@@ -53,12 +55,6 @@ namespace AiStudio4.Core.Tools
         ""title"": ""Depth"",
         ""type"": ""integer"",
         ""description"": ""The maximum depth to search recursively (0 for unlimited).""
-      },
-      ""include_filtered"": {
-        ""default"": false,
-        ""title"": ""Include Filtered"",
-        ""type"": ""boolean"",
-        ""description"": ""Include files and directories that are normally filtered by .gitignore.""
       },
       ""search_regexes"": {
         ""title"": ""Search Regexes"",
@@ -88,13 +84,15 @@ namespace AiStudio4.Core.Tools
         /// <summary>
         /// Recursively searches files within a directory for lines matching any regex.
         /// </summary>
-        private void SearchFilesRecursively(string rootSearchPath, string currentPath, int remainingDepth, Regex[] regexes, GitIgnoreFilterManager gitIgnoreFilter, List<string> results)
+        private void SearchFilesRecursively(string rootSearchPath, string currentPath, int remainingDepth, Regex[] regexes, List<string> results)
         {
             int initialDepth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 0;
             if (initialDepth > 0 && remainingDepth < 0)
             {
                 return;
             }
+
+            string normalizedCurrentPath = currentPath.Replace("\\", "/").TrimEnd('/');
 
             try
             {
@@ -105,12 +103,16 @@ namespace AiStudio4.Core.Tools
                 var excludedPrefixes = excludedPrefixesCsv.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
                     .Select(p => p.Trim().ToLowerInvariant()).Where(p => !string.IsNullOrEmpty(p)).ToList();
 
-                foreach (var filePath in Directory.EnumerateFiles(currentPath))
+                // Use ProjectFileWatcherService.Files
+                foreach (var filePath in _projectFileWatcherService.Files)
                 {
-                    if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(filePath))
-                    {
-                        continue;
-                    }
+                    string normalizedFilePath = filePath.Replace("\\", "/");
+                    string fileDirectory = Path.GetDirectoryName(normalizedFilePath).Replace("\\", "/").TrimEnd('/');
+
+                    if (fileDirectory != normalizedCurrentPath)
+                        continue; // Only process files directly in the currentPath
+
+                    // Gitignore is handled by ProjectFileWatcherService
 
                     var fileName = Path.GetFileName(filePath).ToLowerInvariant();
                     var fileExt = Path.GetExtension(filePath).ToLowerInvariant();
@@ -186,15 +188,25 @@ namespace AiStudio4.Core.Tools
             {
                 try
                 {
-                    foreach (var dirPath in Directory.EnumerateDirectories(currentPath))
+                    // Use ProjectFileWatcherService.Directories
+                    foreach (var dirPath in _projectFileWatcherService.Directories)
                     {
-                        if (dirPath.EndsWith("node_modules") || dirPath.EndsWith("bin") || dirPath.EndsWith("dist") || dirPath.EndsWith("obj"))
+                        string normalizedDirPath = dirPath.Replace("\\", "/").TrimEnd('/');
+                        string parentOfDirPath = Path.GetDirectoryName(normalizedDirPath)?.Replace("\\", "/").TrimEnd('/');
+
+                        if (parentOfDirPath != normalizedCurrentPath)
+                            continue; // Only process direct child directories
+                        
+                        string dirName = Path.GetFileName(normalizedDirPath);
+                        if (dirName.Equals("node_modules", StringComparison.OrdinalIgnoreCase) || 
+                            dirName.Equals("bin", StringComparison.OrdinalIgnoreCase) || 
+                            dirName.Equals("dist", StringComparison.OrdinalIgnoreCase) || 
+                            dirName.Equals("obj", StringComparison.OrdinalIgnoreCase))
                             continue;
-                        if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(dirPath + Path.DirectorySeparatorChar))
-                        {
-                            continue;
-                        }
-                        SearchFilesRecursively(rootSearchPath, dirPath, initialDepth > 0 ? remainingDepth - 1 : 0, regexes, gitIgnoreFilter, results);
+
+                        // Gitignore is handled by ProjectFileWatcherService
+
+                        SearchFilesRecursively(rootSearchPath, normalizedDirPath, initialDepth > 0 ? remainingDepth - 1 : 0, regexes, results);
                     }
                 }
                 catch (UnauthorizedAccessException uaEx)
@@ -239,7 +251,6 @@ namespace AiStudio4.Core.Tools
             {
                 var path = parameters.ContainsKey("path") ? parameters["path"].ToString() : string.Empty;
                 var depth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 0;
-                var includeFiltered = parameters.ContainsKey("include_filtered") ? Convert.ToBoolean(parameters["include_filtered"]) : false;
                 string[] searchRegexes;
 
                 if (parameters.TryGetValue("search_regexes", out var searchRegexesObj) && searchRegexesObj is JArray searchRegexesArray)
@@ -290,44 +301,14 @@ namespace AiStudio4.Core.Tools
 
                 SendStatusUpdate($"Searching for regexes: {string.Join(", ", validSearchRegexes)} in {Path.GetFileName(searchPath)}...");
 
-                GitIgnoreFilterManager gitIgnoreFilterManager = null;
-                if (!includeFiltered)
-                {
-                    string currentIgnorePath = searchPath;
-                    string gitIgnoreFilePath = null;
-                    while (currentIgnorePath != null && currentIgnorePath.Length >= _projectRoot.Length && currentIgnorePath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
-                    {
-                        gitIgnoreFilePath = Path.Combine(currentIgnorePath, ".gitignore");
-                        if (File.Exists(gitIgnoreFilePath))
-                        {
-                            break;
-                        }
-                        if (currentIgnorePath.Equals(_projectRoot, StringComparison.OrdinalIgnoreCase)) break;
-                        currentIgnorePath = Directory.GetParent(currentIgnorePath)?.FullName;
-                    }
-
-                    if (File.Exists(gitIgnoreFilePath))
-                    {
-                        try
-                        {
-                            _logger.LogInformation("Using .gitignore: {GitIgnorePath}", gitIgnoreFilePath);
-                            var gitignoreContent = File.ReadAllText(gitIgnoreFilePath);
-                            string gitignoreBaseDir = Path.GetDirectoryName(gitIgnoreFilePath);
-                            gitIgnoreFilterManager = new GitIgnoreFilterManager(gitignoreContent, _projectRoot);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Error reading or processing .gitignore file: {GitIgnorePath}", gitIgnoreFilePath);
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogInformation("No .gitignore file found in search path or ancestors up to project root.");
-                    }
-                }
+                // GitIgnoreFilterManager gitIgnoreFilterManager = null; // Removed, ProjectFileWatcherService handles gitignore
+                // if (!includeFiltered) // includeFiltered behavior changes
+                // {
+                //    // ... (original gitignore finding logic removed) ...
+                // }
 
                 SendStatusUpdate($"Beginning file regex search with depth: {depth}...");
-                SearchFilesRecursively(searchPath, searchPath, depth, regexes, gitIgnoreFilterManager, matchingFiles);
+                SearchFilesRecursively(searchPath, searchPath, depth, regexes, matchingFiles);
 
                 if (matchingFiles.Any())
                 {
