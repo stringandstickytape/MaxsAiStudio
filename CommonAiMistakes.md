@@ -38,3 +38,11 @@
     - When multiple components communicate, trace how they do so rather than assuming a new mechanism is needed.  
     - Never implement direct `CustomEvent` dispatching without confirming that no existing event system is in place.  
     - Always prioritize using the application's existing event system (e.g., `windowEventService`) to maintain consistency and avoid redundant or conflicting event handling mechanisms.
+
+12. **Incorrectly Removed UI Text**  
+    - Carefully analyze which parts of a text block are labels versus dynamic content that should be preserved.  
+    - Use more precise `oldContent` in `ModifyFiles` to target only the elements/text to be removed.  
+    - When removing parts of a string, ensure the remaining parts are still syntactically and semantically correct.  
+    - Double-check the user's request to ensure only the specified elements are targeted.  
+    - Avoid overly broad selections that span too large a section, which can lead to removal of desired text and malformed HTML structure.  
+    - Confirm that HTML structure remains valid after modifications, avoiding self-closing tags that conflict with later closing tags.

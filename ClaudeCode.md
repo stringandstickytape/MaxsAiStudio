@@ -1,52 +1,6 @@
 ﻿// ClaudeCode.md
 # ClaudeCode.md - AiStudio4 Architectural Overview
 
-## 2025-05-04: Project Path Change Propagation Fix
-
-- Fixed issue where changing the project root path wasn't properly propagated to all tools.
-- Added logging in `BaseToolImplementation.UpdateProjectRoot()` to track when project root updates occur.
-- Modified `SetProjectPathMenuItem_Click` and `RecentProjectPathMenuItem_Click` in `MainWindow.xaml.cs` to only update when the path actually changes.
-- Added comments to emphasize the importance of calling `_builtinToolService.UpdateProjectRoot()` when the project path changes.
-- Enhanced `GeneralSettingsService.UpdateSettings()` to track project path changes.
-
-## 2025-05-01: Dialog Refactor
-
-- All settings dialogs (model add/edit/delete, provider add/edit/delete) now use the UnifiedModalDialog system and its subcomponents (UnifiedModalHeader, UnifiedModalContent, UnifiedModalFooter).
-- The legacy Dialog/DialogContent/DialogHeader/DialogTitle components are deprecated for new work.
-- This ensures consistent theming, accessibility, and modal behavior across the application.
-
-
-## 2025-05-02: Tool Loop Stuck Detection
-
-- Added server-side detection of consecutive identical tool requests in the tool loop (DefaultChatService.cs).
-- If two consecutive AI responses request identical tool uses, the loop aborts and returns an error indicating the AI is stuck in a loop.
-- This prevents infinite or unproductive tool execution cycles caused by repeated AI tool requests.
-
----
-
-## 2025-05-03: Notification Facade for Decoupling
-
-- Introduced `INotificationFacade` (see `Services/Interfaces/INotificationFacade.cs`) and its implementation `NotificationFacade` to group notification and status messaging methods.
-- `ToolProcessorService` now depends only on `INotificationFacade` for all notification and status messaging, instead of directly on `IStatusMessageService` and `IWebSocketNotificationService`.
-- Dependency injection registration updated in `App.xaml.cs` to provide `NotificationFacade` for `INotificationFacade`.
-- This reduces tight coupling, simplifies service constructors, and improves testability and maintainability.
-
-**Example Usage:**
-```csharp
-// Before:
-await _statusMessageService.SendStatusMessageAsync(clientId, "message");
-await _webSocketNotificationService.NotifyConvUpdate(clientId, update);
-
-// After:
-await _notificationFacade.SendStatusMessageAsync(clientId, "message");
-await _notificationFacade.NotifyConvUpdate(clientId, update);
-```
-
-**Next Steps:**
-- Gradually migrate other services to use `INotificationFacade` for notification/status needs
-- Continue extracting orchestration logic and breaking up large methods for further decoupling
-
-
 ## Core Architecture
 
 AiStudio4 is a hybrid desktop application built using:
@@ -106,67 +60,6 @@ AiStudio4 is a hybrid desktop application built using:
 *   **Settings Management:** Centralized handling of user/application settings.
 *   **Tool Abstraction:** Tools are managed and executed through dedicated services.
 
-## State Management Improvements
-
-Recent improvements to the state management approach in the AiStudio4 web application include:
-
-### 1. Command Registry Service
-
-Created a centralized service for command registration and management that abstracts direct store access:
-
-- `src/services/commandRegistry.ts`: Provides methods for registering, unregistering, and executing commands, as well as searching and retrieving commands.
-
-### 2. Window Events Service
-
-Created a centralized registry of window events to improve maintainability:
-
-- `src/services/windowEvents.ts`: Documents all window events used in the application and provides helper functions for working with them.
-
-### 3. Refactored Command Files
-
-Refactored command files to use the new services instead of direct store access:
-
-- `src/commands/coreCommands.ts`
-- `src/commands/settingsCommands.ts`
-- `src/commands/systemPromptCommands.ts`
-- `src/commands/themeCommands.ts`
-- `src/commands/toolCommands.ts`
-- `src/commands/userPromptCommands.ts`
-
-### 4. Refactored Components
-
-Refactored components to use the new services instead of direct store access:
-
-- `src/CommandInitializationPlugin.tsx`
-- `src/components/InputBar.tsx`
-
-## Component Architecture Improvements
-
-### ConvView Component Refactoring
-
-The ConvView component was identified as a "god component" with too many responsibilities. It has been refactored into smaller, more focused components:
-
-#### New Component Structure
-
-- `src/components/ConvView/` - New directory containing all conversation view components
-  - `ConvView.tsx` - Main orchestration component
-  - `MessageItem.tsx` - Renders individual messages
-  - `MessageActions.tsx` - Handles message action buttons (copy, edit, save)
-  - `MessageEditor.tsx` - Manages message editing functionality
-  - `MessageMetadata.tsx` - Displays timing, token usage, and cost information
-  - `StreamingMessage.tsx` - Handles streaming token display
-  - `ConversationControls.tsx` - Manages loading more messages
-  - `ScrollManager.tsx` - Handles scroll behavior and "stick to bottom" functionality
-  - `index.ts` - Exports all components
-
-#### Benefits of Refactoring
-
-1. **Single Responsibility Principle**: Each component now has a clear, focused responsibility
-2. **Improved Maintainability**: Smaller components are easier to understand and modify
-3. **Better Testability**: Components can be tested in isolation
-4. **Enhanced Reusability**: Components can be reused in different contexts
-5. **Reduced Complexity**: Main component is now simpler and delegates to specialized components
-
 ## Tool Configurability via ExtraProperties
 
 Many built-in tools in AiStudio4 expose additional configuration or metadata through the `ExtraProperties` dictionary on their `Tool` definition. This allows for flexible, tool-specific customization without changing the core schema or requiring code changes for every new property.
@@ -198,26 +91,3 @@ Many built-in tools in AiStudio4 expose additional configuration or metadata thr
 **Best Practice:**
 - When adding new filtering or configuration logic to a tool, prefer using `ExtraProperties` with clear, documented keys.
 - Use CSV format for lists, and document expected value types in the property name or tool documentation.
-
-## Overall Benefits of Recent Improvements
-
-These improvements provide several benefits:
-
-1. **Improved Testability**: Components and logic are easier to test in isolation
-2. **Better Performance**: Optimized rendering with proper hook usage
-3. **Enhanced Maintainability**: Consistent patterns make the codebase easier to understand
-4. **Better Documentation**: Window events are centrally documented
-5. **Reduced Bugs**: Standardized state access patterns reduce the chance of unexpected interactions
-6. **Improved Component Architecture**: Breaking down large components into smaller, focused ones
-
-## Future Improvements
-
-Future improvements could include:
-
-1. Refactoring more components to use hooks instead of direct store access
-2. Creating custom hooks for complex state logic
-3. Adding persistence middleware to stores
-4. Standardizing global state access patterns further
-5. Continuing to identify and refactor "god components" into smaller, focused components
-6. Adding comprehensive unit tests for the new component structure
-7. Creating a component library documentation to showcase the available components

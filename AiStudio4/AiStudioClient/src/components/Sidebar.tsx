@@ -247,18 +247,9 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
                 color: 'var(--global-text-color, #d1d5db)'
               }}
             >
-              WebSocket: {wsState.isConnected ? 'Connected' : 'Disconnected'}
-            </span>
-          </div>
-          {wsState.clientId && 
-            <div className="Sidebar mt-1 text-xs truncate" 
-              style={{
-                color: 'var(--global-text-color, #9ca3af)'
-              }}
-            >
-              ID: {wsState.clientId}
+              {wsState.isConnected ? 'Connected' : 'Disconnected'}
+                      </span>
             </div>
-          }
         </div>
       )}
     </div>
