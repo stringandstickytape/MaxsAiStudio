@@ -77,7 +77,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
         /// <summary>
         /// Processes a DirectoryTree tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties, string projectRootPathOverride = null)
+        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
             {
@@ -85,19 +85,17 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 _extraProperties = extraProperties;
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
-                var activeRoot = GetActiveProjectRoot(projectRootPathOverride);
-
                 // Extract parameters with defaults
-                var path = parameters.ContainsKey("path") ? parameters["path"].ToString() : activeRoot;
+                var path = parameters.ContainsKey("path") ? parameters["path"].ToString() : _projectRoot;
                 var depth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 2;
                 var includeFiltered = parameters.ContainsKey("include_filtered") ? Convert.ToBoolean(parameters["include_filtered"]) : false;
 
                 // Get the search path (relative to project root for security)
-                var searchPath = activeRoot;
-                if (!string.IsNullOrEmpty(path) && path != activeRoot)
+                var searchPath = _projectRoot;
+                if (!string.IsNullOrEmpty(path) && path != _projectRoot)
                 {
-                    searchPath = Path.GetFullPath(Path.Combine(activeRoot, path));
-                    if (!searchPath.StartsWith(activeRoot, StringComparison.OrdinalIgnoreCase))
+                    searchPath = Path.GetFullPath(Path.Combine(_projectRoot, path));
+                    if (!searchPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
                     {
                         SendStatusUpdate("Error: Path is outside the allowed directory.");
                         return Task.FromResult(CreateResult(true, true, "Error: Path is outside the allowed directory."));
@@ -107,7 +105,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
                 SendStatusUpdate($"Generating directory tree for: {Path.GetFileName(searchPath)}...");
 
                 if (!Directory.Exists(searchPath)) {
-                    string suggestion = FindAlternativeDirectory(searchPath, activeRoot); // Pass activeRoot
+                    string suggestion = FindAlternativeDirectory(searchPath);
                     string errorMessage = $"Error: Directory not found: {searchPath}";
                     if (!string.IsNullOrEmpty(suggestion)) {
                         errorMessage += $"\n{suggestion}";
@@ -116,7 +114,7 @@ Returns a structured view of the directory tree with files and subdirectories. D
                     return Task.FromResult(CreateResult(true, true, errorMessage));
                 }
 
-                string prettyPrintedResult = GetDirectoryTree(depth, includeFiltered, searchPath, activeRoot); // Pass activeRoot
+                string prettyPrintedResult = GetDirectoryTree(depth, includeFiltered, searchPath, _projectRoot);
                 SendStatusUpdate("Directory tree generated successfully.");
                 return Task.FromResult(CreateResult(true, true, prettyPrintedResult));
             }

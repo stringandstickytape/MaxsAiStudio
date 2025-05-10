@@ -27,6 +27,7 @@ namespace AiStudio4.Core.Tools
 
         private readonly StringBuilder _validationErrorMessages;
         private readonly ISecondaryAiService _secondaryAiService;
+        private  PathSecurityManager _pathSecurityManager;
 
 
         public ModifyFilesTool(ILogger<ModifyFilesTool> logger, IGeneralSettingsService generalSettingsService, 
@@ -112,11 +113,9 @@ namespace AiStudio4.Core.Tools
             };
         }
 
-        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties, string projectRootPathOverride = null)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
-            var activeRoot = GetActiveProjectRoot(projectRootPathOverride);
-            var pathSecurityManager = new PathSecurityManager(_logger, activeRoot); // Initialize with activeRoot
-
+            _pathSecurityManager = new PathSecurityManager(_logger, _projectRoot);
             _validationErrorMessages.Clear();
             var overallSuccess = true;
             
@@ -152,9 +151,9 @@ namespace AiStudio4.Core.Tools
                         }
                         
                         // Validate file path security
-                        if (!pathSecurityManager.IsPathSafe(filePath))
+                        if (!_pathSecurityManager.IsPathSafe(filePath))
                         {
-                            _validationErrorMessages.AppendLine($"Error: Path '{filePath}' is outside the allowed project directory ({activeRoot}).");
+                            _validationErrorMessages.AppendLine($"Error: Path '{filePath}' is outside the allowed project directory.");
                             overallSuccess = false;
                             continue;
                         }

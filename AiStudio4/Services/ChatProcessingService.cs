@@ -28,7 +28,6 @@ namespace AiStudio4.Services
         private readonly ISystemPromptService _systemPromptService;
         private readonly ClientRequestCancellationService _cancellationService;
         private readonly IServiceProvider _serviceProvider; // Added for scoping
-        private readonly IProjectHistoryService _projectHistoryService; // Added
         
 
         public ChatProcessingService(
@@ -41,8 +40,7 @@ namespace AiStudio4.Services
             ISystemPromptService systemPromptService,
             ClientRequestCancellationService cancellationService,
             IServiceProvider serviceProvider,
-            IStatusMessageService statusMessageService,
-            IProjectHistoryService projectHistoryService) // Added IProjectHistoryService
+            IStatusMessageService statusMessageService) // Added IServiceProvider
         {
             _statusMessageService = statusMessageService;
             _convStorage = convStorage;
@@ -54,7 +52,6 @@ namespace AiStudio4.Services
             _systemPromptService = systemPromptService;
             _cancellationService = cancellationService;
             _serviceProvider = serviceProvider; // Assign injected service provider
-            _projectHistoryService = projectHistoryService; // Added
         }
 
         public async Task<string> HandleChatRequest(string clientId, JObject requestObject)
@@ -199,26 +196,9 @@ namespace AiStudio4.Services
                     if (cancellationToken.IsCancellationRequested)
                         throw new OperationCanceledException(cancellationToken);
 
-                    // Determine effective project path
-                    string projectFolderId = requestObject["projectFolderId"]?.ToString();
-                    string effectiveProjectPath = _generalSettingsService.CurrentSettings.ProjectPath; // Default
-
-                    if (!string.IsNullOrEmpty(projectFolderId))
-                    {
-                        string pathFromId = await _projectHistoryService.GetProjectPathByIdAsync(projectFolderId);
-                        if (!string.IsNullOrEmpty(pathFromId) && Directory.Exists(pathFromId)) // Validate path exists
-                        {
-                            effectiveProjectPath = pathFromId;
-                            _logger.LogInformation("Using project context from client ID '{ProjectFolderId}': {Path}", projectFolderId, effectiveProjectPath);
-                        }
-                        else
-                        {
-                            _logger.LogWarning("Invalid or non-existent projectFolderId '{ProjectFolderId}' received. Falling back to server default: {DefaultPath}", projectFolderId, effectiveProjectPath);
-                        }
-                    }
                     
-                    // Pass effectiveProjectPath to ProcessChatRequest
-                    var response = await _chatService.ProcessChatRequest(chatRequest, effectiveProjectPath);
+
+                    var response = await _chatService.ProcessChatRequest(chatRequest);
 
 
 

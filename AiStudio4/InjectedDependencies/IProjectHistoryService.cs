@@ -1,15 +1,12 @@
-﻿// C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/InjectedDependencies/IProjectHistoryService.cs
-using AiStudio4.Core.Models;
+﻿// InjectedDependencies/IProjectHistoryService.cs
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace AiStudio4.InjectedDependencies
 {
     public interface IProjectHistoryService
     {
-        Task<List<ProjectFolderEntry>> GetKnownProjectFoldersAsync();
-        Task<string> GetProjectPathByIdAsync(string id);
-        Task AddOrUpdateProjectFolderAsync(string path, string name = null);
+        List<string> GetProjectPathHistory();
+        void AddProjectPathToHistory(string path);
         void LoadSettings();
         void SaveSettings();
     }

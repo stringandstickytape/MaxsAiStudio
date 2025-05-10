@@ -22,6 +22,7 @@ namespace AiStudio4.Core.Interfaces
         /// <param name="toolParameters">The parameters passed to the tool</param>
         /// <param name="extraProperties">User-edited extra properties for this tool instance</param>
         /// <returns>Result of the tool processing</returns>
-        Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties, string projectRootPathOverride = null);
+        Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties);
+        void UpdateProjectRoot();
     }
 }
