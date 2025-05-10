@@ -68,7 +68,7 @@ namespace AiStudio4.Core.Tools.Vite
                 var startInfo = new ProcessStartInfo
                 {
                     FileName = useCmd ? "cmd.exe" : command,
-                    Arguments = useCmd ? $"/c {command} {arguments}" : arguments,
+                    Arguments = useCmd ? $"/C {(showWindow ? "start \"Vite Helper\" /MIN cmd /K " : "")}{command} {arguments}" : arguments,
                     RedirectStandardOutput = !showWindow,
                     RedirectStandardError = !showWindow,
                     UseShellExecute = showWindow,

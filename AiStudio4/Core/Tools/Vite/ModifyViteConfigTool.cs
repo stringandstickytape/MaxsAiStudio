@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿// AiStudio4/Core/Tools/Vite/ModifyViteConfigTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -16,9 +17,12 @@ namespace AiStudio4.Core.Tools.Vite
     /// </summary>
     public class ModifyViteConfigTool : BaseToolImplementation
     {
-        public ModifyViteConfigTool(ILogger<ModifyViteConfigTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
+        private readonly IDialogService _dialogService;
+
+        public ModifyViteConfigTool(ILogger<ModifyViteConfigTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IDialogService dialogService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
+            _dialogService = dialogService;
         }
 
         /// <summary>
@@ -62,7 +66,7 @@ namespace AiStudio4.Core.Tools.Vite
         /// <summary>
         /// Processes a ModifyViteConfig tool call
         /// </summary>
-        public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
+        public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
             {
@@ -77,7 +81,7 @@ namespace AiStudio4.Core.Tools.Vite
 
                 if (configChanges.Count == 0)
                 {
-                    return Task.FromResult(CreateResult(false, true, "Error: No configuration changes specified."));
+                    return CreateResult(false, true, "Error: No configuration changes specified.");
                 }
 
                 // Get the project directory path (relative to project root for security)
@@ -88,7 +92,7 @@ namespace AiStudio4.Core.Tools.Vite
                     if (!projectPath.StartsWith(_projectRoot, StringComparison.OrdinalIgnoreCase))
                     {
                         SendStatusUpdate("Error: Project directory is outside the allowed directory.");
-                        return Task.FromResult(CreateResult(false, true, "Error: Project directory is outside the allowed directory."));
+                        return CreateResult(false, true, "Error: Project directory is outside the allowed directory.");
                     }
                 }
 
@@ -102,13 +106,25 @@ namespace AiStudio4.Core.Tools.Vite
                     if (!File.Exists(viteConfigPath))
                     {
                         SendStatusUpdate("Error: Vite configuration file not found.");
-                        return Task.FromResult(CreateResult(false, true, "Error: Vite configuration file not found."));
+                        return CreateResult(false, true, "Error: Vite configuration file not found.");
                     }
                 }
 
                 // Read the current config file
-                string configContent = File.ReadAllText(viteConfigPath);
+                string configContent = await File.ReadAllTextAsync(viteConfigPath);
                 string originalContent = configContent;
+
+                // Confirmation Dialog
+                string changesSummary = string.Join(", ", configChanges.Keys);
+                string confirmationPrompt = $"AI wants to modify the Vite configuration file: '{Path.GetFileName(viteConfigPath)}'. This will alter project settings. Proceed?";
+                string commandForDisplay = $"Modify: {viteConfigPath}\nChanges involve: [{changesSummary}]";
+
+                bool confirmed = await _dialogService.ShowConfirmationAsync("Confirm Vite Config Modification", confirmationPrompt, commandForDisplay);
+                if (!confirmed)
+                {
+                    SendStatusUpdate($"Vite config modification for {Path.GetFileName(viteConfigPath)} cancelled by user.");
+                    return CreateResult(true, false, "Operation cancelled by user.");
+                }
 
                 // Apply changes to the config file
                 foreach (var change in configChanges)
@@ -145,21 +161,21 @@ namespace AiStudio4.Core.Tools.Vite
                 // Write the updated config back to the file
                 if (configContent != originalContent)
                 {
-                    File.WriteAllText(viteConfigPath, configContent);
+                    await File.WriteAllTextAsync(viteConfigPath, configContent);
                     SendStatusUpdate("Vite configuration updated successfully.");
-                    return Task.FromResult(CreateResult(true, true, "Vite configuration updated successfully."));
+                    return CreateResult(true, true, "Vite configuration updated successfully.");
                 }
                 else
                 {
                     SendStatusUpdate("No changes were made to the Vite configuration.");
-                    return Task.FromResult(CreateResult(true, true, "No changes were made to the Vite configuration."));
+                    return CreateResult(true, true, "No changes were made to the Vite configuration.");
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing ModifyViteConfig tool");
                 SendStatusUpdate($"Error processing ModifyViteConfig tool: {ex.Message}");
-                return Task.FromResult(CreateResult(false, true, $"Error processing ModifyViteConfig tool: {ex.Message}"));
+                return CreateResult(false, true, $"Error processing ModifyViteConfig tool: {ex.Message}");
             }
         }
 

@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿// AiStudio4/Core/Tools/Vite/InstallVitePluginTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -18,9 +19,12 @@ namespace AiStudio4.Core.Tools.Vite
     /// </summary>
     public class InstallVitePluginTool : BaseToolImplementation
     {
-        public InstallVitePluginTool(ILogger<InstallVitePluginTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
+        private readonly IDialogService _dialogService;
+
+        public InstallVitePluginTool(ILogger<InstallVitePluginTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IDialogService dialogService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
+            _dialogService = dialogService;
         }
 
         /// <summary>
@@ -114,6 +118,17 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
+                // Confirmation Dialog
+                string confirmationPrompt = $"AI wants to:\n1. Install npm package '{pluginName}'.\n2. Modify the Vite configuration file '{Path.GetFileName(viteConfigPath)}' to include it.\nProceed with both actions?";
+                string commandForDisplay = $"1. npm install {pluginName} --save-dev\n2. Modify: {Path.GetFileName(viteConfigPath)}";
+
+                bool confirmed = await _dialogService.ShowConfirmationAsync("Confirm Plugin Installation and Config Update", confirmationPrompt, commandForDisplay);
+                if (!confirmed)
+                {
+                    SendStatusUpdate($"Plugin installation and config update for '{pluginName}' cancelled by user.");
+                    return CreateResult(true, false, "Operation cancelled by user.");
+                }
+
                 // Install the plugin using the helper
                 SendStatusUpdate($"Installing Vite plugin: {pluginName}...");
                 string npmCommand = "npm";
@@ -133,7 +148,7 @@ namespace AiStudio4.Core.Tools.Vite
 
                 // Update the Vite config to use the plugin
                 SendStatusUpdate("Updating Vite configuration to use the plugin...");
-                string configContent = File.ReadAllText(viteConfigPath);
+                string configContent = await File.ReadAllTextAsync(viteConfigPath);
                 string originalContent = configContent;
 
                 // Extract plugin name without version or scope
@@ -190,7 +205,7 @@ namespace AiStudio4.Core.Tools.Vite
                 // Write the updated config back to the file
                 if (configContent != originalContent)
                 {
-                    File.WriteAllText(viteConfigPath, configContent);
+                    await File.WriteAllTextAsync(viteConfigPath, configContent);
                     SendStatusUpdate("Vite plugin installed and configuration updated successfully.");
                     return CreateResult(true, true, $"Vite plugin '{pluginName}' installed and configuration updated successfully.\n\nOutput:\n{output}");
                 }

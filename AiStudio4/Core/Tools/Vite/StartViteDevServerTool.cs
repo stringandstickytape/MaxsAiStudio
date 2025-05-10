@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿// AiStudio4/Core/Tools/Vite/StartViteDevServerTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -17,10 +18,12 @@ namespace AiStudio4.Core.Tools.Vite
     public class StartViteDevServerTool : BaseToolImplementation
     {
         private static Process _runningDevServer;
+        private readonly IDialogService _dialogService;
 
-        public StartViteDevServerTool(ILogger<StartViteDevServerTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
+        public StartViteDevServerTool(ILogger<StartViteDevServerTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IDialogService dialogService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
+            _dialogService = dialogService;
         }
 
         /// <summary>
@@ -113,6 +116,17 @@ namespace AiStudio4.Core.Tools.Vite
                     {
                         _logger.LogWarning(ex, "Error stopping previous dev server");
                     }
+                }
+
+                // Confirmation Dialog
+                string commandForDisplay = $"npm run dev -- --port {port} --host {host}";
+                string confirmationPrompt = $"AI wants to start the Vite development server in directory '{workingPath}' on {host}:{port}. This will open a new command window. Proceed?";
+                
+                bool confirmed = await _dialogService.ShowConfirmationAsync("Confirm Vite Dev Server Start", confirmationPrompt, commandForDisplay);
+                if (!confirmed)
+                {
+                    SendStatusUpdate($"Vite dev server start in {workingPath} cancelled by user.");
+                    return CreateResult(true, false, "Operation cancelled by user.");
                 }
 
                 SendStatusUpdate($"Starting Vite dev server in {workingPath} on {host}:{port}...");

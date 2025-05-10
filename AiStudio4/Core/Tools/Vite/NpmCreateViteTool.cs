@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿// AiStudio4/Core/Tools/Vite/NpmCreateViteTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -16,9 +17,12 @@ namespace AiStudio4.Core.Tools.Vite
     /// </summary>
     public class NpmCreateViteTool : BaseToolImplementation
     {
-        public NpmCreateViteTool(ILogger<NpmCreateViteTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
+        private readonly IDialogService _dialogService;
+
+        public NpmCreateViteTool(ILogger<NpmCreateViteTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IDialogService dialogService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
+            _dialogService = dialogService;
         }
 
         /// <summary>
@@ -109,6 +113,17 @@ namespace AiStudio4.Core.Tools.Vite
                 //{
                 //    Directory.CreateDirectory(targetPath);
                 //}
+
+                // Confirmation Dialog
+                string confirmationPrompt = $"AI wants to create a new Vite project named '{projectName}' in directory '{targetPath}'. This will create new files and folders. Proceed?";
+                string commandForDisplay = $"npm create vite@latest {projectName} -- --template {(typescript ? template + "-ts" : template)}";
+
+                bool confirmed = await _dialogService.ShowConfirmationAsync("Confirm Project Creation", confirmationPrompt, commandForDisplay);
+                if (!confirmed)
+                {
+                    SendStatusUpdate($"Vite project creation in {targetPath} cancelled by user.");
+                    return CreateResult(true, false, "Operation cancelled by user.");
+                }
 
                 SendStatusUpdate($"Creating Vite project '{projectName}' with template '{template}'...");
 

@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿// AiStudio4/Core/Tools/Vite/NpmInstallTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -16,9 +17,12 @@ namespace AiStudio4.Core.Tools.Vite
     /// </summary>
     public class NpmInstallTool : BaseToolImplementation
     {
-        public NpmInstallTool(ILogger<NpmInstallTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
+        private readonly IDialogService _dialogService;
+
+        public NpmInstallTool(ILogger<NpmInstallTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IDialogService dialogService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
+            _dialogService = dialogService;
         }
 
         /// <summary>
@@ -121,7 +125,19 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                SendStatusUpdate($"Running: {command} in {workingPath}...");
+                // Confirmation Dialog
+                string commandArguments = command; // command variable already holds the arguments for pnpm install
+                string confirmationPrompt = $"AI wants to run 'pnpm install {commandArguments}' in directory '{workingPath}'. This will install/update packages. Proceed?";
+                string commandForDisplay = $"pnpm install {commandArguments}";
+
+                bool confirmed = await _dialogService.ShowConfirmationAsync("Confirm NPM Install", confirmationPrompt, commandForDisplay);
+                if (!confirmed)
+                {
+                    SendStatusUpdate($"npm install in {workingPath} cancelled by user.");
+                    return CreateResult(true, false, "Operation cancelled by user.");
+                }
+
+                SendStatusUpdate($"Running: pnpm {command} in {workingPath}...");
 
                 // Execute npm install command using the helper
                 string npmCommand = "pnpm";
@@ -139,7 +155,7 @@ namespace AiStudio4.Core.Tools.Vite
                 string output = result.Output;
 
                 SendStatusUpdate("Npm packages installed successfully.");
-                return CreateResult(true, true, $"All specified npm packages were installed successfully for command `{command}`");
+                return CreateResult(true, true, $"All specified npm packages were installed successfully for command `pnpm {command}`");
             }
             catch (Exception ex)
             {

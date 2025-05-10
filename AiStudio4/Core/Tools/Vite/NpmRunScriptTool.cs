@@ -1,4 +1,5 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿// AiStudio4/Core/Tools/Vite/NpmRunScriptTool.cs
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -17,9 +18,12 @@ namespace AiStudio4.Core.Tools.Vite
     /// </summary>
     public class NpmRunScriptTool : BaseToolImplementation
     {
-        public NpmRunScriptTool(ILogger<NpmRunScriptTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
+        private readonly IDialogService _dialogService;
+
+        public NpmRunScriptTool(ILogger<NpmRunScriptTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IDialogService dialogService) 
             : base(logger, generalSettingsService, statusMessageService)
         {
+            _dialogService = dialogService;
         }
 
         /// <summary>
@@ -122,16 +126,27 @@ namespace AiStudio4.Core.Tools.Vite
 
                 // Build the npm run command
                 string argsString = args.Any() ? " -- " + string.Join(" ", args) : "";
-                string command = $"npm run {scriptName}{argsString}";
+                string commandToExecute = $"run {scriptName}{argsString}"; // Arguments for npm/pnpm
 
-                SendStatusUpdate($"Running: {command} in {workingPath}...");
+                // Confirmation Dialog
+                string confirmationPrompt = $"AI wants to run npm script '{scriptName}' with arguments '{argsString}' in directory '{workingPath}'. This could execute arbitrary code. Proceed?";
+                string commandForDisplay = $"npm run {scriptName}{argsString}";
+
+                bool confirmed = await _dialogService.ShowConfirmationAsync("Confirm NPM Script Execution", confirmationPrompt, commandForDisplay);
+                if (!confirmed)
+                {
+                    SendStatusUpdate($"NPM script '{scriptName}' in {workingPath} cancelled by user.");
+                    return CreateResult(true, false, "Operation cancelled by user.");
+                }
+
+                SendStatusUpdate($"Running: npm {commandToExecute} in {workingPath}...");
 
                 // Execute npm run command using the helper
                 string npmCommand = "npm";
                 bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
                 // Use the enhanced helper to execute the command
-                var result = await ViteCommandHelper.ExecuteCommandAsync(npmCommand, command.Replace("npm ", ""), useCmd, workingPath, _logger);
+                var result = await ViteCommandHelper.ExecuteCommandAsync(npmCommand, commandToExecute, useCmd, workingPath, _logger);
                 
                 if (!result.Success)
                 {

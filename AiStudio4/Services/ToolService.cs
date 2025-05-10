@@ -76,6 +76,7 @@ namespace AiStudio4.Services
 
             }
 
+            // update built-in tools
             var builtinTools = _builtinToolService.GetBuiltinTools();
 
             foreach (var tool in builtinTools)

@@ -76,6 +76,7 @@ namespace AiStudio4
             services.AddSingleton<IStatusMessageService, StatusMessageService>();
             services.AddSingleton<Services.Interfaces.INotificationFacade, NotificationFacade>();
             services.AddSingleton<IToolProcessorService, ToolProcessorService>(); // Add ToolProcessorService
+            services.AddSingleton<IDialogService, WpfDialogService>(); // Add DialogService
             services.AddSingleton<IBuiltinToolService, BuiltinToolService>(); // Add BuiltinToolService
             services.AddSingleton<ISecondaryAiService, SecondaryAiService>(); // Add SecondaryAiService
             services.AddSingleton<IInterjectionService, InterjectionService>(); // Add InterjectionService
