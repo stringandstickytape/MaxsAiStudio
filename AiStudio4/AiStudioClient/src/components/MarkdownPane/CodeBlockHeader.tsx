@@ -75,7 +75,11 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 {launchHtml && (
                     <button
                         onClick={launchHtml}
-                        className="text-small-gray-400 bg-gray-800 px-2 py-1 rounded hover:bg-gray-700 transition-colors flex items-center gap-1"
+                        className="px-2 py-1 rounded transition-colors flex items-center gap-1"
+                        style={{
+                            background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
+                            color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                        }}
                         title="Launch HTML in new tab"
                     >
                         <ExternalLink className="h-3 w-3" />
