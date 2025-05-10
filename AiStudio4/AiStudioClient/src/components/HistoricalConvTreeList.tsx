@@ -22,11 +22,13 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
     const [searchTerm, setSearchTerm] = useState<string>('');
 
 
-    const { clientId } = useWebSocketStore();
+    const { clientId, currentRequest } = useWebSocketStore();
     const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
     const { convs, isLoading, fetchAllConvs, addOrUpdateConv, deleteConv } = useHistoricalConvsStore();
     const { highlightMessage } = useSearchStore();
 
+
+    const isChatRequestOngoing = !!currentRequest;
 
     useEffect(() => {
         fetchAllConvs();
@@ -241,7 +243,8 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                 borderColor: 'var(--global-border-color, #374151)',
                 fontFamily: 'var(--global-font-family, inherit)',
                 fontSize: 'var(--global-font-size, inherit)',
-                ...(window?.theme?.HistoricalConvTreeList?.style || {})
+                ...(window?.theme?.HistoricalConvTreeList?.style || {}),
+                ...(isChatRequestOngoing && { pointerEvents: 'none', opacity: 0.5 })
             }}
         >
             {/* Search bar removed - now using the one in Sidebar */}
