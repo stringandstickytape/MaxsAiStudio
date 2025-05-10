@@ -6,6 +6,10 @@
 2. **Theme Implementation**  
    - Understand theming requirements thoroughly; use global theme properties directly unless specified otherwise.  
    - Avoid unnecessary component-specific theming layers and ensure required exports like `themeableProps` are not removed.  
+   - When encountering hardcoded styles that seem to conflict with global theming, first confirm if these styles are part of an intentional local theme or a fallback for specific scenarios (e.g., dark mode).  
+   - Ask for more precise details about *what specific visual elements* of a component are not themed correctly (e.g., "text color is wrong," "border is missing," "hover state doesn't match") rather than a general "not themed correctly."  
+   - Before removing styles, consider if the issue is that *other* theme variables are not being applied correctly to child elements or pseudo-states of the component.  
+   - If a component has both hardcoded styles and is supposed to be themeable, investigate how the theme is intended to interact with or override those hardcoded styles.  
    - Ask clarifying questions when uncertain.
 
 3. **CSS Variable Naming Conventions**  
