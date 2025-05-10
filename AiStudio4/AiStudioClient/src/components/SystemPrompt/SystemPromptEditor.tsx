@@ -388,7 +388,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                           <SelectValue placeholder="Select primary model" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectContent className="bg-gray-800 border-gray-700 text-[var(--global-text-color)]">
                         <SelectItem value="none">None</SelectItem>
                         {models.map((model) => (
                           <SelectItem key={model.guid} value={model.guid}>
@@ -421,7 +421,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                           <SelectValue placeholder="Select secondary model" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectContent className="bg-gray-800 border-gray-700 text-[var(--global-text-color)]">
                         <SelectItem value="none">None</SelectItem>
                         {models.map((model) => (
                           <SelectItem key={model.guid} value={model.guid}>
@@ -590,7 +590,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                           <SelectValue placeholder="Select a user prompt" />
                         </SelectTrigger>
                       </FormControl>
-                      <SelectContent className="bg-gray-800 border-gray-700">
+                      <SelectContent className="bg-gray-800 border-gray-700 text-[var(--global-text-color)]">
                         <SelectItem value="none">None</SelectItem>
                         {userPrompts.map((prompt) => (
                           <SelectItem key={prompt.guid} value={prompt.guid}>
