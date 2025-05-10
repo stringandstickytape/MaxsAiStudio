@@ -12,6 +12,8 @@ import { EmptyTreeView } from './EmptyTreeView';
 import { TreeControls } from './TreeControls';
 
 // Use React.memo to prevent unnecessary re-renders
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
+
 const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const [updateKey, setUpdateKey] = useState(0);
     const { setActiveConv, convs, slctdMsgId } = useConvStore();
@@ -136,6 +138,10 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
         return <EmptyTreeView />;
     }
 
+    // Get chat request state *before* return
+    const { currentRequest } = useWebSocketStore();
+    const isChatRequestOngoing = !!currentRequest;
+
     return (
         <div className="ConvTreeView flex flex-col h-full w-full"
             style={{
@@ -146,7 +152,8 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                 borderRadius: 'var(--global-border-radius, 0)',
                 boxShadow: 'var(--global-box-shadow, none)',
                 borderColor: 'var(--global-border-color, #1f2937)',
-                ...(window?.theme?.ConvTreeView?.style || {})
+                ...(window?.theme?.ConvTreeView?.style || {}),
+                ...(isChatRequestOngoing && { pointerEvents: 'none', opacity: 0.5 })
             }}
         >
             <div
