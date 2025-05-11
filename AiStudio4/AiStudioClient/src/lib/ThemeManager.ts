@@ -49,7 +49,12 @@ class ThemeManager {
         cssVar: '--global-text-color',
         description: 'Global text color for the application',
         default: '#333333'
-      },
+        },
+        secondaryTextColor: {
+            cssVar: '--global-secondary-text-color',
+            description: 'Global secondary text color for the application, for less-important text',
+            default: '#666666'
+        },
       primaryColor: {
         cssVar: '--global-primary-color',
         description: 'Primary accent color for the application',

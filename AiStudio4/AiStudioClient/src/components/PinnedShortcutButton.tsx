@@ -62,9 +62,9 @@ export function PinnedShortcutButton({
                                 }}
                                 className={`PinnedShortcuts ${orientation === 'horizontal' ? 'h-[36px] w-[100px]' : 'h-[72px] w-[80px]'} ${orientation === 'horizontal' ? 'px-0 py-0' : 'px-0.5 py-0.5'} rounded-md ${getCategoryBackgroundColor(command.section)} hover:bg-opacity-30 flex flex-row items-center justify-center relative`}
                                 style={{
-                                    '--hover-text-color': 'var(--pinnedshortcuts-text-color-hover, #f9fafb)',
+                                    '--hover-text-color': 'var(--global-text-color, #f9fafb)',
                                     border: `var(--pinnedshortcuts-border-width, 1px) var(--pinnedshortcuts-border-style, solid) var(--pinnedshortcuts-border-color, ${getCategoryBorderColor(command.section).replace('border-', '')})`,
-                                    color: 'var(--pinnedshortcuts-text-color, #e5e7eb)',
+                                    color: 'var(--global-text-color, #e5e7eb)',
                                     fontWeight: 'var(--pinnedshortcuts-font-weight, 500)',
                                     fontFamily: 'var(--pinnedshortcuts-font-family, inherit)',
                                     ...(window?.theme?.PinnedShortcuts?.buttonStyle || {})

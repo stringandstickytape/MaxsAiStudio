@@ -21,10 +21,17 @@ export function TemperatureControl() {
     <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2"
+                      style={{
+                          color: 'var(--global-text-color)',
+                      }}
+                  >
             <Label 
               htmlFor="temperature-slider" 
-              className="text-xs text-gray-400 whitespace-nowrap cursor-pointer"
+                          className="text-xs text-gray-400 whitespace-nowrap cursor-pointer"
+                          style={{
+                              color: 'var(--global-text-color)',
+                          }}
             >
               Temp: {temperature.toFixed(1)}
             </Label>
@@ -38,7 +45,10 @@ export function TemperatureControl() {
               onValueCommit={handleSliderCommit}
               className={cn("w-[100px] md:w-[120px]", isLoading && "opacity-50 cursor-not-allowed")}
               disabled={isLoading}
-              aria-label="Temperature Slider"
+                          aria-label="Temperature Slider"
+                          style={{
+                              color: 'var(--global-text-color)',
+                          }}
             />
           </div>
         </TooltipTrigger>

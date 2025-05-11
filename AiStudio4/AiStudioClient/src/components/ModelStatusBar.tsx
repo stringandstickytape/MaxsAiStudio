@@ -1,4 +1,4 @@
-
+﻿
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -20,7 +20,12 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatus
             <Button
               variant="ghost"
               onClick={onPrimaryClick}
-              className="h-5 px-2 py-0 text-xs rounded-full bg-blue-600/10 border border-blue-700/20 text-blue-200 hover:bg-blue-600/30 hover:text-blue-100 transition-colors"
+              className="h-5 px-2 py-0 text-xs rounded-full bg-blue-600/10 hover:bg-blue-600/30 hover:text-blue-100 transition-colors"
+              style={{
+                color: 'var(--global-text-color)',
+                borderColor: 'var(--global-primary-color, rgba(37, 99, 235, 0.2))',
+                border: '1px solid'
+              }}
             >
               <span className="truncate max-w-[130px]">{selectedPrimaryModel !== 'Select Model' ? selectedPrimaryModel : 'Primary Model'}</span>
             </Button>
@@ -37,7 +42,12 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatus
             <Button
               variant="ghost"
               onClick={onSecondaryClick}
-              className="h-5 px-2 py-0 text-xs rounded-full bg-purple-600/10 border border-purple-700/20 text-purple-200 hover:bg-purple-600/30 hover:text-purple-100 transition-colors"
+              className="h-5 px-2 py-0 text-xs rounded-full bg-purple-600/10 hover:bg-purple-600/30 hover:text-purple-100 transition-colors"
+              style={{
+                color: 'var(--global-text-color)',
+                borderColor: 'var(--global-secondary-color, rgba(147, 51, 234, 0.2))',
+                border: '1px solid'
+              }}
             >
               <span className="truncate max-w-[130px]">{selectedSecondaryModel !== 'Select Model' ? selectedSecondaryModel : 'Secondary Model'}</span>
             </Button>

@@ -467,7 +467,7 @@ export const useTreeVisualization = ({
       .attr('y', -25)
       .attr('font-size', containerWidth < 400 ? '9px' : '10px')
       .attr('font-weight', 'bold')
-      .attr('fill', 'white')
+      .attr('fill', getThemeColor('--global-text-color', 'white'))
       .text((d) => {
         const source = d.data.source;
         if (source === 'user') return 'You';
@@ -483,7 +483,7 @@ export const useTreeVisualization = ({
       .attr('width', containerWidth < 400 ? 180 : 220)
       .attr('height', containerWidth < 400 ? 55 : 65)
       .append('xhtml:div')
-      .style('color', 'white')
+      .style('color', getThemeColor('--global-text-color', 'white'))
       .style('font-size', '10px')
       .style('overflow', 'hidden')
       .style('text-overflow', 'ellipsis')
@@ -511,7 +511,7 @@ export const useTreeVisualization = ({
       .attr('width', containerWidth < 400 ? 180 : 220)
       .attr('height', 20)
       .append('xhtml:div')
-      .style('color', '#c7d2fe')
+      .style('color', getThemeColor('--global-secondary-text-color', '#c7d2fe'))
       .style('font-size', containerWidth < 400 ? '7px' : '8px')
       .style('text-align', 'right')
       .style('padding', '0 5px')
