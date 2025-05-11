@@ -79,6 +79,7 @@ namespace AiStudio4
             services.AddSingleton<IDialogService, WpfDialogService>(); // Add DialogService
             services.AddSingleton<IBuiltinToolService, BuiltinToolService>(); // Add BuiltinToolService
             services.AddSingleton<ISecondaryAiService, SecondaryAiService>(); // Add SecondaryAiService
+            services.AddSingleton<LicenseService>(); // Add InterjectionService
             services.AddSingleton<IInterjectionService, InterjectionService>(); // Add InterjectionService
 
             // Register application services
