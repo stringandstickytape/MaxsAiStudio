@@ -21,13 +21,14 @@ export const ScrollToBottomButton = ({ onActivateSticking }: ScrollToBottomButto
 
   return (
     <button
-      className="absolute rounded-full p-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-md right-4 bottom-4 z-10"
+      className="absolute rounded-full p-2 shadow-md right-4 bottom-4 z-10 transition-colors ScrollToBottomButton"
       onClick={handleScrollToBottom}
       aria-label="Scroll to bottom"
       style={{
-        backgroundColor: 'var(--convview-accent-color, #2563eb)',
-        color: 'var(--convview-text-color, #ffffff)',
-        ...(window?.theme?.ConvView?.style || {})
+        backgroundColor: 'var(--global-primary-color)',
+        color: 'var(--global-background-color)',
+        borderRadius: 'var(--global-border-radius)',
+        boxShadow: 'var(--global-box-shadow)'
       }}
     >
       <ArrowDown className="h-5 w-5" />
