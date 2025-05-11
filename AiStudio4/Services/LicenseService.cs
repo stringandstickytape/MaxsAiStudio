@@ -161,7 +161,9 @@ public class LicenseService : IDisposable
     {
         sb.AppendLine($"Name: {package.PackageId ?? "N/A"}");
         sb.AppendLine($"Version: {package.PackageVersion ?? "N/A"}");
-        sb.AppendLine($"License: {(string.IsNullOrWhiteSpace(package.License) ? "null" : package.License)}");
+
+        
+            sb.AppendLine($"License: {(string.IsNullOrWhiteSpace(package.License) ? "null" : package.License)}");
         sb.AppendLine("Private: false"); // As per example
         // Description is not in NuGet JSON, so omitted.
         sb.AppendLine($"Repository: {package.PackageProjectUrl ?? "N/A"}");
@@ -178,7 +180,7 @@ public class LicenseService : IDisposable
             hasPrintedContent = true;
         }
 
-        if (!string.IsNullOrWhiteSpace(package.FetchedLicenseText))
+        if (!string.IsNullOrWhiteSpace(package.FetchedLicenseText) && package.PackageId != "Microsoft.Web.WebView2")
         {
             if (hasPrintedContent) // If copyright was printed, add a small separator
             {

@@ -56,9 +56,9 @@ public partial class WebViewWindow : Window
         
         // Initialize license file paths
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-        _licensesJsonPath = Path.Combine(baseDir, "Licenses", "licenses.json");
-        _nugetLicense1Path = Path.Combine(baseDir, "Licenses", "nuget-license1.txt");
-        _nugetLicense2Path = Path.Combine(baseDir, "Licenses", "nuget-license2.txt");
+        _licensesJsonPath = Path.Combine(baseDir, "AiStudioClient", "dist", "licenses.txt");
+        _nugetLicense1Path = Path.Combine(baseDir, "app-nuget-license.txt");
+        _nugetLicense2Path = Path.Combine(baseDir, "sharedclasses-nuget-license.txt");
         
         InitializeComponent();
         UpdateWindowTitle(); // Set initial window title
