@@ -21,7 +21,8 @@ interface TreeNode {
   source?: string;
     costInfo?: any;
     cumulativeCost?: number;
-  attachments?: any[];
+    attachments?: any[];
+    temperature?: number;
 }
 
 interface HistoricalConvsStore {
@@ -115,7 +116,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
               source: node.source, 
                 costInfo: node.costInfo,
               cumulativeCost: node.cumulativeCost,
-              attachments: node.attachments,
+                attachments: node.attachments,
+                temperature: node.temperature, 
               timestamp: node.timestamp,
               durationMs: node.durationMs
             });

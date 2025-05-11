@@ -330,6 +330,7 @@ namespace AiStudio4.Services
                         var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: response.ResponseText, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+                        msg.Temperature = requestOptions.ApiSettings.Temperature;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
@@ -343,7 +344,8 @@ namespace AiStudio4.Services
                             DurationMs = 0,
                             CostInfo = costInfo,
                             CumulativeCost = msg.CumulativeCost,
-                            TokenUsage = response.TokenUsage
+                            TokenUsage = response.TokenUsage,
+                            Temperature = msg.Temperature
                         });
 
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
@@ -378,6 +380,7 @@ namespace AiStudio4.Services
                         v4BranchedConvMessage msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: userMessage, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+                        msg.Temperature = requestOptions.ApiSettings.Temperature;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
@@ -391,7 +394,8 @@ namespace AiStudio4.Services
                             DurationMs = 0,
                             CostInfo = costInfo,
                             CumulativeCost = msg.CumulativeCost,
-                            TokenUsage = response.TokenUsage
+                            TokenUsage = response.TokenUsage,
+                            Temperature = msg.Temperature
                         });
 
                    }

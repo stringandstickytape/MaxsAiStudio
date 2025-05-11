@@ -4,8 +4,8 @@ namespace AiStudio4.InjectedDependencies
 {
     public interface IAppearanceSettingsService
     {
-        AppearanceSettings GetAppearanceSettings(string clientId);
-        void UpdateAppearanceSettings(string clientId, AppearanceSettings settings);
+        AppearanceSettings GetAppearanceSettings();
+        void UpdateAppearanceSettings(AppearanceSettings settings);
         void LoadSettings();
         void SaveSettings();
     }

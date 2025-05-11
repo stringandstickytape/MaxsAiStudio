@@ -63,7 +63,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 if (attachments) {
                     useAttachmentStore.getState().addAttachmentsForId(content.id, attachments);
                 }
-
+                console.log('temp = ', content.temperature);
                 // First add the message to the conversation
                 addMessage({
                     convId: targetConvId,
@@ -76,7 +76,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                         durationMs: content.durationMs, // Ensure this is explicitly included
                         costInfo: content.costInfo || null,
                         cumulativeCost: content.cumulativeCost,
-                        attachments: attachments || undefined
+                        attachments: attachments || undefined,
+                        temperature: content.temperature
                     },
                     slctdMsgId: isAiMessage ? content.id : false,
                 });
@@ -171,7 +172,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                             durationMs: m.durationMs,
                             costInfo: m.costInfo || null,
                             cumulativeCost: m.cumulativeCost,
-                            attachments: attachments || undefined
+                            attachments: attachments || undefined,
+                            temperature: m.temperature
                         },
                     });
                 });
@@ -214,7 +216,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                     parentId: message.parentId || s.slctdMsgId || null,
                     costInfo: message.costInfo,
                     cumulativeCost: message.cumulativeCost,
-                    attachments: message.attachments
+                    attachments: message.attachments,
+                    temperature: message.temperature
                 };
                 
                 const newSelectedMsgId = slctdMsgId ?? s.slctdMsgId;

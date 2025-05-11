@@ -316,7 +316,8 @@ namespace AiStudio4.Services
                 costInfo = msg.CostInfo,
                 attachments = msg.Attachments,
                 timestamp = msg.Timestamp,
-                durationMs = msg.DurationMs
+                durationMs = msg.DurationMs,
+                temperature = msg.Temperature
             }).ToList<object>();
         }
 

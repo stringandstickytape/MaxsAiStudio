@@ -8,6 +8,7 @@ namespace AiStudio4.InjectedDependencies
 {
     public class v4BranchedConvMessage
     {
+        public float? Temperature { get; set; }
         public v4BranchedConvMessageRole Role { get; set; }
 
         // Removed Children collection for flat structure
@@ -49,7 +50,8 @@ namespace AiStudio4.InjectedDependencies
                 CumulativeCost = this.CumulativeCost,
                 Attachments = new List<Attachment>(this.Attachments), // Create a new list wrapping the same attachment references
                 Timestamp = this.Timestamp,
-                DurationMs = this.DurationMs
+                DurationMs = this.DurationMs,
+                Temperature = this.Temperature
             };
         }
     }

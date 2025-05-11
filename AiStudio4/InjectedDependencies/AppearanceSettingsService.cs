@@ -12,7 +12,7 @@ namespace AiStudio4.InjectedDependencies
     {
         private readonly string _settingsFilePath;
         private readonly object _lock = new();
-        private Dictionary<string, AppearanceSettings> _userAppearanceSettings = new();
+        private AppearanceSettings _userAppearanceSettings = new();
 
         public AppearanceSettingsService(IConfiguration configuration)
         {
@@ -27,7 +27,7 @@ namespace AiStudio4.InjectedDependencies
             {
                 if (!File.Exists(_settingsFilePath))
                 {
-                    _userAppearanceSettings = new Dictionary<string, AppearanceSettings>();
+                    _userAppearanceSettings = new AppearanceSettings();
                     SaveSettings();
                     return;
                 }
@@ -35,11 +35,11 @@ namespace AiStudio4.InjectedDependencies
                 var section = json["appearanceSettings"];
                 if (section != null)
                 {
-                    _userAppearanceSettings = section.ToObject<Dictionary<string, AppearanceSettings>>() ?? new Dictionary<string, AppearanceSettings>();
+                    _userAppearanceSettings = section.ToObject<AppearanceSettings>() ?? new AppearanceSettings();
                 }
                 else
                 {
-                    _userAppearanceSettings = new Dictionary<string, AppearanceSettings>();
+                    _userAppearanceSettings = new AppearanceSettings();
                     SaveSettings();
                 }
             }
@@ -63,27 +63,15 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
-        public AppearanceSettings GetAppearanceSettings(string clientId)
+        public AppearanceSettings GetAppearanceSettings()
         {
-            lock (_lock)
-            {
-                if (!_userAppearanceSettings.TryGetValue(clientId, out var settings))
-                {
-                    settings = new AppearanceSettings();
-                    _userAppearanceSettings[clientId] = settings;
-                    SaveSettings();
-                }
-                return settings;
-            }
+                return _userAppearanceSettings;
         }
 
-        public void UpdateAppearanceSettings(string clientId, AppearanceSettings settings)
+        public void UpdateAppearanceSettings(AppearanceSettings settings)
         {
-            lock (_lock)
-            {
-                _userAppearanceSettings[clientId] = settings;
+                _userAppearanceSettings = settings;
                 SaveSettings();
-            }
         }
     }
 }

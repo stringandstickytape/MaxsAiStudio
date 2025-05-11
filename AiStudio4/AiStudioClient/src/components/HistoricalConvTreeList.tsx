@@ -171,6 +171,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                             costInfo: message.costInfo,
                             cumulativeCost: message.cumulativeCost,
                             attachments: message.attachments,
+                            temperature: message.temperature,
                             durationMs: message.durationMs
                         },
                     });

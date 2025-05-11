@@ -106,7 +106,8 @@ export const ConvView = ({
             durationMs: msg.durationMs,
             costInfo: msg.costInfo,
             cumulativeCost: msg.cumulativeCost,
-            attachments: msg.attachments
+            attachments: msg.attachments,
+            temperature: msg.temperature
         }));
         // Get the starting message ID
         const startingMessageId = streamTokens.length > 0

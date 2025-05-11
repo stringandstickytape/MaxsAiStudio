@@ -186,6 +186,7 @@ export function useChatManagement() {
                             costInfo: node.costInfo,
                             cumulativeCost: node.cumulativeCost,
                             attachments: node.attachments,
+                            temperature: node.temperature,
                             timestamp: node.timestamp,
                             // For durationMs, convert to number if it's a string, or keep as is
                             durationMs: typeof node.durationMs === 'string' ? 
@@ -252,7 +253,8 @@ export function useChatManagement() {
                             durationMs: typeof node.durationMs === 'number' ? node.durationMs : undefined,
                             costInfo: node.costInfo || null,
                             cumulativeCost: node.cumulativeCost,
-                            attachments: attachments || undefined
+                            attachments: attachments || undefined,
+                            temperature: node.temperature || null
                         };
                     });
 

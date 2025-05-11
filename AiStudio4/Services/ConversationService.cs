@@ -55,6 +55,7 @@ namespace AiStudio4.Services
                     timestamp = new DateTimeOffset(msg.Timestamp).ToUnixTimeMilliseconds(),
                     durationMs = msg.DurationMs,
                     cumulativeCost = msg.CumulativeCost,
+                    temperature = msg.Temperature
                 }).ToList();
 
                 return JsonConvert.SerializeObject(new

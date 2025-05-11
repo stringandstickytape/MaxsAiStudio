@@ -22,6 +22,7 @@ export interface Message {
   } | null;
   cumulativeCost?: number | null;
   durationMs?: number | null; // Ensure it can be null or number
+  temperature?: number; // Temperature used for AI messages (optional) 
 }
 
 export interface Conv {

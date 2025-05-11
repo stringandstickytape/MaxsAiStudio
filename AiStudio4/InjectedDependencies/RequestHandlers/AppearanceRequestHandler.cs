@@ -32,8 +32,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             {
                 return requestType switch
                 {
-                    "getAppearanceSettings" => await HandleGetAppearanceSettingsRequest(clientId, requestObject),
-                    "saveAppearanceSettings" => await HandleSaveAppearanceSettingsRequest(clientId, requestObject),
+                    "getAppearanceSettings" => await HandleGetAppearanceSettingsRequest(requestObject),
+                    "saveAppearanceSettings" => await HandleSaveAppearanceSettingsRequest(requestObject),
                     _ => SerializeError($"Unsupported request type: {requestType}")
                 };
             }
@@ -43,20 +43,11 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             }
         }
 
-        private async Task<string> HandleGetAppearanceSettingsRequest(string clientId, JObject requestObject)
+        private async Task<string> HandleGetAppearanceSettingsRequest(JObject requestObject)
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId))
-                {
-                    clientId = requestObject["clientId"]?.ToString();
-                    if (string.IsNullOrEmpty(clientId))
-                    {
-                        return SerializeError("Client ID is required");
-                    }
-                }
-
-                var settings = _appearanceSettingsService.GetAppearanceSettings(clientId);
+                var settings = _appearanceSettingsService.GetAppearanceSettings();
                 return JsonConvert.SerializeObject(new
                 {
                     success = true,
@@ -70,19 +61,10 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             }
         }
 
-        private async Task<string> HandleSaveAppearanceSettingsRequest(string clientId, JObject requestObject)
+        private async Task<string> HandleSaveAppearanceSettingsRequest(JObject requestObject)
         {
             try
             {
-                if (string.IsNullOrEmpty(clientId))
-                {
-                    clientId = requestObject["clientId"]?.ToString();
-                    if (string.IsNullOrEmpty(clientId))
-                    {
-                        return SerializeError("Client ID is required");
-                    }
-                }
-
                 var fontSize = requestObject["fontSize"]?.Value<int>() ?? 16;
                 var isDarkMode = requestObject["isDarkMode"]?.Value<bool>() ?? true;
 
@@ -92,7 +74,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     IsDarkMode = isDarkMode
                 };
 
-                _appearanceSettingsService.UpdateAppearanceSettings(clientId, settings);
+                _appearanceSettingsService.UpdateAppearanceSettings(settings);
                 return JsonConvert.SerializeObject(new { success = true });
             }
             catch (Exception ex)

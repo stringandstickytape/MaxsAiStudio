@@ -49,7 +49,8 @@ namespace AiStudio4.Services
                             costInfo = update.CostInfo,
                             cumulativeCost = update.CumulativeCost,
                             attachments = update.Attachments,
-                            durationMs = update.DurationMs
+                            durationMs = update.DurationMs,
+                            temperature = update.Temperature
                         }
                     };
                     await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));

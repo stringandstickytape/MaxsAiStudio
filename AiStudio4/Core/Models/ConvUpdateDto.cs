@@ -16,5 +16,6 @@ namespace AiStudio4.Core.Models
         public TokenCost CostInfo { get; set; }
         public decimal CumulativeCost { get; set; }
         public TokenUsage TokenUsage { get; set; }
+        public float? Temperature { get; set; }
     }
 }

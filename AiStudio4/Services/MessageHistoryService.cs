@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -51,7 +51,8 @@ namespace AiStudio4.Services
                             timestamp = new DateTimeOffset(msg.Timestamp).ToUnixTimeMilliseconds(),
                             costInfo = msg.CostInfo,
                             attachments = msg.Attachments,
-                            durationMs = msg.DurationMs
+                            durationMs = msg.DurationMs,
+                            temperature = msg.Temperature
                         };
                     }).ToList();
 

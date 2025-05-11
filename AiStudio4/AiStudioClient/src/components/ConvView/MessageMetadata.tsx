@@ -121,13 +121,18 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
               (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
               {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
             </span>
+            {(message.source === 'ai' || message.source === 'assistant') && typeof message.temperature === 'number' && (
+                <span title={`AI response generated with temperature: ${message.temperature.toFixed(1)}`}>
+                    Temp: {message.temperature.toFixed(1)}
+                </span>
+            )}
             {message.costInfo.modelGuid && (
               <span className="ml-1 text-gray-400 text-xs font-medium bg-gray-700 px-2 py-0.5 rounded-full">
-                {formatModelDisplay(message.costInfo.modelGuid)}
+                              {formatModelDisplay(message.costInfo.modelGuid)}
               </span>
             )}
           </div>
-        )}
+          )}
       </div>
     </div>
   );
