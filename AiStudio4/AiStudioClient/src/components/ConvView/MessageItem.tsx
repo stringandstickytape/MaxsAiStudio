@@ -64,7 +64,7 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
             ? 'var(--global-user-message-border-style, solid)'
             : 'var(--global-ai-message-border-style, solid)',
           ...(isSearchMatch && {
-            borderLeft: '3px solid var(--convview-accent-color, #2563eb)',
+            borderLeft: '3px solid var(--global-primary-color, #2563eb)',
             paddingLeft: '0.5rem',
             backgroundColor: message.source === 'user' 
               ? 'rgba(37, 99, 235, 0.2)' // Blue with opacity for user messages

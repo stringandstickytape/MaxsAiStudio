@@ -63,19 +63,11 @@
 	  <Folder Include="AiStudioClient\dist\" />
 	  <Folder Include="AiStudioClient\src\services\websocket\" />
 	  <Folder Include="AiStudioClient\src\store\" />
+	  <Folder Include="Licenses\" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <None Update="app-nuget-license.txt">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Licenses\licenses.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Licenses\nuget-license1.txt">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Licenses\nuget-license2.txt">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
