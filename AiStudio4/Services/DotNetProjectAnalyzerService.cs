@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.Extensions.Logging;
 using AiStudio4.Services.Interfaces;
+using AiStudio4.InjectedDependencies;
 using static RoslynHelper;
 using System.IO;
 
@@ -17,108 +18,87 @@ namespace AiStudio4.Services
     public class DotNetProjectAnalyzerService : IDotNetProjectAnalyzerService
     {
         private readonly ILogger<DotNetProjectAnalyzerService> _logger;
+        private readonly IProjectFileWatcherService _projectFileWatcherService;
 
-        public DotNetProjectAnalyzerService(ILogger<DotNetProjectAnalyzerService> logger)
+        public DotNetProjectAnalyzerService(
+            ILogger<DotNetProjectAnalyzerService> logger,
+            IProjectFileWatcherService projectFileWatcherService)
         {
             _logger = logger;
+            _projectFileWatcherService = projectFileWatcherService;
         }
 
-        public async Task<Dictionary<string, Dictionary<string, List<string>>>> GetProjectStructureAsync(string projectPath)
+        /// <summary>
+        /// Analyzes all C# files in the project directory and extracts their members using Roslyn.
+        /// </summary>
+        /// <param name="projectPath">The directory path containing the project files</param>
+        /// <returns>A list of files with their extracted members</returns>
+        public List<FileWithMembers> AnalyzeProjectFiles(string projectPath)
         {
-            if (!System.IO.File.Exists(projectPath))
+            var filesWithMembers = new List<FileWithMembers>();
+            
+            // Initialize the file watcher service with the project path if needed
+            if (_projectFileWatcherService.ProjectPath != projectPath)
             {
-                _logger.LogError("Project file not found: {ProjectPath}", projectPath);
-                throw new System.IO.FileNotFoundException("Project file not found.", projectPath);
+                _projectFileWatcherService.Initialize(projectPath);
             }
+            
+            // Get all C# files from the file watcher service
+            var csFiles = _projectFileWatcherService.Files
+                .Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                .Where(f => IsValidFile(f))
+                .ToArray();
 
+            _logger.LogInformation("Found {FileCount} C# files to analyze", csFiles.Length);
 
-
-            _logger.LogInformation("Attempting to load project: {ProjectPath}", projectPath);
-
-            // Create an MSBuildWorkspace with C# language support
-            var properties = new Dictionary<string, string>
+            foreach (string filePath in csFiles)
             {
-                { "BuildingInsideVisualStudio", "true" },
-                { "DesignTimeBuild", "true" }
-            };
-
-            var _ = typeof(Microsoft.CodeAnalysis.CSharp.Formatting.CSharpFormattingOptions);
-
-            using (var workspace = MSBuildWorkspace.Create(properties))
-            {
-                // Register the C# language
-                workspace.LoadMetadataForReferencedProjects = true;
+                try
                 {
-                    Project project;
-                    try
-                    {
-                        project = await workspace.OpenProjectAsync(projectPath);
-                        _logger.LogInformation("Successfully loaded project: {ProjectName}, Found {DocumentCount} documents.", project.Name, project.Documents.Count());
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error opening project {ProjectPath}: {ErrorMessage}", projectPath, ex.Message);
-                        return new Dictionary<string, Dictionary<string, List<string>>>(); // Return empty on failure
-                    }
+                    string sourceCode = File.ReadAllText(filePath);
+                    string fileName = Path.GetFileName(filePath);
 
-                    var structure = new Dictionary<string, Dictionary<string, List<string>>>();
+                    List<MemberDetail> methods = RoslynHelper.ExtractMembersUsingRoslyn(sourceCode, fileName);
+                    List<Member> members = methods.Select(m =>
+                        new Member(m.ItemName, m.MemberType, m.SourceCode, m.Namespace)).ToList();
 
-                    foreach (var document in project.Documents)
-                    {
-                        if (!document.SupportsSyntaxTree || !document.FilePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
-                        {
-                            _logger.LogInformation("Skipping document (unsupported or not C#): {DocumentName}", document.Name);
-                            continue;
-                        }
-
-                        _logger.LogInformation("Processing document: {DocumentName}", document.Name);
-                        var syntaxTree = await document.GetSyntaxTreeAsync();
-                        if (syntaxTree == null)
-                        {
-                            _logger.LogWarning("Could not get syntax tree for: {DocumentName}", document.Name);
-                            continue;
-                        }
-
-                        var root = await syntaxTree.GetRootAsync();
-                        var classDeclarations = root.DescendantNodes().OfType<ClassDeclarationSyntax>();
-
-                        foreach (var classDecl in classDeclarations)
-                        {
-                            string className = classDecl.Identifier.Text;
-                            string namespaceName = "[Global Namespace]"; // Default
-
-                            var namespaceDecl = classDecl.Parent as NamespaceDeclarationSyntax;
-                            if (namespaceDecl != null)
-                            {
-                                namespaceName = namespaceDecl.Name.ToString();
-                            }
-                            else if (classDecl.Parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
-                            {
-                                namespaceName = fileScopedNamespace.Name.ToString();
-                            }
-
-                            if (!structure.ContainsKey(namespaceName))
-                            {
-                                structure[namespaceName] = new Dictionary<string, List<string>>();
-                            }
-
-                            if (!structure[namespaceName].ContainsKey(className))
-                            {
-                                structure[namespaceName][className] = new List<string>();
-                            }
-
-                            var methodDeclarations = classDecl.Members.OfType<MethodDeclarationSyntax>();
-                            foreach (var methodDecl in methodDeclarations)
-                            {
-                                string methodName = methodDecl.Identifier.Text;
-                                structure[namespaceName][className].Add(methodName);
-                            }
-                        }
-                    }
-                    _logger.LogInformation("Finished processing documents for project: {ProjectPath}", projectPath);
-                    return structure;
+                    filesWithMembers.Add(new FileWithMembers(filePath, members));
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing file {FilePath}: {ErrorMessage}", filePath, ex.Message);
                 }
             }
+
+            return filesWithMembers;
+        }
+
+        /// <summary>
+        /// Determines if a file should be included in the analysis.
+        /// </summary>
+        private bool IsValidFile(string filePath)
+        {
+            // Skip files in bin, obj, and other non-source directories
+            string normalizedPath = filePath.Replace('\\', '/');
+            return !normalizedPath.Contains("/bin/") && 
+                   !normalizedPath.Contains("/obj/") && 
+                   !normalizedPath.Contains("/node_modules/") &&
+                   !normalizedPath.Contains("/packages/");
+        }
+    }
+
+    /// <summary>
+    /// Represents a file with its extracted members.
+    /// </summary>
+    public class FileWithMembers
+    {
+        public string FilePath { get; }
+        public List<Member> Members { get; }
+
+        public FileWithMembers(string filePath, List<Member> members)
+        {
+            FilePath = filePath;
+            Members = members;
         }
     }
 }

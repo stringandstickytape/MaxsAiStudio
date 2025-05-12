@@ -24,6 +24,7 @@ using System.Linq;
 using System.IO;
 using System.Diagnostics;
 using AiStudio4.Core.Services;
+using static RoslynHelper;
 
 namespace AiStudio4;
 
@@ -665,91 +666,66 @@ public partial class WebViewWindow : Window
         _logger.LogInformation("Analyze .NET Projects menu item clicked.");
         try
         {
-            // 1. Get the list of .csproj files from ProjectFileWatcherService
-            // The ProjectFileWatcherService is initialized based on GeneralSettings.ProjectPath
-            // Ensure it's initialized if ProjectPath is set.
-            if (string.IsNullOrEmpty(_projectFileWatcherService.ProjectPath) || !_projectFileWatcherService.Files.Any())
+            // Check if project path is set
+            string projectRootPath = _generalSettingsService.CurrentSettings.ProjectPath;
+            if (string.IsNullOrEmpty(projectRootPath))
             {
-                MessageBox.Show("Project path is not set or no files are being watched. Please set a project path first.", "Project Not Ready", MessageBoxButton.OK, MessageBoxImage.Warning);
-                _logger.LogWarning("Analysis skipped: Project path not set or no files watched.");
+                MessageBox.Show("Project path is not set. Please set a project path first.", "Project Not Ready", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _logger.LogWarning("Analysis skipped: Project path not set.");
                 return;
             }
 
-            var csprojFiles = _projectFileWatcherService.Files
-                .Where(f => f.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
-                .ToList();
-
-            if (!csprojFiles.Any())
-            {
-                MessageBox.Show("No .csproj files found in the current project path.", "No Projects Found", MessageBoxButton.OK, MessageBoxImage.Information);
-                _logger.LogInformation("No .csproj files found for analysis.");
-                return;
-            }
-
-            _logger.LogInformation("Found {Count} .csproj files to analyze.", csprojFiles.Count);
-            MessageBox.Show($"Found {csprojFiles.Count} .csproj file(s). Analysis will begin. This might take a moment.", "Analysis Starting", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show("Analysis will begin. This might take a moment.", "Analysis Starting", MessageBoxButton.OK, MessageBoxImage.Information);
 
             var overallResults = new StringBuilder();
             overallResults.AppendLine("DotNet Project Analysis Results:");
             overallResults.AppendLine($"Analysis Date: {DateTime.Now}");
             overallResults.AppendLine("===================================");
 
-            foreach (var csprojPath in csprojFiles)
+            // Analyze all C# files in the project
+            _logger.LogInformation("Analyzing C# files in project: {ProjectPath}", projectRootPath);
+            overallResults.AppendLine($"\nProject Directory: {projectRootPath}");
+            overallResults.AppendLine("-----------------------------------");
+            
+            try
             {
-                _logger.LogInformation("Analyzing project: {ProjectPath}", csprojPath);
-                overallResults.AppendLine($"\nProject: {System.IO.Path.GetFileName(csprojPath)} ({csprojPath})");
-                overallResults.AppendLine("-----------------------------------");
-                try
+                var filesWithMembers = _dotNetProjectAnalyzerService.AnalyzeProjectFiles(projectRootPath);
+                
+                _logger.LogInformation("Found {Count} files with members", filesWithMembers.Count);
+                overallResults.AppendLine($"Found {filesWithMembers.Count} files with analyzable content");
+                
+                foreach (var fileWithMembers in filesWithMembers)
                 {
-                    var projectStructure = await _dotNetProjectAnalyzerService.GetProjectStructureAsync(csprojPath);
-                    if (projectStructure.Any())
+                    overallResults.AppendLine($"\nFile: {fileWithMembers.FilePath}");
+                    overallResults.AppendLine("  Members:");
+                    
+                    if (fileWithMembers.Members.Any())
                     {
-                        foreach (var namespaceEntry in projectStructure)
+                        var grouped = fileWithMembers.Members.GroupBy(x => x.Namespace);
+
+                        foreach (var group in grouped)
                         {
-                            overallResults.AppendLine($"  Namespace: {namespaceEntry.Key}");
-                            foreach (var classEntry in namespaceEntry.Value)
+                            overallResults.AppendLine($"    Namespace: {group.Key}");
+
+                            foreach (var member in group)
                             {
-                                overallResults.AppendLine($"    Class: {classEntry.Key}");
-                                if (classEntry.Value.Any())
-                                {
-                                    foreach (var methodEntry in classEntry.Value)
-                                    {
-                                        overallResults.AppendLine($"      Method: {methodEntry}");
-                                    }
-                                }
-                                else
-                                {
-                                    overallResults.AppendLine($"      (No methods found)");
-                                }
+                                overallResults.AppendLine($"        {member.Kind}: {member.Name}");
                             }
                         }
                     }
                     else
                     {
-                        overallResults.AppendLine("  (No analyzable structure found or project is empty/unsupported)");
+                        overallResults.AppendLine("    (No members found)");
                     }
                 }
-                catch (FileNotFoundException fnfEx)
-                {
-                    _logger.LogError(fnfEx, "Project file not found during analysis: {MissingProjectPath}", csprojPath);
-                    overallResults.AppendLine($"  Error: Project file not found - {fnfEx.Message}");
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error analyzing project: {ErroredProjectPath}", csprojPath);
-                    overallResults.AppendLine($"  Error analyzing project: {ex.Message}");
-                }
-                overallResults.AppendLine("-----------------------------------");
             }
-
-            // 2. Determine output path from GeneralSettings.cs
-            string projectRootPath = _generalSettingsService.CurrentSettings.ProjectPath;
-            if (string.IsNullOrEmpty(projectRootPath))
+            catch (Exception ex)
             {
-                MessageBox.Show("Project root path is not set in general settings. Cannot save analysis results.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                _logger.LogError("Cannot save analysis results: ProjectPath is not set in GeneralSettings.");
-                return;
+                _logger.LogError(ex, "Error analyzing project files: {ErrorMessage}", ex.Message);
+                overallResults.AppendLine($"Error analyzing project files: {ex.Message}");
             }
+            overallResults.AppendLine("-----------------------------------");
+
             string outputFileName = "DotNetProjectAnalysis.txt";
             string outputFilePath = System.IO.Path.Combine(projectRootPath, outputFileName);
 

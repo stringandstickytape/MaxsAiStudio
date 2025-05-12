@@ -17,6 +17,6 @@ namespace AiStudio4.Services.Interfaces
         /// Returns an empty dictionary if the project cannot be loaded or contains no analyzable documents.
         /// </returns>
         /// <exception cref="System.IO.FileNotFoundException">Thrown if the project file does not exist.</exception>
-        Task<Dictionary<string, Dictionary<string, List<string>>>> GetProjectStructureAsync(string projectPath);
+        List<FileWithMembers> AnalyzeProjectFiles(string projectPath);
     }
 }

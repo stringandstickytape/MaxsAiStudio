@@ -11,13 +11,16 @@ public static class RoslynHelper
         public string Name { get; set; }
         public string Kind { get; set; }
 
+        public string Namespace { get; set; }
+
         public string SourceCode { get; set; }
 
-        public Member(string name, string kind, string sourceCode)
+        public Member(string name, string kind, string sourceCode, string namespaceStr)
         {
             Name = name;
             Kind = kind;
             SourceCode = sourceCode;
+            Namespace = namespaceStr;
         }
     }
 
