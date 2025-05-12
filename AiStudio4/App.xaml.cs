@@ -16,6 +16,7 @@ using Newtonsoft.Json.Serialization;
 using AiStudio4.Core;
 using System;
 using System.Threading.Tasks;
+using AiStudio4.Services.Interfaces;
 
 namespace AiStudio4
 {
@@ -81,6 +82,7 @@ namespace AiStudio4
             services.AddSingleton<ISecondaryAiService, SecondaryAiService>(); // Add SecondaryAiService
             services.AddSingleton<LicenseService>(); // Add InterjectionService
             services.AddSingleton<IInterjectionService, InterjectionService>(); // Add InterjectionService
+            services.AddSingleton<IDotNetProjectAnalyzerService, DotNetProjectAnalyzerService>(); // Add DotNetProjectAnalyzerService
 
             // Register application services
             services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();

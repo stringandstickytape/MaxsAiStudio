@@ -35,6 +35,8 @@
                 <MenuItem Header="_Set Packer Include File Types..." Click="SetPackerIncludeTypesMenuItem_Click"/>
                 <MenuItem Header="_Set Packer Exclude Filenames..." Click="SetPackerExcludeFilenamesMenuItem_Click"/>
                 <Separator/>
+                <MenuItem Header="_Analyze .NET Projects" Click="AnalyzeDotNetProjects_Click"/>
+                <Separator/>
                 <MenuItem Header="_Recent Projects" Name="RecentProjectsMenuItem"/>
             </MenuItem>
             <MenuItem Header="📂" ToolTip="Opens the project root folder in an Explorer window" Click="ExploreProjectMenuItem_Click"/>

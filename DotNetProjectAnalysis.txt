@@ -1,0 +1,23 @@
+DotNet Project Analysis Results:
+Analysis Date: 12/05/2025 23:41:25
+===================================
+
+Project: AiStudio4.csproj (C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/AiStudio4.csproj)
+-----------------------------------
+  (No analyzable structure found or project is empty/unsupported)
+-----------------------------------
+
+Project: ChromeExtension.csproj (C:/Users/maxhe/source/repos/MaxsAiStudio/ChromeExtension/ChromeExtension.csproj)
+-----------------------------------
+  (No analyzable structure found or project is empty/unsupported)
+-----------------------------------
+
+Project: SharedClasses.csproj (C:/Users/maxhe/source/repos/MaxsAiStudio/SharedClasses/SharedClasses.csproj)
+-----------------------------------
+  (No analyzable structure found or project is empty/unsupported)
+-----------------------------------
+
+Project: VSIXTest.csproj (C:/Users/maxhe/source/repos/MaxsAiStudio/VSIXTest/VSIXTest.csproj)
+-----------------------------------
+  (No analyzable structure found or project is empty/unsupported)
+-----------------------------------

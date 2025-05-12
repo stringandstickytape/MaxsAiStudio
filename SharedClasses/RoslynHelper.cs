@@ -6,6 +6,21 @@ using System.Linq;
 
 public static class RoslynHelper
 {
+    public class Member
+    {
+        public string Name { get; set; }
+        public string Kind { get; set; }
+
+        public string SourceCode { get; set; }
+
+        public Member(string name, string kind, string sourceCode)
+        {
+            Name = name;
+            Kind = kind;
+            SourceCode = sourceCode;
+        }
+    }
+
     public class MemberDetail
     {
         public string SourceCode { get; set; }

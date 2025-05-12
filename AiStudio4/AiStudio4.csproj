@@ -13,6 +13,7 @@
 		<PackageReference Include="Ignore" Version="0.2.1" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.13.0" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
 		<PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.11" />
 		<PackageReference Include="OpenAI" Version="2.2.0-beta.4" />

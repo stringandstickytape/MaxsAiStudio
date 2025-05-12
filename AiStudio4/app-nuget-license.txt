@@ -43,6 +43,16 @@
     "LicenseInformationOrigin": 0
   },
   {
+    "PackageId": "Microsoft.CodeAnalysis.Workspaces.MSBuild",
+    "PackageVersion": "4.13.0",
+    "PackageProjectUrl": "https://github.com/dotnet/roslyn",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
     "PackageId": "Microsoft.Data.SqlClient",
     "PackageVersion": "6.0.2",
     "PackageProjectUrl": "https://aka.ms/sqlclientproject",

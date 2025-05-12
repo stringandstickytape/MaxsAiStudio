@@ -5,6 +5,7 @@ using AiStudio4.Core.Tools.CodeDiff.Models;
 using AiStudio4.Dialogs; // Added for WpfInputDialog
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Services;
+using AiStudio4.Services.Interfaces; // Added for IDotNetProjectAnalyzerService
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Win32; // Added for OpenFolderDialog
@@ -37,12 +38,15 @@ public partial class WebViewWindow : Window
     private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
     private readonly IWebSocketNotificationService _notificationService;
     private readonly IProjectPackager _projectPackager;
+    private readonly ILogger<WebViewWindow> _logger;
+    private readonly IDotNetProjectAnalyzerService _dotNetProjectAnalyzerService;
+    private readonly IProjectFileWatcherService _projectFileWatcherService;
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
     private string _lastTranscriptionResult = null;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager)
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager, IDotNetProjectAnalyzerService dotNetProjectAnalyzerService, IProjectFileWatcherService projectFileWatcherService, ILogger<WebViewWindow> logger)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
@@ -53,6 +57,9 @@ public partial class WebViewWindow : Window
         _audioTranscriptionService = audioTranscriptionService;
         _notificationService = notificationService; // Assign injected service
         _projectPackager = projectPackager;
+        _logger = logger;
+        _dotNetProjectAnalyzerService = dotNetProjectAnalyzerService;
+        _projectFileWatcherService = projectFileWatcherService;
         
         // Initialize license file paths
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -650,6 +657,119 @@ public partial class WebViewWindow : Window
         else
         {
             MessageBox.Show(this, "No transcription available to insert.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+    
+    private async void AnalyzeDotNetProjects_Click(object sender, RoutedEventArgs e)
+    {
+        _logger.LogInformation("Analyze .NET Projects menu item clicked.");
+        try
+        {
+            // 1. Get the list of .csproj files from ProjectFileWatcherService
+            // The ProjectFileWatcherService is initialized based on GeneralSettings.ProjectPath
+            // Ensure it's initialized if ProjectPath is set.
+            if (string.IsNullOrEmpty(_projectFileWatcherService.ProjectPath) || !_projectFileWatcherService.Files.Any())
+            {
+                MessageBox.Show("Project path is not set or no files are being watched. Please set a project path first.", "Project Not Ready", MessageBoxButton.OK, MessageBoxImage.Warning);
+                _logger.LogWarning("Analysis skipped: Project path not set or no files watched.");
+                return;
+            }
+
+            var csprojFiles = _projectFileWatcherService.Files
+                .Where(f => f.EndsWith(".csproj", StringComparison.OrdinalIgnoreCase))
+                .ToList();
+
+            if (!csprojFiles.Any())
+            {
+                MessageBox.Show("No .csproj files found in the current project path.", "No Projects Found", MessageBoxButton.OK, MessageBoxImage.Information);
+                _logger.LogInformation("No .csproj files found for analysis.");
+                return;
+            }
+
+            _logger.LogInformation("Found {Count} .csproj files to analyze.", csprojFiles.Count);
+            MessageBox.Show($"Found {csprojFiles.Count} .csproj file(s). Analysis will begin. This might take a moment.", "Analysis Starting", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            var overallResults = new StringBuilder();
+            overallResults.AppendLine("DotNet Project Analysis Results:");
+            overallResults.AppendLine($"Analysis Date: {DateTime.Now}");
+            overallResults.AppendLine("===================================");
+
+            foreach (var csprojPath in csprojFiles)
+            {
+                _logger.LogInformation("Analyzing project: {ProjectPath}", csprojPath);
+                overallResults.AppendLine($"\nProject: {System.IO.Path.GetFileName(csprojPath)} ({csprojPath})");
+                overallResults.AppendLine("-----------------------------------");
+                try
+                {
+                    var projectStructure = await _dotNetProjectAnalyzerService.GetProjectStructureAsync(csprojPath);
+                    if (projectStructure.Any())
+                    {
+                        foreach (var namespaceEntry in projectStructure)
+                        {
+                            overallResults.AppendLine($"  Namespace: {namespaceEntry.Key}");
+                            foreach (var classEntry in namespaceEntry.Value)
+                            {
+                                overallResults.AppendLine($"    Class: {classEntry.Key}");
+                                if (classEntry.Value.Any())
+                                {
+                                    foreach (var methodEntry in classEntry.Value)
+                                    {
+                                        overallResults.AppendLine($"      Method: {methodEntry}");
+                                    }
+                                }
+                                else
+                                {
+                                    overallResults.AppendLine($"      (No methods found)");
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        overallResults.AppendLine("  (No analyzable structure found or project is empty/unsupported)");
+                    }
+                }
+                catch (FileNotFoundException fnfEx)
+                {
+                    _logger.LogError(fnfEx, "Project file not found during analysis: {MissingProjectPath}", csprojPath);
+                    overallResults.AppendLine($"  Error: Project file not found - {fnfEx.Message}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error analyzing project: {ErroredProjectPath}", csprojPath);
+                    overallResults.AppendLine($"  Error analyzing project: {ex.Message}");
+                }
+                overallResults.AppendLine("-----------------------------------");
+            }
+
+            // 2. Determine output path from GeneralSettings.cs
+            string projectRootPath = _generalSettingsService.CurrentSettings.ProjectPath;
+            if (string.IsNullOrEmpty(projectRootPath))
+            {
+                MessageBox.Show("Project root path is not set in general settings. Cannot save analysis results.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                _logger.LogError("Cannot save analysis results: ProjectPath is not set in GeneralSettings.");
+                return;
+            }
+            string outputFileName = "DotNetProjectAnalysis.txt";
+            string outputFilePath = System.IO.Path.Combine(projectRootPath, outputFileName);
+
+            // 3. Write concatenated results to the output file
+            try
+            {
+                await System.IO.File.WriteAllTextAsync(outputFilePath, overallResults.ToString());
+                _logger.LogInformation("Successfully wrote analysis results to: {OutputFilePath}", outputFilePath);
+                MessageBox.Show($"Analysis complete. Results saved to:\n{outputFilePath}", "Analysis Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error writing analysis results to file: {OutputFilePath}", outputFilePath);
+                MessageBox.Show($"Error saving analysis results: {ex.Message}", "File Write Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred during .NET project analysis.");
+            MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }
