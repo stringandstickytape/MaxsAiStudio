@@ -225,9 +225,6 @@ namespace AiStudio4.Services
 
                     _logger.LogInformation("Processing chat request - Iteration {Iteration}", currentIteration);
                     
-                    // we always make the stop tool available.
-
-
                     var requestOptions = new AiRequestOptions
                     {
                         ServiceProvider = service,
@@ -244,6 +241,7 @@ namespace AiStudio4.Services
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
 
+                    // we always make the stop tool available.
                     if (request.ToolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
                     {
                         var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
@@ -255,39 +253,18 @@ namespace AiStudio4.Services
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Response received...");
 
-                    // Accumulate cost
-                    //if (response.CostInfo != null)
-                    //{
-                    //    if (accumulatedCostInfo == null)
-                    //        accumulatedCostInfo = new AiStudio4.Core.Models.TokenCost(0, 0, response.CostInfo.Model);
-                    //    accumulatedCostInfo.Add(response.CostInfo);
-                    //}
                     if (response.Attachments != null && response.Attachments.Any())
                     {
                         finalAttachments.AddRange(response.Attachments); // Accumulate attachments
                     }
 
-                    // Add assistant message to conversation history
-                    //var assistantMessage = new LinearConvMessage
-                    //{
-                    //    role = "assistant",
-                    //    content = response.ResponseText,
-                    //    // TODO: Map response.ToolResponseSet.Tools to a ToolCall structure if LinearConvMessage supports it
-                    //    // tool_calls = response.ToolResponseSet?.Tools.Select(t => new { id = t.ToolCallId, type = "function", function = new { name = t.ToolName, arguments = t.ParametersJson } }).ToList()
-                    //};
-                    //linearConversation.messages.Add(assistantMessage);
-
                     var newAssistantMessageId = $"msg_{Guid.NewGuid()}";
-                    
-
-
-
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
 
                     bool duplicateDetection = false;
-                    // --- Tool Loop Detection ---
-                    // Now comparing full tool requests including parameters, not just tool names
+
+                    // --- Tool "Infinite"-Loop Detection ---
                     if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
                     {
                         _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);

@@ -370,6 +370,12 @@ namespace AiStudio4.AiServices
                         cachedTokens = update.Usage.InputTokenDetails?.CachedTokenCount ?? 0;
                         
                     }
+
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        // Throwing ensures we jump to the catch block
+                        throw new OperationCanceledException(cancellationToken);
+                    }
                 }
 
                 onStreamingComplete?.Invoke(); // Use callback
