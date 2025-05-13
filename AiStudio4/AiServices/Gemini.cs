@@ -99,7 +99,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             // Test that removes all other tools and enables Google Grounding
             //requestPayload["tools"] = new JArray();
             //((JArray)requestPayload["tools"]).Add(new JObject { ["google_search"] = new JObject() });
-            File.WriteAllText(DateTime.Now.Ticks + ".json", requestPayload.ToString());
+            //File.WriteAllText(DateTime.Now.Ticks + ".json", requestPayload.ToString());
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {

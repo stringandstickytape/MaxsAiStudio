@@ -65,6 +65,7 @@
 	  <Folder Include="AiStudioClient\src\services\websocket\" />
 	  <Folder Include="AiStudioClient\src\store\" />
 	  <Folder Include="Licenses\" />
+	  <Folder Include="ReadMeDocs\" />
 	</ItemGroup>
 
 	<ItemGroup>
