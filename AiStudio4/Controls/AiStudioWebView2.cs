@@ -35,7 +35,7 @@ namespace AiStudio4.Controls
             // Placeholder
         }
 
-        public async void Initialize()
+        public async void Initialize(bool allowConnectionsOutsideLocalhost)
         {
             await this.EnsureCoreWebView2Async();
             this.CoreWebView2.AddHostObjectToScript("windowManager", _windowManager);
@@ -46,7 +46,11 @@ namespace AiStudio4.Controls
             // Register for resource handling
             //this.CoreWebView2.AddWebResourceRequestedFilter("*", Microsoft.Web.WebView2.Core.CoreWebView2WebResourceContext.All);
 
-            this.CoreWebView2.Navigate("https://localhost:35005/");
+            if (allowConnectionsOutsideLocalhost)
+            {
+                this.CoreWebView2.Navigate("https://localhost:35005/");
+            }
+            else this.CoreWebView2.Navigate("http://localhost:35005/");
         }
     }
 }
