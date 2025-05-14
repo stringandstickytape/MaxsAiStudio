@@ -1,6 +1,6 @@
 ﻿## 🚀 Max's AI Studio 4 🤖
 
-A Unified Desktop AI Command Center for Enhanced Development & Productivity
+A Windows Desktop AI Command Centre for Enhanced Development & Productivity
 
 ## 🌟 Highlights
 
@@ -40,28 +40,100 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
 
 ---
 
-## ✨ Key Features [Not reviewed]
+## 🏁 Installation From A Release ZIP
+
+TODO
+
+---
+
+## 📖 Usage Instructions [Not reviewed]
+
+*(This section would benefit greatly from illustrative GIFs or short videos for each step.)*
+
+1.  **Initial Setup:**
+    *   **Set Project Path:** The first and most crucial step. Go to `File > Project > Set Project Path...` in the application menu and select the root directory of your software development project. This enables many context-aware features.
+    *   **Configure AI Providers:**
+        *   Open the main settings modal (e.g., via Command Bar: `Ctrl/Cmd+K`, type "Settings", or from a menu if available).
+        *   Navigate to the "Service Providers" section. Add your AI service provider details (e.g., for OpenAI, you'd add the API key and base URL like `https://api.openai.com/v1`).
+    *   **Add AI Models:**
+        *   In the settings modal, go to the "Models" section.
+        *   Add specific AI models you intend to use (e.g., "gpt-4-turbo", "claude-3-opus-20240229"). For each model, associate it with a configured Service Provider and set other properties like friendly name, pricing (for cost tracking), and UI color.
+    *   **Select Default Models:** From the Input Bar's model status section, click to select your default "Primary Model" (for main chat) and "Secondary Model" (often used for summaries or quick tasks by tools).
+
+2.  **Chatting with AI:**
+    *   Type your messages into the main input area.
+    *   Press `Enter` to send. For multi-line input, use `Shift+Enter`.
+    *   AI responses will stream in. Markdown, code blocks, and diagrams are rendered appropriately.
+    *   To **interject** while the AI is processing a tool, type your follow-up message and press `Ctrl+Enter` (or `Cmd+Enter`).
+
+3.  **Using Tools:**
+    *   Activate tools via the "Tools" button in the Input Bar or through the Command Bar.
+    *   The AI will decide when to use an active tool based on your prompts. You can also explicitly request tool use (e.g., "Use the FileSearchTool to find all files containing 'TODO'").
+    *   Some tools (like Vite commands) prompt for user confirmation before execution.
+    *   Most tools are hard-coded to continue the tool loop.  The Stop tool terminates the loop, and is always included when tools are used, so the AI can always choose to terminate the loop.
+
+4.  **Managing Prompts:**
+    *   **System Prompts:**
+        *   Access the System Prompt Library (default shortcut usually `Ctrl/Cmd+P`, or via Command Bar).
+        *   Create new prompts, edit existing ones, or select a prompt to apply to the current conversation.
+        *   When editing, you can associate specific tools, user prompts, AI models, and MCP servers that will be automatically activated/selected when this system prompt is applied.
+        *   The `Include Git Diff` option will automatically attach the project's current Git diff to the context when the prompt is applied.
+    *   **User Prompts:**
+        *   Access the User Prompt Library (default shortcut usually `Ctrl/Cmd+U`, or via Command Bar).
+        *   Create reusable text snippets or templates.
+        *   Access User Prompts, reference project filenames and attach project files from the slash command dropdown, for instance `/Gemini.cs`  or `/MyUserPrompt`.
+
+5.  **Navigating Conversations:**
+    *   **Sidebar:** Toggle with `Ctrl/Cmd+B` (or via Command Bar) to see a list of past conversations. Click to load one.
+    *   **Conversation Tree View:** (Accessible via Command Bar) Provides an interactive D3.js visualization of the current conversation's message branches. Click nodes to navigate. Middle-click a node to delete it and its descendants (with confirmation).
+    *   **Search:** Use the search bar in the Sidebar to find text within your conversation history. Results will highlight matching conversations. Clicking a result loads the conversation and highlights matching messages in the tree view.
+
+6.  **Customizing Appearance:**
+    *   Access "Appearance Settings" (via Command Bar or Settings panel). Adjust the global font size.
+    *   Explore the "Theme Library" (via Command Bar or Appearance Settings) to apply pre-defined themes or create/import your own custom themes.
+
+7.  **Theming**
+    *   Retheme the app using AI.  Create a tool with an output filetype of "theme", and use the 
+
+---
+
+## ✨ Key Features
 
 ### 1. Multi-Model AI Chat & Interaction
    *   **Broad Model Support:** Connect to OpenAI, Anthropic (Claude), Google (Gemini), Ollama instances, and any Model ContextProtocol (MCP) compliant server.
    *   **Configuration:** Manage API keys, base URLs, and model-specific parameters through a user-friendly settings interface.
-   *   **Streaming Responses:** Experience real-time, token-by-token output from AI models.
+   *   **Streaming Responses** 
    *   **Rich Content Rendering:** Markdown support for text, code blocks (with syntax highlighting), tables, and diagrams (Mermaid, DOT/Graphviz, JSON, HTML).
-   *   **Attachments:** Include images, PDFs, and text files in your messages.
-   *   **Image Generation:** Support for models capable of image generation (e.g., specific Gemini models).
-   *   **Temperature Control:** Adjust AI creativity/randomness via a slider in the input bar.
+   *   **Attachments:** Include images and text files in your messages.
+   *   **Temperature Control:** Easily adjust AI creativity/randomness via a slider in the input bar.
 
-### 2. Advanced Tool System
+### 2. Conversation & Prompt Management
+   *   **Branched Conversations:** Messages are stored in a tree structure, allowing for non-linear exploration of chat history.
+   *   **Persistent Local Storage:** Conversations are saved to the user's local file system.
+   *   **Conversation History:** Browse, search, and load previous conversations.
+   *   **Interactive Tree View:** A D3.js-powered visualization displays the structure of the current conversation, enabling easy navigation between branches.
+   *   **System Prompts:**
+        *   Create, edit, and manage a library of custom system prompts.
+        *   **Advanced Associations:** Link system prompts to specific tools, user prompts, primary/secondary AI models, and MCP servers for automated setup when a prompt is activated.
+        *   **Git Diff Integration:** Optionally include the current project's Git diff in the context when a system prompt is applied.
+        *   Set global default or per-conversation system prompts.
+   *   **User Prompts:**
+        *   Maintain a library of reusable text snippets, templates, or instructions.
+        *   Assign shortcuts (e.g., `/my_template`) for quick insertion via the input bar's slash command feature.
+        *   Mark prompts as favorites for easy access.
+   *   **Interjection:** Send follow-up messages or clarifications while the AI is in a tool-processing loop, which are then incorporated into the ongoing process.  Tell the AI it's got it wrong without interrupting the flow!
+
+### 3. Advanced Tool System
    *   **Tool Library:** Create, edit, import, and export custom tools defined by JSON schemas. Organize tools into categories.
    *   **Built-in File System Tools:**
         *   `ReadFiles` & `ReadPartialFiles`: Access content from local files.
         *   `FileRegExSearch` & `FileSearchTool`: Powerful file content searching.
         *   `DirectoryTreeTool`: Visualize directory structures.
         *   `FindAndReplaceTool`: Perform text replacements across files.
-        *   `CodeDiffTool` (via `CreateNewFile`, `DeleteFile`, `ModifyFiles`, `RenameFile`, `ReplaceFile`): Programmatic and AI-assisted file modifications, including handling merge failures.
+        *   `CreateNewFile`, `DeleteFile`, `ModifyFiles`, `RenameFile`, `ReplaceFile`: Programmatic and AI-assisted file modifications, including handling merge failures.
    *   **Web & Information Retrieval Tools:**
         *   `RetrieveTextFromUrlTool`: Scrape and clean text from web pages.
-        *   `RunDuckDuckGoSearchTool`: Integrate web search capabilities.
+        *   `RunDuckDuckGoSearchTool`: Integrate web search capabilities (prone to bot detection!)
         *   `YouTubeSearchTool`: Find YouTube videos.
         *   `LaunchUrlTool`: Open URLs in the system's default browser.
    *   **Developer-Focused Integrations:**
@@ -79,24 +151,8 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
         *   `InfoRequestTool`: AI can request additional information or clarification from the user.
         *   `RecordMistakeTool`: Log AI errors to `CommonAiMistakes.md`, which is then used to refine future AI interactions. Includes AI-assisted consolidation of this mistake log.
    *   **Tool Configuration & Persistence:**
-        *   Many built-in tools expose `ExtraProperties` (e.g., `excludedFileExtensions`, `excludedDirectories`) for runtime customization.
+        *   Some built-in tools expose `ExtraProperties` (e.g., `excludedFileExtensions`, `excludedDirectories`) for runtime customization.
         *   These user-configured extra properties are persisted locally in `%APPDATA%/AiStudio4/builtinToolExtraProps.json`.
-
-### 3. Conversation & Prompt Management
-   *   **Branched Conversations:** Messages are stored in a tree structure, allowing for non-linear exploration of chat history.
-   *   **Persistent Local Storage:** Conversations are saved to the user's local file system.
-   *   **Conversation History:** Browse, search, and load previous conversations.
-   *   **Interactive Tree View:** A D3.js-powered visualization displays the structure of the current conversation, enabling easy navigation between branches.
-   *   **System Prompts:**
-        *   Create, edit, and manage a library of custom system prompts.
-        *   **Advanced Associations:** Link system prompts to specific tools, user prompts, primary/secondary AI models, and MCP servers for automated setup when a prompt is activated.
-        *   **Git Diff Integration:** Optionally include the current project's Git diff in the context when a system prompt is applied.
-        *   Set global default or per-conversation system prompts.
-   *   **User Prompts:**
-        *   Maintain a library of reusable text snippets, templates, or instructions.
-        *   Assign shortcuts (e.g., `/my_template`) for quick insertion via the input bar's slash command feature.
-        *   Mark prompts as favorites for easy access.
-   *   **Interjection:** Send follow-up messages or clarifications while the AI is in a tool-processing loop, which are then incorporated into the ongoing process.
 
 ### 4. UI & Customization
    *   **Modern Web Interface:** Built with React, TypeScript, Vite, Shadcn/ui components, and Tailwind CSS for a responsive and fluid user experience.
@@ -124,7 +180,7 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
 
 ---
 
-## 🏁 Getting Started [Not reviewed]
+## 🏁 Building From Source [Not reviewed]
 
 ### Prerequisites
 *   **.NET 9 SDK:** (or the version specified in `AiStudio4/AiStudio4.csproj`)
@@ -189,53 +245,6 @@ AI Studio 4 uses a combination of a backend configuration file and user-specific
     *   `themes.json`: Contains user-imported or created UI themes and the ID of the currently active theme.
     *   `builtinToolExtraProps.json`: Persists user-configured extra properties for built-in tools (e.g., custom exclusion lists for file search tools).
     *   `mcpServers.json` (in `Config/` subfolder): Stores definitions for Model Context Protocol (MCP) servers.
-
----
-
-## 📖 Usage Instructions [Not reviewed]
-
-*(This section would benefit greatly from illustrative GIFs or short videos for each step.)*
-
-1.  **Initial Setup:**
-    *   **Set Project Path:** The first and most crucial step. Go to `File > Project > Set Project Path...` in the application menu and select the root directory of your software development project. This enables many context-aware features.
-    *   **Configure AI Providers:**
-        *   Open the main settings modal (e.g., via Command Bar: `Ctrl/Cmd+K`, type "Settings", or from a menu if available).
-        *   Navigate to the "Service Providers" section. Add your AI service provider details (e.g., for OpenAI, you'd add the API key and base URL like `https://api.openai.com/v1`).
-    *   **Add AI Models:**
-        *   In the settings modal, go to the "Models" section.
-        *   Add specific AI models you intend to use (e.g., "gpt-4-turbo", "claude-3-opus-20240229"). For each model, associate it with a configured Service Provider and set other properties like friendly name, pricing (for cost tracking), and UI color.
-    *   **Select Default Models:** From the Input Bar's model status section, click to select your default "Primary Model" (for main chat) and "Secondary Model" (often used for summaries or quick tasks by tools).
-
-2.  **Chatting with AI:**
-    *   Type your messages into the main input area.
-    *   Press `Enter` to send. For multi-line input, use `Shift+Enter`.
-    *   AI responses will stream in. Markdown, code blocks, and diagrams are rendered appropriately.
-    *   To **interject** while the AI is processing a tool, type your follow-up message and press `Ctrl+Enter` (or `Cmd+Enter`).
-
-3.  **Using Tools:**
-    *   Activate tools via the "Tools" button in the Input Bar or through the Command Bar.
-    *   The AI will decide when to use an active tool based on your prompts. You can also explicitly request tool use (e.g., "Use the FileSearchTool to find all files containing 'TODO'").
-    *   Some tools (like `CodeDiff` operations or Vite commands) may prompt for user confirmation before execution.
-
-4.  **Managing Prompts:**
-    *   **System Prompts:**
-        *   Access the System Prompt Library (default shortcut usually `Ctrl/Cmd+P`, or via Command Bar).
-        *   Create new prompts, edit existing ones, or select a prompt to apply to the current conversation.
-        *   When editing, you can associate specific tools, user prompts, AI models, and MCP servers that will be automatically activated/selected when this system prompt is applied.
-        *   The `Include Git Diff` option will automatically attach the project's current Git diff to the context when the prompt is applied.
-    *   **User Prompts:**
-        *   Access the User Prompt Library (default shortcut usually `Ctrl/Cmd+U`, or via Command Bar).
-        *   Create reusable text snippets or templates.
-        *   Assign a `shortcut` (e.g., `review_code`). To use it, type `/review_code` in the main input bar; a slash command dropdown will appear. Select the prompt to insert its content.
-
-5.  **Navigating Conversations:**
-    *   **Sidebar:** Toggle with `Ctrl/Cmd+B` (or via Command Bar) to see a list of past conversations. Click to load one.
-    *   **Conversation Tree View:** (Accessible via Command Bar) Provides an interactive D3.js visualization of the current conversation's message branches. Click nodes to navigate. Middle-click a node to delete it and its descendants (with confirmation).
-    *   **Search:** Use the search bar in the Sidebar to find text within your conversation history. Results will highlight matching conversations. Clicking a result loads the conversation and highlights matching messages in the tree view.
-
-6.  **Customizing Appearance:**
-    *   Access "Appearance Settings" (via Command Bar or Settings panel). Adjust the global font size.
-    *   Explore the "Theme Library" (via Command Bar or Appearance Settings) to apply pre-defined themes or create/import your own custom themes.
 
 ---
 
