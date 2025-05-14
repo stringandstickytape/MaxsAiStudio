@@ -1,11 +1,11 @@
 ﻿## 🚀 Max's AI Studio 4 🤖
 
-A Windows Desktop AI Command Centre for Enhanced Development & Productivity
+A Windows Desktop AI (LLM) Command Centre for Enhanced Development & Productivity
 
 ## 🌟 Highlights
 
 *   **💬 Unified AI Chat:** Seamlessly chat with OpenAI, Anthropic Claude, Google Gemini models, and custom Model Context Protocol (MCP) servers from one interface.  Supports Ollama through OpenAI API comptibility.
-*   **🛠️ Powerful Tool Ecosystem:** Leverage built-in tools for file operations (read, write, search, diff), web tasks (DuckDuckGo, YouTube, URL scraping), developer integrations (Git, GitHub, Azure DevOps, Sentry, Vite), and more.
+*   **🛠️ Powerful Tool Ecosystem:** Leverage built-in tools for file operations (read, write, search, diff), web tasks (DuckDuckGo, YouTube, URL scraping), developer integrations (Git, GitHub, Azure DevOps, Sentry, Vite), and more.  Allows AI to iterate over your code, edit it, and even launch it.
 *   **🔌 Extensible & Customizable AI:** Define new tools with JSON schemas or connect to external MCP-compliant tool servers.
 *   **📝 Deep Project Integration:** Work directly with your local codebase using the `ProjectPath` setting for context-aware AI assistance and file operations.
 *   **🌳 Advanced Conversation Management:** Navigate complex discussions with branched conversation history, powerful search, and an interactive tree view.
