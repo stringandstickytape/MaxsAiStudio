@@ -46,7 +46,7 @@ TODO
 
 ---
 
-## 📖 Usage Instructions [Not reviewed]
+## 📖 Usage Instructions
 
 *(This section would benefit greatly from illustrative GIFs or short videos for each step.)*
 
@@ -93,7 +93,7 @@ TODO
     *   Explore the "Theme Library" (via Command Bar or Appearance Settings) to apply pre-defined themes or create/import your own custom themes.
 
 7.  **Theming**
-    *   Retheme the app using AI.  Create a tool with an output filetype of "theme", and use the 
+    *   Retheme the app using AI!  Create a tool with an output filetype of "theme", and set its schema using the "Use Theme Schema" button.  Enable the tool, and ask the AI for a particular style of theme; the response should include a "theme" file which can then be installed to the Theme Library.
 
 ---
 
@@ -115,11 +115,11 @@ TODO
    *   **System Prompts:**
         *   Create, edit, and manage a library of custom system prompts.
         *   **Advanced Associations:** Link system prompts to specific tools, user prompts, primary/secondary AI models, and MCP servers for automated setup when a prompt is activated.
-        *   **Git Diff Integration:** Optionally include the current project's Git diff in the context when a system prompt is applied.
+        *   **Git Diff Integration:** Optionally include the current project's Git diff in the context when a system prompt is applied.  Create a ReviewBot or CommitBot using an appropriate System Prompt, User Prompt and automatic attachment of a Git diff.
         *   Set global default or per-conversation system prompts.
    *   **User Prompts:**
         *   Maintain a library of reusable text snippets, templates, or instructions.
-        *   Assign shortcuts (e.g., `/my_template`) for quick insertion via the input bar's slash command feature.
+        *   Assign shortcuts (e.g., `/mytemplate`) for quick insertion via the input bar's slash command feature.
         *   Mark prompts as favorites for easy access.
    *   **Interjection:** Send follow-up messages or clarifications while the AI is in a tool-processing loop, which are then incorporated into the ongoing process.  Tell the AI it's got it wrong without interrupting the flow!
 
