@@ -72,7 +72,7 @@ public partial class WebViewWindow : Window
         UpdateWindowTitle(); // Set initial window title
         UpdateRecentProjectsMenu(); // Populate recent projects menu
         UpdateAllowConnectionsOutsideLocalhostMenuItem(); // Set initial checkbox state
-        webView.Initialize();
+        webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
     }
     private void UpdateWindowTitle()
     {
