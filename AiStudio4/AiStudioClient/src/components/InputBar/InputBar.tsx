@@ -112,7 +112,7 @@ export function InputBar({
         setVisibleToolCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
     }, [isXs, isSm, isMd]);
 
-    const handleChatMessage = useCallback(async (message: string) => {
+    const handleChatMessage = useCallback(async (message: string, messageAttachments?: Attachment[]) => {
         
         try {
             let convId = activeConvId;
@@ -157,7 +157,7 @@ export function InputBar({
                 systemPromptId,
                 systemPromptContent,
                 messageId,
-                attachments: attachments.length > 0 ? useAttachmentStore.getState().getStagedAttachments() : undefined
+                attachments: messageAttachments && messageAttachments.length > 0 ? messageAttachments : undefined
             });
             setCursorPosition(0);
         } catch (error) {
@@ -180,7 +180,7 @@ export function InputBar({
         setCurrentRequest
     ]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (isCancelling) return;
         
         // Check if WebSocket is disconnected
@@ -200,7 +200,8 @@ export function InputBar({
             
             // Get attachments from store and pass them to handleChatMessage
             const messageAttachments = useAttachmentStore.getState().getStagedAttachments();
-            handleChatMessage(fullMessage);
+            await handleChatMessage(fullMessage, messageAttachments);
+            useAttachmentStore.getState().clearStagedAttachments();
             setInputText('');
         }
     };
