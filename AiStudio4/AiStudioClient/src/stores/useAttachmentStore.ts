@@ -207,7 +207,8 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
   },
 
   // --- General Attachment Management ---
-  addAttachmentsForId: (id: string, attachments: Attachment[]) => {
+    addAttachmentsForId: (id: string, attachments: Attachment[]) => {
+        console.log("add attachment...");
     set(state => ({
       attachmentsById: {
         ...state.attachmentsById,
