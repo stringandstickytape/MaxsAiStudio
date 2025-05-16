@@ -41,39 +41,39 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 Name = "AzureDevOpsGetWikiPageContent",
                 Description = "Retrieves the content of a specific wiki page from Azure DevOps.",
                 Schema = @"{
-  \"name\": \"AzureDevOpsGetWikiPageContent\",
-  \"description\": \"Retrieves the content of a specific wiki page from Azure DevOps. Content is typically Markdown.\",
-  \"input_schema\": {
-    \"properties\": {
-      \"organization\": {
-        \"title\": \"Organization\",
-        \"type\": \"string\",
-        \"description\": \"The Azure DevOps organization name\"
+  ""name"": ""AzureDevOpsGetWikiPageContent"",
+  ""description"": ""Retrieves the content of a specific wiki page from Azure DevOps. Content is typically Markdown."",
+  ""input_schema"": {
+    ""properties"": {
+      ""organization"": {
+        ""title"": ""Organization"",
+        ""type"": ""string"",
+        ""description"": ""The Azure DevOps organization name""
       },
-      \"project\": {
-        \"title\": \"Project\",
-        \"type\": \"string\",
-        \"description\": \"The Azure DevOps project name\"
+      ""project"": {
+        ""title"": ""Project"",
+        ""type"": ""string"",
+        ""description"": ""The Azure DevOps project name""
       },
-      \"wiki_id\": {
-        \"title\": \"Wiki ID or Name\",
-        \"type\": \"string\",
-        \"description\": \"The ID or name of the wiki (wikiIdentifier)\"
+      ""wiki_id"": {
+        ""title"": ""Wiki ID or Name"",
+        ""type"": ""string"",
+        ""description"": ""The ID or name of the wiki (wikiIdentifier)""
       },
-      \"path\": {
-        \"title\": \"Page Path\",
-        \"type\": \"string\",
-        \"description\": \"Path to the specific wiki page (e.g., '/parent/page').\"
+      ""path"": {
+        ""title"": ""Page Path"",
+        ""type"": ""string"",
+        ""description"": ""Path to the specific wiki page (e.g., '/parent/page').""
       },
-      \"version\": {
-        \"title\": \"Version\",
-        \"type\": \"string\",
-        \"description\": \"Wiki version (e.g., branch name like 'wikiMaster')\"
+      ""version"": {
+        ""title"": ""Version"",
+        ""type"": ""string"",
+        ""description"": ""Wiki version (e.g., branch name like 'wikiMaster')""
       }
     },
-    \"required\": [\"organization\", \"project\", \"wiki_id\", \"path\"],
-    \"title\": \"AzureDevOpsGetWikiPageContentArguments\",
-    \"type\": \"object\"
+    ""required"": [""organization"", ""project"", ""wiki_id"", ""path""],
+    ""title"": ""AzureDevOpsGetWikiPageContentArguments"",
+    ""type"": ""object""
   }
 }",
                 Categories = new List<string> { "AzureDevOps" },
