@@ -30,5 +30,6 @@ namespace AiStudio4.InjectedDependencies
         void UpdateGitHubApiKey(string apiKey);
         void UpdateAzureDevOpsPAT(string pat);
         void UpdateCondaPath(string path);
+        void UpdateUseExperimentalCostTracking(bool value);
     }
 }

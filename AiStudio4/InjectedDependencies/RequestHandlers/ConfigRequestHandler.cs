@@ -68,7 +68,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 defaultModelGuid = defaultModelGuid ?? "",
                 secondaryModel = _generalSettingsService.CurrentSettings.SecondaryModel ?? "",
                 secondaryModelGuid = secondaryModelGuid ?? "",
-                temperature = _generalSettingsService.CurrentSettings.Temperature // <-- ADD THIS LINE
+                temperature = _generalSettingsService.CurrentSettings.Temperature,
+                useExperimentalCostTracking = _generalSettingsService.CurrentSettings.UseExperimentalCostTracking // <-- Add this line
             });
         }
 

@@ -1,5 +1,6 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageMetadata.tsx
 import { formatModelDisplay } from '@/utils/modelUtils';
+import { useGeneralSettingsStore } from '@/stores/useGeneralSettingsStore';
 
 interface MessageMetadataProps {
   message: any;
@@ -64,17 +65,23 @@ const formatTimestamp = (timestamp?: number | null) => {
 };
 
 export const MessageMetadata = ({ message }: MessageMetadataProps) => {
-  if (!message.costInfo?.tokenUsage && !message.costInfo && !message.timestamp && !message.durationMs && !message.id) {
-    return null;
+  const { useExperimentalCostTracking } = useGeneralSettingsStore(); // <-- Get the setting
+
+  // Modify the initial null check to be less strict if cost tracking is off
+  const hasTokenUsage = message.costInfo?.tokenUsage;
+  // Only consider costInfo relevant for this check if tracking is enabled OR if modelGuid is present (for displaying model name)
+  const hasDisplayableCostInfo = message.costInfo && (useExperimentalCostTracking || message.costInfo.modelGuid);
+  const hasTimestamp = typeof message.timestamp === 'number' && message.timestamp > 0;
+  const hasDuration = typeof message.durationMs === 'number' && message.durationMs > 0;
+
+  if (!hasTokenUsage && !hasDisplayableCostInfo && !hasTimestamp && !hasDuration && !message.id) {
+      return null;
   }
-  
+
   return (
-    <div className="ConvView text-small pt-1" style={{
-      color: 'var(--convview-text-color, #9ca3af)'
-    }}>
+    <div className="ConvView text-small pt-1" style={{ /* ... */ }}>
       <div className="ConvView flex flex-wrap items-center gap-x-4 text-[0.75rem]">
-        
-        {/* Timestamp and duration info */}
+        {/* Timestamp and duration info (existing) */}
         {(typeof message.timestamp === 'number' || typeof message.durationMs === 'number') && (
           <div className="flex items-center gap-x-2">
             {typeof message.timestamp === 'number' && message.timestamp > 0 && (
@@ -90,20 +97,7 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
           </div>
         )}
 
-        {message.tokenUsage && (
-          <div className="flex items-center gap-x-2">
-            <span>
-              Tokens: {message.tokenUsage.inputTokens} in / {message.tokenUsage.outputTokens} out
-            </span>
-            {(message.tokenUsage.cacheCreationInputTokens > 0 ||
-              message.tokenUsage.cacheReadInputTokens > 0) && (
-                <span>
-                  (Cache: {message.tokenUsage.cacheCreationInputTokens} created,{' '}
-                  {message.tokenUsage.cacheReadInputTokens} read)
-                </span>
-              )}
-          </div>
-        )}
+        {/* Token and Cost Info */}
         {message.costInfo && (
           <div className="flex items-center gap-x-2">
             <span>
@@ -116,7 +110,12 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
                   {message.costInfo.tokenUsage.cacheReadInputTokens} read)
                 </span>
               )}
-            <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(3)} (Cumulative: ${message.cumulativeCost?.toFixed(3)})</span>
+            
+            {/* Conditionally render Cost and Cumulative Cost */}
+            {useExperimentalCostTracking && (
+                <span className="flex items-center">Cost: ${message.costInfo.totalCost.toFixed(3)} (Cumulative: ${message.cumulativeCost?.toFixed(3)})</span>
+            )}
+
             <span className="text-gray-500">
               (${message.costInfo.inputCostPer1M.toFixed(2)}/1M in, $
               {message.costInfo.outputCostPer1M.toFixed(2)}/1M out)
@@ -132,7 +131,7 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
               </span>
             )}
           </div>
-          )}
+        )}
       </div>
     </div>
   );

@@ -72,8 +72,31 @@ public partial class WebViewWindow : Window
         UpdateWindowTitle(); // Set initial window title
         UpdateRecentProjectsMenu(); // Populate recent projects menu
         UpdateAllowConnectionsOutsideLocalhostMenuItem(); // Set initial checkbox state
+        UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
         webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
+        _generalSettingsService.SettingsChanged += OnGeneralSettingsChanged;
     }
+
+    private void OnGeneralSettingsChanged(object sender, EventArgs e)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            // This ensures all menu items reflecting settings are updated
+            UpdateWindowTitle();
+            UpdateAllowConnectionsOutsideLocalhostMenuItem();
+            UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
+        });
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        if (_generalSettingsService != null)
+        {
+            _generalSettingsService.SettingsChanged -= OnGeneralSettingsChanged;
+        }
+        base.OnClosed(e);
+    }
+
     private void UpdateWindowTitle()
     {
         // Ensure ProjectPath is not null or empty before displaying
@@ -464,6 +487,30 @@ public partial class WebViewWindow : Window
         if (AllowConnectionsOutsideLocalhostMenuItem != null)
         {
             AllowConnectionsOutsideLocalhostMenuItem.IsChecked = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
+        }
+    }
+
+    private void UseExperimentalCostTrackingMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // The IsChecked state is automatically toggled by WPF for a checkable MenuItem on click.
+            // We read this new state and save it.
+            bool newValue = UseExperimentalCostTrackingMenuItem.IsChecked;
+            _generalSettingsService.UpdateUseExperimentalCostTracking(newValue);
+            // No need to manually set IsChecked here again as WPF handles it.
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error updating 'Use experimental cost tracking' setting: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void UpdateUseExperimentalCostTrackingMenuItem()
+    {
+        if (UseExperimentalCostTrackingMenuItem != null)
+        {
+            UseExperimentalCostTrackingMenuItem.IsChecked = _generalSettingsService.CurrentSettings.UseExperimentalCostTracking;
         }
     }
 

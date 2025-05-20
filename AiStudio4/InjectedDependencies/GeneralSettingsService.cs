@@ -248,5 +248,11 @@ namespace AiStudio4.InjectedDependencies
             CurrentSettings.CondaPath = path;
             SaveSettings();
         }
+
+        public void UpdateUseExperimentalCostTracking(bool value)
+        {
+            CurrentSettings.UseExperimentalCostTracking = value;
+            SaveSettings(); // This will persist the change and invoke SettingsChanged event
+        }
     }
 }

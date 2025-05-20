@@ -62,7 +62,9 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           associatedUserPromptId: 'none',
           primaryModelGuid: 'none',
           secondaryModelGuid: 'none',
-          includeGitDiff: false,
+              includeGitDiff: false,
+              includeGitDiff: false,
+
         },
   });
 

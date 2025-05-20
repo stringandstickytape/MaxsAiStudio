@@ -23,6 +23,7 @@ namespace AiStudio4.InjectedDependencies
         public string AzureDevOpsPAT { get; set; }
         public string CondaPath { get; set; }
         public bool AllowConnectionsOutsideLocalhost { get; set; } = false;
+        public bool UseExperimentalCostTracking { get; set; } = false; // Default to false (unchecked)
 
         // New properties using GUIDs for model identification
         public string DefaultModelGuid { get; set; } = string.Empty;
