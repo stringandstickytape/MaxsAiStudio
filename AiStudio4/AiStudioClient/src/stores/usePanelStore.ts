@@ -145,7 +145,7 @@ export const usePanelStore = create<PanelStore>((set, get) => ({
       
       const newPanel = {
         ...panel,
-        ...(savedState.isOpen !== undefined ? { isOpen: savedState.isOpen } : {}),
+        isOpen: panel.id === 'sidebar' ? true : (savedState.isOpen !== undefined ? savedState.isOpen : panel.isOpen),
       };
 
       return {
