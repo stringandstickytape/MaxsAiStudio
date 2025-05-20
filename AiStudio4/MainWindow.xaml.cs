@@ -85,6 +85,7 @@ public partial class WebViewWindow : Window
             UpdateWindowTitle();
             UpdateAllowConnectionsOutsideLocalhostMenuItem();
             UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
+            // UpdateConversationZipRetentionDays and UpdateConversationDeleteZippedRetentionDays do not have menu items that need updating directly based on settings changes
         });
     }
 
@@ -692,6 +693,56 @@ public partial class WebViewWindow : Window
             _generalSettingsService.CurrentSettings.PackerExcludeFilenames = list;
             _generalSettingsService.SaveSettings();
             MessageBox.Show("Packer exclude filenames updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void SetConversationZipRetentionMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentValue = _generalSettingsService.CurrentSettings.ConversationZipRetentionDays.ToString();
+        var dialog = new WpfInputDialog(
+            "Set Zip Retention",
+            "Enter days after which conversations are zipped (e.g., 30). Enter 0 to disable zipping.",
+            currentValue)
+        {
+            Owner = this
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            if (int.TryParse(dialog.ResponseText, out int days) && days >= 0)
+            {
+                _generalSettingsService.UpdateConversationZipRetentionDays(days);
+                MessageBox.Show($"Conversation zip retention updated to {days} days.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please enter a non-negative integer.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void SetConversationDeleteZippedRetentionMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentValue = _generalSettingsService.CurrentSettings.ConversationDeleteZippedRetentionDays.ToString();
+        var dialog = new WpfInputDialog(
+            "Set Zipped Delete Retention",
+            "Enter days after which ZIPPED conversations are deleted (e.g., 90). Enter 0 to disable deletion.",
+            currentValue)
+        {
+            Owner = this
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            if (int.TryParse(dialog.ResponseText, out int days) && days >= 0)
+            {
+                _generalSettingsService.UpdateConversationDeleteZippedRetentionDays(days);
+                MessageBox.Show($"Zipped conversation delete retention updated to {days} days.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please enter a non-negative integer.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 

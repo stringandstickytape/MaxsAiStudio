@@ -29,6 +29,9 @@ namespace AiStudio4.InjectedDependencies
         public string DefaultModelGuid { get; set; } = string.Empty;
         public string SecondaryModelGuid { get; set; } = string.Empty;
         
+        public int ConversationZipRetentionDays { get; set; } = 30;
+        public int ConversationDeleteZippedRetentionDays { get; set; } = 90;
+
         // Keep old properties for backward compatibility
         [Obsolete("Use DefaultModelGuid instead")]
         public string DefaultModel { get; set; } = string.Empty;

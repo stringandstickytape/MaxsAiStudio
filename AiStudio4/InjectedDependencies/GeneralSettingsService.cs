@@ -254,5 +254,17 @@ namespace AiStudio4.InjectedDependencies
             CurrentSettings.UseExperimentalCostTracking = value;
             SaveSettings(); // This will persist the change and invoke SettingsChanged event
         }
+
+        public void UpdateConversationZipRetentionDays(int days)
+        {
+            CurrentSettings.ConversationZipRetentionDays = days;
+            SaveSettings();
+        }
+
+        public void UpdateConversationDeleteZippedRetentionDays(int days)
+        {
+            CurrentSettings.ConversationDeleteZippedRetentionDays = days;
+            SaveSettings();
+        }
     }
 }

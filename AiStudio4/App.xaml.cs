@@ -85,6 +85,7 @@ namespace AiStudio4
             services.AddSingleton<IDotNetProjectAnalyzerService, DotNetProjectAnalyzerService>(); // Add DotNetProjectAnalyzerService
 
             // Register application services
+            services.AddSingleton<IConversationArchivingService, ConversationArchivingService>();
             services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();
             services.AddSingleton<IAppearanceSettingsService, AppearanceSettingsService>();
             services.AddSingleton<IProjectHistoryService, ProjectHistoryService>();

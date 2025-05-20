@@ -19,22 +19,37 @@ namespace AiStudio4.InjectedDependencies
         private readonly IProjectFileWatcherService _projectFileWatcherService;
         private readonly IGeneralSettingsService _generalSettingsService;
         private readonly FileSystemChangeHandler _fileSystemChangeHandler;
+        private readonly IConversationArchivingService _archivingService;
 
         public StartupService(IServiceProvider serviceProvider, ILogger<StartupService> logger,
             IProjectFileWatcherService projectFileWatcherService,
             IGeneralSettingsService generalSettingsService,
-            FileSystemChangeHandler fileSystemChangeHandler)
+            FileSystemChangeHandler fileSystemChangeHandler,
+            IConversationArchivingService archivingService)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
             _projectFileWatcherService = projectFileWatcherService ?? throw new ArgumentNullException(nameof(projectFileWatcherService));
             _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
             _fileSystemChangeHandler = fileSystemChangeHandler ?? throw new ArgumentNullException(nameof(fileSystemChangeHandler));
+            _archivingService = archivingService ?? throw new ArgumentNullException(nameof(archivingService));
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting initialization of services");
+
+            _logger.LogInformation("Attempting conversation archiving and pruning...");
+            try
+            {
+                await _archivingService.ArchiveAndPruneConversationsAsync();
+                _logger.LogInformation("Conversation archiving and pruning completed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during the conversation archiving and pruning process. Application startup will continue.");
+                // Do not re-throw; allow the app to continue starting.
+            }
 
             using (var scope = _serviceProvider.CreateScope())
             {

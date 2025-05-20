@@ -86,7 +86,7 @@ namespace AiStudio4.Services
         public async Task<IEnumerable<v4BranchedConv>> GetAllConvs()
         {
             var convsWithDates = new List<(v4BranchedConv Conv, DateTime FileDate)>();
-            foreach (var file in Directory.GetFiles(_basePath, "*.json"))
+            foreach (var file in Directory.EnumerateFiles(_basePath, "*.json", SearchOption.TopDirectoryOnly))
             {
                 try
                 {
@@ -181,7 +181,7 @@ namespace AiStudio4.Services
         public async IAsyncEnumerable<ConversationSearchResult> SearchConversationsStreamingAsync(string searchTerm, [EnumeratorCancellation] CancellationToken cancellationToken)
         {
             // Get all conversation file paths without loading content
-            var convFiles = Directory.GetFiles(_basePath, "*.json").OrderByDescending(file => File.GetLastWriteTime(file));
+            var convFiles = Directory.EnumerateFiles(_basePath, "*.json", SearchOption.TopDirectoryOnly).OrderByDescending(file => File.GetLastWriteTimeUtc(file));
 
             foreach (var filePath in convFiles)
             {

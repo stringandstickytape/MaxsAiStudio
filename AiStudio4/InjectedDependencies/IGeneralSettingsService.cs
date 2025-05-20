@@ -31,5 +31,7 @@ namespace AiStudio4.InjectedDependencies
         void UpdateAzureDevOpsPAT(string pat);
         void UpdateCondaPath(string path);
         void UpdateUseExperimentalCostTracking(bool value);
+        void UpdateConversationZipRetentionDays(int days);
+        void UpdateConversationDeleteZippedRetentionDays(int days);
     }
 }
