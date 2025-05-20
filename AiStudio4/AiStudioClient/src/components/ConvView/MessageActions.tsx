@@ -1,14 +1,60 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageActions.tsx
-import { Clipboard, Pencil, Save, ArrowUp } from 'lucide-react';
+import { Clipboard, Pencil, Save, ArrowUp, Ellipsis } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
+import { saveCodeBlockAsFile } from '@/services/api/apiClient';
+
 interface MessageActionsProps {
   message: any;
   onEdit: () => void;
 }
 
 export const MessageActions = ({ message, onEdit }: MessageActionsProps) => {
+  const [showActions, setShowActions] = useState(false);
+  const actionsContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (actionsContainerRef.current) {
+      if (showActions) {
+        actionsContainerRef.current.style.maxWidth = actionsContainerRef.current.scrollWidth + 'px';
+        actionsContainerRef.current.style.opacity = '1';
+      } else {
+        actionsContainerRef.current.style.maxWidth = '0px';
+        actionsContainerRef.current.style.opacity = '0';
+      }
+    }
+  }, [showActions]);
+
   return (
-    <div className="ConvView absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200">
+    <div 
+      className="ConvView absolute flex items-center gap-2"
+      style={{ top: '-16px', right: '-16px' }} // Position the entire action group
+    >
+      <button
+        onClick={() => setShowActions(!showActions)}
+        className="ConvView p-1.5 rounded-full transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto" // Ellipsis button appears on hover
+        style={{
+          color: 'var(--convview-text-color, #9ca3af)',
+          backgroundColor: 'var(--convview-bg, rgba(255, 255, 255, 0.5))',
+          backdropFilter: 'blur(2px)',
+          WebkitBackdropFilter: 'blur(2px)',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          ':hover': {
+            color: 'var(--convview-text-color, #ffffff)',
+            backgroundColor: 'var(--convview-bg, rgba(255, 255, 255, 0.8))'
+          }
+        }}
+        title="Toggle message actions"
+      >
+        <Ellipsis size={16} />
+      </button>
+      <div
+        ref={actionsContainerRef}
+        className="flex gap-2 overflow-hidden whitespace-nowrap transition-all duration-300 ease-in-out"
+        style={{
+          maxWidth: '0px',
+          opacity: '0',
+        }}>
       <button
         onClick={() => navigator.clipboard.writeText(message.content)}
         className="ConvView p-1.5 rounded-full transition-all duration-200"
@@ -106,6 +152,7 @@ export const MessageActions = ({ message, onEdit }: MessageActionsProps) => {
           <ArrowUp size={12} style={{ marginLeft: 1, marginTop: 2 }} />
         </span>
       </button>
+      </div>
     </div>
   );
 };
