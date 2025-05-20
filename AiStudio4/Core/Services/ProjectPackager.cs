@@ -113,7 +113,7 @@ namespace AiStudio4.Core.Services
                     {
                         var relativePath = GetRelativePath(file, projectRootPath);
                         var content = await File.ReadAllTextAsync(file);
-                        content = (string)(content.Where(x => x > 9));
+                        content = String.Concat((content.Where(x => x > 31 || x==10||x==13||x==9)));
 
                         var fileElement = new XElement("file",
                             new XAttribute("path", relativePath),
