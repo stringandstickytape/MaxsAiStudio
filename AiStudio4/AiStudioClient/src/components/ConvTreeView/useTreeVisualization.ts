@@ -206,12 +206,12 @@ export const useTreeVisualization = ({
     
     // Map global theme values to tree nodes
     const userNodeColor = getThemeColor('--global-user-message-background', getThemeColor('--convtree-user-node-color', '#1e40af'));
-    const systemNodeColor = getThemeColor('--convtree-system-node-color', '#4B5563');
+        const systemNodeColor = userNodeColor;
     const aiNodeColor = getThemeColor('--global-ai-message-background', getThemeColor('--convtree-ai-node-color', '#4f46e5'));
     
     // Use global border colors with fallback to tree-specific values
     const userNodeBorderColor = getThemeColor('--global-user-message-border-color', getThemeColor('--convtree-user-node-border', '#1e3a8a'));
-    const systemNodeBorderColor = getThemeColor('--convtree-system-node-border', '#374151');
+        const systemNodeBorderColor = userNodeBorderColor;
     const aiNodeBorderColor = getThemeColor('--global-ai-message-border-color', getThemeColor('--convtree-ai-node-border', '#4338ca'));
     
     // Get border widths and styles from global theme
@@ -587,7 +587,7 @@ export const useTreeVisualization = ({
     
     // Get theme colors for borders
     const userBorderColor = getThemeColorForUpdate('--global-user-message-border-color', getThemeColorForUpdate('--convtree-user-node-border', '#1e3a8a'));
-    const systemBorderColor = getThemeColorForUpdate('--convtree-system-node-border', '#374151');
+      const systemBorderColor = userBorderColor;
     const aiBorderColor = getThemeColorForUpdate('--global-ai-message-border-color', getThemeColorForUpdate('--convtree-ai-node-border', '#4338ca'));
     
     // Get border widths
