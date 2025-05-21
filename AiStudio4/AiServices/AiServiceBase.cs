@@ -80,7 +80,6 @@ namespace AiStudio4.AiServices
             ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIDs,
-            bool useStreaming = false,
             bool addEmbeddings = false,
             string customSystemPrompt = null)
         {
@@ -88,7 +87,7 @@ namespace AiStudio4.AiServices
             var options = AiRequestOptions.Create(
                 serviceProvider, model, conv, base64image, base64ImageType,
                 cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
-                useStreaming, addEmbeddings, customSystemPrompt);
+                addEmbeddings, customSystemPrompt);
             
             // Pass null for callbacks in the legacy overload
             options.OnStreamingUpdate = null;

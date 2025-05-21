@@ -152,7 +152,7 @@ namespace AiStudio4.AiServices
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
                 options.Conv.systemprompt = options.CustomSystemPrompt;
 
-            var req = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
+            var req = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
 
             if (!forceNoTools)
             {
@@ -359,6 +359,15 @@ namespace AiStudio4.AiServices
             return jObject.ToString();
         }
 
+        private AiResponse HandleError(Exception ex, string additionalInfo = "")
+        {
+            string errorMessage = $"Error: {ex.Message}";
+            if (!string.IsNullOrEmpty(additionalInfo))
+            {
+                errorMessage += $" Additional info: {additionalInfo}";
+            }
+            return new AiResponse { Success = false, ResponseText = errorMessage };
+        }
         private string ExtractResponseTextFromCompletion(JObject completion)
         {
             if (completion["content"] != null)

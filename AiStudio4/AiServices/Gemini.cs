@@ -43,7 +43,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 options.Conv.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
 
             // Add tools if specified
             if (!forceNoTools)
@@ -346,6 +346,15 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             }
         }
 
+        private AiResponse HandleError(Exception ex, string additionalInfo = "")
+        {
+            string errorMessage = $"Error: {ex.Message}";
+            if (!string.IsNullOrEmpty(additionalInfo))
+            {
+                errorMessage += $" Additional info: {additionalInfo}";
+            }
+            return new AiResponse { Success = false, ResponseText = errorMessage };
+        }
         public static string ExtractTrailingJsonObject(string input)
         {
             if (string.IsNullOrEmpty(input))

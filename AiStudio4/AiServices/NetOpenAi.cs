@@ -212,6 +212,17 @@ namespace AiStudio4.AiServices
         }
 
 
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content,
+            CancellationToken cancellationToken,
+            Action<string> onStreamingUpdate,
+            Action onStreamingComplete)
+        {
+            // Not used in this implementation as we're using the OpenAI .NET client directly
+            throw new NotImplementedException();
+        }
+
+
 
         private async Task<AiResponse> HandleStreamingChatCompletion(
             List<ChatMessage> messages,
@@ -521,6 +532,8 @@ namespace AiStudio4.AiServices
             }
             return new AiResponse { Success = false, ResponseText = errorMessage };
         }
+
+
 
         // Image generation support
         //public async Task<AiResponse> GenerateImage(string prompt, ApiSettings apiSettings)
