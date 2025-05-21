@@ -338,7 +338,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                 }}
               >
         <div
-          className="absolute top-full left-0 right-0 mt-2 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-[70vh] overflow-y-auto"
+          className="absolute top-full left-0 right-0 mt-1 bg-gray-800 border border-gray-700 rounded-lg shadow-lg overflow-hidden z-50 max-h-[60vh] overflow-y-auto"
           style={{
             backgroundColor: 'var(--global-background-color, #333)',
             borderColor: 'var(--global-border-color, #555)',
@@ -348,7 +348,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
           {Object.entries(groupedCommands).map(([section, commands]) => (
             <div key={section} className="border-t border-gray-700 first:border-t-0">
               <div
-                className="px-3 py-2 text-xs font-semibold"
+                className="px-2 py-2 text-sm font-bold"
                 style={{
                   backgroundColor: 'var(--global-background-color, #111)',
                   color: 'var(--global-text-color, #aaa)'
@@ -365,13 +365,15 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                       <div
                           key={command.id}
                           className={cn(
-                              'px-4 py-2 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
-                              isSelected && 'bg-gray-700/70',
+                              'px-2 py-1 flex items-center justify-between cursor-pointer hover:bg-gray-700/50',
+                              isSelected && 'bg-gray-700/70'
                           )}
                           style={{
                             backgroundColor: isSelected
                               ? 'var(--global-primary-color, #555)'
-                              : 'transparent',
+                              : index % 2 === 1
+                                ? 'color-mix(in srgb, var(--global-background-color, #333) 95%, white)'
+                                : 'transparent',
                             color: 'var(--global-text-color, #eee)'
                           }}
                           onMouseDown={(e) => {
@@ -382,18 +384,18 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                               handleCommandClick(command.id);
                           }}
                       >
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
                         {command.icon && <div className="">{typeof command.icon === 'function' ? command.icon() : command.icon}</div>}
-                      <div className="max-w-md overflow-hidden">
+                      <div className="max-w-md overflow-hidden text-sm">
                           <div className="font-medium">{command.name}</div>
                           {command.description && (
-                            <div className="whitespace-pre-line line-clamp-3">
+                            <div className="whitespace-pre-line line-clamp-2 text-xs leading-tight opacity-80">
                               {command.description}
                             </div>
                           )}
                       </div>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -410,11 +412,11 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                   color: 'var(--global-text-color, #888)'
                                 }}
                                 className={cn(
-                                  'p-1 rounded hover:bg-gray-600/50 cursor-pointer',
+                                  'p-0.5 rounded hover:bg-gray-600/50 cursor-pointer',
                                   isPinned ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300',
                                 )}
                               >
-                                <Pin className="h-3.5 w-3.5" fill={isPinned ? 'currentColor' : 'none'} />
+                                <Pin className="h-3 w-3" fill={isPinned ? 'currentColor' : 'none'} />
                               </div>
                             </TooltipTrigger>
                             <TooltipContent side="top">
@@ -423,7 +425,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                           </Tooltip>
                         </TooltipProvider>
                         {command.shortcut && (
-                          <kbd className="px-2 py-0.5 text-xs font-mono bg-gray-800 rounded border border-gray-700">
+                          <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-800 rounded border border-gray-700">
                             {command.shortcut}
                           </kbd>
                         )}
