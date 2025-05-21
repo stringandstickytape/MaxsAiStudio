@@ -135,31 +135,31 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
 
   return (
     <form onSubmit={handleSubmit} className="ServerForm space-y-4" style={{
-      backgroundColor: 'var(--global-background-color)',
+      backgroundColor: 'transparent', // Inherits from DialogContent
       color: 'var(--global-text-color)',
-      borderRadius: 'var(--global-border-radius)',
       fontFamily: 'var(--global-font-family)',
       fontSize: 'var(--global-font-size)',
-      boxShadow: 'var(--global-box-shadow)',
-      border: `1px solid var(--global-border-color)`,
-      padding: '1rem'
+      // Removed border, borderRadius, boxShadow, padding as these should be on DialogContent
     }}>
       <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
+        <Label htmlFor="name" style={{ color: 'var(--global-text-color)' }}>Name</Label>
         <Input
           id="name"
           name="name"
           value={formData.name}
           onChange={handleChange}
           placeholder="Server name"
-          className={errors.name ? '' : ''}
+          className={errors.name ? '' : ''} // Class for error state can be added if defined
           style={{
-            borderColor: errors.name ? 'var(--global-primary-color)' : 'var(--global-border-color)'
+            backgroundColor: 'var(--global-background-color)', 
+            color: 'var(--global-text-color)',
+            borderColor: errors.name ? 'var(--global-destructive-color, var(--global-primary-color))' : 'var(--global-border-color)',
+            borderRadius: 'var(--global-border-radius)'
           }}
           disabled={isSubmitting}
         />
         {errors.name && (
-          <div className="text-sm flex items-center" style={{ color: 'var(--global-primary-color)' }}>
+          <div className="text-sm flex items-center" style={{ color: 'var(--global-destructive-color, var(--global-primary-color))' }}>
             <AlertCircle className="h-4 w-4 mr-1" />
             {errors.name}
           </div>
@@ -167,7 +167,7 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="description">Description</Label>
+        <Label htmlFor="description" style={{ color: 'var(--global-text-color)' }}>Description</Label>
         <Textarea
           id="description"
           name="description"
@@ -178,28 +178,32 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           disabled={isSubmitting}
           style={{
             backgroundColor: 'var(--global-background-color)',
+            color: 'var(--global-text-color)',
             borderColor: 'var(--global-border-color)',
-            color: 'var(--global-text-color)'
+            borderRadius: 'var(--global-border-radius)'
           }}
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="command">Command</Label>
+        <Label htmlFor="command" style={{ color: 'var(--global-text-color)' }}>Command</Label>
         <Input
           id="command"
           name="command"
           value={formData.command}
           onChange={handleChange}
           placeholder="Command to start the server (e.g., uvx, npx, http://...)"
-          className={errors.command ? '' : ''}
+          className={errors.command ? '' : ''} // Class for error state
           style={{
-            borderColor: errors.command ? 'var(--global-primary-color)' : 'var(--global-border-color)'
+            backgroundColor: 'var(--global-background-color)',
+            color: 'var(--global-text-color)',
+            borderColor: errors.command ? 'var(--global-destructive-color, var(--global-primary-color))' : 'var(--global-border-color)',
+            borderRadius: 'var(--global-border-radius)'
           }}
           disabled={isSubmitting}
         />
         {errors.command && (
-          <div className="text-sm flex items-center" style={{ color: 'var(--global-primary-color)' }}>
+          <div className="text-sm flex items-center" style={{ color: 'var(--global-destructive-color, var(--global-primary-color))' }}>
             <AlertCircle className="h-4 w-4 mr-1" />
             {errors.command}
           </div>
@@ -207,7 +211,7 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="arguments">Arguments</Label>
+        <Label htmlFor="arguments" style={{ color: 'var(--global-text-color)' }}>Arguments</Label>
         <Input
           id="arguments"
           name="arguments"
@@ -215,6 +219,12 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           onChange={handleChange}
           placeholder="Command arguments"
           disabled={isSubmitting}
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            color: 'var(--global-text-color)',
+            borderColor: 'var(--global-border-color)',
+            borderRadius: 'var(--global-border-radius)'
+          }}
         />
       </div>
 
@@ -224,9 +234,10 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           checked={formData.stdIo}
           onCheckedChange={(checked) => handleSwitchChange('stdIo', checked)}
           disabled={isSubmitting}
+          // Switch component is assumed to be themed globally or inherit
         />
-        <Label htmlFor="stdIo">Use Standard I/O</Label>
-        <div className="text-xs ml-2" style={{ color: 'var(--global-secondary-color)' }}>
+        <Label htmlFor="stdIo" style={{ color: 'var(--global-text-color)' }}>Use Standard I/O</Label>
+        <div className="text-xs ml-2" style={{ color: 'var(--global-secondary-text-color, var(--global-secondary-color))' }}>
           (Disable for HTTP/SSE endpoints)
         </div>
       </div>
@@ -237,12 +248,13 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           checked={formData.isEnabled}
           onCheckedChange={(checked) => handleSwitchChange('isEnabled', checked)}
           disabled={isSubmitting}
+          // Switch component is assumed to be themed globally or inherit
         />
-        <Label htmlFor="isEnabled">Enabled</Label>
+        <Label htmlFor="isEnabled" style={{ color: 'var(--global-text-color)' }}>Enabled</Label>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="categories">Categories</Label>
+        <Label htmlFor="categories" style={{ color: 'var(--global-text-color)' }}>Categories</Label>
         <Input
           id="categories"
           name="categories"
@@ -257,8 +269,14 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           }}
           placeholder="Enter categories separated by commas (e.g., Development, Web, 3D Modelling)"
           disabled={isSubmitting}
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            color: 'var(--global-text-color)',
+            borderColor: 'var(--global-border-color)',
+            borderRadius: 'var(--global-border-radius)'
+          }}
         />
-        <div className="text-xs" style={{ color: 'var(--global-secondary-color)' }}>
+        <div className="text-xs" style={{ color: 'var(--global-secondary-text-color, var(--global-secondary-color))' }}>
           Categories help organize servers in the server modal
         </div>
       </div>
@@ -266,16 +284,21 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
       {/* Tool Selection Section - Only in Edit Mode */}
       {server && (
         <div className="space-y-2">
-          <Label>Select Tools to Expose to AI</Label>
+          <Label style={{ color: 'var(--global-text-color)' }}>Select Tools to Expose to AI</Label>
           {isLoadingTools ? (
-            <p className="text-sm text-gray-400" style={{ color: 'var(--global-secondary-color)' }}>Loading tools...</p>
+            <p className="text-sm" style={{ color: 'var(--global-secondary-text-color, var(--global-secondary-color))' }}>Loading tools...</p>
           ) : availableTools.length === 0 ? (
-            <p className="text-sm text-gray-400" style={{ color: 'var(--global-secondary-color)' }}>
+            <p className="text-sm" style={{ color: 'var(--global-secondary-text-color, var(--global-secondary-color))' }}>
               No tools found for this server, or an error occurred while trying to retrieve them. 
               Please check the server configuration and ensure it is running correctly.
             </p>
           ) : (
-            <div className="max-h-60 overflow-y-auto p-2 border border-gray-700 rounded-md space-y-1" style={{ borderColor: 'var(--global-border-color)' }}>
+            <div className="p-2 rounded-md space-y-1" 
+                 style={{ 
+                   borderColor: 'var(--global-border-color)',
+                   backgroundColor: 'var(--global-secondary-background-color, var(--global-background-color))',
+                   borderRadius: 'var(--global-border-radius)'
+                 }}>
               {availableTools.map((tool) => (
                 <div key={tool.name} className="flex items-center space-x-2">
                   <Switch
@@ -294,22 +317,23 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
                       });
                     }}
                     disabled={isSubmitting}
+                    // Switch component is assumed to be themed globally or inherit
                   />
                   <Label htmlFor={`tool-switch-${tool.name.replace(/\s+/g, '-')}`} className="text-sm font-normal" style={{ color: 'var(--global-text-color)' }}>
                     {tool.name}
-                    {tool.description && <span className="text-xs ml-2" style={{ color: 'var(--global-secondary-color)' }}>- {tool.description}</span>}
+                    {tool.description && <span className="text-xs ml-2" style={{ color: 'var(--global-secondary-text-color, var(--global-secondary-color))' }}>- {tool.description}</span>}
                   </Label>
                 </div>
               ))}
             </div>
           )}
-          <div className="text-xs" style={{ color: 'var(--global-secondary-color)' }}>
+          <div className="text-xs" style={{ color: 'var(--global-secondary-text-color, var(--global-secondary-color))' }}>
             Choose which tools from this server should be available to the AI. <strong>If no tools are selected here, all tools from this server will be exposed. Select specific tools to limit availability.</strong>
           </div>
         </div>
       )}
 
-      <div className="pt-4 flex justify-end space-x-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
+      <div className="pt-4 flex justify-end space-x-2" style={{ backgroundColor: 'transparent' /* Inherits from DialogContent */ }}>
         <Button
           type="button"
           variant="outline"
@@ -318,7 +342,8 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           style={{
             backgroundColor: 'var(--global-background-color)',
             borderColor: 'var(--global-border-color)',
-            color: 'var(--global-text-color)'
+            color: 'var(--global-text-color)',
+            borderRadius: 'var(--global-border-radius)'
           }}
         >
           Cancel
@@ -328,7 +353,8 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           disabled={isSubmitting}
           style={{
             backgroundColor: 'var(--global-primary-color)',
-            color: '#ffffff'
+            color: 'var(--global-primary-foreground-color, #ffffff)', // Added fallback from design
+            borderRadius: 'var(--global-border-radius)'
           }}
         >
           {isSubmitting ? 'Saving...' : server ? 'Update Server' : 'Add Server'}
