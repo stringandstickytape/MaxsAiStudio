@@ -12,6 +12,7 @@ export interface McpServerDefinition {
   stdIo?: boolean;
   env?: Record<string, string>;
   categories?: string[];
+  selectedTools?: string[];
 }
 
 export interface McpTool {

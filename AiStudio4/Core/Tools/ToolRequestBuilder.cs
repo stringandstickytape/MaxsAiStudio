@@ -28,20 +28,42 @@ namespace AiStudio4.Core.Tools
 
             foreach(var serverDefinition in serverDefinitions.Where(x => x.IsEnabled))
             {
-                var tools = await mcpService.ListToolsAsync(serverDefinition.Id);
+                var allToolsForServer = await mcpService.ListToolsAsync(serverDefinition.Id);
+                IEnumerable<ModelContextProtocol.Protocol.Types.Tool> toolsToConsider;
 
-                int ctr = 0;
-
-                foreach (var tool in tools)
+                // If SelectedTools is configured and not empty, filter by it
+                if (serverDefinition.SelectedTools != null && serverDefinition.SelectedTools.Any())
                 {
+                    toolsToConsider = allToolsForServer.Where(t => serverDefinition.SelectedTools.Contains(t.Name));
+                }
+                // If SelectedTools is null or empty, no tools from this server will be added
+                else
+                {
+                    toolsToConsider = Enumerable.Empty<ModelContextProtocol.Protocol.Types.Tool>();
+                }
 
-                    //if (ctr == 4)
-                    //    continue;
-
+                foreach (var tool in toolsToConsider)
+                {
                     var obj = new JObject();
-                    obj["name"] = $"{tool.Name.Replace(" ", "")}";
-                    obj["description"] = tool.Description.ToString();
-                    obj["input_schema"] =  JToken.Parse(tool.InputSchema.ToString());
+                    // Use the server ID as a prefix to ensure tool name uniqueness across different MCP servers
+                    obj["name"] = $"{serverDefinition.Id}_{tool.Name.Replace(" ", "")}";
+                    obj["description"] = tool.Description?.ToString() ?? "No description provided."; // Handle null description
+                    
+                    // Ensure InputSchema is not null before trying to parse
+                    //if (tool.InputSchema != null)
+                    {
+                        try
+                        {
+                            obj["input_schema"] = JToken.Parse(tool.InputSchema.ToString());
+                        }
+                        catch (JsonReaderException ex)
+                        {
+                            // Log the error and potentially skip this tool or use a default schema
+                            System.Diagnostics.Debug.WriteLine($"Error parsing input schema for tool {tool.Name} on server {serverDefinition.Id}: {ex.Message}");
+                            obj["input_schema"] = new JObject(new JProperty("type", "object"), new JProperty("properties", new JObject())); // Default empty schema
+                        }
+                    }
+
 
                     switch (format)
                     {
@@ -58,7 +80,7 @@ namespace AiStudio4.Core.Tools
                             break;
                     }
 
-                    ctr++;
+                    //ctr++;
                 }
 
 

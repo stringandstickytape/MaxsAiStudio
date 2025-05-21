@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { McpServerDefinition } from '@/stores/useMcpServerStore';
+import { McpServerDefinition, McpTool, useMcpServerStore } from '@/stores/useMcpServerStore';
 import { AlertCircle } from 'lucide-react';
 
 // Define themeable properties for the ServerForm component
@@ -19,6 +19,10 @@ interface ServerFormProps {
 }
 
 export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }: ServerFormProps) {
+  const { fetchServerTools } = useMcpServerStore();
+  const [availableTools, setAvailableTools] = useState<McpTool[]>([]);
+  const [isLoadingTools, setIsLoadingTools] = useState(false);
+  
   const [formData, setFormData] = useState<McpServerDefinition>({
     id: '',
     name: '',
@@ -29,6 +33,7 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
     stdIo: true,
     env: {},
     categories: [],
+    selectedTools: [],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -41,9 +46,43 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
         // Ensure all required fields exist
         env: server.env || {},
         categories: server.categories || [],
+        selectedTools: server.selectedTools || [],
       });
+      
+      // Fetch tools if in edit mode
+      if (server.id) {
+        const loadTools = async () => {
+          setIsLoadingTools(true);
+          try {
+            const tools = await fetchServerTools(server.id);
+            setAvailableTools(tools || []);
+          } catch (error) {
+            console.error("Failed to fetch tools for MCP server:", error);
+            setAvailableTools([]);
+          } finally {
+            setIsLoadingTools(false);
+          }
+        };
+        loadTools();
+      } else {
+        setAvailableTools([]); // Clear tools if not in edit mode or no server ID
+      }
+    } else {
+      setFormData({
+        id: '',
+        name: '',
+        description: '',
+        command: '',
+        arguments: '',
+        isEnabled: true,
+        stdIo: true,
+        env: {},
+        categories: [],
+        selectedTools: [],
+      });
+      setAvailableTools([]); // Clear tools for 'add' mode
     }
-  }, [server]);
+  }, [server, fetchServerTools]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -223,6 +262,52 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
           Categories help organize servers in the server modal
         </div>
       </div>
+
+      {/* Tool Selection Section - Only in Edit Mode */}
+      {server && (
+        <div className="space-y-2">
+          <Label>Select Tools to Expose to AI</Label>
+          {isLoadingTools ? (
+            <p className="text-sm text-gray-400" style={{ color: 'var(--global-secondary-color)' }}>Loading tools...</p>
+          ) : availableTools.length === 0 ? (
+            <p className="text-sm text-gray-400" style={{ color: 'var(--global-secondary-color)' }}>
+              No tools found for this server, or an error occurred while trying to retrieve them. 
+              Please check the server configuration and ensure it is running correctly.
+            </p>
+          ) : (
+            <div className="max-h-60 overflow-y-auto p-2 border border-gray-700 rounded-md space-y-1" style={{ borderColor: 'var(--global-border-color)' }}>
+              {availableTools.map((tool) => (
+                <div key={tool.name} className="flex items-center space-x-2">
+                  <Switch
+                    id={`tool-switch-${tool.name.replace(/\s+/g, '-')}`}
+                    checked={formData.selectedTools?.includes(tool.name)}
+                    onCheckedChange={(checked) => {
+                      setFormData((prev) => {
+                        const currentSelected = prev.selectedTools || [];
+                        let newSelected;
+                        if (checked) {
+                          newSelected = [...currentSelected, tool.name];
+                        } else {
+                          newSelected = currentSelected.filter(name => name !== tool.name);
+                        }
+                        return { ...prev, selectedTools: newSelected };
+                      });
+                    }}
+                    disabled={isSubmitting}
+                  />
+                  <Label htmlFor={`tool-switch-${tool.name.replace(/\s+/g, '-')}`} className="text-sm font-normal" style={{ color: 'var(--global-text-color)' }}>
+                    {tool.name}
+                    {tool.description && <span className="text-xs ml-2" style={{ color: 'var(--global-secondary-color)' }}>- {tool.description}</span>}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="text-xs" style={{ color: 'var(--global-secondary-color)' }}>
+            Choose which tools from this server should be available to the AI. If none are selected, no tools from this server will be exposed.
+          </div>
+        </div>
+      )}
 
       <div className="pt-4 flex justify-end space-x-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
         <Button
