@@ -25,7 +25,7 @@ import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { useModalStore } from '@/stores/useModalStore'; // Added import for modal control
 import { useFileSystemManagement } from '@/hooks/useFileSystemManagement';
 
-export function CommandInitializer() {
+export function CommandInitializer2() {
   const { togglePanel } = usePanelStore();
   const { models, handleModelSelect } = useModelManagement();
   const { fetchPinnedCommands } = usePinnedCommandsStore();
