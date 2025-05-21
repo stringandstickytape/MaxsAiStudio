@@ -148,14 +148,7 @@ namespace AiStudio4.AiServices
                 try
                 {
                     // Handle streaming vs non-streaming requests
-                    if (options.UseStreaming)
-                    {
-                        return await HandleStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
-                    }
-                    else
-                    {
-                        return await HandleNonStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
-                    }
+                    return await HandleStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
                 }
                 catch (Exception ex)
                 {
@@ -218,54 +211,7 @@ namespace AiStudio4.AiServices
             }
         }
 
-        private async Task<AiResponse> HandleNonStreamingChatCompletion(
-            List<ChatMessage> messages, 
-            ChatCompletionOptions options, 
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, // Parameter added but not used
-            Action onStreamingComplete) // Parameter added but not used
-        {
-            ChatCompletion completion = await _chatClient.CompleteChatAsync(messages, options, cancellationToken);
 
-            // Check if the response requires tool calls
-            if (completion.FinishReason == ChatFinishReason.ToolCalls && completion.ToolCalls.Count > 0)
-            {
-                // Iterate through all tool calls and add them to the ToolResponseSet
-                foreach (var toolCall in completion.ToolCalls)
-                {
-                    string toolName = toolCall.FunctionName;
-                    string toolArguments = toolCall.FunctionArguments.ToString();
-                    ToolResponseSet.Tools.Add(new ToolResponseItem
-                    {
-                        ToolName = toolName,
-                        ResponseText = toolArguments
-                    });
-                }
-                // Return response indicating tool calls were made
-                return new AiResponse
-                {
-                    // ResponseText should be empty when tool calls are made
-                    ResponseText = "", // Empty string instead of null or summary message
-                    Success = true,
-                    TokenUsage = ExtractTokenUsage(completion),
-                    // ChosenTool is less relevant with multiple tools. Set to null or first tool name.
-                    ChosenTool = completion.ToolCalls.FirstOrDefault()?.FunctionName, // Set to first tool name or null
-                    ToolResponseSet = ToolResponseSet // Assign the populated set
-                };
-            }
-            else
-            {
-                // Regular text response
-                return new AiResponse
-                {
-                    ResponseText = completion.Content[0].Text,
-                    Success = true,
-                    TokenUsage = ExtractTokenUsage(completion),
-                    ChosenTool = null,
-                    ToolResponseSet = ToolResponseSet
-                };
-            }
-        }
 
         private async Task<AiResponse> HandleStreamingChatCompletion(
             List<ChatMessage> messages,
@@ -538,7 +484,7 @@ namespace AiStudio4.AiServices
         //    // This would be similar to ConvertToolToOpenAIFormat but for MCP tools
         //}
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
         {
             // Not used in this implementation as we're using the OpenAI .NET client directly
             return new JObject();
@@ -550,25 +496,9 @@ namespace AiStudio4.AiServices
             return new JObject();
         }
 
-        protected override async Task<AiResponse> HandleStreamingResponse(
-            HttpContent content, 
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, 
-            Action onStreamingComplete)
-        {
-            // Not used in this implementation as we're using the OpenAI .NET client directly
-            return new AiResponse { Success = false, ResponseText = "Not implemented" };
-        }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(
-            HttpContent content, 
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, // Parameter added but not used
-            Action onStreamingComplete) // Parameter added but not used
-        {
-            // Not used in this implementation as we're using the OpenAI .NET client directly
-            return new AiResponse { Success = false, ResponseText = "Not implemented" };
-        }
+
+
 
         protected override TokenUsage ExtractTokenUsage(JObject response)
         {
