@@ -103,7 +103,7 @@ namespace AiStudio4.Services
                     CancellationToken = new CancellationToken(false),
                     ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
-                    UseStreaming = false
+
                 };
                 
                 var response = await aiService.FetchResponse(requestOptions, true);

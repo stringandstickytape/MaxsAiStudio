@@ -13,7 +13,7 @@ namespace AiStudio4.InjectedDependencies
         public float Temperature { get; set; } = 0.2f;
         public bool UseEmbeddings { get; set; } = false;
         public bool UsePromptCaching { get; set; } = true;
-        public bool StreamResponses { get; set; } = false;
+
         public string EmbeddingsFilename { get; set; }
         public string EmbeddingModel { get; set; } = "mxbai-embed-large";
         public string DefaultSystemPromptId { get; set; }
@@ -50,7 +50,7 @@ namespace AiStudio4.InjectedDependencies
         {
             Temperature = this.Temperature,
             UsePromptCaching = this.UsePromptCaching,
-            StreamResponses = this.StreamResponses,
+
             EmbeddingModel = this.EmbeddingModel,
             EmbeddingsFilename = this.EmbeddingsFilename,
             UseEmbeddings = this.UseEmbeddings,
