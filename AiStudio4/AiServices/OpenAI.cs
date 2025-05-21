@@ -98,7 +98,7 @@ namespace AiStudio4.AiServices
             return await HandleResponse(options, content); // Pass options
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
         {
             // The supportsLogprobs flag may be extended later if desired
             var supportsLogprobs = false;
@@ -109,7 +109,7 @@ namespace AiStudio4.AiServices
             var payload = new JObject
             {
                 ["model"] = modelName,
-                ["stream"] = useStreaming,
+                ["stream"] = true,
                 ["stream_options"] = useStreaming ? new JObject { ["include_usage"] = true } : null,
                 //["reasoning_effort"] = "lolz"
             };
@@ -205,7 +205,7 @@ namespace AiStudio4.AiServices
             Action<string> onStreamingUpdate, 
             Action onStreamingComplete)
         {
-            using var response = await SendRequest(content, cancellationToken, true);
+            using var response = await SendRequest(content, cancellationToken);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
             using var reader = new StreamReader(stream);
 
@@ -331,40 +331,7 @@ namespace AiStudio4.AiServices
             return line;
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(
-            HttpContent content, 
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, // Parameter added but not used
-            Action onStreamingComplete) // Parameter added but not used
-        {
-            var response = await SendRequest(content, cancellationToken);
-            ValidateResponse(response);
 
-            var responseContent = await response.Content.ReadAsStringAsync();
-            var jsonResponse = JsonConvert.DeserializeObject<JObject>(responseContent);
-
-            string responseText = string.Empty;
-            string chosenToolLocal = null;
-            var message = jsonResponse["choices"]?[0]?["message"];
-            if (message?["tool_calls"] is JArray toolCalls && toolCalls.Any())
-            {
-                // Extract tool call details
-                chosenToolLocal = toolCalls[0]?["function"]?["name"]?.ToString();
-                responseText = toolCalls[0]?["function"]?["arguments"]?.ToString();
-            }
-            else
-            {
-                responseText = message?["content"]?.ToString();
-            }
-
-            return new AiResponse
-            {
-                ResponseText = responseText,
-                Success = true,
-                TokenUsage = ExtractTokenUsage(jsonResponse),
-                ChosenTool = chosenToolLocal
-            };
-        }
 
         protected override TokenUsage ExtractTokenUsage(JObject response)
         {
