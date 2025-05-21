@@ -304,7 +304,7 @@ export function ServerForm({ server, onSubmit, onCancel, isSubmitting = false }:
             </div>
           )}
           <div className="text-xs" style={{ color: 'var(--global-secondary-color)' }}>
-            Choose which tools from this server should be available to the AI. If none are selected, no tools from this server will be exposed.
+            Choose which tools from this server should be available to the AI. <strong>If no tools are selected here, all tools from this server will be exposed. Select specific tools to limit availability.</strong>
           </div>
         </div>
       )}

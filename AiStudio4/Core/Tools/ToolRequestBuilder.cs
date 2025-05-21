@@ -36,10 +36,10 @@ namespace AiStudio4.Core.Tools
                 {
                     toolsToConsider = allToolsForServer.Where(t => serverDefinition.SelectedTools.Contains(t.Name));
                 }
-                // If SelectedTools is null or empty, no tools from this server will be added
+                // NEW BEHAVIOR: If SelectedTools is null or empty, ALL tools from this server will be exposed
                 else
                 {
-                    toolsToConsider = Enumerable.Empty<ModelContextProtocol.Protocol.Types.Tool>();
+                    toolsToConsider = allToolsForServer;
                 }
 
                 foreach (var tool in toolsToConsider)
