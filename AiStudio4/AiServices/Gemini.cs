@@ -35,7 +35,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             // Reset ToolResponseSet for each new request
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
-            var url = $"{ApiUrl}{ApiModel}:{(options.UseStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
+            var url = $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}";
             
             // Apply custom system prompt if provided
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
@@ -110,7 +110,6 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         protected override JObject CreateRequestPayload(
     string apiModel,
     LinearConv conv,
-    bool useStreaming,
     ApiSettings apiSettings)
         {
             return new JObject
@@ -439,102 +438,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             return null;
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse( 
-            HttpContent content, 
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, // Parameter added but not used in non-streaming
-            Action onStreamingComplete) // Parameter added but not used in non-streaming
-        {
-            HttpResponseMessage response = await client.PostAsync($"{ApiUrl}{ApiModel}:generateContent?key={ApiKey}", content, cancellationToken);
 
-            if (response.IsSuccessStatusCode)
-            {
-                string responseContent = await response.Content.ReadAsStringAsync();
-                var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
-
-                var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
-                var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-                var chosenTool = ExtractChosenToolFromCompletion(completion);
-
-                // Extract any images from the response
-                var attachments = new List<DataModels.Attachment>();
-                int imageIndex = 1;
-                
-                if (completion["candidates"]?[0]?["content"]?["parts"] is JArray parts)
-                {
-                    foreach (var part in parts)
-                    {
-                        if (part["inlineData"] != null)
-                        {
-                            string mimeType = part["inlineData"]["mimeType"]?.ToString();
-                            string base64Data = part["inlineData"]["data"]?.ToString();
-                            
-                            if (!string.IsNullOrEmpty(mimeType) && !string.IsNullOrEmpty(base64Data))
-                            {
-                                attachments.Add(new DataModels.Attachment
-                                {
-                                    Id = Guid.NewGuid().ToString(),
-                                    Name = $"generated_image_{imageIndex++}.png",
-                                    Type = mimeType,
-                                    Content = base64Data,
-                                    Size = base64Data.Length * 3 / 4 // Approximate size calculation
-                                });
-                            }
-                        }
-                    }
-                }
-                
-                // Process tool calls if present
-                if (chosenTool != null)
-                {
-                    if (completion["candidates"]?[0]?["content"]?["parts"] is JArray partsX)
-                    {
-                        foreach (var part in partsX)
-                        {
-                            if (part["functionCall"] != null)
-                            {
-                                string toolName = part["functionCall"]["name"]?.ToString();
-                                string toolArguments = part["functionCall"]["args"]?.ToString() ?? "{}";
-                                
-                                // Add to ToolResponseSet
-                                ToolResponseSet.Tools.Add(new ToolResponseItem
-                                {
-                                    ToolName = toolName,
-                                    ResponseText = toolArguments
-                                });
-                                
-                                // When a tool is chosen, don't include the tool response in ResponseText
-                                return new AiResponse
-                                {
-                                    ResponseText = "", // Empty response text for tool calls
-                                    Success = true,
-                                    TokenUsage = new TokenUsage(inputTokens, outputTokens),
-                                    ChosenTool = chosenTool,
-                                    Attachments = attachments.Count > 0 ? attachments : null,
-                                    ToolResponseSet = ToolResponseSet
-                                };
-                            }
-                        }
-                    }
-                }
-
-                currentResponseItem = null;
-                return new AiResponse
-                {
-                    ResponseText = ExtractResponseText(completion),
-                    Success = true,
-                    TokenUsage = new TokenUsage(inputTokens, outputTokens, "0", completion["usageMetadata"]?["cachedContentTokenCount"]?.ToString()),
-                    ChosenTool = chosenTool,
-                    Attachments = attachments.Count > 0 ? attachments : null,
-                    ToolResponseSet = ToolResponseSet
-                };
-            }
-            else
-            {
-                string errorContent = await response.Content.ReadAsStringAsync();
-                return new AiResponse { ResponseText = errorContent, Success = false };
-            }
-        }
 
         private string inputTokenCount = "";
         private string outputTokenCount = "";
