@@ -60,7 +60,7 @@ namespace AiStudio4.Services
                 _logger.LogInformation("Conversation zipping is disabled as retention days is {ZipRetentionDays}.", zipRetentionDays);
                 return;
             }
-
+            /*
             try
             {
                 var jsonFiles = Directory.EnumerateFiles(_convsPath, "*.json", SearchOption.TopDirectoryOnly);
@@ -110,7 +110,7 @@ namespace AiStudio4.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while enumerating JSON files for zipping.");
-            }
+            }*/
             _logger.LogInformation("Zipping old conversations completed.");
         }
 
@@ -124,7 +124,7 @@ namespace AiStudio4.Services
             }
 
             try
-            {
+            {/*
                 var zipFiles = Directory.EnumerateFiles(_archivePath, "*.zip", SearchOption.TopDirectoryOnly);
                 Regex timestampRegex = new Regex(@"_(?<timestamp>
 \d{14})
@@ -165,7 +165,7 @@ namespace AiStudio4.Services
                         // Continue to the next file
                     }
                     await Task.Delay(10); // Small delay
-                }
+                }*/
             }
             catch (Exception ex)
             {
