@@ -143,37 +143,13 @@ namespace AiStudio4.AiServices
             return result;
         }
 
-        protected virtual JObject CreateRequestPayload(
-            string modelName,
-            LinearConv conv,
-            bool useStreaming,
-            ApiSettings apiSettings)
-        {
-            return new JObject
-            {
-                ["model"] = modelName,
-                ["stream"] = useStreaming
-            };
-        }
+        protected abstract JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings);
 
         protected virtual async Task<AiResponse> HandleResponse(
             AiRequestOptions options,
             HttpContent content)
         {
-            try
-            {
-                // Extract callbacks from options
-                var onStreamingUpdate = options.OnStreamingUpdate;
-                var onStreamingComplete = options.OnStreamingComplete;
-
-                return options.UseStreaming
-                    ? await HandleStreamingResponse(content, options.CancellationToken, onStreamingUpdate, onStreamingComplete)
-                    : await HandleNonStreamingResponse(content, options.CancellationToken, onStreamingUpdate, onStreamingComplete);
-            }
-            catch (Exception ex)
-            {
-                return HandleError(ex);
-            }
+            return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
         }
 
         protected abstract Task<AiResponse> HandleStreamingResponse(
@@ -182,59 +158,19 @@ namespace AiStudio4.AiServices
             Action<string> onStreamingUpdate, 
             Action onStreamingComplete);
 
-        protected abstract Task<AiResponse> HandleNonStreamingResponse(
-            HttpContent content,
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, 
-            Action onStreamingComplete);
-
-        // Removed OnStreamingDataReceived and OnStreamingComplete methods
-        // protected virtual void OnStreamingDataReceived(string data)
-        // {
-        //     StreamingTextReceived?.Invoke(this, data);
-        // }
-        //
-        // protected virtual void OnStreamingComplete()
-        // {
-        //     StreamingComplete?.Invoke(this, null);
-        // }
-
-        protected virtual AiResponse HandleError(Exception ex, string additionalContext = null)
-        {
-            var errorMessage = new StringBuilder(ex.Message);
-            if (!string.IsNullOrEmpty(additionalContext))
-            {
-                errorMessage.Append("\nContext: ").Append(additionalContext);
-            }
-
-            if (ex is HttpRequestException httpEx)
-            {
-                errorMessage.Append("\nHTTP Status: ").Append(httpEx.StatusCode);
-            }
-
-            return new AiResponse
-            {
-                Success = false,
-                ResponseText = errorMessage.ToString(),
-                TokenUsage = new TokenUsage("0", "0")
-            };
-        }
-
         protected virtual async Task<HttpResponseMessage> SendRequest(
             HttpContent content,
-            CancellationToken cancellationToken,
-            bool streamingRequest = false)
+            CancellationToken cancellationToken)
         {
+            var sendOption = HttpCompletionOption.ResponseHeadersRead;
             var request = new HttpRequestMessage(HttpMethod.Post, ApiUrl)
             {
                 Content = content
             };
 
-            var sendOption = streamingRequest
-                ? HttpCompletionOption.ResponseHeadersRead
-                : HttpCompletionOption.ResponseContentRead;
-
-            return await client.SendAsync(request, sendOption, cancellationToken);
+            var response = await client.SendAsync(request, sendOption, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return response;
         }
 
         protected virtual TokenUsage ExtractTokenUsage(JObject response)
