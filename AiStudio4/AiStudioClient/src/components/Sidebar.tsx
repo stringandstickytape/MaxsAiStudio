@@ -99,7 +99,16 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
         <button 
           onClick={toggleSidebarCollapse}
           className="h-8 w-8 p-2 flex items-center justify-center rounded-md hover:bg-gray-700/50 absolute left-2 top-2 z-10"
-          title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  style={{
+                      backgroundColor: 'var(--global-background-color, #111827)',
+                      borderColor: 'var(--global-border-color, #1f2937)',
+                      color: 'var(--global-text-color, #e5e7eb)',
+                      fontFamily: 'var(--global-font-family, inherit)',
+                      fontSize: 'var(--global-font-size, 0.875rem)',
+                      borderRadius: 'var(--global-border-radius, 0)',
+                      boxShadow: 'var(--global-box-shadow, none)'
+                  }}
         >
           <Menu className="h-4 w-4" />
         </button>

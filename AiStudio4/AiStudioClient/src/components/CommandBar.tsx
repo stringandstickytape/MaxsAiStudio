@@ -311,7 +311,17 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
               <span>Close</span>
             </button>
           ) : (
-            <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono bg-gray-800 rounded border border-gray-700">
+                          <kbd className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none hidden sm:inline-flex items-center gap-1 px-2 py-0.5 text-xs font-mono bg-gray-800 rounded border border-gray-700"
+                              style={{
+                                  backgroundColor: 'var(--global-background-color, #111827)',
+                                  borderColor: 'var(--global-border-color, #1f2937)',
+                                  color: 'var(--global-text-color, #e5e7eb)',
+                                  fontFamily: 'var(--global-font-family, inherit)',
+                                  fontSize: 'calc(var(--global-font-size, 0.875rem) * 0.75)',
+                                  borderRadius: 'var(--global-border-radius, 0)',
+                                  boxShadow: 'var(--global-box-shadow, none)'
+                              }}
+                          >
               {navigator.platform.indexOf('Mac') !== -1 ? '⌘ + K' : 'Ctrl + K'}
             </kbd>
           )}

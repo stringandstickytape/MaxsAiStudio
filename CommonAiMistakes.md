@@ -10,13 +10,17 @@
     *   Ask for more precise details about *what specific visual elements* of a component are not themed correctly (e.g., "text color is wrong," "border is missing," "hover state doesn't match") rather than a general "not themed correctly."
     *   Before removing styles, consider if the issue is that *other* theme variables are not being applied correctly to child elements or pseudo-states of the component.
     *   If a component has both hardcoded styles and is supposed to be themeable, investigate how the theme is intended to interact with or override those hardcoded styles.
+    *   When applying themes, especially for interactive states like hover, always prioritize using existing global CSS variables or creating new ones if necessary, rather than hardcoding colors.
+    *   Ensure that any removed classes (e.g., Tailwind hover classes) are either replaced with equivalent themed styles or are no longer needed.
+    *   Always re-read the theming guidelines to ensure adherence to the established patterns (e.g., using `var(--global-accent-color)` for highlights and interactive elements).
     *   Ask clarifying questions when uncertain.
 
 3.  **CSS Variable Naming Conventions**
     *   Follow documented naming conventions strictly; use kebab-case (e.g., `--global-background-color`).
 
 4.  **File and Directory Access**
-    *   **Always** confirm directory paths before access, **explicitly using `DirectoryTree` to understand the project structure and verify paths** before assuming file locations or attempting file operations. **Never** make repeated attempts on non-existent directories.
+    *   **Always** confirm directory paths before access, **explicitly using `DirectoryTree` to understand the project structure and verify paths** before assuming file locations or attempting file operations.
+    *   **Never** make repeated attempts on non-existent directories.
 
 5.  **JSON Formatting for Tool Calls**
     *   Use properly structured JSON objects for tool calls; ensure arrays are direct JSON arrays, not strings.
@@ -34,7 +38,8 @@
     *   Ensure the memo comparison function is passed correctly as the second argument to `React.memo` to maintain proper syntax.
 
 10. **Syntax Errors in C# Code**
-    *   Always review code for basic syntax errors before submission; specifically check for missing semicolons at the end of statements. Use an IDE or code linter when possible to catch these errors.
+    *   Always review code for basic syntax errors before submission; specifically check for missing semicolons at the end of statements.
+
 
 11. **Using Existing Event Systems Instead of CustomEvent**
     *   Before implementing any cross-component communication mechanism, thoroughly investigate the codebase for existing event handling patterns and utilities.
@@ -57,4 +62,6 @@
     *   Double-check the file content before and after the call to confirm changes have been applied.
 
 14. **User Feedback and Tool Call Management**
-    *   **Absolutely always** re-read and **thoroughly** confirm user feedback, especially negative feedback, before proceeding. If a user **unequivocally** rejects a change, **immediately** revert it and **proactively** propose a new approach. **Strictly avoid** repeating tool calls with identical parameters if the previous attempt was not successful or accepted by the user, as this can lead to tool loops.
+    *   **Absolutely always** re-read and **thoroughly** confirm user feedback, especially negative feedback, before proceeding.
+    *   If a user **unequivocally** rejects a change, **immediately** revert it and **proactively** propose a new approach.
+    *   **Strictly avoid** repeating tool calls with identical parameters if the previous attempt was not successful or accepted by the user, as this can lead to tool loops.
