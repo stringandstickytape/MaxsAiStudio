@@ -82,7 +82,7 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
 
   return (
     <div 
-      className="Sidebar flex flex-col h-full border-r"
+      className="Sidebar flex flex-col h-full"
       style={{
         backgroundColor: 'var(--global-background-color, #111827)',
         borderColor: 'var(--global-border-color, #1f2937)',
@@ -224,7 +224,7 @@ export function Sidebar({ wsState, onReconnectClick, isCollapsed = false }: Side
       {!isCollapsed && showContent && (
         <div 
           className={cn(
-            'Sidebar p-3 border-t rounded-b-md',
+            'Sidebar p-1',
             !wsState.isConnected && 'cursor-pointer'
           )}
           onClick={!wsState.isConnected ? onReconnectClick : undefined}

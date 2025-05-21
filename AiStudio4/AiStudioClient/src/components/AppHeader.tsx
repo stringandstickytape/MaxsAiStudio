@@ -45,7 +45,7 @@ export function AppHeader({
     return (
         <div className="app-container">
             <div className={cn(
-                'AppHeader header-section relative z-2 border-b border-gray-700/50 shadow-xl backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
+                'AppHeader header-section relative z-2 backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
             )}
             style={{
                 backgroundColor: 'var(--global-background-color, #1a1f2c)', // Default dark blue-gray
@@ -53,7 +53,6 @@ export function AppHeader({
                 borderColor: 'var(--global-border-color, #3a3f4c)',
                 fontFamily: 'var(--global-font-family, inherit)',
                 fontSize: 'var(--global-font-size, 0.875rem)',
-                boxShadow: 'var(--global-box-shadow, 0 2px 4px rgba(0,0,0,0.2))',
                 ...(window?.theme?.AppHeader?.style || {})
             }}
             >
@@ -95,7 +94,7 @@ export function AppHeader({
                 </div>
 
                 
-                <div className="mt-1 border-t border-gray-700/30 pt-1 flex flex-col gap-0.5">
+                <div className="mt-1 pt-1 flex flex-col gap-0.5">
                     <div 
                         className="w-full pb-1"
                     >
@@ -110,3 +109,4 @@ export function AppHeader({
 // This component now uses global theme properties instead of custom ones
 export const themeableProps = {
 };
+

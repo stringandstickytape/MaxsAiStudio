@@ -240,7 +240,6 @@ export function InputBar({
                 color: "var(--global-text-color, #e2e8f0)",
                 borderColor: "var(--global-border-color, #4a5568)",
                 borderRadius: "var(--global-border-radius, 8px)",
-                boxShadow: "var(--global-box-shadow, 0 4px 12px rgba(0,0,0,0.3))",
                 fontFamily: "var(--global-font-family, inherit)",
                 fontSize: "var(--global-font-size, inherit)",
                 ...(window?.theme?.InputBar?.style || {})

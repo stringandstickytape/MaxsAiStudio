@@ -205,7 +205,6 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                 fontFamily: 'var(--global-font-family)',
                 fontSize: 'var(--global-font-size)',
                 borderRadius: 'var(--global-border-radius)',
-                boxShadow: 'var(--global-box-shadow)',
                 ...(window?.theme?.SystemPromptComponent?.style || {})
             }}
         >
@@ -241,7 +240,6 @@ export function SystemPromptComponent({ convId, onOpenLibrary }: SystemPromptCom
                                 color: 'var(--global-text-color)',
                                 borderColor: 'var(--global-border-color)',
                                 borderRadius: 'var(--global-border-radius)',
-                                boxShadow: 'var(--global-box-shadow)',
                                 ...(window?.theme?.SystemPromptComponent?.style || {})
                             }}
                             portalContentRef={portalContentRef}
