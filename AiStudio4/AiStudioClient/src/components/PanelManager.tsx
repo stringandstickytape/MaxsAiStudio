@@ -1,5 +1,4 @@
-﻿
-import React, { useEffect, useRef } from 'react';
+﻿import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 import { Panel, PanelGroup, PanelResizeHandle, ImperativePanelHandle } from 'react-resizable-panels';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -176,7 +175,9 @@ export function PanelManager({ panels, className }: PanelManagerProps) {
               minSize={panel.minSize || 10}
               defaultSize={panel.defaultSize || 20}
               className="h-full"
-              style={{ width: 'var(--panel-width, 320px)' }}
+              style={panel.id === 'sidebar' && panelStates[panel.id]?.isCollapsed 
+                ? { width: 'var(--sidebar-width-icon, 3rem)' } // Width when collapsed using constant
+                : { width: 'var(--panel-width, 320px)' }} // Normal width
             >
               {renderPanel(panel)}
             </Panel>
