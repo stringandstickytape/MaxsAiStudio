@@ -3,6 +3,7 @@ import { NavigationContainer } from './components/navigation/NavigationContainer
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
+import { windowEventService, WindowEvents, OpenModalEventDetail, ModalCustomEvent } from '@/services/windowEvents';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 // import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog'; // Replaced by ModalManager
 // import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog'; // Replaced by ModalManager
@@ -74,20 +75,24 @@ function App() {
     }
     };
 
-    // Effect to handle opening the system prompt library modal via event
+    // Effect to handle opening the system prompt modal via event
     useEffect(() => {
-        const handleOpenSystemPromptLibrary = () => {
-            const createAction = window.localStorage.getItem('systemPrompt_action') === 'create';
-            useModalStore.getState().openModal('systemPrompt', { createNew: createAction });
-            // Clear the action after using it
-            if (createAction) {
-                window.localStorage.removeItem('systemPrompt_action');
-            }
+        const handleOpenSystemPromptModal = (event: ModalCustomEvent) => {
+            const detail = event.detail as OpenModalEventDetail | undefined;
+            useModalStore.getState().openModal('systemPrompt', detail || {});
         };
-        window.addEventListener('open-system-prompt-library', handleOpenSystemPromptLibrary);
-        return () => {
-            window.removeEventListener('open-system-prompt-library', handleOpenSystemPromptLibrary);
+        const unsubscribe = windowEventService.on(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, handleOpenSystemPromptModal);
+        return () => unsubscribe();
+    }, []);
+    
+    // Effect to handle opening the user prompt modal via event
+    useEffect(() => {
+        const handleOpenUserPromptModal = (event: ModalCustomEvent) => {
+            const detail = event.detail as OpenModalEventDetail | undefined;
+            useModalStore.getState().openModal('userPrompt', detail || {});
         };
+        const unsubscribe = windowEventService.on(WindowEvents.OPEN_USER_PROMPT_MODAL, handleOpenUserPromptModal);
+        return () => unsubscribe();
     }, []);
 
   

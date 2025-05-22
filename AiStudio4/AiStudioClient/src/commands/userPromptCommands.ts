@@ -1,6 +1,7 @@
 ﻿// AiStudioClient/src/commands/userPromptCommands.ts
 import React from 'react';
 import { BookMarked, Pencil, PlusCircle } from 'lucide-react';
+import { windowEventService, WindowEvents, OpenModalEventDetail } from '@/services/windowEvents';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { commandRegistry } from '@/services/commandRegistry';
@@ -28,7 +29,10 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
         shortcut('U'),
         ['user', 'prompt', 'library', 'collection', 'manage', 'browse', 'template', 'snippet'],
         React.createElement(BookMarked, { size: 16 }),
-        () => useModalStore.getState().openModal('userPrompt'),
+        () => {
+          const payload: OpenModalEventDetail = {};
+          windowEventService.emit(WindowEvents.OPEN_USER_PROMPT_MODAL, payload);
+        },
       ],
       [
         'create-new-user-prompt',
@@ -38,7 +42,8 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
         ['user', 'prompt', 'create', 'new', 'custom', 'template', 'snippet'],
         React.createElement(PlusCircle, { size: 16 }),
         () => {
-          useModalStore.getState().openModal('userPrompt', { createNew: true });
+          const payload: OpenModalEventDetail = { createNew: true };
+          windowEventService.emit(WindowEvents.OPEN_USER_PROMPT_MODAL, payload);
         },
       ],
       [
@@ -55,9 +60,11 @@ export function initializeUserPromptCommands(config: UserPromptCommandsConfig) {
           if (!promptToEdit && prompts.length > 0) promptToEdit = prompts[0];
 
           if (promptToEdit) {
-            useModalStore.getState().openModal('userPrompt', { editPromptId: promptToEdit.guid });
+            const payload: OpenModalEventDetail = { editPromptId: promptToEdit.guid };
+            windowEventService.emit(WindowEvents.OPEN_USER_PROMPT_MODAL, payload);
           } else {
-            useModalStore.getState().openModal('userPrompt', { createNew: true });
+            const payload: OpenModalEventDetail = { createNew: true };
+            windowEventService.emit(WindowEvents.OPEN_USER_PROMPT_MODAL, payload);
           }
         },
       ],

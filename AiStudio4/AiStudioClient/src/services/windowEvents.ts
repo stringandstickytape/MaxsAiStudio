@@ -33,6 +33,10 @@ export const WindowEvents = {
   // Server events
   OPEN_SERVER_LIST: 'open-server-list',
   
+  // Modal events
+  OPEN_SYSTEM_PROMPT_MODAL: 'open-system-prompt-modal',
+  OPEN_USER_PROMPT_MODAL: 'open-user-prompt-modal',
+  
   // Stream events
   STREAM_IGNORE: 'stream:ignore',
   STREAM_ALLOW: 'stream:allow',
@@ -41,6 +45,20 @@ export const WindowEvents = {
   // Scroll events
   SCROLL_TO_BOTTOM: 'scroll:to-bottom',
 };
+
+/**
+ * Interface for modal opening event payload
+ */
+export interface OpenModalEventDetail {
+  createNew?: boolean;
+  editPromptId?: string | null;
+  convId?: string; // For context if SystemPromptModal needs it
+}
+
+/**
+ * Type for the CustomEvent detail
+ */
+export type ModalCustomEvent = CustomEvent<OpenModalEventDetail | undefined>;
 
 /**
  * Helper functions for working with window events
