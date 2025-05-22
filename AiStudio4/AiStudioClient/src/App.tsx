@@ -77,8 +77,7 @@ function App() {
 
     // Effect to handle opening the system prompt modal via event
     useEffect(() => {
-        const handleOpenSystemPromptModal = (event: ModalCustomEvent) => {
-            const detail = event.detail as OpenModalEventDetail | undefined;
+        const handleOpenSystemPromptModal = (detail: any) => {
             useModalStore.getState().openModal('systemPrompt', detail || {});
         };
         const unsubscribe = windowEventService.on(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, handleOpenSystemPromptModal);
@@ -87,8 +86,7 @@ function App() {
     
     // Effect to handle opening the user prompt modal via event
     useEffect(() => {
-        const handleOpenUserPromptModal = (event: ModalCustomEvent) => {
-            const detail = event.detail as OpenModalEventDetail | undefined;
+        const handleOpenUserPromptModal = (detail: any) => {
             useModalStore.getState().openModal('userPrompt', detail || {});
         };
         const unsubscribe = windowEventService.on(WindowEvents.OPEN_USER_PROMPT_MODAL, handleOpenUserPromptModal);

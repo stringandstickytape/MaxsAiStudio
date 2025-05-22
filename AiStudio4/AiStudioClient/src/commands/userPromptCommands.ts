@@ -5,7 +5,7 @@ import { windowEventService, WindowEvents, OpenModalEventDetail } from '@/servic
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { commandRegistry } from '@/services/commandRegistry';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
+
 
 interface UserPromptCommandsConfig {
   toggleLibrary: () => void;

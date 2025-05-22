@@ -81,8 +81,11 @@ export const windowEventService = {
    * @returns A function that can be called to remove the event listener
    */
   on: (eventName: string, handler: (data: any) => void) => {
-    const wrappedHandler = (e: CustomEvent) => handler(e.detail);
-    window.addEventListener(eventName, wrappedHandler as EventListener);
-    return () => window.removeEventListener(eventName, wrappedHandler as EventListener);
+    const wrappedHandler = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      handler(customEvent.detail);
+    };
+    window.addEventListener(eventName, wrappedHandler);
+    return () => window.removeEventListener(eventName, wrappedHandler);
   }
 };

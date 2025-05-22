@@ -45,6 +45,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 React.createElement(PlusCircle, { size: 16 }),
                 () => {
                     const payload: OpenModalEventDetail = { createNew: true };
+                    console.log('Emitting create new system prompt event with payload:', payload);
                     windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
                 },
             ],
