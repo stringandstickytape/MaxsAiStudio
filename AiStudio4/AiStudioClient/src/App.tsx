@@ -1,7 +1,6 @@
 ﻿// AiStudioClient/src/App.tsx
 import { NavigationContainer } from './components/navigation/NavigationContainer';
-import { CommandInitializer2 } from './components/commands/CommandInitializer';
-import { CommandInitializer } from './components/CommandInitializer';
+import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
@@ -207,7 +206,6 @@ function App() {
     <FontSizeProvider>
       
           <CommandInitializer />
-          <CommandInitializer2 />
       
       
       <CommandInitializationPlugin />
