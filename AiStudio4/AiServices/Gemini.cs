@@ -682,6 +682,27 @@ namespace AiStudio4.AiServices
 
                     var audioBytes = Convert.FromBase64String(base64Audio);
 
+                    // Debug: Write audio file to debug directory
+                    string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "DebugLogs", "AudioFiles");
+                    try
+                    {
+                        // Create directory if it doesn't exist
+                        if (!Directory.Exists(debugDir))
+                        {
+                            Directory.CreateDirectory(debugDir);
+                        }
+                        
+                        // Write audio file
+                        string debugFileName = $"speech_{DateTime.Now:yyyyMMddHHmmss}.wav";
+                        string debugFilePath = Path.Combine(debugDir, debugFileName);
+                        File.WriteAllBytes(debugFilePath, audioBytes);
+                        Debug.WriteLine($"Audio debug file written to: {debugFilePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to write audio debug file: {ex.Message}");
+                    }
+
                     var attachment = new Attachment
                     {
                         Id = Guid.NewGuid().ToString(),
