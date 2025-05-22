@@ -23,7 +23,6 @@ using AiStudio4.Core.Models;
 using AiStudio4.Services;
 using Azure.Core;
 using AiStudio4.Core.Interfaces;
-using ModelContextProtocol.Protocol.Messages;
 
 namespace AiStudio4.AiServices
 {

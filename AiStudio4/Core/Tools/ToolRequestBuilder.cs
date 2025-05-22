@@ -29,7 +29,7 @@ namespace AiStudio4.Core.Tools
             foreach(var serverDefinition in serverDefinitions.Where(x => x.IsEnabled))
             {
                 var allToolsForServer = await mcpService.ListToolsAsync(serverDefinition.Id);
-                IEnumerable<ModelContextProtocol.Protocol.Types.Tool> toolsToConsider;
+                IEnumerable<ModelContextProtocol.Protocol.Tool> toolsToConsider;
 
                 // If SelectedTools is configured and not empty, filter by it
                 if (serverDefinition.SelectedTools != null && serverDefinition.SelectedTools.Any())

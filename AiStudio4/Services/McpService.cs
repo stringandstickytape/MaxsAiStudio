@@ -10,8 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AiStudio4.Core.Exceptions;
-using ModelContextProtocol.Protocol.Transport;
-using ModelContextProtocol.Protocol.Types;
+using ModelContextProtocol.Protocol;
 
 namespace AiStudio4.Services
 {
@@ -206,7 +205,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<IEnumerable<ModelContextProtocol.Protocol.Types.Tool>> ListToolsAsync(string serverId)
+        public async Task<IEnumerable<ModelContextProtocol.Protocol.Tool>> ListToolsAsync(string serverId)
         {
             await EnsureInitialized();
 
@@ -220,7 +219,7 @@ namespace AiStudio4.Services
             try
             {
                 _logger.LogInformation("Listing tools for MCP server {ServerId}", serverId);
-                List<ModelContextProtocol.Protocol.Types.Tool> tools = new List<ModelContextProtocol.Protocol.Types.Tool>();
+                List<ModelContextProtocol.Protocol.Tool> tools = new List<ModelContextProtocol.Protocol.Tool>();
                 var availableTools = await client.ListToolsAsync();
                 foreach (var tool in availableTools)
                 {
@@ -228,7 +227,7 @@ namespace AiStudio4.Services
                 }
 
                 _logger.LogInformation("Successfully listed {Count} tools for MCP server {ServerId}", tools?.Count() ?? 0, serverId);
-                return tools ?? Enumerable.Empty<ModelContextProtocol.Protocol.Types.Tool>();
+                return tools ?? Enumerable.Empty<ModelContextProtocol.Protocol.Tool>();
             }
             catch (Exception ex)
             {

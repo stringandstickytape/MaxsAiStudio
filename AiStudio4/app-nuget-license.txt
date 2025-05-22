@@ -89,7 +89,7 @@
   },
   {
     "PackageId": "ModelContextProtocol",
-    "PackageVersion": "0.1.0-preview.11",
+    "PackageVersion": "0.2.0-preview.1",
     "PackageProjectUrl": "https://github.com/modelcontextprotocol/csharp-sdk",
     "Copyright": "\u00A9 Anthropic and Contributors.",
     "Authors": "ModelContextProtocolOfficial",
