@@ -67,6 +67,9 @@ namespace SharedClasses.Providers
         // ReasoningEffort: none, low, medium, high
         public string ReasoningEffort { get; set; } = "none";
 
+        public bool IsTtsModel { get; set; } = false;
+        public string TtsVoiceName { get; set; } = "Kore"; // Default voice
+
         public override string ToString()
         {
             return FriendlyName;

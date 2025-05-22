@@ -1,9 +1,10 @@
-import React from 'react';
-import { File, FileText, Image, Download } from 'lucide-react';
+﻿import React from 'react';
+import { File, FileText, Image, Download, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Attachment } from '@/types/attachment';
 import { getIconForFileType, formatFileSize } from '@/utils/attachmentUtils';
+import { AudioAttachment } from '@/components/AudioAttachment';
 
 interface MessageAttachmentProps {
     attachment: Attachment;
@@ -115,7 +116,11 @@ export const MessageAttachments: React.FC<MessageAttachmentsProps> = ({ attachme
     if (!attachments || attachments.length === 0) return null;
 
     const previews = attachments.filter(att => att.type.startsWith('image/') || att.type === 'application/pdf');
-    const files = attachments.filter(att => !att.type.startsWith('image/') && att.type !== 'application/pdf');
+    const audioFiles = attachments.filter(att => att.type.startsWith('audio/'));
+    const files = attachments.filter(att => 
+        !att.type.startsWith('image/') && 
+        !att.type.startsWith('audio/') && 
+        att.type !== 'application/pdf');
 
     return (
         <div className={cn('space-y-2', className)}>
@@ -123,6 +128,13 @@ export const MessageAttachments: React.FC<MessageAttachmentsProps> = ({ attachme
                 <div className="flex flex-wrap gap-2">
                     {previews.map(attachment => (
                         <MessageAttachment key={attachment.id} attachment={attachment} className="flex-shrink-0" />
+                    ))}
+                </div>
+            )}
+            {audioFiles.length > 0 && (
+                <div className="flex flex-col space-y-2">
+                    {audioFiles.map(attachment => (
+                        <AudioAttachment key={attachment.id} attachment={attachment} />
                     ))}
                 </div>
             )}

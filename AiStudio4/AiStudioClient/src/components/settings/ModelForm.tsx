@@ -80,6 +80,26 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
       'Set the reasoning effort level for this model (if supported by backend)',
       2,
     ],
+    [
+      'isTtsModel',
+      'Enable Text-to-Speech (TTS)',
+      'checkbox',
+      undefined,
+      undefined,
+      undefined,
+      'Check if this model should be used for Text-to-Speech generation.',
+      2
+    ],
+    [
+      'ttsVoiceName',
+      'TTS Voice Name',
+      'text',
+      'e.g., Kore, Gemini, Calite',
+      undefined,
+      undefined,
+      'The prebuilt voice name for TTS (e.g., Kore). Refer to Gemini documentation for available voices.',
+      2
+    ],
   ];
 
   const fields: FormFieldDefinition[] = fieldDefinitions.map(
@@ -110,6 +130,8 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     supportsPrefill: false,
     requires1fTemp: false,
     reasoningEffort: 'none',
+    isTtsModel: false,
+    ttsVoiceName: 'Kore',
   };
 
   return (
