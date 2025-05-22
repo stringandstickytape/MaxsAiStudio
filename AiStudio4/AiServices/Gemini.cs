@@ -703,27 +703,92 @@ namespace AiStudio4.AiServices
                         Debug.WriteLine($"Failed to write audio debug file: {ex.Message}");
                     }
 
+                    // Prepend WAV header to raw PCM data
+                    // Assume default audio parameters (can be adjusted if Gemini provides this info)
+                    int sampleRate = 24000; // 24 kHz
+                    short bitsPerSample = 16; // 16-bit
+                    short numChannels = 1;   // Mono
+
+                    byte[] wavFileData = PrependWavHeader(audioBytes, numChannels, sampleRate, bitsPerSample);
+                    string finalBase64Audio = Convert.ToBase64String(wavFileData);
+
+                    // Debug: Write WAV file to debug directory
+                    try
+                    {
+                        string wavDebugFilePath = Path.Combine(debugDir, $"speech_wav_{DateTime.Now:yyyyMMddHHmmss}.wav");
+                        File.WriteAllBytes(wavDebugFilePath, wavFileData);
+                        Debug.WriteLine($"WAV audio debug file written to: {wavDebugFilePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to write WAV audio debug file: {ex.Message}");
+                    }
+
                     var attachment = new Attachment
                     {
                         Id = Guid.NewGuid().ToString(),
-                        Name = $"speech_{DateTime.Now:yyyyMMddHHmmss}.wav", // Determine extension from mimeType if needed
-                        Type = mimeType,
-                        Content = base64Audio, // Keep as base64 for client
-                        Size = audioBytes.Length
+                        Name = $"speech_{DateTime.Now:yyyyMMddHHmmss}.wav",
+                        Type = "audio/wav", // Explicitly set to audio/wav since we're creating a WAV file
+                        Content = finalBase64Audio, // Send the complete WAV file (header + PCM data)
+                        Size = wavFileData.Length
                     };
+
+                    options.OnStreamingComplete?.Invoke();
+
+                    if (responseObject["usageMetadata"] != null)
+                    {
+                        Debug.WriteLine(responseObject["usageMetadata"].ToString());
+                        inputTokenCount = ((int)(responseObject["usageMetadata"]?["promptTokenCount"] ?? 0) + (int)(responseObject["usageMetadata"]?["thoughtsTokenCount"] ?? 0)).ToString();
+                        outputTokenCount = responseObject["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+                    }
 
                     return new AiResponse
                     {
                         Success = true,
                         ResponseText = $"Audio generated for: \"{textToSynthesize.Substring(0, Math.Min(textToSynthesize.Length, 50))}...\"",
                         Attachments = new List<Attachment> { attachment },
-                        TokenUsage = new TokenUsage("0", "0"), // Placeholder
+                        TokenUsage = new TokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), // Placeholder
                     };
                 }
                 catch (Exception ex)
                 {
                     return new AiResponse { Success = false, ResponseText = $"TTS Error: {ex.Message}" };
                 }
+            }
+        }
+
+        // Helper method to prepend a WAV header to raw PCM audio data
+        private static byte[] PrependWavHeader(byte[] pcmData, short numChannels, int sampleRate, short bitsPerSample)
+        {
+            int headerSize = 44;
+            int totalFileSize = pcmData.Length + headerSize;
+            int byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            short blockAlign = (short)(numChannels * (bitsPerSample / 8));
+
+            using (MemoryStream ms = new MemoryStream(totalFileSize))
+            using (BinaryWriter writer = new BinaryWriter(ms))
+            {
+                // RIFF Header
+                writer.Write(Encoding.ASCII.GetBytes("RIFF")); // ChunkID
+                writer.Write(totalFileSize - 8);              // ChunkSize
+                writer.Write(Encoding.ASCII.GetBytes("WAVE")); // Format
+
+                // Subchunk1: "fmt "
+                writer.Write(Encoding.ASCII.GetBytes("fmt ")); // Subchunk1ID
+                writer.Write(16);                              // Subchunk1Size (16 for PCM)
+                writer.Write((short)1);                        // AudioFormat (1 for PCM)
+                writer.Write(numChannels);                     // NumChannels
+                writer.Write(sampleRate);                      // SampleRate
+                writer.Write(byteRate);                        // ByteRate
+                writer.Write(blockAlign);                      // BlockAlign
+                writer.Write(bitsPerSample);                   // BitsPerSample
+
+                // Subchunk2: "data"
+                writer.Write(Encoding.ASCII.GetBytes("data")); // Subchunk2ID
+                writer.Write(pcmData.Length);                  // Subchunk2Size
+                writer.Write(pcmData);                         // Actual data
+
+                return ms.ToArray();
             }
         }
     }

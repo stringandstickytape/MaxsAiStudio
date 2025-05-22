@@ -27,7 +27,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatus
                 border: '1px solid'
               }}
             >
-              <span className="truncate max-w-[130px]">{selectedPrimaryModel !== 'Select Model' ? selectedPrimaryModel : 'Primary Model'}</span>
+              <span className="truncate max-w-[160px]">{selectedPrimaryModel !== 'Select Model' ? selectedPrimaryModel : 'Primary Model'}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>
@@ -49,7 +49,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatus
                 border: '1px solid'
               }}
             >
-              <span className="truncate max-w-[130px]">{selectedSecondaryModel !== 'Select Model' ? selectedSecondaryModel : 'Secondary Model'}</span>
+              <span className="truncate max-w-[160px]">{selectedSecondaryModel !== 'Select Model' ? selectedSecondaryModel : 'Secondary Model'}</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>

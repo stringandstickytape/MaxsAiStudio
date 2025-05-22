@@ -144,7 +144,7 @@ namespace AiStudio4.Services
 
                 _logger.LogInformation("Processing chat request for conv {ConvId}", request.BranchedConv.ConvId);
 
-                var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
+                var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.FriendlyName == request.Model);
                 var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
