@@ -37,7 +37,7 @@ import { TemperatureControl } from './TemperatureControl'; // Add this
 
 interface InputBarProps {
     selectedModel: string;
-    // onVoiceInputClick?: () => void; // Removed
+
     inputValue?: string;
     onInputChange?: (value: string) => void;
     activeTools?: string[];
@@ -58,7 +58,7 @@ declare global {
 
 export function InputBar({
     selectedModel,
-    // onVoiceInputClick, // Removed
+
     inputValue,
     onInputChange,
     activeTools: activeToolsFromProps,
@@ -353,7 +353,7 @@ export function InputBar({
                                 })();
                             }
                         }}
-                        // onVoiceInputClick={onVoiceInputClick} // Removed
+
                         isListening={isVoiceListening} // Added
                         onToggleListening={handleToggleListening} // Added
                         addAttachments={addAttachments}

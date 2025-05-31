@@ -39,8 +39,6 @@ export function initializeVoiceInputCommand() {
   });
 }
 
-// Removed useVoiceInputState hook as it's no longer needed with the new store-based approach.
-
 // Removed setupVoiceInputKeyboardShortcut function.
 // The keyboard shortcut is defined in the command registration.
 // Global event listeners for shortcuts are typically handled by a dedicated command execution system or a global keydown listener that dispatches commands.

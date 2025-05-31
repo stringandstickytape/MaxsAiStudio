@@ -3,16 +3,16 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BookMarked, Mic, Send, X, MessageSquarePlus } from 'lucide-react';
 import { FileAttachment } from '@/components/FileAttachment';
-// import { useAttachmentStore } from '@/stores/useAttachmentStore'; // Removed
+
 import { useModalStore } from '@/stores/useModalStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { webSocketService } from '@/services/websocket/WebSocketService';
-// import { Checkbox } from '@/components/ui/checkbox'; // Removed
+
 
 interface ActionButtonsProps {
     onSend: () => void;
     onCancel: () => void;
-    // onVoiceInputClick?: () => void; // Removed
+
     addAttachments?: (files: File[]) => void; // Optional since we'll use the store directly
     isLoading: boolean;
     isCancelling: boolean;
@@ -27,7 +27,7 @@ interface ActionButtonsProps {
 export function ActionButtons({
     onSend,
     onCancel,
-    // onVoiceInputClick removed from destructuring
+
     addAttachments,
     isLoading,
     isCancelling,
