@@ -1,4 +1,4 @@
-﻿// C:\Users\maxhe\source\repos\CloneTest\MaxsAiTool\AiStudio4\Core\Tools\LaunchUrlTool.cs
+﻿// \AiStudio4\Core\Tools\LaunchUrlTool.cs
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;

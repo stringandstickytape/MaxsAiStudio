@@ -83,6 +83,9 @@
 	  <Exec Command="nuget-license -i $(ProjectDir)AiStudio4.csproj -o jsonPretty &gt; $(ProjectDir)app-nuget-license.txt" WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" />
 	</Target>
 
-
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Message Text="Creating release zip for DebugWithZip configuration..." Importance="high" />
+	  <Exec Command="rem powershell -Command &quot;if (Test-Path '$(ProjectDir)release.zip') { Remove-Item '$(ProjectDir)release.zip' -Force }; Compress-Archive -Path '$(TargetDir)*' -DestinationPath '$(ProjectDir)release.zip' -Force&quot;" />
+	</Target>
 
 </Project>

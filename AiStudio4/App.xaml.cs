@@ -35,6 +35,10 @@ namespace AiStudio4
                 // Other settings like null handling, etc.
             };
 
+            // default project path
+            string reposPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos", "AiStudio4TestProject");
+            Directory.CreateDirectory(reposPath);
+
             var services = new ServiceCollection();
             ConfigureServices(services);
             _serviceProvider = services.BuildServiceProvider();

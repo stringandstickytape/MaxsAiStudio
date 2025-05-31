@@ -32,6 +32,56 @@ namespace AiStudio4.InjectedDependencies
                 if (!File.Exists(_settingsFilePath))
                 {
                     CurrentSettings = new GeneralSettings();
+
+                    CurrentSettings.ServiceProviders = new List<ServiceProvider>
+                    {
+                        new ServiceProvider
+                        {
+                            Url = "https://api.anthropic.com/v1/messages",
+                            ApiKey = string.Empty,
+                            FriendlyName = "Anthropic",
+                            ServiceName = "Claude",
+                            IconName = "Anthropic",
+                            Guid = "8c7eb4ee-6b48-4700-b740-9fa86e0e068b"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://generativelanguage.googleapis.com/v1beta/models/",
+                            ApiKey = string.Empty,
+                            FriendlyName = "Google",
+                            ServiceName = "Gemini",
+                            IconName = "Google",
+                            Guid = "312cb0dc-8f20-49b0-91bb-8577a344a7df"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://generativelanguage.googleapis.com/v1beta/models/",
+                            ApiKey = string.Empty,
+                            FriendlyName = "Google [OpenAI API]",
+                            ServiceName = "NetOpenAi",
+                            IconName = "Google",
+                            Guid = "fac1a7e7-57d0-4a08-96db-b4d0a28a2397"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://api.openai.com/v1",
+                            ApiKey = string.Empty,
+                            FriendlyName = "OpenAI",
+                            ServiceName = "NetOpenAi",
+                            IconName = "OpenAI",
+                            Guid = "58fe0301-f10e-4b5f-a967-481cffc39cc0"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://openrouter.ai/api/v1/",
+                            ApiKey = string.Empty,
+                            FriendlyName = "OpenAI",
+                            ServiceName = "NetOpenAi",
+                            IconName = "OpenRouter",
+                            Guid = "d59ce7e8-db8b-4317-be5b-27f7b54273ab"
+                        }
+                    };
+
                     SaveSettings();
                     return;
                 }
