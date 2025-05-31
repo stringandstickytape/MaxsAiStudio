@@ -5,9 +5,9 @@ import { ChatContainer } from './ChatContainer';
 import { Attachment } from '@/types/attachment';
 import { InputBar } from './InputBar';
 import { CommandBar } from './CommandBar';
-import { VoiceInputOverlay } from './VoiceInputOverlay';
+// import { VoiceInputOverlay } from './VoiceInputOverlay'; // Removed
 import { useStreamTokens } from '@/hooks/useStreamTokens';
-import { useVoiceInputState } from '@/commands/voiceInputCommand';
+// import { useVoiceInputState } from '@/commands/voiceInputCommand'; // Removed
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { useToolStore } from '@/stores/useToolStore';
 import { useConvStore } from '@/stores/useConvStore';
@@ -30,9 +30,10 @@ export function ChatSpace() {
   const { isCancelling } = useWebSocketStore();
   const { panels } = usePanelStore();
 
-  const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState((text) => {
-    setInputValue(text);
-  });
+  // Removed useVoiceInputState hook call and related state
+  // const { isVoiceInputOpen, setVoiceInputOpen, handleTranscript } = useVoiceInputState((text) => {
+  //   setInputValue(text);
+  // });
 
   // Removed the effect that was automatically setting input value based on selected message
   // Now we'll only set input value when explicitly requested
@@ -123,7 +124,7 @@ export function ChatSpace() {
       <div className="flex-none w-full">
         <InputBar
           selectedModel={selectedPrimaryModel}
-          onVoiceInputClick={() => setVoiceInputOpen(true)}
+          // onVoiceInputClick={() => setVoiceInputOpen(true)} // Removed
           inputValue={inputValue}
           onInputChange={setInputValue}
           activeTools={activeTools}
@@ -133,11 +134,11 @@ export function ChatSpace() {
         />
       </div>
 
-      <VoiceInputOverlay
+      {/* <VoiceInputOverlay
         isOpen={isVoiceInputOpen}
         onClose={() => setVoiceInputOpen(false)}
         onTranscript={handleTranscript}
-      />
+      /> */}
     </>
   );
 }

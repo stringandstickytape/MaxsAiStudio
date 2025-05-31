@@ -15,6 +15,9 @@ import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 import { useChatManagement } from '@/hooks/useChatManagement';
+import { useVoiceInputStore } from '@/stores/useVoiceInputStore'; // Added
+import { useVoiceInput } from '@/hooks/useVoiceInput'; // Added
+import { useToast } from "@/hooks/use-toast"; // Added
 
 // Import subcomponents
 import { SystemPromptSection } from './SystemPromptSection';
@@ -34,7 +37,7 @@ import { TemperatureControl } from './TemperatureControl'; // Add this
 
 interface InputBarProps {
     selectedModel: string;
-    onVoiceInputClick?: () => void;
+    // onVoiceInputClick?: () => void; // Removed
     inputValue?: string;
     onInputChange?: (value: string) => void;
     activeTools?: string[];
@@ -55,7 +58,7 @@ declare global {
 
 export function InputBar({
     selectedModel,
-    onVoiceInputClick,
+    // onVoiceInputClick, // Removed
     inputValue,
     onInputChange,
     activeTools: activeToolsFromProps,
@@ -96,6 +99,62 @@ export function InputBar({
     const isXs = useMediaQuery('(max-width: 640px)');
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
+
+    // Voice Input Integration
+    const { 
+        isListening: isVoiceListening, // Renamed to avoid conflict if local isListening is ever needed
+        error: voiceError, 
+        startListening: startVoiceStoreListening, 
+        stopListening: stopVoiceStoreListening 
+    } = useVoiceInputStore();
+    
+    const { toast } = useToast();
+
+    const handleFinalVoiceTranscript = useCallback((text: string) => {
+        setInputText(prevText => (prevText ? prevText + ' ' : '') + text.trim());
+        stopVoiceStoreListening(); // Signal store to stop, effect will handle mic
+        // resetTranscript(); // resetTranscript is called by the effect before starting new capture
+        textareaRef.current?.focusWithCursor();
+    }, [setInputText, stopVoiceStoreListening, textareaRef]);
+
+    const {
+        isSupported: voiceIsSupported,
+        startMicCapture,
+        stopMicCapture,
+        resetTranscript
+    } = useVoiceInput({ onTranscriptFinalized: handleFinalVoiceTranscript });
+
+    const handleToggleListening = () => {
+        if (isVoiceListening) {
+            stopVoiceStoreListening();
+        } else {
+            // resetTranscript(); // This will be called by the effect when isListening becomes true
+            startVoiceStoreListening();
+        }
+    };
+
+    // Effect to link store's isListening state to the hook's capture functions
+    useEffect(() => {
+        if (isVoiceListening) {
+            if (voiceIsSupported) {
+                resetTranscript(); // Clear any old transcript in the hook before starting
+                startMicCapture(); // Start the actual browser API listening
+            } else {
+                useVoiceInputStore.getState().setError("Voice input not supported by your browser.");
+                stopVoiceStoreListening(); // Reset store state if not supported
+            }
+        } else {
+            stopMicCapture(); // Stop the actual browser API listening
+        }
+    }, [isVoiceListening, voiceIsSupported, startMicCapture, stopMicCapture, resetTranscript, stopVoiceStoreListening]);
+
+    // Effect to display voice errors via toast
+    useEffect(() => {
+        if (voiceError) {
+            toast({ title: "Voice Input Error", description: voiceError, variant: "destructive" });
+            useVoiceInputStore.getState().setError(null); // Clear error after showing
+        }
+    }, [voiceError, toast]);
 
     useEffect(() => {
         if (onAttachmentChange) {
@@ -294,7 +353,9 @@ export function InputBar({
                                 })();
                             }
                         }}
-                        onVoiceInputClick={onVoiceInputClick}
+                        // onVoiceInputClick={onVoiceInputClick} // Removed
+                        isListening={isVoiceListening} // Added
+                        onToggleListening={handleToggleListening} // Added
                         addAttachments={addAttachments}
                         isLoading={isLoading}
                         isCancelling={isCancelling}

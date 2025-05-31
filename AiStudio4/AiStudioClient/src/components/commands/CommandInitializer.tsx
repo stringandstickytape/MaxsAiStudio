@@ -19,7 +19,7 @@ import { useModelManagement } from '@/hooks/useResourceManagement';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
-import { setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
+// import { setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand'; // Removed
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
@@ -227,11 +227,11 @@ export function CommandInitializer() {
       },
     );
 
-    const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
+    // const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut(); // Removed
 
     // Cleanup function to unsubscribe from all subscriptions
     return () => {
-      cleanupKeyboardShortcut();
+      // cleanupKeyboardShortcut(); // Removed
       unsubscribePrompts();
       unsubscribeUserPrompts();
       unsubscribeModels();
