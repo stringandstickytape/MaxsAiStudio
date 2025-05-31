@@ -38,7 +38,6 @@ public partial class WebViewWindow : Window
     private readonly IAppearanceSettingsService _appearanceSettingsService;
     private readonly IProjectHistoryService _projectHistoryService;
     private readonly IBuiltinToolService _builtinToolService;
-    private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
     private readonly IWebSocketNotificationService _notificationService;
     private readonly IProjectPackager _projectPackager;
     private readonly ILogger<WebViewWindow> _logger;
@@ -49,7 +48,7 @@ public partial class WebViewWindow : Window
     private readonly string _nugetLicense2Path;
     private string _lastTranscriptionResult = null;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager, IDotNetProjectAnalyzerService dotNetProjectAnalyzerService, IProjectFileWatcherService projectFileWatcherService, ILogger<WebViewWindow> logger)
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager, IDotNetProjectAnalyzerService dotNetProjectAnalyzerService, IProjectFileWatcherService projectFileWatcherService, ILogger<WebViewWindow> logger)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
@@ -57,7 +56,6 @@ public partial class WebViewWindow : Window
         _appearanceSettingsService = appearanceSettingsService;
         _projectHistoryService = projectHistoryService;
         _builtinToolService = builtinToolService;
-        _audioTranscriptionService = audioTranscriptionService;
         _notificationService = notificationService; // Assign injected service
         _projectPackager = projectPackager;
         _logger = logger;

@@ -106,14 +106,5 @@
     "License": "MIT",
     "LicenseUrl": "https://licenses.nuget.org/MIT",
     "LicenseInformationOrigin": 0
-  },
-  {
-    "PackageId": "Whisper.net.AllRuntimes",
-    "PackageVersion": "1.8.1",
-    "PackageProjectUrl": "https://github.com/sandrohanea/whisper.net",
-    "Authors": "Sandro Hanea",
-    "License": "MIT",
-    "LicenseUrl": "https://licenses.nuget.org/MIT",
-    "LicenseInformationOrigin": 0
   }
 ]
