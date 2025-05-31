@@ -57,9 +57,132 @@ namespace AiStudio4.InjectedDependencies
                 if (!File.Exists(_settingsFilePath))
                 {
                     CurrentSettings = new GeneralSettings();
-                    // Initialize default providers and models
-                    CurrentSettings.ServiceProviders = new List<ServiceProvider> { /* ... your defaults ... */ };
-                    CurrentSettings.ModelList = new List<Model> { /* ... your defaults ... */ };
+
+                    CurrentSettings.ServiceProviders = new List<ServiceProvider>
+                    {
+                        new ServiceProvider
+                        {
+                            Url = "https://api.anthropic.com/v1/messages",
+                            ApiKey = string.Empty,
+                            FriendlyName = "Anthropic",
+                            ServiceName = "Claude",
+                            IconName = "Anthropic",
+                            Guid = "8c7eb4ee-6b48-4700-b740-9fa86e0e068b"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://generativelanguage.googleapis.com/v1beta/models/",
+                            ApiKey = string.Empty,
+                            FriendlyName = "Google",
+                            ServiceName = "Gemini",
+                            IconName = "Google",
+                            Guid = "312cb0dc-8f20-49b0-91bb-8577a344a7df"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://generativelanguage.googleapis.com/v1beta/models/",
+                            ApiKey = string.Empty,
+                            FriendlyName = "Google [OpenAI API]",
+                            ServiceName = "NetOpenAi",
+                            IconName = "Google",
+                            Guid = "fac1a7e7-57d0-4a08-96db-b4d0a28a2397"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://api.openai.com/v1",
+                            ApiKey = string.Empty,
+                            FriendlyName = "OpenAI",
+                            ServiceName = "NetOpenAi",
+                            IconName = "OpenAI",
+                            Guid = "58fe0301-f10e-4b5f-a967-481cffc39cc0"
+                        },
+                        new ServiceProvider
+                        {
+                            Url = "https://openrouter.ai/api/v1/",
+                            ApiKey = string.Empty,
+                            FriendlyName = "OpenRouter",
+                            ServiceName = "NetOpenAi",
+                            IconName = "OpenRouter",
+                            Guid = "d59ce7e8-db8b-4317-be5b-27f7b54273ab"
+                        }
+                    };
+
+                    CurrentSettings.ModelList = new List<Model>
+                    {
+                        new Model
+                        {
+                            ModelName = "claude-sonnet-4-20250514",
+                            UserNotes = "",
+                            ProviderGuid = "8c7eb4ee-6b48-4700-b740-9fa86e0e068b",
+                            AdditionalParams = null,
+                            input1MTokenPrice = 3.0m,
+                            output1MTokenPrice = 15.0m,
+                            Color = Color.FromArgb(0x4F46E5),
+                            Starred = false,
+                            FriendlyName = "Sonnet 4",
+                            Guid = "6d21047e-78bd-4adb-a0f7-e3fa6b48ef61",
+                            SupportsPrefill = false,
+                            Requires1fTemp = false,
+                            ReasoningEffort = "none",
+                            IsTtsModel = false,
+                            TtsVoiceName = "Kore"
+                        },
+                        new Model
+                        {
+                            ModelName = "gpt-4.1-mini",
+                            UserNotes = "",
+                            ProviderGuid = "58fe0301-f10e-4b5f-a967-481cffc39cc0",
+                            AdditionalParams = null,
+                            input1MTokenPrice = 0.4m,
+                            output1MTokenPrice = 1.6m,
+                            Color = Color.FromArgb(0x4F46E5),
+                            Starred = false,
+                            FriendlyName = "GPT 4.1 Mini",
+                            Guid = "6c21b1dd-2a91-4b5a-b904-a0ee04147ed1",
+                            SupportsPrefill = false,
+                            Requires1fTemp = false,
+                            ReasoningEffort = "none",
+                            IsTtsModel = false,
+                            TtsVoiceName = "Kore"
+                        },
+                        new Model
+                        {
+                            ModelName = "gemini-2.5-pro-preview-05-06",
+                            UserNotes = "",
+                            ProviderGuid = "312cb0dc-8f20-49b0-91bb-8577a344a7df",
+                            AdditionalParams = null,
+                            input1MTokenPrice = 2.5m,
+                            output1MTokenPrice = 15.0m,
+                            Color = Color.FromArgb(0xAEAA3D),
+                            Starred = false,
+                            FriendlyName = "Gemini 2.5 Pro Exp 05 06",
+                            Guid = "60c7c581-8fa2-4efd-b393-31c7019ab1aa",
+                            SupportsPrefill = false,
+                            Requires1fTemp = false,
+                            ReasoningEffort = "none",
+                            IsTtsModel = false,
+                            TtsVoiceName = "Kore"
+                        },
+                        new Model
+                        {
+                            ModelName = "qwen/qwen3-235b-a22b",
+                            UserNotes = "",
+                            ProviderGuid = "d59ce7e8-db8b-4317-be5b-27f7b54273ab",
+                            AdditionalParams = null,
+                            input1MTokenPrice = 0.1m,
+                            output1MTokenPrice = 0.1m,
+                            Color = Color.FromArgb(0x4F46E5),
+                            Starred = false,
+                            FriendlyName = "OpenRouter qwen3-235b-a22b",
+                            Guid = "b77ebaae-aa7d-4354-a584-20d33f184f97",
+                            SupportsPrefill = false,
+                            Requires1fTemp = false,
+                            ReasoningEffort = "none",
+                            IsTtsModel = false,
+                            TtsVoiceName = "Kore"
+                        }
+                    };
+
                     // When creating defaults, API keys would be plaintext. They'll be encrypted on first save.
                     settingsModifiedDuringLoad = true; // Mark for saving to ensure defaults are encrypted
                 }
