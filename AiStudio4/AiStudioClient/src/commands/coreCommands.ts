@@ -23,10 +23,10 @@ export function initializeCoreCommands(handlers: {
     commands: [
       [
         'new-conv',
-        'New Conv',
-        'Start a new chat conv',
+        'New Conversation',
+        'Start a new chat conversation',
         shortcut('N'),
-        ['new', 'chat', 'conv', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'],
+        ['new', 'chat', 'conversation', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'],
         React.createElement(Plus, { size: 16 }),
         () => {
           const convId = `conv_${uuidv4()}`;
