@@ -1,10 +1,11 @@
 ﻿// AiStudio4/MainWindow.xaml.cs
+// ... other using statements ...
+using AiStudio4.Dialogs; // For WpfInputDialog
+using AiStudio4.InjectedDependencies; // For IGeneralSettingsService
+using AiStudio4.Services;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
-using AiStudio4.Dialogs; // Added for WpfInputDialog
-using AiStudio4.InjectedDependencies;
-using AiStudio4.Services;
 using AiStudio4.Services.Interfaces; // Added for IDotNetProjectAnalyzerService
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ using System.IO;
 using System.Diagnostics;
 using AiStudio4.Core.Services;
 using static RoslynHelper;
+using System.Collections.Generic; // Required for List<string>
 
 namespace AiStudio4;
 
@@ -51,7 +53,7 @@ public partial class WebViewWindow : Window
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
-        _generalSettingsService = generalSettingsService;
+        _generalSettingsService = generalSettingsService; // Ensure this is assigned
         _appearanceSettingsService = appearanceSettingsService;
         _projectHistoryService = projectHistoryService;
         _builtinToolService = builtinToolService;
@@ -265,27 +267,22 @@ public partial class WebViewWindow : Window
             }
         }
     }
+
     private void SetYouTubeApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentKey = _generalSettingsService.CurrentSettings.YouTubeApiKey ?? string.Empty;
-        string prompt = "Enter your YouTube Data API v3 Key:";
-        string title = "Set YouTube API Key";
-
-        var dialog = new WpfInputDialog(title, prompt, currentKey)
-        {
-            Owner = this // Set the owner to center the dialog over the main window
-        };
+        // Get current decrypted key for display, or empty string if null
+        string currentKey = _generalSettingsService.GetDecryptedYouTubeApiKey() ?? string.Empty;
+        var dialog = new WpfInputDialog("Set YouTube API Key", "Enter your YouTube Data API v3 Key:", currentKey) { Owner = this };
 
         if (dialog.ShowDialog() == true)
         {
             string newKey = dialog.ResponseText;
-
-            // Check if the key actually changed
+            // Check if the key actually changed before updating
             if (newKey != currentKey)
             {
                 try
                 {
-                    _generalSettingsService.UpdateYouTubeApiKey(newKey);
+                    _generalSettingsService.UpdateYouTubeApiKey(newKey); // Service handles encryption
                     MessageBox.Show("YouTube API Key updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -295,23 +292,15 @@ public partial class WebViewWindow : Window
             }
         }
     }
-    
+
     private void SetGitHubApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentKey = _generalSettingsService.CurrentSettings.GitHubApiKey ?? string.Empty;
-        string prompt = "Enter your GitHub API Key:";
-        string title = "Set GitHub API Key";
-
-        var dialog = new WpfInputDialog(title, prompt, currentKey)
-        {
-            Owner = this // Set the owner to center the dialog over the main window
-        };
+        string currentKey = _generalSettingsService.GetDecryptedGitHubApiKey() ?? string.Empty;
+        var dialog = new WpfInputDialog("Set GitHub API Key", "Enter your GitHub API Key:", currentKey) { Owner = this };
 
         if (dialog.ShowDialog() == true)
         {
             string newKey = dialog.ResponseText;
-
-            // Check if the key actually changed
             if (newKey != currentKey)
             {
                 try
@@ -326,23 +315,15 @@ public partial class WebViewWindow : Window
             }
         }
     }
-    
+
     private void SetAzureDevOpsPATMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentPAT = _generalSettingsService.CurrentSettings.AzureDevOpsPAT ?? string.Empty;
-        string prompt = "Enter your Azure DevOps Personal Access Token:";
-        string title = "Set Azure DevOps PAT";
-
-        var dialog = new WpfInputDialog(title, prompt, currentPAT)
-        {
-            Owner = this // Set the owner to center the dialog over the main window
-        };
+        string currentPAT = _generalSettingsService.GetDecryptedAzureDevOpsPAT() ?? string.Empty;
+        var dialog = new WpfInputDialog("Set Azure DevOps PAT", "Enter your Azure DevOps Personal Access Token:", currentPAT) { Owner = this };
 
         if (dialog.ShowDialog() == true)
         {
             string newPAT = dialog.ResponseText;
-
-            // Check if the PAT actually changed
             if (newPAT != currentPAT)
             {
                 try
@@ -357,7 +338,7 @@ public partial class WebViewWindow : Window
             }
         }
     }
-
+    
     private void TestAudioTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
     {
         Task.Run(async () =>

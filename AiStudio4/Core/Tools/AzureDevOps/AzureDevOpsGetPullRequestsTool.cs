@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -194,7 +194,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 }
 
                 // Get API key from settings
-                string apiKey = _generalSettingsService?.CurrentSettings?.AzureDevOpsPAT;
+                string apiKey = _generalSettingsService.GetDecryptedAzureDevOpsPAT();
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, repository_id={repositoryId}\n\nError: Azure DevOps PAT is not configured. Please set it in File > Settings > Set Azure DevOps PAT.");

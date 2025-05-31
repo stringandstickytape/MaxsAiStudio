@@ -89,7 +89,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 }
 
                 // Get API key from settings
-                string apiKey = _generalSettingsService?.CurrentSettings?.GitHubApiKey;
+                string apiKey = _generalSettingsService.GetDecryptedGitHubApiKey();
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     return CreateResult(true, true, $"Parameters: owner={owner}, repo={repo}\n\nError: GitHub API Key is not configured. Please set it in File > Settings > Set GitHub API Key.");
