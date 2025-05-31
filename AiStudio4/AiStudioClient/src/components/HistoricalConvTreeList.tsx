@@ -245,8 +245,9 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                 borderColor: 'var(--global-border-color, #374151)',
                 fontFamily: 'var(--global-font-family, inherit)',
                 fontSize: 'var(--global-font-size, inherit)',
-                ...(window?.theme?.HistoricalConvTreeList?.style || {}),
-                ...(isChatRequestOngoing && { pointerEvents: 'none', opacity: 0.5 })
+                ...(window?.theme?.HistoricalConvTreeList?.style || {})
+                //,
+                //...(isChatRequestOngoing && { pointerEvents: 'none', opacity: 0.5 })
             }}
         >
             {/* Search bar removed - now using the one in Sidebar */}

@@ -39,9 +39,8 @@ namespace AiStudio4.Services
             {
                 if (!File.Exists(_settingsFilePath))
                 {
-                    _userThemes = new List<Theme>();
-                    _activeThemeId = "";
-                    CreateDefaultTheme();
+                    CreateDefaultTheme2();
+
                     SaveSettings();
                     return;
                 }
@@ -80,7 +79,7 @@ namespace AiStudio4.Services
                 // If no themes exist or no active theme is set, create a default theme
                 if (_userThemes.Count == 0)
                 {
-                    CreateDefaultTheme();
+                    CreateDefaultTheme2();
                     SaveSettings();
                 }
                 else if (string.IsNullOrEmpty(_activeThemeId) || !_userThemes.Any(t => t.Guid == _activeThemeId))
@@ -90,6 +89,77 @@ namespace AiStudio4.Services
                     SaveSettings();
                 }
             }
+        }
+
+        private void CreateDefaultTheme2()
+        {
+            var json2 = JObject.Parse(@"{
+  ""themes"": [
+    {
+      ""guid"": ""42bcc320-b10f-4412-ae72-86bbdb550024"",
+      ""name"": ""New Default Theme"",
+      ""description"": ""Default application theme"",
+      ""author"": ""System"",
+      ""previewColors"": [
+        ""#1a1a1a"",
+        ""#f9e1e9"",
+        ""#ff8fb1""
+      ],
+      ""themeJson"": {
+        ""theme-name"": ""Ultrachic Noir Elegance with Gabarito"",
+        ""global-backgroundColor"": ""#0b0b0b"",
+        ""global-textColor"": ""#dcdcdc"",
+        ""global-secondaryTextColor"": ""#8a8a8a"",
+        ""global-primaryColor"": ""#e63946"",
+        ""global-secondaryColor"": ""#f1faee"",
+        ""global-borderColor"": ""#2c2c2c"",
+        ""global-borderRadius"": ""10px"",
+        ""global-fontFamily"": ""'Gabarito', sans-serif"",
+        ""global-fontSize"": ""17px"",
+        ""global-fontCdnUrl"": ""https://fonts.googleapis.com/css2?family=Gabarito&display=swap"",
+        ""global-boxShadow"": ""none"",
+        ""global-userMessageBackground"": ""#1f1f1f"",
+        ""global-userMessageTextColor"": ""#f1faee"",
+        ""global-userMessageBorderColor"": ""#e63946"",
+        ""global-userMessageBorderWidth"": ""2.5px"",
+        ""global-userMessageBorderStyle"": ""solid"",
+        ""global-aiMessageBackground"": ""#141414"",
+        ""global-aiMessageTextColor"": ""#dcdcdc"",
+        ""global-aiMessageBorderColor"": ""#f1faee"",
+        ""global-aiMessageBorderWidth"": ""2.5px"",
+        ""global-aiMessageBorderStyle"": ""solid"",
+        ""ConvTreeView---convtree-user-node-color"": ""#e63946"",
+        ""ConvTreeView---convtree-ai-node-color"": ""#f1faee"",
+        ""ConvTreeView---convtree-user-node-border"": ""#e63946"",
+        ""ConvTreeView---convtree-ai-node-border"": ""#f1faee"",
+        ""ConvTreeView---convtree-link-color"": ""#e63946"",
+        ""ConvTreeView---convtree-accent-color"": ""#f1faee"",
+        ""MarkdownPane-codeHeaderBackground"": ""#2c2c2c"",
+        ""MarkdownPane-codeHeaderText"": ""#e63946"",
+        ""MarkdownPane-codeHeaderBorder"": ""#e63946"",
+        ""MarkdownPane-codeHeaderAccent"": ""#f1faee"",
+        ""MarkdownPane-style"": ""border-radius: 14px; font-family: 'Gabarito', sans-serif; font-weight: 700; font-style: italic;""
+      },
+      ""fontCdnUrl"": """",
+      ""created"": ""05/31/2025 18:19:23"",
+      ""lastModified"": ""2025-05-31T18:19:42.9123472Z""
+    }
+  ]
+}");
+
+            var themesSection2 = json2["themes"];
+
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.None,
+                NullValueHandling = NullValueHandling.Ignore,
+                Converters = { new StringEnumConverter() }
+            };
+
+            _userThemes = JsonConvert.DeserializeObject<List<Theme>>(themesSection2.ToString(), settings)
+                ?? new List<Theme>();
+
+            _activeThemeId = "42bcc320-b10f-4412-ae72-86bbdb550024";
         }
 
         /// <summary>
@@ -121,53 +191,6 @@ namespace AiStudio4.Services
             }
         }
         
-        /// <summary>
-        /// Creates a default theme if none exists
-        /// </summary>
-        private void CreateDefaultTheme()
-        {
-            var defaultTheme = new Theme
-            {
-                Guid = Guid.NewGuid().ToString(),
-                Name = "Default Theme",
-                Description = "Default application theme",
-                Author = "System",
-                Created = DateTime.UtcNow.ToString("o"),
-                LastModified = DateTime.UtcNow.ToString("o"),
-                PreviewColors = new List<string> { "#1a1a1a", "#f9e1e9", "#ff8fb1" },
-                FontCdnUrl = "", // Empty by default
-                ThemeJson = new Dictionary<string, Dictionary<string, string>>
-                {
-                    ["global"] = new Dictionary<string, string>
-                    {
-                        ["fontCdnUrl"] = ""
-                    },
-                    ["InputBar"] = new Dictionary<string, string>
-                    {
-                        ["backgroundColor"] = "#1a1a1a"
-                    },
-                    ["SystemPromptComponent"] = new Dictionary<string, string>
-                    {
-                        ["backgroundColor"] = "#1a1a1a",
-                        ["textColor"] = "#f9e1e9",
-                        ["borderColor"] = "#ff8fb1",
-                        ["borderRadius"] = "12px",
-                        ["fontFamily"] = "\"Segoe UI\", \"Noto Sans JP\", sans-serif",
-                        ["fontSize"] = "1rem",
-                        ["boxShadow"] = "0 4px 12px rgba(0,0,0,0.4)",
-                        ["pillActiveBg"] = "#ff8fb133",
-                        ["pillInactiveBg"] = "#444",
-                        ["popupBackground"] = "rgba(30,30,30,0.95)",
-                        ["popupBorderColor"] = "#ff8fb1",
-                        ["editBackground"] = "#2a2a2a",
-                        ["editTextColor"] = "#f9e1e9"
-                    }
-                }
-            };
-            
-            _userThemes.Add(defaultTheme);
-            _activeThemeId = defaultTheme.Guid;
-        }
 
         /// <summary>
         /// Gets all themes for a client
