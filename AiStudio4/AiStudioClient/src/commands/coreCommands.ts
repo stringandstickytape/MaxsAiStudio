@@ -26,7 +26,7 @@ export function initializeCoreCommands(handlers: {
         'New Conversation',
         'Start a new chat conversation',
         shortcut('N'),
-        ['new', 'chat', 'conversation', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message'],
+            ['new', 'chat', 'conversation', 'start', 'create', 'fresh', 'initiate', 'discuss', 'message', 'clear', 'reset', 'empty', 'delete', 'clean', 'refresh', 'restart', 'discard', 'renew'],
         React.createElement(Plus, { size: 16 }),
         () => {
           const convId = `conv_${uuidv4()}`;
@@ -35,25 +35,6 @@ export function initializeCoreCommands(handlers: {
             id: convId,
             rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
           });
-        },
-      ],
-      [
-        'clear-conv',
-        'Clear Current Conv',
-        'Clear all messages in the current conv',
-        '',
-        ['clear', 'reset', 'empty', 'delete', 'clean', 'refresh', 'restart', 'discard', 'renew'],
-        React.createElement(RefreshCw, { size: 16 }),
-        () => {
-          const { activeConvId, createConv } = useConvStore.getState();
-          if (activeConvId) {
-            const convId = `conv_${uuidv4()}`;
-            const messageId = `msg_${Date.now()}`;
-            createConv({
-              id: convId,
-              rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
-            });
-          }
         },
       ],
       [
