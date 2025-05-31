@@ -40,17 +40,22 @@ namespace AiStudio4.AiServices
         protected virtual void InitializeHttpClient(ServiceProvider serviceProvider,
             Model model, ApiSettings apiSettings, int timeout = 300)
         {
+            // THIS LINE IS KEY: serviceProvider.ApiKey is now plaintext in memory
             ApiKey = serviceProvider.ApiKey;
             ApiModel = model.ModelName;
             ApiUrl = serviceProvider.Url;
             AdditionalParams = model.AdditionalParams ?? "";
 
+            if (clientInitialised && client.DefaultRequestHeaders.Authorization?.Parameter == ApiKey && client.DefaultRequestHeaders.Authorization?.Scheme == "Bearer")
+            {
+                // If already initialized with the same key, no need to reconfigure headers
+                // Potentially check other headers if they might change too.
+                return;
+            }
 
-            if (clientInitialised) return;
-            ConfigureHttpClientHeaders(apiSettings);
+            ConfigureHttpClientHeaders(apiSettings); // This will use the (now plaintext) this.ApiKey
 
             client.Timeout = TimeSpan.FromSeconds(timeout);
-
             clientInitialised = true;
         }
 

@@ -40,7 +40,6 @@
 10. **Syntax Errors in C# Code**
     *   Always review code for basic syntax errors before submission; specifically check for missing semicolons at the end of statements.
 
-
 11. **Using Existing Event Systems Instead of CustomEvent**
     *   Before implementing any cross-component communication mechanism, thoroughly investigate the codebase for existing event handling patterns and utilities.
     *   Search for terms like 'event', 'service', 'bus', or 'emitter' to identify existing event systems.
@@ -61,7 +60,15 @@
     *   Avoid providing only a single line or too short a snippet that may appear multiple times or be ambiguous.
     *   Double-check the file content before and after the call to confirm changes have been applied.
 
-14. **User Feedback and Tool Call Management**
+14. **ModifyFiles `newContent` Too Short and Lacking Context**
+    *   Ensure `newContent` includes the same amount of surrounding context (3-5 lines before and after the specific line change) as `oldContent` if the intention is to replace a block.
+    *   If only a single line within a block is changing, the `newContent` must still correctly represent the entire original block with that one line altered.
+    *   Always verify that `newContent` accurately reflects the desired state of the entire `oldContent` block, not just the single line being modified.
+    *   Avoid constructing `newContent` as only the specific line to be changed, as `ModifyFiles` replaces the entire `oldContent` block with `newContent`.
+    *   Recognize that the tool output 'All files modified successfully' can be misleading if `newContent` is structurally incorrect.
+    *   This is a critical detail to prevent incorrect partial replacements and maintain file integrity.
+
+15. **User Feedback and Tool Call Management**
     *   **Absolutely always** re-read and **thoroughly** confirm user feedback, especially negative feedback, before proceeding.
     *   If a user **unequivocally** rejects a change, **immediately** revert it and **proactively** propose a new approach.
     *   **Strictly avoid** repeating tool calls with identical parameters if the previous attempt was not successful or accepted by the user, as this can lead to tool loops.
