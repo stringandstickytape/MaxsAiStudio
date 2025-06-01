@@ -10,6 +10,9 @@
   </PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
+		<PackageReference Include="Google.Apis.Core" Version="1.69.0" />
+		<PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3783" />
 		<PackageReference Include="Ignore" Version="0.2.1" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />

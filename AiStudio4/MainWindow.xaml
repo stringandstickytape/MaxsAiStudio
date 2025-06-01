@@ -51,6 +51,12 @@
                 <MenuItem Header="_Transcribe Media File..." Name="TestAudioTranscriptionMenuItem" Click="TestAudioTranscriptionMenuItem_Click"/>
                 <MenuItem Header="_Insert Last Transcription" Name="InsertTranscriptionMenuItem" Click="InsertTranscriptionMenuItem_Click" IsEnabled="False"/>
             </MenuItem>
+            <MenuItem Header="_Import/Export">
+                <MenuItem Header="_Import from Google AI Studio via Google Drive"
+                    Name="ImportFromGoogleDriveMenuItem"
+                    Click="ImportFromGoogleDriveMenuItem_Click"/>
+                <!-- More import/export options can be added later -->
+            </MenuItem>
         </Menu>
         <controls:AiStudioWebView2 x:Name="webView" Grid.Row="1" />
     </Grid>
