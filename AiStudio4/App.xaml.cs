@@ -66,6 +66,7 @@ namespace AiStudio4
             services.AddToolServices();
 
             // Register core services
+            services.AddSingleton<IGoogleDriveService, GoogleDriveService>();
             services.AddSingleton<FileSystemChangeHandler>();
             services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
             services.AddSingleton<IConvStorage, FileSystemConvStorage>();

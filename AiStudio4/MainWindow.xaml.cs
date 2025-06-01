@@ -43,12 +43,24 @@ public partial class WebViewWindow : Window
     private readonly ILogger<WebViewWindow> _logger;
     private readonly IDotNetProjectAnalyzerService _dotNetProjectAnalyzerService;
     private readonly IProjectFileWatcherService _projectFileWatcherService;
+    private readonly IGoogleDriveService _googleDriveService;
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
     private string _lastTranscriptionResult = null;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager, IDotNetProjectAnalyzerService dotNetProjectAnalyzerService, IProjectFileWatcherService projectFileWatcherService, ILogger<WebViewWindow> logger)
+    public WebViewWindow(WindowManager windowManager,
+                         IMcpService mcpService,
+                         IGeneralSettingsService generalSettingsService,
+                         IAppearanceSettingsService appearanceSettingsService,
+                         IProjectHistoryService projectHistoryService,
+                         IBuiltinToolService builtinToolService,
+                         IWebSocketNotificationService notificationService,
+                         IProjectPackager projectPackager,
+                         IDotNetProjectAnalyzerService dotNetProjectAnalyzerService,
+                         IProjectFileWatcherService projectFileWatcherService,
+                         ILogger<WebViewWindow> logger,
+                         IGoogleDriveService googleDriveService) // Add IGoogleDriveService here
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
@@ -61,7 +73,8 @@ public partial class WebViewWindow : Window
         _logger = logger;
         _dotNetProjectAnalyzerService = dotNetProjectAnalyzerService;
         _projectFileWatcherService = projectFileWatcherService;
-        
+        _googleDriveService = googleDriveService; // Assign injected service
+
         // Initialize license file paths
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
         _licensesJsonPath = Path.Combine(baseDir, "AiStudioClient", "dist", "licenses.txt");
@@ -75,6 +88,55 @@ public partial class WebViewWindow : Window
         UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
         webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
         _generalSettingsService.SettingsChanged += OnGeneralSettingsChanged;
+    }
+
+    private async void ImportFromGoogleDriveMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        ImportFromGoogleDriveMenuItem.IsEnabled = false; // Disable while processing
+        try
+        {
+            Debug.WriteLine("[UI] Clicked Import from Google Drive.");
+            var fileNames = await _googleDriveService.ListFilesFromAiStudioFolderAsync();
+
+            if (fileNames == null) // Indicates an error during service execution
+            {
+                Debug.WriteLine("[UI] Failed to retrieve file list from Google Drive. See logs/previous messages.");
+                // A more user-friendly error might have already been shown by the service if it threw FileNotFoundException
+                // If it returns null due to other exceptions, show a generic error.
+                if (!Application.Current.Windows.OfType<System.Windows.Window>().Any(w => w.IsActive && w.Title.Contains("Google Drive")))
+                {
+                    MessageBox.Show("Could not connect to Google Drive or an error occurred. Please check the application logs. Ensure you have authorized AiStudio4 and have a 'credentials.json' file.", "Google Drive Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else if (!fileNames.Any())
+            {
+                Debug.WriteLine("[UI] No files found in the 'Google AI Studio' folder.");
+                MessageBox.Show("No files found in your 'Google AI Studio' folder on Google Drive.", "No Files Found", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                Debug.WriteLine($"[UI] Files in 'Google AI Studio' folder ({fileNames.Count}):");
+                foreach (var fileName in fileNames)
+                {
+                    Debug.WriteLine($"[UI] - {fileName}");
+                }
+                MessageBox.Show($"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.", "Files Found", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (FileNotFoundException fnfEx) // Specifically for missing credentials.json
+        {
+            Debug.WriteLine($"[UI] Google Drive credentials error: {fnfEx.Message}");
+            MessageBox.Show(fnfEx.Message, "Google Drive Setup Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[UI] An unexpected error occurred: {ex.Message}");
+            MessageBox.Show($"An unexpected error occurred while trying to import from Google Drive: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            ImportFromGoogleDriveMenuItem.IsEnabled = true; // Re-enable menu item
+        }
     }
 
     private void OnGeneralSettingsChanged(object sender, EventArgs e)

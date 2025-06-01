@@ -1,5 +1,35 @@
 [
   {
+    "PackageId": "Google.Apis.Auth",
+    "PackageVersion": "1.69.0",
+    "PackageProjectUrl": "https://github.com/googleapis/google-api-dotnet-client",
+    "Copyright": "Copyright 2021 Google LLC",
+    "Authors": "Google LLC",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "Google.Apis.Core",
+    "PackageVersion": "1.69.0",
+    "PackageProjectUrl": "https://github.com/googleapis/google-api-dotnet-client",
+    "Copyright": "Copyright 2021 Google LLC",
+    "Authors": "Google LLC",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "Google.Apis.Drive.v3",
+    "PackageVersion": "1.69.0.3783",
+    "PackageProjectUrl": "https://github.com/google/google-api-dotnet-client",
+    "Copyright": "Copyright 2025 Google LLC",
+    "Authors": "Google LLC",
+    "License": "Apache-2.0",
+    "LicenseUrl": "https://licenses.nuget.org/Apache-2.0",
+    "LicenseInformationOrigin": 0
+  },
+  {
     "PackageId": "Ignore",
     "PackageVersion": "0.2.1",
     "PackageProjectUrl": "https://github.com/goelhardik/ignore",
