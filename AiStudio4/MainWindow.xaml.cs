@@ -185,16 +185,11 @@ public partial class WebViewWindow : Window
                 }
 
                 // --- Convert Google AI Studio format to AiStudio4 format ---
-                v4BranchedConv importedConv;
+                v4BranchedConv convertedConv;
                 try
                 {
-                    importedConv = GoogleAiStudioConverter.ConvertToAiStudio4(fileContent, fileToImport.Name);
-                    Debug.WriteLine($"[UI] Successfully converted conversation. ConvId: {importedConv.ConvId}, Messages: {importedConv.Messages.Count}");
-                    importedConversations.Add(importedConv);
-                    if (string.IsNullOrEmpty(firstImportedConvId))
-                    {
-                        firstImportedConvId = importedConv.ConvId;
-                    }
+                    convertedConv = GoogleAiStudioConverter.ConvertToAiStudio4(fileContent, fileToImport.Name);
+                    Debug.WriteLine($"[UI] Successfully converted conversation. ConvId: {convertedConv.ConvId}, Messages: {convertedConv.Messages.Count}");
                 }
                 catch (Exception convertEx)
                 {
@@ -203,6 +198,52 @@ public partial class WebViewWindow : Window
                     MessageBox.Show($"Error converting Google AI Studio format for '{fileToImport.Name}': {convertEx.Message}", "Conversion Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     continue; // Continue with next file
                 }
+
+                // --- Show message selection dialog ---
+                var messageSelectionDialog = new MessageSelectionDialog(convertedConv)
+                {
+                    Owner = this
+                };
+
+                bool? messageDialogResult = messageSelectionDialog.ShowDialog();
+                if (messageDialogResult != true || !messageSelectionDialog.SelectedMessages.Any())
+                {
+                    Debug.WriteLine($"[UI] Message selection cancelled or no messages selected for {fileToImport.Name}.");
+                    continue; // Skip this conversation
+                }
+
+                // --- Create filtered conversation with selected messages ---
+                var importedConv = new v4BranchedConv
+                {
+                    ConvId = convertedConv.ConvId,
+                    Summary = convertedConv.Summary,
+                    SystemPromptId = convertedConv.SystemPromptId,
+                    Messages = new List<v4BranchedConvMessage>()
+                };
+
+                // Add system root message if it exists
+                var systemMessage = convertedConv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.System);
+                if (systemMessage != null)
+                {
+                    importedConv.Messages.Add(systemMessage.Clone());
+                }
+
+                // Add selected messages
+                foreach (var selectedMessage in messageSelectionDialog.SelectedMessages)
+                {
+                    importedConv.Messages.Add(selectedMessage.Clone());
+                }
+
+                // Rebuild parent-child relationships for selected messages
+                RebuildMessageRelationships(importedConv.Messages);
+
+                importedConversations.Add(importedConv);
+                if (string.IsNullOrEmpty(firstImportedConvId))
+                {
+                    firstImportedConvId = importedConv.ConvId;
+                }
+
+                Debug.WriteLine($"[UI] Created filtered conversation with {importedConv.Messages.Count} messages (including system message).");
 
                 // --- Save the converted conversation ---
                 try
@@ -1012,6 +1053,31 @@ public partial class WebViewWindow : Window
         }
     }
     
+    /// <summary>
+    /// Rebuilds parent-child relationships for a list of messages to ensure proper conversation flow.
+    /// This method chains messages sequentially based on their timestamps.
+    /// </summary>
+    /// <param name="messages">List of messages to rebuild relationships for</param>
+    private void RebuildMessageRelationships(List<v4BranchedConvMessage> messages)
+    {
+        if (messages == null || messages.Count <= 1)
+            return;
+
+        // Sort messages by timestamp to ensure proper order
+        var sortedMessages = messages.OrderBy(m => m.Timestamp).ToList();
+        
+        // Find the system message (if any) to use as root
+        var systemMessage = sortedMessages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.System);
+        string currentParentId = systemMessage?.Id;
+        
+        // Chain non-system messages sequentially
+        foreach (var message in sortedMessages.Where(m => m.Role != v4BranchedConvMessageRole.System))
+        {
+            message.ParentId = currentParentId;
+            currentParentId = message.Id;
+        }
+    }
+
     private async void UploadToGoogleDriveMenuItem_Click(object sender, RoutedEventArgs e)
     {
         UploadToGoogleDriveMenuItem.IsEnabled = false;
