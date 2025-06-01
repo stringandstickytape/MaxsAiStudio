@@ -110,6 +110,8 @@ namespace AiStudio4.Services
                         // Prepare message content
                         string finalContent = chunk.text ?? string.Empty;
 
+                        if (finalContent == "") continue;
+
                         // If current chunk role is "model" and pendingThoughts.Length > 0:
                         if (role == v4BranchedConvMessageRole.Assistant && pendingThoughts.Length > 0)
                         {

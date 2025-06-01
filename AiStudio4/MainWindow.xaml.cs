@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Win32; // Added for OpenFolderDialog
 using System;
 using System.Text;
+using AiStudio4.Dialogs; // For GoogleDriveFileSelectionDialog
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -147,95 +148,129 @@ public partial class WebViewWindow : Window
                 return;
             }
 
-            // --- Get the first file and download its content ---
-            var firstFile = fileList.First();
-            Debug.WriteLine($"[UI] Downloading first file: {firstFile.Name} (ID: {firstFile.Id})");
+            // --- Display file selection dialog ---
+            var dialog = new GoogleDriveFileSelectionDialog(fileList)
+            {
+                Owner = this // Set the owner to center the dialog over the main window
+            };
 
-            string fileContent;
-            try
+            bool? dialogResult = dialog.ShowDialog();
+
+            if (dialogResult != true || !dialog.SelectedFiles.Any())
             {
-                fileContent = await _googleDriveService.DownloadFileContentAsync(firstFile.Id);
-                Debug.WriteLine($"[UI] Successfully downloaded file content, size: {fileContent.Length} characters");
-            }
-            catch (Exception downloadEx)
-            {
-                Debug.WriteLine($"[UI] Error downloading file content: {downloadEx.Message}");
-                MessageBox.Show($"Error downloading file content: {downloadEx.Message}", "Download Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Debug.WriteLine("[UI] Google Drive file selection cancelled or no files selected.");
+                MessageBox.Show("No files were selected for import.", "Import Cancelled", MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
 
-            // --- Convert Google AI Studio format to AiStudio4 format ---
-            v4BranchedConv importedConv;
-            try
-            {
-                importedConv = GoogleAiStudioConverter.ConvertToAiStudio4(fileContent, firstFile.Name);
-                Debug.WriteLine($"[UI] Successfully converted conversation. ConvId: {importedConv.ConvId}, Messages: {importedConv.Messages.Count}");
-            }
-            catch (Exception convertEx)
-            {
-                Debug.WriteLine($"[UI] Error converting Google AI Studio format: {convertEx.Message}");
-                MessageBox.Show($"Error converting Google AI Studio format: {convertEx.Message}", "Conversion Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+            var importedConversations = new List<v4BranchedConv>();
+            var firstImportedConvId = string.Empty;
 
-            // --- Save the converted conversation ---
-            try
+            foreach (var fileToImport in dialog.SelectedFiles)
             {
-                if (_convStorage == null)
-                {
-                    throw new InvalidOperationException("IConvStorage service not available");
-                }
-                
-                await _convStorage.SaveConv(importedConv);
-                Debug.WriteLine($"[UI] Successfully saved imported conversation: {importedConv.ConvId}");
-            }
-            catch (Exception saveEx)
-            {
-                Debug.WriteLine($"[UI] Error saving imported conversation: {saveEx.Message}");
-                MessageBox.Show($"Error saving imported conversation: {saveEx.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
+                Debug.WriteLine($"[UI] Downloading file: {fileToImport.Name} (ID: {fileToImport.Id})");
 
-            // --- Notify all clients to update conversation list ---
-            try
-            {
-                var messagesForListDto = importedConv.Messages.Select(m => new
-                {
-                    id = m.Id,
-                    text = m.UserMessage ?? "[Empty Message]",
-                    parentId = m.ParentId,
-                    source = m.Role == v4BranchedConvMessageRole.User ? "user" :
-                            m.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
-                    costInfo = m.CostInfo,
-                    attachments = m.Attachments,
-                    timestamp = new DateTimeOffset(m.Timestamp).ToUnixTimeMilliseconds(),
-                    durationMs = m.DurationMs,
-                    cumulativeCost = m.CumulativeCost,
-                    temperature = m.Temperature
-                }).ToList();
-
-                await _notificationService.NotifyConvList(new ConvListDto
-                {
-                    ConvId = importedConv.ConvId,
-                    Summary = importedConv.Summary,
-                    LastModified = DateTime.UtcNow.ToString("o"), // ISO 8601 format
-                    FlatMessageStructure = messagesForListDto
-                });
-
-                Debug.WriteLine("[UI] Successfully notified all clients about new conversation");
-            }
-            catch (Exception notifyEx)
-            {
-                Debug.WriteLine($"[UI] Error notifying clients about conversation list update: {notifyEx.Message}");
-                _logger.LogError(notifyEx, "Failed to notify clients about conversation list update");
-            }
-
-            // --- Notify initiating client to load the full conversation ---
-            if (!string.IsNullOrEmpty(currentWebSocketClientId))
-            {
+                string fileContent;
                 try
                 {
-                    var fullMessagesForLoad = importedConv.Messages.Select(m => new
+                    fileContent = await _googleDriveService.DownloadFileContentAsync(fileToImport.Id);
+                    Debug.WriteLine($"[UI] Successfully downloaded file content for {fileToImport.Name}, size: {fileContent.Length} characters");
+                }
+                catch (Exception downloadEx)
+                {
+                    Debug.WriteLine($"[UI] Error downloading file content for {fileToImport.Name}: {downloadEx.Message}");
+                    _logger.LogError(downloadEx, "Error downloading file content for {FileName}", fileToImport.Name);
+                    MessageBox.Show($"Error downloading file content for '{fileToImport.Name}': {downloadEx.Message}", "Download Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    continue; // Continue with next file
+                }
+
+                // --- Convert Google AI Studio format to AiStudio4 format ---
+                v4BranchedConv importedConv;
+                try
+                {
+                    importedConv = GoogleAiStudioConverter.ConvertToAiStudio4(fileContent, fileToImport.Name);
+                    Debug.WriteLine($"[UI] Successfully converted conversation. ConvId: {importedConv.ConvId}, Messages: {importedConv.Messages.Count}");
+                    importedConversations.Add(importedConv);
+                    if (string.IsNullOrEmpty(firstImportedConvId))
+                    {
+                        firstImportedConvId = importedConv.ConvId;
+                    }
+                }
+                catch (Exception convertEx)
+                {
+                    Debug.WriteLine($"[UI] Error converting Google AI Studio format for {fileToImport.Name}: {convertEx.Message}");
+                    _logger.LogError(convertEx, "Error converting Google AI Studio format for {FileName}", fileToImport.Name);
+                    MessageBox.Show($"Error converting Google AI Studio format for '{fileToImport.Name}': {convertEx.Message}", "Conversion Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    continue; // Continue with next file
+                }
+
+                // --- Save the converted conversation ---
+                try
+                {
+                    if (_convStorage == null)
+                    {
+                        throw new InvalidOperationException("IConvStorage service not available");
+                    }
+                    
+                    await _convStorage.SaveConv(importedConv);
+                    Debug.WriteLine($"[UI] Successfully saved imported conversation: {importedConv.ConvId}");
+                }
+                catch (Exception saveEx)
+                {
+                    Debug.WriteLine($"[UI] Error saving imported conversation: {saveEx.Message}");
+                    _logger.LogError(saveEx, "Error saving imported conversation {ConvId}", importedConv.ConvId);
+                    MessageBox.Show($"Error saving imported conversation '{importedConv.Summary}': {saveEx.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    continue; // Continue with next file
+                }
+
+                // --- Notify all clients to update conversation list for this single conversation ---
+                try
+                {
+                    var messagesForListDto = importedConv.Messages.Select(m => new
+                    {
+                        id = m.Id,
+                        text = m.UserMessage ?? "[Empty Message]",
+                        parentId = m.ParentId,
+                        source = m.Role == v4BranchedConvMessageRole.User ? "user" :
+                                m.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
+                        costInfo = m.CostInfo,
+                        attachments = m.Attachments,
+                        timestamp = new DateTimeOffset(m.Timestamp).ToUnixTimeMilliseconds(),
+                        durationMs = m.DurationMs,
+                        cumulativeCost = m.CumulativeCost,
+                        temperature = m.Temperature
+                    }).ToList();
+
+                    await _notificationService.NotifyConvList(new ConvListDto
+                    {
+                        ConvId = importedConv.ConvId,
+                        Summary = importedConv.Summary,
+                        LastModified = DateTime.UtcNow.ToString("o"), // ISO 8601 format
+                        FlatMessageStructure = messagesForListDto
+                    });
+
+                    Debug.WriteLine($"[UI] Successfully notified all clients about new conversation: {importedConv.ConvId}");
+                }
+                catch (Exception notifyEx)
+                {
+                    Debug.WriteLine($"[UI] Error notifying clients about conversation list update for {importedConv.ConvId}: {notifyEx.Message}");
+                    _logger.LogError(notifyEx, "Failed to notify clients about conversation list update for {ConvId}", importedConv.ConvId);
+                }
+            }
+
+            if (!importedConversations.Any())
+            {
+                MessageBox.Show("No conversations were successfully imported.", "Import Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // --- Notify initiating client to load the first successfully imported conversation ---
+            if (!string.IsNullOrEmpty(currentWebSocketClientId) && !string.IsNullOrEmpty(firstImportedConvId))
+            {
+                var firstConvToLoad = importedConversations.First(c => c.ConvId == firstImportedConvId);
+                try
+                {
+                    var fullMessagesForLoad = firstConvToLoad.Messages.Select(m => new
                     {
                         id = m.Id,
                         text = m.UserMessage ?? "[Empty Message]",
@@ -255,42 +290,48 @@ public partial class WebViewWindow : Window
                         messageType = "loadConv", // Client-side uses this to identify the action
                         content = new
                         {
-                            convId = importedConv.ConvId,
+                            convId = firstConvToLoad.ConvId,
                             messages = fullMessagesForLoad, // The array of full messages
-                            summary = importedConv.Summary // Optional: if client needs it for 'loadConv'
+                            summary = firstConvToLoad.Summary // Optional: if client needs it for 'loadConv'
                         }
                     };
 
                     await _notificationService.NotifyConvUpdate(currentWebSocketClientId, new ConvUpdateDto
                     {
-                        ConvId = importedConv.ConvId, // Target conversation
+                        ConvId = firstConvToLoad.ConvId, // Target conversation
                         MessageId = null, // Not a specific message update
                         Content = loadConvPayload, // The special payload
                         Source = "system_import", // Indicate source
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     });
 
-                    Debug.WriteLine($"[UI] Successfully notified initiating client {currentWebSocketClientId} to load conversation");
+                    Debug.WriteLine($"[UI] Successfully notified initiating client {currentWebSocketClientId} to load conversation {firstConvToLoad.ConvId}");
                 }
                 catch (Exception loadNotifyEx)
                 {
-                    Debug.WriteLine($"[UI] Error notifying initiating client to load conversation: {loadNotifyEx.Message}");
-                    _logger.LogError(loadNotifyEx, "Failed to notify initiating client to load conversation");
+                    Debug.WriteLine($"[UI] Error notifying initiating client to load conversation {firstConvToLoad.ConvId}: {loadNotifyEx.Message}");
+                    _logger.LogError(loadNotifyEx, "Failed to notify initiating client to load conversation {ConvId}", firstConvToLoad.ConvId);
                 }
             }
 
             // --- Show success message ---
-            string successMessage = $"Successfully imported conversation '{importedConv.Summary}' from Google AI Studio.\n" +
-                                  $"ConvId: {importedConv.ConvId}\n" +
-                                  $"Messages: {importedConv.Messages.Count}";
-            
-            if (!string.IsNullOrEmpty(currentWebSocketClientId))
+            string successMessage;
+            if (importedConversations.Count == 1)
             {
-                successMessage += "\n\nThe conversation should now be visible and automatically loaded in your chat view.";
+                successMessage = $"Successfully imported conversation '{importedConversations.First().Summary}' from Google AI Studio.";
             }
             else
             {
-                successMessage += "\n\nThe conversation is now available in your conversation list. You may need to refresh or click on it to view.";
+                successMessage = $"Successfully imported {importedConversations.Count} conversations from Google AI Studio.";
+            }
+
+            if (!string.IsNullOrEmpty(currentWebSocketClientId))
+            {
+                successMessage += "\n\nThe imported conversation(s) should now be visible and the first one automatically loaded in your chat view.";
+            }
+            else
+            {
+                successMessage += "\n\nThe imported conversation(s) are now available in your conversation list. You may need to refresh or click on them to view.";
             }
 
             MessageBox.Show(successMessage, "Import Successful", MessageBoxButton.OK, MessageBoxImage.Information);
