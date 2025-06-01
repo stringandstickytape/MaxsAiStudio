@@ -118,6 +118,9 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           fontSize: 'var(--global-font-size)',
           borderRadius: 'var(--global-border-radius)',
           boxShadow: 'var(--global-box-shadow)',
+          width: '95%',
+          marginLeft: 'auto',
+          marginRight: 'auto',
           ...(window?.theme?.NavigationContainer?.style || {})
         }}
       >
