@@ -18,7 +18,7 @@ namespace AiStudio4.Services
     public class GoogleDriveService : IGoogleDriveService
     {
         private readonly ILogger<GoogleDriveService> _logger;
-        private static readonly string[] Scopes = { DriveService.Scope.DriveReadonly };
+        private static readonly string[] Scopes = { DriveService.Scope.Drive };
         private static readonly string ApplicationName = "AiStudio4";
         private static readonly string CredentialsFileName = "credentials.json";
         private static readonly string TokenFolderName = "GoogleDriveToken";
@@ -75,6 +75,76 @@ namespace AiStudio4.Services
                 HttpClientInitializer = credential,
                 ApplicationName = ApplicationName,
             });
+        }
+
+        public async Task<string> UploadTextFileAsync(string testFileName, string testFileContent, string googleDriveFolderName)
+        {
+            try
+            {
+                _logger.LogInformation("Attempting to upload text file '{FileName}' to Google Drive folder: '{FolderName}'", testFileName, googleDriveFolderName);
+                var service = await GetDriveServiceAsync();
+
+                // Find the target folder
+                var folderRequest = service.Files.List();
+                folderRequest.Q = $"name = '{googleDriveFolderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false";
+                folderRequest.Spaces = "drive";
+                folderRequest.Fields = "files(id, name)";
+                var folderResult = await folderRequest.ExecuteAsync();
+
+                if (folderResult.Files == null || !folderResult.Files.Any())
+                {
+                    _logger.LogWarning("Folder '{FolderName}' not found in Google Drive.", googleDriveFolderName);
+                    throw new DirectoryNotFoundException($"Folder '{googleDriveFolderName}' not found in Google Drive.");
+                }
+
+                var targetFolder = folderResult.Files.First();
+                _logger.LogInformation("Found target folder '{FolderName}' with ID: {FolderId}", targetFolder.Name, targetFolder.Id);
+
+                // Create file metadata
+                var fileMetadata = new Google.Apis.Drive.v3.Data.File()
+                {
+                    Name = testFileName,
+                    Parents = new List<string> { targetFolder.Id }
+                };
+
+                // Convert text content to stream
+                using (var stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(testFileContent)))
+                {
+                    // Create the upload request
+                    var request = service.Files.Create(fileMetadata, stream, "text/plain");
+                    request.Fields = "id, name";
+
+                    // Upload the file
+                    var uploadedFile = await request.UploadAsync();
+                    
+                    if (uploadedFile.Status == Google.Apis.Upload.UploadStatus.Completed)
+                    {
+                        var createdFile = request.ResponseBody;
+                        _logger.LogInformation("Successfully uploaded file '{FileName}' with ID: {FileId}", createdFile.Name, createdFile.Id);
+                        return createdFile.Id;
+                    }
+                    else
+                    {
+                        _logger.LogError("File upload failed with status: {Status}", uploadedFile.Status);
+                        throw new InvalidOperationException($"File upload failed with status: {uploadedFile.Status}");
+                    }
+                }
+            }
+            catch (FileNotFoundException fnfEx)
+            {
+                _logger.LogError(fnfEx, "Prerequisite error for Google Drive access.");
+                throw; // Re-throw to be handled by the UI layer
+            }
+            catch (DirectoryNotFoundException dnfEx)
+            {
+                _logger.LogError(dnfEx, "Target folder not found in Google Drive.");
+                throw; // Re-throw to be handled by the UI layer
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while uploading file to Google Drive.");
+                throw; // Re-throw to be handled by the UI layer
+            }
         }
 
         public async Task<List<string>> ListFilesFromAiStudioFolderAsync()

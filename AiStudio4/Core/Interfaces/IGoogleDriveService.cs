@@ -7,5 +7,6 @@ namespace AiStudio4.Core.Interfaces
     public interface IGoogleDriveService
     {
         Task<List<string>> ListFilesFromAiStudioFolderAsync();
+        Task<string> UploadTextFileAsync(string testFileName, string testFileContent, string googleDriveFolderName);
     }
 }

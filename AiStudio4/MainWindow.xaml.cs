@@ -1,5 +1,4 @@
 ﻿// AiStudio4/MainWindow.xaml.cs
-// ... other using statements ...
 using AiStudio4.Dialogs; // For WpfInputDialog
 using AiStudio4.InjectedDependencies; // For IGeneralSettingsService
 using AiStudio4.Services;
@@ -96,13 +95,13 @@ public partial class WebViewWindow : Window
         try
         {
             Debug.WriteLine("[UI] Clicked Import from Google Drive.");
+
+            // --- Existing Logic: List files from Google Drive ---
             var fileNames = await _googleDriveService.ListFilesFromAiStudioFolderAsync();
 
             if (fileNames == null) // Indicates an error during service execution
             {
                 Debug.WriteLine("[UI] Failed to retrieve file list from Google Drive. See logs/previous messages.");
-                // A more user-friendly error might have already been shown by the service if it threw FileNotFoundException
-                // If it returns null due to other exceptions, show a generic error.
                 if (!Application.Current.Windows.OfType<System.Windows.Window>().Any(w => w.IsActive && w.Title.Contains("Google Drive")))
                 {
                     MessageBox.Show("Could not connect to Google Drive or an error occurred. Please check the application logs. Ensure you have authorized AiStudio4 and have a 'credentials.json' file.", "Google Drive Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -120,7 +119,101 @@ public partial class WebViewWindow : Window
                 {
                     Debug.WriteLine($"[UI] - {fileName}");
                 }
-                MessageBox.Show($"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.", "Files Found", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                // --- Existing Logic: Write local .txt file with list ---
+                string outputDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string outputFileName = $"GoogleDriveFilesList_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
+                string outputPath = Path.Combine(outputDirectory, outputFileName);
+
+                try
+                {
+                    List<string> linesToWrite = new List<string>();
+                    linesToWrite.Add($"Files found in Google AI Studio folder ({fileNames.Count}) on Google Drive:");
+                    linesToWrite.Add($"Generated on: {DateTime.Now}");
+                    linesToWrite.Add("--------------------------------------------------");
+                    linesToWrite.AddRange(fileNames);
+
+                    await File.WriteAllLinesAsync(outputPath, linesToWrite);
+                    Debug.WriteLine($"[UI] Local file list successfully written to: {outputPath}");
+
+                    MessageBox.Show(
+                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
+                        $"A text file with the list has also been saved locally to:\n{outputPath}",
+                        "Files Found & Saved Locally",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+                catch (IOException ioEx)
+                {
+                    Debug.WriteLine($"[UI] Error writing local file list to disk (IO Exception): {ioEx.Message}");
+                    MessageBox.Show(
+                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
+                        $"An error occurred while trying to save the list to a local text file:\n{ioEx.Message}\n" +
+                        $"Please check permissions for the folder:\n{outputDirectory}",
+                        "Files Found (with Local Save Error)",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+                }
+                catch (UnauthorizedAccessException uaEx)
+                {
+                    Debug.WriteLine($"[UI] Error writing local file list to disk (Unauthorized Access): {uaEx.Message}");
+                    MessageBox.Show(
+                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
+                        $"Permission denied when trying to save the list to a local text file:\n{uaEx.Message}\n" +
+                        $"Please ensure the application has write access to:\n{outputDirectory}",
+                        "Files Found (Local Permission Error)",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"[UI] An unexpected error occurred while writing local file list: {ex.Message}");
+                    MessageBox.Show(
+                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
+                        $"An unexpected error occurred while trying to save the list to a local text file:\n{ex.Message}",
+                        "Files Found (Unexpected Local Save Error)",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
+                }
+            }
+
+            // --- NEW LOGIC: Upload "hello world" text file to Google Drive ---
+            string testFileName = $"hello_world_test_{DateTime.Now:yyyyMMdd_HHmmss}.txt"; // Unique filename
+            string testFileContent = "Hello, Google Drive! This is a test file from AiStudio4.";
+            string googleDriveFolderName = "Google AI Studio"; // The target folder on Google Drive
+
+            try
+            {
+                Debug.WriteLine($"[UI] Attempting to upload '{testFileName}' to Google Drive's '{googleDriveFolderName}' folder.");
+                // This assumes _googleDriveService has a method like UploadTextFileAsync
+                string uploadedFileId = await _googleDriveService.UploadTextFileAsync(
+                    testFileName,
+                    testFileContent,
+                    googleDriveFolderName // Pass the target folder name
+                );
+
+                Debug.WriteLine($"[UI] Successfully uploaded '{testFileName}' to Google Drive. File ID: {uploadedFileId}");
+                MessageBox.Show(
+                    $"Successfully uploaded a test file '{testFileName}' to your '{googleDriveFolderName}' folder on Google Drive.\n" +
+                    $"File ID: {uploadedFileId}",
+                    "Test File Uploaded to Google Drive",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+            }
+            catch (Exception uploadEx)
+            {
+                Debug.WriteLine($"[UI] Error uploading test file to Google Drive: {uploadEx.Message}");
+                MessageBox.Show(
+                    $"An error occurred while trying to upload a test file to Google Drive: {uploadEx.Message}",
+                    "Google Drive Upload Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error
+                );
             }
         }
         catch (FileNotFoundException fnfEx) // Specifically for missing credentials.json
@@ -138,7 +231,6 @@ public partial class WebViewWindow : Window
             ImportFromGoogleDriveMenuItem.IsEnabled = true; // Re-enable menu item
         }
     }
-
     private void OnGeneralSettingsChanged(object sender, EventArgs e)
     {
         Application.Current.Dispatcher.Invoke(() =>
