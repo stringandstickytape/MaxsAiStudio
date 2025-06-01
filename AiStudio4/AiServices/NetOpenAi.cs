@@ -465,7 +465,35 @@ namespace AiStudio4.AiServices
             }
         }
 
+        // This method has been removed as we now use ToolRequestBuilder to handle tool conversion
         
+        //private async Task<ChatTool> ConvertToolToOpenAIFormatAsync(string toolId)
+        //{
+        //    // Get tool definition from your service
+        //    var toolDef = await ToolService.GetToolByIdAsync(toolId);
+        //   if (toolDef == null)
+        //       return null;
+        //
+        //    var obj = JsonConvert.DeserializeObject(toolDef.Schema);
+        //
+        //    var schema = ((JObject)obj)["input_schema"].ToString().Replace("\r", "").ToString();
+        //
+        //    // Convert to OpenAI format
+        //    return ChatTool.CreateFunctionTool(
+        //       functionName: toolDef.Name.Replace(" ",""),
+        //       functionDescription: toolDef.Description.Replace(" ",""),
+        //       functionParameters: BinaryData.FromString(schema),
+        //       functionSchemaIsStrict: true
+        //   );
+        //}
+
+        // This method has been removed as we now use ToolRequestBuilder to handle MCP service tools
+        //private void AddMcpServiceTools(ChatCompletionOptions options)
+        //{
+        //    // Implement MCP service tools conversion if needed
+        //    // This would be similar to ConvertToolToOpenAIFormat but for MCP tools
+        //}
+
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
         {
             // Not used in this implementation as we're using the OpenAI .NET client directly
@@ -504,6 +532,90 @@ namespace AiStudio4.AiServices
             return new AiResponse { Success = false, ResponseText = errorMessage };
         }
 
+
+
+        // Image generation support
+        //public async Task<AiResponse> GenerateImage(string prompt, ApiSettings apiSettings)
+        //{
+        //    try
+        //    {
+        //        InitializeHttpClient(ServiceProvider.OpenAI, "dall-e-3", apiSettings);
+        //        InitializeOpenAIClients("dall-e-3");
+        //
+        //        ImageGenerationOptions options = new ImageGenerationOptions
+        //        {
+        //            Quality = GeneratedImageQuality.Standard,
+        //            Size = GeneratedImageSize.W1024xH1024,
+        //            Style = GeneratedImageStyle.Natural,
+        //            ResponseFormat = GeneratedImageFormat.Bytes
+        //        };
+        //
+        //        GeneratedImage image = await _imageClient.GenerateImageAsync(prompt, options);
+        //
+        //        if (image.ImageBytes != null)
+        //        {
+        //            // Convert the image to base64 for the response
+        //            string base64Image = Convert.ToBase64String(image.ImageBytes.ToArray());
+        //
+        //            // Create attachment
+        //            var attachment = new DataModels.Attachment
+        //            {
+        //                Id = Guid.NewGuid().ToString(),
+        //                Name = $"generated_image_{DateTime.Now:yyyyMMddHHmmss}.png",
+        //                Type = "image/png",
+        //                Content = base64Image,
+        //                Size = base64Image.Length * 3 / 4 // Approximate size calculation
+        //            };
+        //
+        //            return new AiResponse
+        //            {
+        //                ResponseText = "Image generated successfully.",
+        //                Success = true,
+        //                Attachments = new List<DataModels.Attachment> { attachment }
+        //            };
+        //        }
+        //        else
+        //        {
+        //            return new AiResponse
+        //            {
+        //                ResponseText = "Image generation failed: No image data returned.",
+        //                Success = false
+        //            };
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return HandleError(ex, "Image generation failed");
+        //    }
+        //}
+
+        // Audio transcription support
+       //public async Task<AiResponse> TranscribeAudio(string audioFilePath, ApiSettings apiSettings)
+       //{
+       //    try
+       //    {
+       //        InitializeHttpClient(ServiceProvider.OpenAI, "whisper-1", apiSettings);
+       //        InitializeOpenAIClients("whisper-1");
+       //
+       //        AudioTranscriptionOptions options = new AudioTranscriptionOptions
+       //        {
+       //            ResponseFormat = AudioTranscriptionFormat.Text,
+       //            TimestampGranularities = AudioTimestampGranularities.Word | AudioTimestampGranularities.Segment
+       //        };
+       //
+       //        AudioTranscription transcription = await _audioClient.TranscribeAudioAsync(audioFilePath, options);
+       //
+       //        return new AiResponse
+       //        {
+       //            ResponseText = transcription.Text,
+       //            Success = true
+       //        };
+       //    }
+       //    catch (Exception ex)
+       //    {
+       //        return HandleError(ex, "Audio transcription failed");
+       //    }
+       //}
     }
 
 
