@@ -1,7 +1,5 @@
 ﻿# 7. Troubleshooting
 
-*(This section can be expanded with common issues and solutions as they are identified.)*
-
 *   **Tool Not Working:**
     *   Ensure the tool is activated in the Tool Library or via Command Bar.
     *   Check if the associated System Prompt (if any) has the tool enabled.

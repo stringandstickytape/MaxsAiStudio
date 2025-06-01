@@ -119,7 +119,7 @@ You can also explicitly ask the AI to use a tool, e.g., "Use the ReadFiles tool 
 3.  If an image is present on your system clipboard, it will be attached as `clipboard-image.png`.
 
 ## 4.6 Audio Transcription
-AiStudio4 can transcribe audio from media files using a local Whisper.net model (potentially via Conda for WhisperX for advanced features).
+AiStudio4 can transcribe audio from media files using a local Whisper.net model via Conda and WhisperX.
 1.  **Set Conda Path (Optional but recommended for advanced features):** Ensure your Conda path (specifically to `activate.bat` in your Conda scripts directory) is set via `File > Settings > Set Conda Path...`. You'll also need a Conda environment with `whisperx` installed.
 2.  **Transcribe:**
     *   From the application menu, select `Transcribe > Transcribe Media File...`.

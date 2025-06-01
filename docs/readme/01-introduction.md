@@ -5,7 +5,7 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
 
 ## 1.2 Who is it for?
 *   **Software Developers:** Seeking to integrate AI deeply into their local development environment, automate coding tasks, get contextual help, manage project-related information efficiently, and have AI iterate over code, edit it, and even launch it.
-*   **Power Users:** Who require a highly customizable and extensible AI chat client with advanced features for branching conversations and interacting with multiple AI models and tools.
+*   **Power Users:** Who require a highly customizable and extensible GUI-based AI chat client with advanced features for branching conversations and interacting with multiple AI models and tools.
 *   **AI Enthusiasts:** Looking for a platform to experiment with different models, prompt engineering, and custom AI tool development.
 
 ## 1.3 Highlights

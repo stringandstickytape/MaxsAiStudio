@@ -28,15 +28,13 @@ AI Studio 4 is comprised of a .NET backend (which also acts as the host applicat
 **2. Frontend Development (Optional, for modifying the UI - `AiStudio4/AiStudioClient` directory):**
     1.  Open a terminal in the `AiStudio4/AiStudioClient` directory.
     2.  **Install Dependencies:**
-        *   `pnpm install` (Recommended)
-        *   Or, if using npm: `npm install`
+        *   `pnpm install`
     3.  **Run Frontend Dev Server:**
-        *   `pnpm run dev` (or `npm run dev`)
-        *   This starts the Vite development server, typically on `http://localhost:5173`.
-        *   When the `AiStudio4` C# project is run in **Debug** configuration, it is configured to proxy requests to this Vite dev server. This allows for Hot Module Replacement (HMR) and a faster frontend development cycle.
+        *   `pnpm run dev` - This starts the Vite development server, typically on `http://localhost:5173`.
+        *   When a debugger is attached at the startup of the `AiStudio4` C# project, it is configured to proxy requests to this Vite dev server. This allows for Hot Module Replacement (HMR) and a faster frontend development cycle.
     4.  **Build Frontend for Production:**
-        *   `pnpm run build` (or `npm run build`)
-        *   This command compiles the React/TypeScript application and outputs the static assets to the `AiStudio4/AiStudioClient/dist` folder. These are the files that the C# application serves in Release mode or when the Vite dev server is not running.
+        *   `pnpm run build`
+        *   This command compiles the React/TypeScript application and outputs the static assets to the `AiStudio4/AiStudioClient/dist` folder. These are the files that the C# application serves when no debugger is attached.
 
 ## 2.3 Initial Setup
 
@@ -45,14 +43,14 @@ This is the **most crucial first step**.
 1.  Go to `File > Project > Set Project Path...` in the application menu.
 2.  Select the root directory of your software development project.
 3.  This path is essential for context-aware AI tasks, file operations, Git integration, and .NET project analysis.
-    The window title will update to reflect the current project path.
+    The window title will update to reflect the current project path.  A shortcut "folder" icon in the menu bar provides quick Explorer access to the project path.
 
 ### 2.3.2 Configuring AI Service Providers
 To use AI models, you need to configure their service providers (e.g., OpenAI, Anthropic).
 1.  Open the main settings:
-    *   Use the Command Bar: Press `Ctrl+K` (or `Cmd+K` on Mac), type "Providers", and select "Service Providers".
+    *   Use the Command Bar: Press `Ctrl+K`, type "Providers", and select "Service Providers".
     *   Or, use the application menu if available (e.g., `File > Settings` and navigate to the "Providers" tab).
-2.  In the "Service Providers" section:
+2.  In the "Service Providers" section, add API keys to the existing providers, or add new providers:
     *   Click "Add Provider".
     *   **Friendly Name:** A name you choose (e.g., "My OpenAI Account").
     *   **Service Name:** Select the AI service type from the dropdown (e.g., `NetOpenAi` for OpenAI, `Claude` for Anthropic, `Gemini` for Google).
@@ -73,17 +71,17 @@ Once providers are configured, add specific AI models you want to use.
     *   **Color:** (Optional) Choose a color for UI identification.
     *   **Notes:** (Optional) Any personal notes about this model.
     *   **Additional Parameters (JSON):** (Optional, Advanced) JSON string for extra parameters to send with requests to this model.
-    *   **Supports Prefill:** Check if the model supports prefilling assistant responses.
+    *   **Supports Prefill:** Check if the model supports prefilling assistant responses.  The UI does not currently support prefilling however.
     *   **Requires 1.0 Temperature:** Check if the model strictly requires a temperature of 1.0.
     *   **Reasoning Effort:** (For compatible models) Select `low`, `medium`, or `high`.
-    *   **Enable Text-to-Speech (TTS):** Check if this is a TTS model.
+    *   **Enable Text-to-Speech (TTS):** Check if this is a Gemini TTS model.
     *   **TTS Voice Name:** If TTS is enabled, specify the voice name (e.g., "Kore" for Gemini).
 4.  Click "Add Model" to save.
 
 ### 2.3.4 Selecting Default Models
 AiStudio4 uses a primary model for main chat interactions and a secondary model for tasks like summaries or quick tool responses.
 1.  In the Input Bar (bottom section of the main window), you'll see a "Model Status" area.
-2.  Click on the "Primary Model" button (or placeholder text if none is set).
+2.  Click on the "Primary Model" button.
 3.  The Command Bar will open, filtered to "Primary Models". Select your desired primary model.
 4.  Click on the "Secondary Model" button.
 5.  The Command Bar will open, filtered to "Secondary Models". Select your desired secondary model.

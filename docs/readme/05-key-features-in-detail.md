@@ -141,9 +141,6 @@ In the Input Bar:
 *   **Font Size:** Adjust the global font size for the application.
 *   **Dark Mode:** (Default) AiStudio4 primarily uses a dark theme aesthetic. Theming allows full customization.
 
-### 5.3.6 Resizable Panels
-The application features a customizable layout with resizable panels for elements like the conversation history/tree view, and potentially other views in the future.
-
 ## 5.4 Project Integration
 
 ### 5.4.1 .NET Project Analysis

@@ -8,7 +8,7 @@
     *   **Conversation History:** Lists your past conversations. Click to load one.
     *   **Search Bar:** Search through your conversation history.
     *   **Current Conversation Tree View:** An interactive D3.js visualization of the current conversation's message branches.
-*   **Panels:** Other panels like Settings, Tool Library, etc., can be opened via the Command Bar or menus. The layout features resizable panels (see [Section 5.3.6](05-key-features-in-detail.md#536-resizable-panels)).
+*   **Panels:** Other panels like Settings, Tool Library, etc., can be opened via the Command Bar or menus.
 
 ## 3.2 Project Path: Its Importance
 The **Project Path** is the root directory of your software development project or working folder. Setting this correctly is **critical** because:
@@ -18,7 +18,7 @@ The **Project Path** is the root directory of your software development project 
 *   .NET Project Analysis scans projects within this path.
 
 ## 3.3 AI Models & Providers
-*   **Service Providers:** These are the AI services you connect to (e.g., OpenAI, Anthropic). You configure them with API keys and URLs.
+*   **Service Providers:** These are the AI services you connect to (e.g., OpenAI, Anthropic). You configure them with API keys and URLs.  Presets are provided for Anthropic, OpenAI, Google and OpenRouter - you will need to fill out the relevant API keys.
 *   **AI Models:** These are specific models offered by providers (e.g., `gpt-4-turbo`, `claude-3-opus-20240229`). You add them to AiStudio4 and associate them with a configured provider. This allows you to manage multiple models from different providers in one place.
 
 ## 3.4 Tools: How They Work
