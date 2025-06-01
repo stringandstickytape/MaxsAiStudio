@@ -5,175 +5,225 @@
 OVERVIEW
 ─────────────────────────────
 • The app provides an interactive chat workspace where users can converse with AI models.
-• It supports features to manage system prompts, configure appearance (for example, font size or theme), and manage external “tools” (custom functions or templates).
-• It supports real–time updates via WebSocket connections (for streaming message tokens, conversation updates, and state changes).
-• It uses a command–based interface that lets the user invoke actions via keyboard shortcuts or a command palette; commands are registered in dedicated “commands” files and stored in a Zustand–based CommandStore.
-• The UI is split into several pane areas (chat area, sidebar, settings panel, tools panel, etc.) that are arranged and managed by a panel–management system (using react–resizable–panels) coordinated via a dedicated PanelStore.
+• It supports features to manage system prompts (with associated tools, user prompts, and models), user prompts (with shortcuts for slash commands), configure appearance (font size, and an AI-driven theming engine), and manage external “tools” (custom functions or templates, including MCP servers).
+• It supports real–time updates via WebSocket connections (for streaming message tokens, conversation updates, file system changes, and status messages).
+• It uses a command–based interface that lets the user invoke actions via keyboard shortcuts or a command palette; commands are registered in dedicated “commands” files and managed by a command registry service.
+• The UI is split into several pane areas (chat area, sidebar, settings modals, tools modal, etc.) that are arranged and managed by a panel–management system (using react–resizable–panels) coordinated via a dedicated PanelStore.
+• It includes a robust attachment system for images, PDFs, and text files, with features like drag-and-drop and clipboard image pasting.
+• A search functionality allows users to find specific messages across their conversation history.
+• A unified modal system manages all dialogs and pop-ups.
 ─────────────────────────────
 2. PROJECT STRUCTURE
 ─────────────────────────────
 The source code is organized into several folders that separate the types, services, UI components, custom hooks, state stores, commands, and utilities. Here is an overview:
 
 A. types/
- • conv.ts – Defines the Message and Conv interfaces (and related token/cost fields) that form the building blocks of conversation data.
- • modelTypes.ts – Declares a simple type alias (for example, for distinguishing primary versus secondary models).
- • settings.ts – Contains type definitions for service providers and models, including pricing, color, and preferences.
- • systemPrompt.ts – Specifies the structure for system prompts (the predesigned AI system messages) and a related form–values interface.
- • toolTypes.ts – Defines types for “tools” and their categories.
- • ui.ts – Declares UI–related types (e.g. for panel positions and panel states).
- • websocket.ts – Defines the shape of the WebSocket state object.
+ • attachment.ts – Defines the `Attachment` interface for handling file attachments, including metadata and preview URLs.
+ • conv.ts – Defines the `Message` and `Conv` interfaces (and related token/cost fields) that form the building blocks of conversation data.
+ • modelTypes.ts – Declares a simple type alias (`ModelType`) for distinguishing primary versus secondary models.
+ • settings.ts – Contains type definitions for `ServiceProvider` and `Model`, including pricing, color, reasoning effort, and TTS preferences.
+ • systemPrompt.ts – Specifies the structure for system prompts (`SystemPrompt`) and a related `SystemPromptFormValues` interface for editing.
+ • theme.ts – Defines the `Theme` interface, including properties for theme JSON, preview colors, and font CDN URLs.
+ • toolTypes.ts – Defines types for `Tool` and `ToolCategory`, including schema, filetype, and extra properties.
+ • ui.ts – Declares UI–related types (e.g., `PanelPosition`, `PanelState`) for panel management.
+ • userPrompt.ts – Defines the `UserPrompt` and `UserPromptFormValues` interfaces, including shortcuts for slash commands.
+ • websocket.ts – Defines the shape of the WebSocket state object (`WebSocketState`).
 
 B. services/
- 1. websocket/
-  • websocketEvents.ts – Provides helper functions to dispatch and listen for WebSocket custom events (such as connection status, stream tokens, new conversation messages, etc.).
-  • WebSocketService.ts – Implements the WebSocket connection manager. It handles connecting to the server (including auto–reconnection strategies), sending JSON messages, interpreting incoming messages (dispatching them via the event system), and maintaining local status (e.g. clientId, connection status).
- 2. api/
-  • apiClient.ts – Configures the Axios instance for making HTTP requests to the backend. It sets common headers (including adding the client ID from localStorage) and global request/response interceptors for error logging.
+ 1. api/
+  • apiClient.ts – Configures the Axios instance for making HTTP requests to the backend. It sets common headers (including adding the client ID from WebSocketService) and global request/response interceptors for error logging.
+ 2. providers/
+  • fileNameProvider.ts – Implements `SlashItemProvider` to provide project file names as slash command suggestions.
+  • userPromptProvider.ts – Implements `SlashItemProvider` to provide user prompts as slash command suggestions.
+ 3. websocket/
+  • websocketEvents.ts – Provides helper functions (`dispatchWebSocketEvent`, `listenToWebSocketEvent`) to dispatch and listen for WebSocket custom events (such as connection status, stream tokens, new conversation messages, file system changes, etc.).
+  • WebSocketService.ts – Implements the WebSocket connection manager (`webSocketService`). It handles connecting to the server (including auto–reconnection strategies), sending JSON messages, interpreting incoming messages (dispatching them via the event system), and maintaining local status (e.g. clientId, connection status).
+ • commandRegistry.ts – Provides a centralized service for registering, unregistering, searching, and executing application commands.
+ • slashItemRegistry.ts – Manages providers for slash command suggestions (e.g., user prompts, file names) and caches/filters these items.
+ • windowEvents.ts – Defines a registry of global window events (`WindowEvents`) and provides a service (`windowEventService`) for emitting and listening to these events, used for cross-component communication not directly handled by state stores.
 
 C. components/
 This folder is very large and subdivided by feature.
 
- • settings/
-  – AppearanceTab.tsx and FontSizeControl.tsx: UI for appearance settings that allow the user to change the font size (and other appearance aspects) interactively.
-  – ModelForm.tsx and ModelManagement.tsx: Components to display, add, edit, and delete AI model configurations.
-  – ServiceProviderForm.tsx and ServiceProviderManagement.tsx: Similar functionality but for managing service provider settings (API URL, API Key, etc.).
- • diagrams/
-  – codeBlockRendererRegistry.ts – Implements a registry for “code block renderers.” The registry associates a set of languages (like mermaid, JSON, HTML) with their corresponding renderer components.
-  – mermaid-renderer.tsx, json-renderer.tsx, html-renderer.tsx, and types.ts – Implement renderers for specialized content: rendering diagrams using Mermaid syntax, displaying formatted JSON data, or embedding raw HTML in iframes.  • navigation/
-  – NavigationContainer.tsx – The high–level component controlling overall layout. It imports sidebar, conversation tree, settings panel, tool panel and ties them together; it also manages panel toggles.
- • SystemPrompt (folder)
-  – SystemPromptCard.tsx – Displays an individual system prompt in a card view and provides buttons for applying, editing, or deleting the prompt.
-  – SystemPromptEditor.tsx – A form for editing or creating system prompts.
- • common/
-  – GenericForm.tsx – A reusable, dynamic form component that renders form fields based on provided definitions.
  • commands/
-  – CommandInitializer.tsx – At application start–up, this component initializes and registers core application commands (and more), by calling various “initialize” functions.
- • tools/
+  – CommandInitializer.tsx – At application start–up, this component initializes and registers core application commands (and more), by calling various “initialize” functions from the `src/commands/` directory.
+ • common/
+  – GenericForm.tsx – A reusable, dynamic form component that renders form fields based on provided definitions. Used by settings forms, tool editor, etc.
+ • ConvTreeView/ (subfolder)
+  – ConvTreeView.tsx – Uses D3.js to render a hierarchical tree view of conversation messages. Includes `useMessageTree.ts` to convert flat message arrays to tree data, and `useTreeVisualization.ts` for the D3 rendering logic. Also includes `EmptyTreeView.tsx` and `TreeControls.tsx`.
+ • ConvView/ (subfolder)
+  – ConvView.tsx – Renders the main conversation messages in markdown using the MarkdownPane component; it also displays real–time streaming tokens. Includes `MessageItem.tsx`, `MessageActions.tsx`, `MessageEditor.tsx`, `MessageMetadata.tsx`, `StreamingMessage.tsx`, and `ScrollToBottomButton.tsx`.
+ • diagrams/
+  – codeBlockRendererRegistry.ts – Implements a registry for “code block renderers.” The registry associates a set of languages (like mermaid, JSON, HTML, dot, txt, codediff) with their corresponding renderer components.
+  – mermaid-renderer.tsx, json-renderer.tsx, html-renderer.tsx, dot-renderer.tsx, txt-renderer.tsx, codeDiff-renderer.tsx, and types.ts – Implement renderers for specialized content.
+ • InputBar/ (subfolder)
+  – InputBar.tsx – The main input component at the bottom of the screen. Composed of `SystemPromptSection.tsx`, `MessageInputArea.tsx`, `AttachmentSection.tsx`, `ActionButtons.tsx`, `ToolsSection.tsx`, `ModelStatusSection.tsx`, `StatusSection.tsx`, and `TemperatureControl.tsx`.
+ • MarkdownPane/ (subfolder)
+  – MarkdownPane.tsx – Renders markdown content using ReactMarkdown and SyntaxHighlighter. Manages code block collapsing and raw/rendered view toggling. Includes `CodeBlock.tsx` and `CodeBlockHeader.tsx`.
+ • modals/ (subfolder)
+  – ModalManager.tsx – Central component for rendering all modals based on `useModalStore` state.
+  – Specific modal components: `AppearanceModal.tsx`, `ConfirmationModal.tsx`, `FormModal.tsx`, `ModelsModal.tsx`, `ProvidersModal.tsx`, `ServerModal.tsx`, `SystemPromptModal.tsx`, `ThemeModal.tsx`, `ToolEditorModal.tsx`, `ToolModal.tsx`, `UserPromptModal.tsx`. These wrap their respective library/editor components.
+ • navigation/
+  – NavigationContainer.tsx – The high–level component controlling overall layout. Integrates with `PanelManager.tsx` and `PanelContainerLayout.tsx`.
+ • servers/ (subfolder)
+  – DeleteServerDialog.tsx – Confirmation dialog for deleting MCP servers.
+  – ServerDialog.tsx – Bridge component for legacy event handling to open the `ServerModal`.
+  – ServerForm.tsx – Form for adding/editing MCP server definitions.
+  – ServerFormDialog.tsx – Dialog wrapper for `ServerForm`.
+ • settings/ (subfolder)
+  – AppearanceTab.tsx and FontSizeControl.tsx: UI for appearance settings (font size, theme management).
+  – ModelForm.tsx and ModelManagement.tsx: Components to display, add, edit, and delete AI model configurations.
+  – ServiceProviderForm.tsx and ServiceProviderManagement.tsx: Similar functionality for managing service provider settings.
+  – ThemeForm.tsx and ThemeManagement.tsx: UI for creating, editing, and managing themes.
+  – IconSelector.tsx: A component for selecting icons (used in PinnedShortcuts rename and ServiceProviderForm).
+ • SystemPrompt/ (subfolder)
+  – SystemPromptCard.tsx – Displays an individual system prompt in a card view.
+  – SystemPromptComponent.tsx – Displays the active system prompt in the InputBar, with an expandable/editable portal.
+  – SystemPromptEditor.tsx – A form for editing or creating system prompts.
+  – SystemPromptLibrary.tsx – UI for browsing, searching, and managing system prompts.
+  – SystemPromptCollapsedDisplay.tsx and SystemPromptPortal.tsx: Helper components for `SystemPromptComponent`.
+ • tools/ (subfolder)
+  – ToolDialog.tsx – Bridge component for legacy event handling to open the `ToolModal`.
   – ToolEditor.tsx – A form for editing or creating a tool definition.
-  – ToolPanel.tsx – Displays available tools and integrates with a “ToolSelector” to allow users to toggle tool activation.
-  – ToolSelector.tsx – A compact UI element that shows active tools and allows the user to add new ones via a popover.  • UI Layout and Chat Flow Components
-  – AppHeader.tsx – The header bar at the top of the application. It includes the command bar, model selection triggers, and prompts.
-  – ChatContainer.tsx – Wraps the conversation view (ConvView) inside a scrollable container; it handles auto–scrolling upon new message tokens.
-  – ChatSpace.tsx – The overall chat “workspace” that puts together the header, chat container, and input bar.
-  – CommandBar.tsx – A command palette component that allows the user to type and select commands (with integrated search, keyboard navigation, and pinning).
-  – ConvTreeView.tsx – Uses D3 to render a hierarchical tree view of conversation messages (showing parent/child relationships).
-  – ConvView.tsx – Renders the main conversation messages in markdown using the MarkdownPane component; it also displays real–time streaming tokens.
-  – FileAttachment.tsx – A component that manages file selection and reading through an invisible file input; used to attach files (e.g. code or text) to messages.
-  – FontSizeProvider.tsx – A wrapper that applies global font–size settings taken from the Appearance store to the <html> element.
-  – HistoricalConvTree.tsx and HistoricalConvTreeList.tsx – Components that display historical conversation trees (for browsing past conversations).
-  – Sidebar.tsx – The left–hand sidebar that provides access to conversation history and a “New Chat” button, and shows WebSocket connection status.
-  – VoiceInputOverlay.tsx – A full–screen overlay that enables voice input; it leverages the Web Speech API to capture microphone input.   – HeaderPromptComponent.tsx and SystemPromptLibrary.tsx – Related to system prompts. The header component shows a summarized version of the active system prompt and allows its quick editing or library access; the library view provides browsing, editing, and applying prompts.
+  – ToolPanel.tsx – Displays available tools and allows users to toggle tool activation.
+ • ui/ (subfolder) - Contains shadcn/ui components and custom UI elements.
+  – unified-modal-dialog/ (subfolder): Implements the `UnifiedModalDialog` system with header, content, footer, context, types, and variants.
+ • UserPrompt/ (subfolder)
+  – UserPromptCard.tsx, UserPromptEditor.tsx, UserPromptLibrary.tsx: Similar to SystemPrompt components, but for user prompts.
+ • AttachmentPreview.tsx, AudioAttachment.tsx, ChatContainer.tsx, ChatSpace.tsx, CommandBar.tsx, DragDropZone.tsx, FileAttachment.tsx, FontSizeProvider.tsx, HistoricalConvTree.tsx, HistoricalConvTreeList.tsx, LiveStreamToken.tsx, LoadingTimer.tsx, MessageAttachments.tsx, ModelStatusBar.tsx, PanelContainerLayout.tsx, PanelManager.tsx, PinnedShortcutButton.tsx, PinnedShortcutDropdown.tsx, PinnedShortcutRow.tsx, PinnedShortcuts.tsx, RenameShortcutDialog.tsx, Sidebar.tsx, SlashDropdown.tsx, StatusMessage.tsx: Various UI layout and chat flow components with specific responsibilities.
 
 D. hooks/
-Custom hooks abstract many behaviors and resources:  • use-media-query.ts – A hook that returns whether a given CSS media query matches (used for determining mobile vs. desktop layout).
- • useApi.ts – Provides integration with the Axios–based API client; it also uses Zustand (with zustand’s “store”) to cache API responses and track loading errors.
- • useAppearanceManagement.ts – Wraps the Appearance store functionality (for font size and dark mode) and exposes functions such as saving settings or resetting defaults.
- • useChatManagement.ts – Manages chat operations (sending messages, fetching configuration, setting models for conversation, and loading conversation trees) by wrapping API calls and interfacing with the ConvStore.
- • useCrudOperations.ts – A generic hook that returns Create/Read/Update/Delete methods by combining API utilities and state actions.
- • useDragDrop.ts – A helper hook for integrating react-beautiful-dnd in components such as the pinned commands list.
- • useMessageGraph.ts – Wraps construction of a MessageGraph (from our utilities) that turns flat message arrays into a graph structure, used for conversation threads and tree views.
- • useResourceFactory.ts – A factory that builds resource hooks (for fetching and updating resources like models, providers, or tools) in a generic, unified way.
- • useResourceManagement.ts – Combines various resource hooks (for models, system prompts, providers) into higher-level “management” hooks used by settings components.
- • useStreamTokens.ts – Listens for streaming tokens (from a WebSocket event named “stream:token”) and accumulates them into an array for rendering in the chat view.
- • useToolCommands.ts – Connects the tools system with the command registry so that tool actions are available as commands.
- • useToolsManagement.ts – Provides resource operations and additional helper functions for tools (fetching tools, validating schemas, exporting tools, and toggling active tool selections).
- • useVoiceInput.ts – Wraps the browser’s Web Speech API to offer an easy-to-use hook for voice input (managing recognition, interim and final transcripts, error reporting, etc.).
- • useWebSocket.ts – A hook that abstracts WebSocket connectivity based on our WebSocketService and provides functions to connect, disconnect, and send messages.
+Custom hooks abstract many behaviors and resources:
+ • use-media-query.ts – A hook that returns whether a given CSS media query matches.
+ • use-toast.ts – Hook for managing and displaying toast notifications.
+ • useAppearanceManagement.ts – Wraps the Appearance store functionality and exposes functions for managing appearance settings.
+ • useAttachmentManager.ts – Manages the state and logic for handling file attachments, including validation and processing.
+ • useChatManagement.ts – Manages chat operations (sending messages, fetching configuration, setting models, loading conversations) by wrapping API calls and interfacing with the ConvStore.
+ • useConfirmationDialog.ts – Hook to programmatically show a confirmation dialog.
+ • useDragDrop.ts – A helper hook for integrating react-beautiful-dnd.
+ • useFileSystemManagement.ts – Hook for managing file system data fetched from the server.
+ • useFormDialog.ts – Hook to programmatically show a form dialog.
+ • useMessageGraph.ts – Wraps construction of a `MessageGraph` that turns flat message arrays into a graph structure.
+ • useResourceFactory.ts – A factory that builds generic resource hooks for CRUD operations.
+ • useResourceManagement.ts – Combines resource hooks for models, system prompts, user prompts, and providers into higher-level management hooks.
+ • useStreamTokens.ts – Listens for streaming tokens from WebSocket events and accumulates them.
+ • useSystemPromptSelection.ts – Hook for selecting system prompts and handling associated side effects (activating tools, user prompts, models).
+ • useToolCommands.ts – Connects the tools system with the command registry.
+ • useToolsManagement.ts – Provides resource operations and helper functions for tools and tool categories.
+ • useUserPromptManagement.ts – Provides resource operations and helper functions for user prompts.
+ • useVoiceInput.tsx – Wraps the browser’s Web Speech API for voice input.
+ • useWebSocket.ts – Hook that abstracts WebSocket connectivity, providing status and send/subscribe methods.
 
 E. stores/
-The application uses Zustand to hold local state in many domains:  • useAppearanceStore.ts – Holds visual appearance preferences (font size, dark mode flag, loading state, errors) and updates the document’s font size.
- • useCommandStore.ts – The central registry for application commands. Commands are registered (with properties like id, name, description, shortcut, keywords, section, icon, and execute callback) and later searched and executed by the command bar.
- • useConvStore.ts – Stores conversation data (conversations identified by an ID, the active conversation, the selected message within that conversation) and provides methods to create, update, or delete messages and conversations.
- • useHistoricalConvsStore.ts – Maintains a list of historical conversations (conv summaries) and provides methods to fetch conversation trees from the server.
- • useModelStore.ts – Maintains the list of available AI models and corresponding service providers, as well as which model is currently selected as primary or secondary.
- • usePanelStore.ts – Manages panel states (for sidebar, settings panels, tool panel, etc.) including whether they are open, pinned, their sizes and positions.
- • usePinnedCommandsStore.ts – Stores commands that the user pins for quick access (including their ordering, loading state, and error states).
- • useToolStore.ts – Holds the list of available tools, tool categories, active tools, and provides functions to update these lists.
- • useWebSocketStore.ts – Monitors the status of the WebSocket connection (connected flag, clientId, reconnect attempts, last message time).
- • useSystemPromptStore.ts – Holds the list of system prompts along with the “default” prompt ID, a mapping between conversations and their chosen prompts, and the currently selected prompt.
+The application uses Zustand to hold local state in many domains:
+ • useAppearanceStore.ts – Holds visual appearance preferences (font size) and handles saving/loading these settings.
+ • useAttachmentStore.ts – Manages staged attachments in the input bar and attachments associated with specific message IDs.
+ • useCommandStore.ts – The central registry for application commands.
+ • useConvStore.ts – Stores conversation data, active conversation, selected message, and provides methods to manage messages and conversations.
+ • useFileSystemStore.ts – Holds the file system state (directories and files) received from the server.
+ • useGeneralSettingsStore.ts – Manages general application settings like temperature and cost tracking.
+ • useHistoricalConvsStore.ts – Maintains a list of historical conversations and provides methods to fetch conversation trees.
+ • useJumpToEndStore.ts – Manages the "Jump to End" (auto-scroll) preference for the chat view.
+ • useMcpServerStore.ts – Manages MCP server definitions, their enabled state, and associated tools.
+ • useModalStore.ts – Manages the state of all modals in the application (which modal is open and its props).
+ • useModelStore.ts – Maintains the list of available AI models, service providers, and selected primary/secondary models.
+ • usePanelStore.ts – Manages panel states (sidebar, etc.) including open/closed, collapsed, sizes, and positions.
+ • usePinnedCommandsStore.ts – Stores commands pinned by the user for quick access.
+ • useSearchStore.ts – Manages search term, search results, search status, and highlighted messages.
+ • useStatusMessageStore.ts – Manages the display of status messages to the user.
+ • useSystemPromptStore.ts – Holds the list of system prompts, default prompt ID, conversation-specific prompts, and current prompt.
+ • useThemeStore.ts – Manages available UI themes and the active theme ID.
+ • useToolStore.ts – Holds the list of available tools, tool categories, and active tools.
+ • useVoiceInputStore.ts – Manages the state of voice input (listening status, errors).
 
 F. commands/
-There is a wide-ranging command system that lets the user perform actions via shortcuts or command palette:  • appearanceCommands.ts – Registers commands to adjust appearance settings (like increasing, decreasing, or resetting font size).
- • coreCommands.ts – Registers core (global) commands such as creating new conversations, clearing them, or even exiting the app (in desktop contexts).
- • modelCommands.ts – Dynamically generates commands for choosing a primary or secondary AI model from a list of available models.
- • settingsCommands.ts – Registers commands to open the settings panel and to dispatch events that drive editing of models and service providers. Also used to send custom events via the commandEvents emitter.
- • systemPromptCommands.ts – Registers commands to toggle the system prompt library, create a new system prompt, or edit the current prompt. It also automatically builds a list of available prompts as commands.
- • toolCommands.ts – Registers high-level tools–related commands (such as exporting tools, opening the tool panel) and also provides a function to register each tool as a command so that users can toggle tools on/off.
- • types.ts – Defines common types shared by commands (such as the Command and CommandGroup interfaces).
- • voiceInputCommand.ts – Registers the voice input command that, when invoked, opens the voice input overlay.
+The command system allows users to perform actions via shortcuts or the command palette:
+ • appearanceCommands.ts – Registers commands for appearance settings (font size, theme library).
+ • coreCommands.ts – Registers core commands (new conversation, exit application, toggle UI panels).
+ • mcpServerCommands.ts – Registers commands for managing and toggling MCP servers.
+ • modelCommands.ts – Dynamically generates commands for choosing primary/secondary AI models.
+ • settingsCommands.ts – Registers commands to open settings modals (models, providers, appearance).
+ • shortcutPromptExecutor.ts – Utility to handle prompt shortcuts (slash commands) from the command bar input (though primary slash command handling is in InputBar).
+ • systemPromptCommands.ts – Registers commands for system prompt library and dynamically registers individual system prompts.
+ • themeCommands.ts – Dynamically registers commands for selecting themes.
+ • toolCommands.ts – Registers commands for tool library and dynamically registers individual tools.
+ • types.ts – Defines common types for commands (`Command`, `CommandGroup`, `CommandSection`).
+ • userPromptCommands.ts – Registers commands for user prompt library and dynamically registers individual user prompts.
+ • voiceInputCommand.ts – Registers the voice input command.
 
 G. utils/
 General utilities help abstract common behavior:
- • apiUtils.ts – Contains functions for normalizing errors and for wrapping Axios API calls into promises that update a global API–store (using a Zustand store named useApiStore).
- • hookUtils.ts – Provides helper hooks such as useInitialization to run an effect or initialization function only once.
- • messageGraph.ts – Implements a MessageGraph class that builds a parent–child graph from flat arrays of messages (used in conversation trees and for getting message paths).
- • promptUtils.ts – Provides helper functions to manipulate system prompt text (for example, appending or replacing text in the prompt with a global function on window).
- • treeUtils.ts – Functions to build hierarchical “tree” representations out of conversation messages – these utilities support historical conversation trees and debug views.
- • webSocketUtils.ts – Contains hooks for listening to and managing WebSocket events, such as a hook for retrieving streamed tokens (“stream:token”) and another for monitoring the connection status.
+ • apiUtils.ts – Contains `normalizeError` and `createApiRequest` for consistent API call handling, and `useApiCallState` hook for managing loading/error states.
+ • attachmentUtils.ts – Utilities for handling file attachments (validation, preview URL creation, text extraction, Base64 conversion, formatting text attachments).
+ • debugUtils.ts – Initializes debug utilities for console access (e.g., `window.addRandomMessages`).
+ • hookUtils.ts – Provides `useInitialization` and `useInitializeIfEmpty` hooks.
+ • messageGraph.ts – Implements a `MessageGraph` class for building a parent–child graph from flat message arrays.
+ • modelUtils.ts – Utilities for working with models, like `getModelFriendlyName`.
+ • promptUtils.ts – Exposes global window functions (`appendToPrompt`, `getPromptText`, `setPrompt`) for manipulating the input bar text.
+ • textAreaUtils.ts – Utility to get cursor position in a textarea (`getCursorPosition`).
+ • webSocketUtils.ts – Provides `handleWebSocketMessage` for processing incoming WebSocket messages (like file system updates) and hooks (`useWebSocketEvent`, `useWebSocketStatus`, `useStreamableWebSocketData`) for managing WebSocket events.
 
 H. lib/
- • utils.ts – A simple utility that combines class names (using clsx and tailwind–merge) into a convenient “cn” helper used across components.
+ • ThemeManager.ts – Centralized theming system that discovers themeable component properties, applies themes by injecting CSS variables, and handles font CDN loading.
+ • utils.ts – Contains the `cn` utility for combining class names (using clsx and tailwind-merge).
 
 I. Main entry points
- • index.css – Main stylesheet that brings together Tailwind CSS directives, custom component styles, and utility classes.
- • main.tsx – The entry point that uses ReactDOM’s createRoot to render the App component.
- • App.tsx – The root component which wraps the application in the FontSizeProvider (to apply appearance settings), initializes the command system via CommandInitializer, and then renders the NavigationContainer with the ChatSpace inside.
+ • index.css – Main stylesheet (Tailwind CSS directives, custom component styles, utility classes).
+ • main.tsx – Entry point that renders the `App` component. Initializes ThemeManager, loads default system prompt/tools, and fetches general settings.
+ • App.tsx – Root component. Wraps the application in `FontSizeProvider`, initializes commands via `CommandInitializer`, and renders `NavigationContainer` with `ChatSpace`. Connects to WebSocket service and initializes slash command providers. Includes `ModalManager` for centralized modal handling.
+ • CommandInitializationPlugin.tsx – Plugin component that handles dynamic registration of commands based on store changes (e.g., system prompts, user prompts, models, tools, themes, MCP servers). Also handles applying default system prompt tools and associated user prompts for new conversations.
 
 ─────────────────────────────
 3. MAJOR DATA FLOWS AND FUNCTIONALITY
 ─────────────────────────────
 
 A. Chat and Conversation Flow
- • Incoming chat messages (typically from the AI service) are received via WebSocket managed by WebSocketService.
- • Received messages are dispatched using websocketEvents and then processed by useConvStore in response to “conv:new” or “conv:load” events.
- • The ConvStore maintains an object mapping conversation IDs to Conv objects (which hold an array of Messages).
- • The ChatSpace component – which is composed of several parts (AppHeader, ChatContainer, InputBar) – reads the current conversation from the conv store.
- • ChatContainer automatically scrolls (via useEffect) as new messages stream in through the useStreamTokens hook.
- • ConvView then renders the conversation using MarkdownPane (facilitating syntax–highlighted code blocks, diagrams, etc.) and LiveStreamToken components to show real–time token output.
+ • Incoming chat messages are received via WebSocket managed by `WebSocketService`.
+ • Received messages are dispatched using `websocketEvents` and processed by `useConvStore` (via listeners in the store itself) in response to “conv:upd” or “conv:load” events. Attachments in messages are processed by `processAttachments` to convert Base64 content to ArrayBuffers and generate preview URLs.
+ • `ConvStore` maintains conversations. `ChatSpace` reads the current conversation.
+ • `ChatContainer` wraps `ConvView`. `ConvView` renders messages using `MarkdownPane` and `LiveStreamToken`. The `useJumpToEndStore` and `ScrollToBottomButton` manage auto-scrolling.
+ • User input is handled by `InputBar`, which uses `useChatManagement` to send messages. Attachments are managed by `useAttachmentStore` and `AttachmentPreviewBar`.
+ • Interjections during tool loops are possible via Ctrl+Enter or a dedicated button, handled by `InterjectionService` on the backend.
 
 B. Appearance and Theming
- • Appearance settings (font size and dark mode) are handled by useAppearanceStore.
- • The FontSizeProvider component (wrapped around the App) applies the current fontSize to document.documentElement.
- • The AppearanceTab and FontSizeControl components (inside settings/) let users adjust these preferences.
- • When a user makes a change, functions from the Appearance store update the CSS variable and then trigger a saveAppearanceSettings API call.
+ • Appearance settings (font size) are handled by `useAppearanceStore`. `FontSizeProvider` applies font size globally.
+ • Theming is managed by `ThemeManager.ts` and `useThemeStore`. Themes can be created (even by AI using a special tool), managed, and applied via the `ThemeModal` and `ThemeManagement` components. `ThemeManager` injects CSS variables and loads fonts from CDNs.
 
-C. Models and Service Providers (Settings)
- • The types in settings.ts define both Model and ServiceProvider data structures.
- • The UI for editing these is implemented in files under settings/ (ModelForm, ModelManagement, ServiceProviderForm, ServiceProviderManagement).
- • A combination of resource hooks (built on top of useCrudOperations and useResourceFactory) and the ModelStore (useModelStore) allow the app to add, update, or delete models and providers.
- • The commands system (in settingsCommands.ts and modelCommands.ts) registers commands to open dialogs for editing models or providers.
+C. Models, Service Providers, MCP Servers (Settings & Management)
+ • `Model`, `ServiceProvider` types are in `settings.ts`. UI is in `settings/` (e.g., `ModelManagement`) and `modals/` (`ModelsModal`, `ProvidersModal`).
+ • Resource hooks (`useResourceManagement`) and `useModelStore` manage models/providers.
+ • MCP servers are defined by `McpServerDefinition` in `useMcpServerStore`. UI is in `servers/` and `modals/ServerModal.tsx`. `mcpServerCommands.ts` handles command registration.
 
-D. System Prompts
- • System prompts (the default “instructions” for the AI) are stored in the systemPrompt store (useSystemPromptStore).
- • The HeaderPromptComponent shows a brief version of the active system prompt; the SystemPromptLibrary lets users browse, create, edit, or apply prompts.
- • When a prompt is applied, events are dispatched and the conv store is updated with the appropriate system prompt ID.
+D. System Prompts & User Prompts
+ • Managed by `useSystemPromptStore`, `useUserPromptStore`, and `useSystemPromptManagement`, `useUserPromptManagement` hooks.
+ • UI in `SystemPrompt/`, `UserPrompt/` folders and corresponding modals.
+ • System prompts can be associated with tools, user prompts, MCP servers, and primary/secondary models, which are automatically activated/selected when the system prompt is applied. `useSystemPromptSelection` hook centralizes this logic.
+ • User prompts can have shortcuts for quick insertion via slash commands in `InputBar`.
 
 E. Tools
- • Tools are extra functionalities that can be activated when chatting.
- • The tool management is handled in useToolStore and via resource hooks in useToolsManagement.
- • The ToolPanel displays available tools using the ToolEditor and ToolSelector components.
- • The toolCommands.ts file registers commands to export or manage tools and integrates with the CommandStore so that tools appear as commands and can be toggled.
+ • Managed by `useToolStore` and `useToolsManagement`. UI in `tools/` and `ToolModal`.
+ • `toolCommands.ts` integrates tools with the command system.
+ • Built-in tools have `ExtraProperties` configurable via the UI (though the UI for this part is still in design).
 
-F. Command System
- • The useCommandStore (in stores/useCommandStore.ts) is the central registry for application commands.
- • Various “initialize” functions under commands/ (coreCommands.ts, appearanceCommands.ts, modelCommands.ts, settingsCommands.ts, systemPromptCommands.ts, toolCommands.ts, voiceInputCommand.ts) register command groups with properties such as id, name, description, shortcut keys, keywords, icons, and callback functions (execute).
- • The CommandInitializer component (in components/commands/) runs at startup and calls all these functions so that the commands are available throughout the application.
- • The CommandBar component provides a searchable overlay. It queries the command store (using searchCommands) and supports keyboard navigation and pinning of commands (via the pinned commands store).
+F. Command System & Pinned Shortcuts
+ • `commandRegistry.ts` and `useCommandStore` manage commands. `CommandInitializer` and `CommandInitializationPlugin` register static and dynamic commands.
+ • `CommandBar` provides search and execution.
+ • `PinnedShortcuts` (with `PinnedShortcutButton`, `PinnedShortcutRow`, `PinnedShortcutDropdown`, `RenameShortcutDialog`) allows users to pin and manage frequently used commands. `usePinnedCommandsStore` handles their state.
 
 G. Panels and Layout
- • The NavigationContainer component orchestrates the layout of the application, putting together the Sidebar, ConvTreeView, SettingsPanel, and ToolPanel.
- • The PanelStore (usePanelStore) holds the state for each panel (open/closed, pinned, size, position).
- • The PanelContainerLayout and PanelManager components (in components/) work together to render panels using a resizable–panel system.
- • Panels are toggled via commands and UI interactions (e.g. from the AppHeader and Sidebar).
+ • `NavigationContainer` uses `PanelManager` and `PanelContainerLayout`. `usePanelStore` manages panel states (sidebar, modals as panels if designed that way).
+ • The `Sidebar` component is a key panel, showing historical conversations (`HistoricalConvTreeList`) and the current conversation's structure (`ConvTreeView`). It also includes search functionality (`useSearchStore`).
 
-H. WebSockets and API Integration
- • The apiClient (in services/api/apiClient.ts) is configured with Axios to perform HTTP calls to endpoints.
- • Helper utilities in utils/apiUtils.ts and hooks like useApi.ts abstract API calls.
- • The WebSocketService (and its event helper, websocketEvents.ts) manages the lifecycle of the WebSocket connection. It automatically dispatches status and message events which are then consumed by zustand stores (for conversation updates) and by hooks (useWebSocketStatus, useStreamableWebSocketData).
+H. WebSockets, API Integration, and Other Services
+ • `apiClient.ts` and `apiUtils.ts` standardize HTTP calls.
+ • `WebSocketService` and `websocketEvents.ts` manage real-time communication.
+ • `windowEvents.ts` provides a decoupled way for components/services to communicate.
+ • `slashItemRegistry.ts` manages slash command suggestions from providers like `fileNameProvider.ts` (using `useFileSystemStore`) and `userPromptProvider.ts`.
 
-I. File Attachments and Voice Input
- • The FileAttachment component enables users to attach files to their messages. It reads file content and then calls a callback with the file and its text content.
- • The VoiceInputOverlay component uses the browser’s Web Speech API (wrapped by the custom hook useVoiceInput) to capture voice input. It displays a full–screen overlay with microphone and transcript controls.
+I. File System Interaction
+ • `useFileSystemStore` holds the project's file structure.
+ • `ProjectFileWatcherService` (backend) sends updates via WebSockets, handled by `websocketUtils.ts` on the client.
+ • `useFileSystemManagement` hook provides access to this data.
 
 ─────────────────────────────
 4. FILES & HOW THEY LINK
@@ -182,105 +232,157 @@ I. File Attachments and Voice Input
 Below is a non–exhaustive list of files (organized by directory) with brief notes on what they do and how they interact with others:
 
 ▸ src/types/
- – conv.ts: Defines the Message interface (with id, content, source, token usage, cost info) and the Conv interface (id and messages array). Used by the conversation store (useConvStore) and components like ConvView and ConvTreeView.
- – modelTypes.ts: Defines types for model selection (primary vs. secondary) used by settings and model management commands.
- – settings.ts: Contains interfaces for ServiceProvider and Model. These types are used in settings–related forms (ModelForm.tsx, ServiceProviderForm.tsx) and stored in useModelStore.
- – systemPrompt.ts: Defines the SystemPrompt and SystemPromptFormValues interfaces. Code in SystemPrompt components uses these types to manage prompt content.
- – toolTypes.ts: Defines the shape of a Tool and a ToolCategory. Used by ToolPanel, ToolEditor, and in the useToolsManagement hook.
- – ui.ts: Declares UI helper types (e.g. PanelState, PanelPosition). Used by PanelManager.tsx and PanelContainerLayout.tsx to control panel appearance.
- – websocket.ts: Defines the WebSocketState interface used by Sidebar.tsx and WebSocketStore.
+ – attachment.ts: Defines `Attachment` interface for file uploads. Used by attachment-related components, stores, and utilities.
+ – conv.ts: Defines `Message` and `Conv` interfaces. Used by `useConvStore`, `ConvView`, `ConvTreeView`.
+ – modelTypes.ts: Defines `ModelType` ('primary' | 'secondary'). Used by `useModelStore` and model selection commands.
+ – settings.ts: Interfaces for `ServiceProvider` and `Model`. Used by `settings/` components, `useModelStore`.
+ – systemPrompt.ts: `SystemPrompt` and `SystemPromptFormValues` interfaces. Used by `SystemPrompt/` components, `useSystemPromptStore`.
+ – theme.ts: `Theme` interface. Used by `ThemeManager.ts`, `useThemeStore`, and theme-related UI components.
+ – toolTypes.ts: `Tool` and `ToolCategory` interfaces. Used by `tools/` components, `useToolStore`.
+ – ui.ts: `PanelState`, `PanelPosition`. Used by `PanelManager.tsx`, `PanelContainerLayout.tsx`, `usePanelStore`.
+ – userPrompt.ts: `UserPrompt` and `UserPromptFormValues` interfaces. Used by `UserPrompt/` components, `useUserPromptStore`.
+ – websocket.ts: `WebSocketState` interface. Used by `useWebSocketStore`.
 
-▸ src/services/websocket/
- – websocketEvents.ts: Implements dispatchWebSocketEvent and listenToWebSocketEvent. All WebSocket–related events are funneled through this file.
- – WebSocketService.ts: Encapsulates WebSocket connection logic (connect, disconnect, send, message handlers). It dispatches events that the rest of the app listens to via websocketEvents.ts.
-
-▸ src/services/api/
- – apiClient.ts: Configures the Axios client with a base URL, JSON headers, and request/response interceptors. All API calls (from resource hooks or CRUD operations) use this client.
+▸ src/services/
+  ▸ api/
+   – apiClient.ts: Configures Axios client, used by `apiUtils.ts` and resource hooks.
+  ▸ providers/
+   – fileNameProvider.ts: Provides project file names for slash commands, using `useFileSystemStore`.
+   – userPromptProvider.ts: Provides user prompts for slash commands, using `useUserPromptStore`.
+  ▸ websocket/
+   – websocketEvents.ts: `dispatchWebSocketEvent`, `listenToWebSocketEvent` for decoupled WebSocket event handling.
+   – WebSocketService.ts: Manages WebSocket connection, sends/receives messages, dispatches events.
+  – commandRegistry.ts: Central service for command management, abstracting `useCommandStore`.
+  – slashItemRegistry.ts: Service for managing and providing slash command suggestions.
+  – windowEvents.ts: Defines global `WindowEvents` and `windowEventService` for emitting/listening to custom window events.
 
 ▸ src/components/
- • settings folders (AppearanceTab.tsx, FontSizeControl.tsx, ModelForm.tsx, ModelManagement.tsx, ServiceProviderForm.tsx, ServiceProviderManagement.tsx):
-  – These files implement settings UIs for appearance, model, and provider management. They use GenericForm.tsx from the common folder and hook into resource hooks (via useResourceManagement) and Zustand stores (useModelStore).
- • diagrams folder (codeBlockRendererRegistry.ts, mermaid-renderer.tsx, json-renderer.tsx, html-renderer.tsx, types.ts):
-  – Implements rendering logic for code/diagram blocks that appear in messages. The MarkdownPane component (in src/components/markdown-pane.tsx) uses this registry to decide how to render code blocks (for example, for Mermaid diagrams).
- • navigation (NavigationContainer.tsx):
-  – It organizes the main layout by including the Sidebar, ConvTreeView, SettingsPanel, and ToolPanel. It uses Zustand state from usePanelStore, useConvStore, and useSystemPromptStore to control which panels are open and update the current conversation.
- • SystemPrompt folder (SystemPromptCard.tsx, SystemPromptEditor.tsx):
-  – These files let users view, edit, and apply system prompts. They interact with useSystemPromptStore and useSystemPromptManagement.
- • common/GenericForm.tsx:
-  – A reusable form builder that uses react-hook-form to generate forms based on piped–in field definitions. Used by multiple settings forms.
- • commands/CommandInitializer.tsx:
-  – Bootstraps the command–system on startup by invoking “initialize…” functions from various commands files.
- • tools/ (ToolEditor.tsx, ToolPanel.tsx, ToolSelector.tsx):
-  – Manage the UI and editing of tools. They are tied into the command system via toolCommands.ts and the tool store (useToolStore), and managed with resource hooks from useToolsManagement.
- • AppHeader.tsx:
-  – The header bar which contains the command bar (CommandBar.tsx), model buttons (via ModelStatusBar), and possibly the system prompt preview.
- • ChatContainer.tsx and ChatSpace.tsx:
-  – The chat workspace. ChatContainer wraps ConvView (which renders conversation messages in markdown) and auto–scrolls on new messages produced from useStreamTokens; ChatSpace ties together the header, chat, and input bar.
- • CommandBar.tsx:
-  – Implements a command palette that listens to keystrokes, queries the CommandStore (useCommandStore) for matching commands, and allows users to execute or pin commands.
- • ConvTreeView.tsx:
-  – Uses D3.js to build a visual tree view of conversation messages. It gets a hierarchical structure from the MessageGraph (from utils/messageGraph.ts).
- • ConvView.tsx:
-  – Renders conversation messages (using MarkdownPane for markdown rendering and LiveStreamToken for streaming tokens) based on data from useConvStore.
- • FileAttachment.tsx:
-  – Provides a button to trigger a hidden file input so that the user can attach files to messages (reads file as text and then calls a callback).
- • FontSizeProvider.tsx:
-  – A context/wrapper component that applies the current font size from useAppearanceStore to the document element.
- • HistoricalConvTree.tsx and HistoricalConvTreeList.tsx:
-  – Display historical conversations as a tree structure (similar to ConvTreeView but for past convs).
- • Sidebar.tsx:
-  – Implements the left sidebar that includes a “New Chat” button (which calls createConv from useConvStore) and a list of historical convs by including HistoricalConvTreeList. It also displays WebSocket connection status (using the state from WebSocketStore).
- • VoiceInputOverlay.tsx:
-  – Renders a modal overlay that uses the custom hook useVoiceInput to capture speech from the microphone and transcribe it.  • HeaderPromptComponent.tsx and SystemPromptLibrary.tsx:
-  – Provide the UI for viewing and managing system prompts; the header component provides a condensed view, while the library lets the user search, edit, or create prompts.  • markdown-pane.tsx:
-  – Renders markdown content using ReactMarkdown along with a SyntaxHighlighter for code blocks. It integrates with the code block renderer registry to support special renderers (diagrams, HTML content).  • ModelStatusBar.tsx:
-  – Displays the currently selected primary and secondary models in a compact (vertical or horizontal) layout and uses a helper (findBreakPoint function) to break long names into two lines if needed.  • PanelContainerLayout.tsx and PanelManager.tsx:
-  – They work together to lay out and manage the various resizable panels on the screen. PanelManager reads panel definitions from usePanelStore and renders them (with controls to pin/close panels).
- • PinnedShortcuts.tsx:
-  – Implements the “pinned commands” bar that shows user–pinned command shortcuts. It uses react–beautiful–dnd for drag–and–drop reordering.  • App.tsx:
-  – The main application root. It wraps the whole UI with the FontSizeProvider, calls the CommandInitializer component, and wraps the workspace inside NavigationContainer.  • Index files
-  – main.tsx creates the React root and renders App.
-  – index.css defines the core CSS styles, custom Tailwind layers, and base utilities used by the entire UI.
-
-▸ src/utils/
- • apiUtils.ts – Contains helper functions to standardize API requests (wraps Axios calls, normalizes errors) for use in resource hooks and CRUD operations.
- • hookUtils.ts – Provides custom hooks to run initialization routines only once.
- • messageGraph.ts – Defines a MessageGraph class that converts a flat array of messages into a graph based on parentId relationships. This is used in both ConvTreeView and to find message paths.
- • promptUtils.ts – Exposes global window functions (such as appendToPrompt and getPromptText) to conveniently modify or retrieve the current system prompt.
- • treeUtils.ts – Contains functions to build “tree” structures from conversation messages (for historical conv trees and debugging).
- • webSocketUtils.ts – Provides hooks (e.g. useWebSocketEvent, useWebSocketStatus, useStreamableWebSocketData) to subscribe to and manage WebSocket events.
-
-▸ src/stores/
-Each “use*Store” file uses Zustand to hold domain–specific state. For example:
- – useAppearanceStore.ts manages font size and dark mode.
- – useCommandStore.ts holds the registered commands and command groups.
- – useConvStore.ts holds current conversation(s) and provides methods to create, update, and delete messages.
- – useHistoricalConvsStore.ts tracks historical conversation summaries and trees.
- – useModelStore.ts holds information about models and providers.
- – usePanelStore.ts tracks which UI panels (sidebar, settings, tool panel, etc.) are open, their sizes, and whether they’re pinned.
- – usePinnedCommandsStore.ts tracks which commands are pinned by the user.
- – useToolStore.ts manages the list of tools and active tools.
- – useWebSocketStore.ts holds WebSocket connection states.
- – useSystemPromptStore.ts stores the list of system prompts, the default prompt, and which prompt is currently applied to each conversation.
+ • settings/ (AppearanceTab.tsx, FontSizeControl.tsx, ModelForm.tsx, ModelManagement.tsx, ServiceProviderForm.tsx, ServiceProviderManagement.tsx, ThemeForm.tsx, ThemeManagement.tsx, IconSelector.tsx):
+  – UIs for managing various application settings. Use `GenericForm.tsx`, resource hooks (`useResourceManagement`), and respective Zustand stores. `IconSelector` is used for choosing icons.
+ • diagrams/ (codeBlockRendererRegistry.ts, various *-renderer.tsx files, types.ts):
+  – Renders specialized code blocks (Mermaid, JSON, HTML, DOT, TXT, CodeDiff) in `MarkdownPane`.
+ • navigation/ (NavigationContainer.tsx):
+  – Organizes main layout using `PanelManager` and `PanelContainerLayout`, integrating with `usePanelStore`.
+ • SystemPrompt/ (SystemPromptCard.tsx, SystemPromptComponent.tsx, SystemPromptEditor.tsx, SystemPromptLibrary.tsx, SystemPromptCollapsedDisplay.tsx, SystemPromptPortal.tsx):
+  – UI for system prompt management. `SystemPromptComponent` is interactive in the `InputBar`.
+ • UserPrompt/ (UserPromptCard.tsx, UserPromptEditor.tsx, UserPromptLibrary.tsx):
+  – UI for user prompt management.
+ • common/ (GenericForm.tsx):
+  – Reusable form builder using react-hook-form.
+ • commands/ (CommandInitializer.tsx):
+  – Initializes static commands at startup using functions from `src/commands/`.
+ • tools/ (ToolDialog.tsx, ToolEditor.tsx, ToolPanel.tsx):
+  – UI for managing and editing tools. `ToolDialog` is a bridge for opening `ToolModal`.
+ • modals/ (ModalManager.tsx, various *-Modal.tsx files):
+  – Centralized modal rendering. Specific modals wrap their respective library/editor UIs.
+ • servers/ (DeleteServerDialog.tsx, ServerDialog.tsx, ServerForm.tsx, ServerFormDialog.tsx):
+  – UI for MCP server management. `ServerDialog` is a bridge for opening `ServerModal`.
+ • ui/ (various shadcn components, unified-modal-dialog/):
+  – Base UI elements and the unified modal system.
+  • InputBar/ (InputBar.tsx and its subcomponents):
+   – The main user input area, composed of sections for system prompts, message input, attachments, actions, tools, model status, and temperature.
+  • ConvView/ (ConvView.tsx and its subcomponents):
+   – Renders the conversation messages, handles streaming, and includes actions/metadata for messages.
+  • ConvTreeView/ (ConvTreeView.tsx and its subcomponents):
+   – Renders the D3-based conversation tree.
+  • MarkdownPane/ (MarkdownPane.tsx and its subcomponents):
+   – Renders markdown content with syntax highlighting and diagram support.
+  • AppHeader.tsx: Header bar with `CommandBar`, `PinnedShortcuts`, `ModelStatusBar`.
+  • AttachmentPreview.tsx, AudioAttachment.tsx, DragDropZone.tsx, MessageAttachments.tsx: Components for handling and displaying file attachments.
+  • ChatContainer.tsx, ChatSpace.tsx: Layout components for the chat interface.
+  • CommandBar.tsx: Command palette UI.
+  • FontSizeProvider.tsx: Applies global font size.
+  • HistoricalConvTree.tsx, HistoricalConvTreeList.tsx: Display historical conversations in the sidebar.
+  • LiveStreamToken.tsx: Renders individual streaming tokens (though `StreamingMessage.tsx` might render them as a single string now).
+  • LoadingTimer.tsx: Visual loading indicator.
+  • ModelStatusBar.tsx: Displays selected primary/secondary models.
+  • PanelContainerLayout.tsx, PanelManager.tsx: Manage resizable UI panels.
+  • PinnedShortcuts.tsx (and related PinnedShortcut* components): UI for pinned command shortcuts.
+  • RenameShortcutDialog.tsx: Dialog for renaming pinned shortcuts.
+  • Sidebar.tsx: Left sidebar with conversation history, search, and current conversation tree.
+  • SlashDropdown.tsx: Dropdown for slash command suggestions.
+  • StatusMessage.tsx: Displays status messages.
 
 ▸ src/hooks/
-Custom hooks wrap logic related to media queries, API calls, resource management, chat management, drag–and–drop, voice input, WebSocket connectivity, and more. They are used by UI components to abstract away lower–level code and ensure reusability.
+  – use-media-query.ts: Detects viewport size.
+  – use-toast.ts: Manages toast notifications (likely from shadcn/ui).
+  – useAppearanceManagement.ts: Manages appearance settings.
+  – useAttachmentManager.ts: Logic for handling file attachments.
+  – useChatManagement.ts: Logic for chat operations.
+  – useConfirmationDialog.ts: Shows confirmation modals.
+  – useDragDrop.ts: For react-beautiful-dnd integration.
+  – useFileSystemManagement.ts: Accesses file system data.
+  – useFormDialog.ts: Shows form modals.
+  – useMessageGraph.ts: Creates a graph from messages.
+  – useResourceFactory.ts: Generic hook for CRUD operations.
+  – useResourceManagement.ts: Combines resource hooks for settings.
+  – useStreamTokens.ts: Accumulates streaming tokens from WebSockets.
+  – useSystemPromptSelection.ts: Handles logic for selecting system prompts and their associated actions.
+  – useToolCommands.ts: Integrates tools with the command system.
+  – useToolsManagement.ts: Manages tools and tool categories.
+  – useUserPromptManagement.ts: Manages user prompts.
+  – useVoiceInput.tsx: Wraps Web Speech API.
+  – useWebSocket.ts: Abstracts WebSocket connectivity.
+
+▸ src/stores/
+  – useAppearanceStore.ts: Font size and appearance settings.
+  – useAttachmentStore.ts: Manages staged and message-associated attachments.
+  – useCommandStore.ts: Central command registry.
+  – useConvStore.ts: Current conversation data.
+  – useFileSystemStore.ts: Project file system structure.
+  – useGeneralSettingsStore.ts: General app settings like temperature.
+  – useHistoricalConvsStore.ts: Historical conversation summaries.
+  – useJumpToEndStore.ts: "Jump to End" preference for chat view.
+  – useMcpServerStore.ts: MCP server definitions and state.
+  – useModalStore.ts: State for all modals.
+  – useModelStore.ts: AI models and service providers.
+  – usePanelStore.ts: UI panel states.
+  – usePinnedCommandsStore.ts: Pinned command shortcuts.
+  – useSearchStore.ts: Conversation search state.
+  – useStatusMessageStore.ts: Status message display.
+  – useSystemPromptStore.ts: System prompts.
+  – useThemeStore.ts: UI themes.
+  – useToolStore.ts: Tools and tool categories.
+  – useVoiceInputStore.ts: Voice input state.
 
 ▸ src/commands/
-These files set up the command system and define both static commands (for appearance, core functions, etc.) and dynamic commands (such as model or system prompt commands that are built based on available models or prompts). The command events (in commandEvents) let different parts of the app emit and listen for events so that when a command (like “edit-model” or “toggle-system-prompts-library”) is executed, the appropriate UI panel opens.
+  – appearanceCommands.ts, coreCommands.ts, mcpServerCommands.ts, modelCommands.ts, settingsCommands.ts, systemPromptCommands.ts, themeCommands.ts, toolCommands.ts, types.ts, userPromptCommands.ts, voiceInputCommand.ts: Define and register application commands using `commandRegistry.ts`.
+  – shortcutPromptExecutor.ts: Helper for slash command-like execution from command bar (less used now with `SlashDropdown`).
+
+▸ src/utils/
+  – apiUtils.ts: `normalizeError`, `createApiRequest`, `useApiCallState`.
+  – attachmentUtils.ts: File attachment helpers.
+  – debugUtils.ts: Console debug utilities.
+  – hookUtils.ts: `useInitialization`, `useInitializeIfEmpty`.
+  – messageGraph.ts: `MessageGraph` class.
+  – modelUtils.ts: `getModelFriendlyName`.
+  – promptUtils.ts: Global `window` functions for input bar manipulation.
+  – textAreaUtils.ts: `getCursorPosition`.
+  – webSocketUtils.ts: `handleWebSocketMessage` and WebSocket event hooks.
+
+▸ src/lib/
+  – ThemeManager.ts: Manages UI theming.
+  – utils.ts: `cn` utility for class names.
+
+▸ src/ (root)
+  – App.tsx: Main application root component.
+  – CommandInitializationPlugin.tsx: Handles dynamic command registration based on store changes.
+  – index.css: Main stylesheet.
+  – main.tsx: Application entry point.
 
 ─────────────────────────────
 5. FUNCTIONALITY FLOWS AND INTERACTIONS
 ─────────────────────────────
-• When a user sends a chat message through the InputBar component, the message is sent via the useChatManagement hook which calls an API endpoint (using createApiRequest via useApiCallState) and then updates the conv store through addMessage. In parallel, the WebSocketService dispatches “stream:token” events that are consumed by the useStreamTokens hook to show live-updating token output.
-• When the user adjusts appearance (using FontSizeControl in the AppearanceTab), the new font size is both set in the Appearance store (useAppearanceStore) and immediately applied via the FontSizeProvider, then saved via an API call in apiClient.
-• In the settings area, models and service providers can be added, updated, or removed using forms built with GenericForm. These forms use resource hooks (via useResourceFactory and useCrudOperations) that use the Axios apiClient and then update Zustand stores (useModelStore) accordingly.
-• The CommandInitializer runs on application startup and calls initialization routines from files like coreCommands.ts, appearanceCommands.ts, modelCommands.ts, settingsCommands.ts, systemPromptCommands.ts, and toolCommands.ts. In addition, the voice input command is initialized (via voiceInputCommand.ts).
-• The CommandBar component is used to search and execute commands. It queries the CommandStore by filtering through the registered commands based on search tokens entered by the user. Commands may then toggle UI panels (for example, opening the settings, conv tree, tool panel, etc.).
-• Panel layout is managed by NavigationContainer which reads the current panel state from the PanelStore. The PanelManager and PanelContainerLayout use react–resizable–panels to render the left sidebar (for conv history), right panels (for settings, conv tree, etc.), and top/bottom panels if needed. Changes to panel state (open, closed, resized, pinned) are saved into localStorage and rehydrated on startup.
-• System prompts can be created or edited via SystemPromptEditor and are stored in useSystemPromptStore. When a new conversation is created or a prompt applied, the conv store is updated so that the conversation uses the designated system prompt. The header (HeaderPromptComponent) displays a summary of the active prompt.
+• **Chat & Conversation:** User input via `InputBar` -> `useChatManagement` sends message (with attachments from `useAttachmentStore` processed by `attachmentUtils`) -> Backend -> WebSocket (`WebSocketService`) receives streaming tokens -> `useStreamTokens` updates -> `ConvView` displays. Full messages update `useConvStore`. `MessageGraph` builds tree for `ConvTreeView`.
+• **Appearance & Theming:** `AppearanceTab` uses `useAppearanceManagement` & `useAppearanceStore`. `ThemeManagement` and `ThemeModal` use `useThemeManagement` & `useThemeStore`. `ThemeManager.ts` applies themes by injecting CSS variables.
+• **Settings (Models, Providers, MCP Servers):** Settings UIs (e.g., `ModelManagement`) use `useResourceManagement` (which uses `useResourceFactory` and `createApiRequest`) and update respective stores (`useModelStore`, `useMcpServerStore`).
+• **Prompts (System & User):** Managed by respective stores and management hooks. Editors (`SystemPromptEditor`, `UserPromptEditor`) and libraries (`SystemPromptLibrary`, `UserPromptLibrary`) provide UI. `useSystemPromptSelection` handles applying system prompts and their associated tools/user prompts/models. User prompts are available as slash commands via `SlashDropdown` and `UserPromptProvider`.
+• **Tools & Slash Commands:** `ToolPanel` and `ToolModal` for tool management via `useToolsManagement` and `useToolStore`. Active tools are passed to `sendMessage`. Slash commands in `InputBar` use `SlashDropdown`, `slashItemRegistry`, and providers like `FileNameProvider` (using `useFileSystemStore`) and `UserPromptProvider`.
+• **Command System:** `CommandInitializer` and `CommandInitializationPlugin` register commands using `commandRegistry.ts`. `CommandBar` allows execution. `PinnedShortcuts` uses `usePinnedCommandsStore`.
+• **Panels & Modals:** `NavigationContainer` uses `PanelManager` and `usePanelStore`. `ModalManager` renders modals based on `useModalStore`. `useConfirmationDialog` and `useFormDialog` provide programmatic modal access.
+• **File System & Status:** `ProjectFileWatcherService` (backend) sends updates to `WebSocketService`, which updates `useFileSystemStore` via `handleWebSocketMessage` in `websocketUtils.ts`. `StatusMessage` displays content from `useStatusMessageStore`, updated via WebSockets.
 
 ─────────────────────────────
 6. CONCLUSION
 ─────────────────────────────
-This application’s architecture reflects a modern, modular design that separates data types, UI components, service layers (for API and WebSocket communications), state management (Zustand stores), and custom hooks. The use of a command registry enables a flexible keyboard– and palette–driven interface. The panel management system creates a dynamic, responsive layout where the sidebar, chat workspace, settings, and tool panels interact seamlessly. Data flows from the back–end API and WebSocket service (via apiClient and WebSocketService) into the Zustand stores and are then displayed by the components (like ChatSpace, ConvView, Sidebar, etc.). New messages, user commands, and configuration updates are interconnected throughout using custom hooks and events. In short, every file plays a role in ensuring that messages are received, processed, and displayed; user settings and preferences are applied and persisted; and the command and panel system allows deep customization and productivity in a single integrated UI.
+This application’s architecture is a modern, modular React/TypeScript system. It effectively separates concerns using Zustand for state, custom hooks for reusable logic, and services for API/WebSocket communication and command/event management. The introduction of a unified modal system, robust attachment handling, slash commands, and comprehensive theming capabilities makes it a powerful and flexible AI command center. Data flows primarily from backend services via `apiClient` (Axios) and `WebSocketService` into Zustand stores, which then drive the reactive UI components. The command registry and window event service ensure decoupled yet effective inter-component communication.
