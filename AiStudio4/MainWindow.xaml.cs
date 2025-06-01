@@ -1012,6 +1012,134 @@ public partial class WebViewWindow : Window
         }
     }
     
+    private async void UploadToGoogleDriveMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        UploadToGoogleDriveMenuItem.IsEnabled = false;
+        try
+        {
+            _logger.LogInformation("[UI] Clicked Upload current thread to Google Drive.");
+
+            // 1. Get the current/active conversation
+            // For simplicity, let's try to get the most recently modified conversation.
+            // A more robust solution would involve better state sharing with the client.
+            var allConvs = await _convStorage.GetAllConvs();
+            if (allConvs == null || !allConvs.Any())
+            {
+                MessageBox.Show("No conversations found to upload.", "No Conversations", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Assuming GetAllConvs returns them ordered by last modified, or we sort here.
+            // For this example, let's just take the first one as "most recent".
+            // A real implementation might need a more sophisticated way to determine the "current thread".
+            var convToUpload = allConvs.OrderByDescending(c => 
+                c.Messages.Any() ? c.Messages.Max(m => m.Timestamp) : DateTime.MinValue
+            ).FirstOrDefault();
+
+            if (convToUpload == null)
+            {
+                 MessageBox.Show("Could not determine a conversation to upload.", "Upload Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            
+            _logger.LogInformation("Selected conversation '{ConvSummary}' (ID: {ConvId}) for upload.", convToUpload.Summary ?? "Untitled", convToUpload.ConvId);
+
+            // 2. Determine the "current thread" (e.g., main branch up to latest message)
+            // For this, we'll use GetMessageHistory up to the latest message in the conversation.
+            // We need to find the ID of the latest message.
+            string latestMessageId = null;
+            if (convToUpload.Messages.Any())
+            {
+                latestMessageId = convToUpload.Messages.OrderByDescending(m => m.Timestamp).First().Id;
+            }
+            
+            if (latestMessageId == null)
+            {
+                MessageBox.Show($"Conversation '{convToUpload.Summary ?? convToUpload.ConvId}' has no messages to upload.", "Empty Conversation", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // 3. Get default model name for runSettings
+            string defaultPrimaryModelName = "models/gemini-1.5-pro-latest"; // Fallback default
+            if (!string.IsNullOrEmpty(_generalSettingsService.CurrentSettings.DefaultModelGuid))
+            {
+                var primaryModel = _generalSettingsService.CurrentSettings.ModelList.FirstOrDefault(
+                    m => m.Guid == _generalSettingsService.CurrentSettings.DefaultModelGuid
+                );
+                if (primaryModel != null)
+                {
+                    defaultPrimaryModelName = primaryModel.ModelName; 
+                }
+            }
+            
+            // 4. Convert to Google AI Studio format
+            string googleJsonString;
+            try
+            {
+                googleJsonString = AiStudioToGoogleConverter.Convert(convToUpload, latestMessageId, defaultPrimaryModelName);
+                _logger.LogInformation("Successfully converted conversation to Google AI Studio format.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error converting conversation to Google AI Studio format.");
+                MessageBox.Show($"Error converting conversation: {ex.Message}", "Conversion Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // 5. Prompt for filename
+            var safeSummary = SanitizeFileName(convToUpload.Summary ?? "aistudio_conversation");
+            var defaultFileName = $"{safeSummary}_{DateTime.Now:yyyyMMddHHmmss}.json";
+            
+            var fileNameDialog = new WpfInputDialog("Enter Filename", "Enter the filename for Google Drive:", defaultFileName) { Owner = this };
+            if (fileNameDialog.ShowDialog() != true || string.IsNullOrWhiteSpace(fileNameDialog.ResponseText))
+            {
+                MessageBox.Show("Upload cancelled by user.", "Cancelled", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+            string fileName = SanitizeFileName(fileNameDialog.ResponseText);
+            //if (!fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) fileName += ".json";
+
+            // 6. Upload to Google Drive
+            _logger.LogInformation("Attempting to upload '{FileName}' to Google Drive folder: Google AI Studio", fileName);
+            string fileId = await _googleDriveService.UploadTextFileAsync(fileName, googleJsonString, "Google AI Studio");
+
+            if (!string.IsNullOrEmpty(fileId))
+            {
+                _logger.LogInformation("Successfully uploaded file to Google Drive. File ID: {FileId}", fileId);
+                MessageBox.Show($"Conversation successfully uploaded to Google Drive as '{fileName}'.\nFile ID: {fileId}", "Upload Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                // Specific error should have been logged by GoogleDriveService
+                MessageBox.Show($"Failed to upload conversation to Google Drive. Please check logs.", "Upload Failed", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+        catch (FileNotFoundException fnfEx) // Specifically for missing credentials.json
+        {
+            _logger.LogError(fnfEx, "Google Drive credentials error during upload.");
+            MessageBox.Show(fnfEx.Message, "Google Drive Setup Required", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "An unexpected error occurred during Google Drive upload process.");
+            MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally
+        {
+            UploadToGoogleDriveMenuItem.IsEnabled = true;
+        }
+    }
+
+    private string SanitizeFileName(string fileName)
+    {
+        // Remove invalid characters
+        string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
+        string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
+        string sanitized = System.Text.RegularExpressions.Regex.Replace(fileName, invalidRegStr, "_");
+        // Ensure it's not too long (Google Drive has limits, though generous)
+        return sanitized.Length > 100 ? sanitized.Substring(0, 100) : sanitized;
+    }
+
     private async void AnalyzeDotNetProjects_Click(object sender, RoutedEventArgs e)
     {
         _logger.LogInformation("Analyze .NET Projects menu item clicked.");
