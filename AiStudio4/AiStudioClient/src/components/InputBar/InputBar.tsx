@@ -221,6 +221,9 @@ export function InputBar({
             setCursorPosition(0);
         } catch (error) {
             console.error('Error sending message:', error);
+        } finally {
+            // Clear currentRequest when the entire operation completes (success or error)
+            setCurrentRequest(undefined);
         }
     }, [
         selectedModel,

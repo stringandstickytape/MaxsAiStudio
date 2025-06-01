@@ -56,9 +56,9 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     listenToWebSocketEvent('request:cancelled', (detail) => {
       set({ isCancelling: false, currentRequest: undefined });
     });
-    // Also clear currentRequest on stream:end (normal chat completion)
+    // Reset cancelling state on stream:end, but keep currentRequest for interject button visibility
     listenToWebSocketEvent('stream:end', () => {
-      set({ isCancelling: false, currentRequest: undefined });
+      set({ isCancelling: false });
     });
   }
 
