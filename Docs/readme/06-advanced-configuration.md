@@ -1,0 +1,35 @@
+﻿# 6. Advanced Configuration
+
+## 6.1 Backend Configuration (`appsettings.json`)
+Located in the `AiStudio4` project directory (when running from source) or installation directory, this file contains basic backend settings.
+*   `WebServer:Port`: Defines the port for the embedded Kestrel web server (default: `35005`).
+
+## 6.2 User-Specific Settings (`%APPDATA%/AiStudio4/`)
+Most user preferences and data are stored in JSON files within this directory on Windows.
+*   **`settings.json`**: Main user settings.
+    *   `ModelList`: Your configured AI models.
+    *   `ServiceProviders`: Your configured AI service providers (including encrypted API keys).
+    *   `DefaultModelGuid`, `SecondaryModelGuid`: GUIDs of your default models.
+    *   `Temperature`, `UsePromptCaching`, `StreamResponses`, `UseEmbeddings`, `EmbeddingModel`.
+    *   `ProjectPath`: The **critical** path to your current project.
+    *   `EncryptedYouTubeApiKey`, `EncryptedGitHubApiKey`, `EncryptedAzureDevOpsPAT`: Encrypted API keys.
+    *   `CondaPath`: Path to your Conda environment.
+    *   `AllowConnectionsOutsideLocalhost`: (Requires restart) If `true`, the Kestrel server listens on all network interfaces.
+    *   `PackerIncludeFileTypes`, `PackerExcludeFilenames`: Settings for the Project Packager.
+    *   `ConversationZipRetentionDays`, `ConversationDeleteZippedRetentionDays`: Settings for conversation archiving.
+*   **`systemPrompts/`**: Directory containing your saved System Prompts as `.prompt.json` files.
+*   **`UserPrompts/`**: Directory containing your saved User Prompts as `.prompt.json` files.
+*   **`Tools/toolLibrary.json`**: Your custom tool definitions and categories.
+*   **`PinnedCommands/pinnedCommands.json`**: Configuration for your Pinned Shortcuts.
+*   **`themes.json`**: User-imported/created UI themes and the active theme ID.
+*   **`builtinToolExtraProps.json`**: Persisted user-configured `ExtraProperties` for built-in tools.
+*   **`Config/mcpServers.json`**: Definitions for Model Context Protocol (MCP) servers.
+*   **`convs/`**: Directory where individual conversation JSON files are stored.
+    *   **`convs/archive/`**: Subdirectory where old conversations are zipped.
+
+## 6.3 API Key Management
+Sensitive API keys for external services are managed via the application menu:
+*   `File > Settings > Set YouTube API Key...`
+*   `File > Settings > Set GitHub API Key...`
+*   `File > Settings > Set Azure DevOps PAT...`
+These keys are encrypted and stored in `settings.json`.
