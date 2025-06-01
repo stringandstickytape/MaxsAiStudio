@@ -1,5 +1,6 @@
 ﻿// AiStudio4/Services/GoogleDriveService.cs
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
@@ -147,7 +148,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<List<string>> ListFilesFromAiStudioFolderAsync()
+        public async Task<List<GoogleDriveFileInfo>> ListFilesFromAiStudioFolderAsync()
         {
             try
             {
@@ -164,7 +165,7 @@ namespace AiStudio4.Services
                 {
                     _logger.LogWarning("Folder '{FolderName}' not found in Google Drive.", AiStudioFolderName);
                     Debug.WriteLine($"[GoogleDriveService] Folder '{AiStudioFolderName}' not found.");
-                    return new List<string>();
+                    return new List<GoogleDriveFileInfo>();
                 }
 
                 var aiStudioFolder = folderResult.Files.First();
@@ -177,7 +178,7 @@ namespace AiStudio4.Services
                 filesRequest.Fields = "files(id, name)";
                 filesRequest.PageSize = 100;
 
-                var fileList = new List<string>();
+                var fileList = new List<GoogleDriveFileInfo>();
                 string pageToken = null;
                 do
                 {
@@ -187,7 +188,7 @@ namespace AiStudio4.Services
                     {
                         foreach (var file in result.Files)
                         {
-                            fileList.Add(file.Name);
+                            fileList.Add(new GoogleDriveFileInfo { Id = file.Id, Name = file.Name });
                             Debug.WriteLine($"[GoogleDriveService] File in '{AiStudioFolderName}': {file.Name} (ID: {file.Id})");
                         }
                     }
@@ -207,6 +208,33 @@ namespace AiStudio4.Services
                 _logger.LogError(ex, "An error occurred while listing files from Google Drive.");
                 Debug.WriteLine($"[GoogleDriveService] ERROR listing files: {ex.Message}");
                 return null; // Indicate an error to the caller
+            }
+        }
+
+        public async Task<string> DownloadFileContentAsync(string fileId)
+        {
+            try
+            {
+                _logger.LogInformation("Attempting to download file content for file ID: {FileId}", fileId);
+                var service = await GetDriveServiceAsync();
+
+                var request = service.Files.Get(fileId);
+                var stream = new MemoryStream();
+                
+                await request.DownloadAsync(stream);
+                stream.Position = 0;
+                
+                using (var reader = new StreamReader(stream))
+                {
+                    string content = await reader.ReadToEndAsync();
+                    _logger.LogInformation("Successfully downloaded file content for file ID: {FileId}, size: {Size} characters", fileId, content.Length);
+                    return content;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error downloading file content for file ID: {FileId}", fileId);
+                throw; // Re-throw to be handled by the caller
             }
         }
     }

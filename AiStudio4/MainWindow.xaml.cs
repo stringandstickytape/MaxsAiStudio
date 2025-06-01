@@ -26,6 +26,8 @@ using System.Diagnostics;
 using AiStudio4.Core.Services;
 using static RoslynHelper;
 using System.Collections.Generic; // Required for List<string>
+using AiStudio4.Core.Models;
+using Newtonsoft.Json;
 
 namespace AiStudio4;
 
@@ -43,6 +45,7 @@ public partial class WebViewWindow : Window
     private readonly IDotNetProjectAnalyzerService _dotNetProjectAnalyzerService;
     private readonly IProjectFileWatcherService _projectFileWatcherService;
     private readonly IGoogleDriveService _googleDriveService;
+    private readonly IConvStorage _convStorage;
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
@@ -59,20 +62,22 @@ public partial class WebViewWindow : Window
                          IDotNetProjectAnalyzerService dotNetProjectAnalyzerService,
                          IProjectFileWatcherService projectFileWatcherService,
                          ILogger<WebViewWindow> logger,
-                         IGoogleDriveService googleDriveService) // Add IGoogleDriveService here
+                         IConvStorage convStorage,
+                         IGoogleDriveService googleDriveService)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
-        _generalSettingsService = generalSettingsService; // Ensure this is assigned
+        _generalSettingsService = generalSettingsService;
         _appearanceSettingsService = appearanceSettingsService;
         _projectHistoryService = projectHistoryService;
         _builtinToolService = builtinToolService;
-        _notificationService = notificationService; // Assign injected service
+        _notificationService = notificationService;
         _projectPackager = projectPackager;
+        _convStorage = convStorage; 
         _logger = logger;
         _dotNetProjectAnalyzerService = dotNetProjectAnalyzerService;
         _projectFileWatcherService = projectFileWatcherService;
-        _googleDriveService = googleDriveService; // Assign injected service
+        _googleDriveService = googleDriveService; 
 
         // Initialize license file paths
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -96,125 +101,199 @@ public partial class WebViewWindow : Window
         {
             Debug.WriteLine("[UI] Clicked Import from Google Drive.");
 
-            // --- Existing Logic: List files from Google Drive ---
-            var fileNames = await _googleDriveService.ListFilesFromAiStudioFolderAsync();
-
-            if (fileNames == null) // Indicates an error during service execution
+            // --- Obtain Client ID ---
+            string currentWebSocketClientId = null;
+            if (webView.CoreWebView2 != null) // Ensure CoreWebView2 is initialized
             {
-                Debug.WriteLine("[UI] Failed to retrieve file list from Google Drive. See logs/previous messages.");
-                if (!Application.Current.Windows.OfType<System.Windows.Window>().Any(w => w.IsActive && w.Title.Contains("Google Drive")))
-                {
-                    MessageBox.Show("Could not connect to Google Drive or an error occurred. Please check the application logs. Ensure you have authorized AiStudio4 and have a 'credentials.json' file.", "Google Drive Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            else if (!fileNames.Any())
-            {
-                Debug.WriteLine("[UI] No files found in the 'Google AI Studio' folder.");
-                MessageBox.Show("No files found in your 'Google AI Studio' folder on Google Drive.", "No Files Found", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-            else
-            {
-                Debug.WriteLine($"[UI] Files in 'Google AI Studio' folder ({fileNames.Count}):");
-                foreach (var fileName in fileNames)
-                {
-                    Debug.WriteLine($"[UI] - {fileName}");
-                }
-
-                // --- Existing Logic: Write local .txt file with list ---
-                string outputDirectory = AppDomain.CurrentDomain.BaseDirectory;
-                string outputFileName = $"GoogleDriveFilesList_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
-                string outputPath = Path.Combine(outputDirectory, outputFileName);
-
                 try
                 {
-                    List<string> linesToWrite = new List<string>();
-                    linesToWrite.Add($"Files found in Google AI Studio folder ({fileNames.Count}) on Google Drive:");
-                    linesToWrite.Add($"Generated on: {DateTime.Now}");
-                    linesToWrite.Add("--------------------------------------------------");
-                    linesToWrite.AddRange(fileNames);
-
-                    await File.WriteAllLinesAsync(outputPath, linesToWrite);
-                    Debug.WriteLine($"[UI] Local file list successfully written to: {outputPath}");
-
-                    MessageBox.Show(
-                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
-                        $"A text file with the list has also been saved locally to:\n{outputPath}",
-                        "Files Found & Saved Locally",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-                }
-                catch (IOException ioEx)
-                {
-                    Debug.WriteLine($"[UI] Error writing local file list to disk (IO Exception): {ioEx.Message}");
-                    MessageBox.Show(
-                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
-                        $"An error occurred while trying to save the list to a local text file:\n{ioEx.Message}\n" +
-                        $"Please check permissions for the folder:\n{outputDirectory}",
-                        "Files Found (with Local Save Error)",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning
-                    );
-                }
-                catch (UnauthorizedAccessException uaEx)
-                {
-                    Debug.WriteLine($"[UI] Error writing local file list to disk (Unauthorized Access): {uaEx.Message}");
-                    MessageBox.Show(
-                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
-                        $"Permission denied when trying to save the list to a local text file:\n{uaEx.Message}\n" +
-                        $"Please ensure the application has write access to:\n{outputDirectory}",
-                        "Files Found (Local Permission Error)",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning
-                    );
+                    // Ensure webView is your AiStudioWebView2 instance
+                    string jsResult = await webView.CoreWebView2.ExecuteScriptAsync("window.webSocketService ? window.webSocketService.getClientId() : null;");
+                    if (jsResult != null && jsResult != "null" && jsResult != "\"null\"") // jsResult is a JSON string like "\"client-guid\""
+                    {
+                        currentWebSocketClientId = JsonConvert.DeserializeObject<string>(jsResult);
+                        _logger.LogInformation("Obtained clientId from WebView2: {ClientId}", currentWebSocketClientId);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("ClientId from WebView2 was null or 'null'.");
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"[UI] An unexpected error occurred while writing local file list: {ex.Message}");
-                    MessageBox.Show(
-                        $"Found {fileNames.Count} files. Check the Debug Output window (Visual Studio) for the list.\n\n" +
-                        $"An unexpected error occurred while trying to save the list to a local text file:\n{ex.Message}",
-                        "Files Found (Unexpected Local Save Error)",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning
-                    );
+                    _logger.LogError(ex, "Failed to get clientId from WebView2 for import notification.");
+                    // Decide if to proceed without targeted notification or show an error
+                }
+            }
+            else
+            {
+                _logger.LogWarning("CoreWebView2 not initialized when trying to get clientId.");
+            }
+
+            // --- Get file list from Google Drive ---
+            var fileList = await _googleDriveService.ListFilesFromAiStudioFolderAsync();
+
+            if (fileList == null) // Indicates an error during service execution
+            {
+                Debug.WriteLine("[UI] Failed to retrieve file list from Google Drive. See logs/previous messages.");
+                MessageBox.Show("Could not connect to Google Drive or an error occurred. Please check the application logs. Ensure you have authorized AiStudio4 and have a 'credentials.json' file.", "Google Drive Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (!fileList.Any())
+            {
+                Debug.WriteLine("[UI] No files found in the 'Google AI Studio' folder.");
+                MessageBox.Show("No files found in your 'Google AI Studio' folder on Google Drive.", "No Files Found", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // --- Get the first file and download its content ---
+            var firstFile = fileList.First();
+            Debug.WriteLine($"[UI] Downloading first file: {firstFile.Name} (ID: {firstFile.Id})");
+
+            string fileContent;
+            try
+            {
+                fileContent = await _googleDriveService.DownloadFileContentAsync(firstFile.Id);
+                Debug.WriteLine($"[UI] Successfully downloaded file content, size: {fileContent.Length} characters");
+            }
+            catch (Exception downloadEx)
+            {
+                Debug.WriteLine($"[UI] Error downloading file content: {downloadEx.Message}");
+                MessageBox.Show($"Error downloading file content: {downloadEx.Message}", "Download Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // --- Convert Google AI Studio format to AiStudio4 format ---
+            v4BranchedConv importedConv;
+            try
+            {
+                importedConv = GoogleAiStudioConverter.ConvertToAiStudio4(fileContent, firstFile.Name);
+                Debug.WriteLine($"[UI] Successfully converted conversation. ConvId: {importedConv.ConvId}, Messages: {importedConv.Messages.Count}");
+            }
+            catch (Exception convertEx)
+            {
+                Debug.WriteLine($"[UI] Error converting Google AI Studio format: {convertEx.Message}");
+                MessageBox.Show($"Error converting Google AI Studio format: {convertEx.Message}", "Conversion Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // --- Save the converted conversation ---
+            try
+            {
+                if (_convStorage == null)
+                {
+                    throw new InvalidOperationException("IConvStorage service not available");
+                }
+                
+                await _convStorage.SaveConv(importedConv);
+                Debug.WriteLine($"[UI] Successfully saved imported conversation: {importedConv.ConvId}");
+            }
+            catch (Exception saveEx)
+            {
+                Debug.WriteLine($"[UI] Error saving imported conversation: {saveEx.Message}");
+                MessageBox.Show($"Error saving imported conversation: {saveEx.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // --- Notify all clients to update conversation list ---
+            try
+            {
+                var messagesForListDto = importedConv.Messages.Select(m => new
+                {
+                    id = m.Id,
+                    text = m.UserMessage ?? "[Empty Message]",
+                    parentId = m.ParentId,
+                    source = m.Role == v4BranchedConvMessageRole.User ? "user" :
+                            m.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
+                    costInfo = m.CostInfo,
+                    attachments = m.Attachments,
+                    timestamp = new DateTimeOffset(m.Timestamp).ToUnixTimeMilliseconds(),
+                    durationMs = m.DurationMs,
+                    cumulativeCost = m.CumulativeCost,
+                    temperature = m.Temperature
+                }).ToList();
+
+                await _notificationService.NotifyConvList(new ConvListDto
+                {
+                    ConvId = importedConv.ConvId,
+                    Summary = importedConv.Summary,
+                    LastModified = DateTime.UtcNow.ToString("o"), // ISO 8601 format
+                    FlatMessageStructure = messagesForListDto
+                });
+
+                Debug.WriteLine("[UI] Successfully notified all clients about new conversation");
+            }
+            catch (Exception notifyEx)
+            {
+                Debug.WriteLine($"[UI] Error notifying clients about conversation list update: {notifyEx.Message}");
+                _logger.LogError(notifyEx, "Failed to notify clients about conversation list update");
+            }
+
+            // --- Notify initiating client to load the full conversation ---
+            if (!string.IsNullOrEmpty(currentWebSocketClientId))
+            {
+                try
+                {
+                    var fullMessagesForLoad = importedConv.Messages.Select(m => new
+                    {
+                        id = m.Id,
+                        text = m.UserMessage ?? "[Empty Message]",
+                        parentId = m.ParentId,
+                        source = m.Role == v4BranchedConvMessageRole.User ? "user" :
+                                m.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
+                        costInfo = m.CostInfo,
+                        attachments = m.Attachments,
+                        timestamp = new DateTimeOffset(m.Timestamp).ToUnixTimeMilliseconds(),
+                        durationMs = m.DurationMs,
+                        cumulativeCost = m.CumulativeCost,
+                        temperature = m.Temperature
+                    }).ToList();
+
+                    var loadConvPayload = new
+                    {
+                        messageType = "loadConv", // Client-side uses this to identify the action
+                        content = new
+                        {
+                            convId = importedConv.ConvId,
+                            messages = fullMessagesForLoad, // The array of full messages
+                            summary = importedConv.Summary // Optional: if client needs it for 'loadConv'
+                        }
+                    };
+
+                    await _notificationService.NotifyConvUpdate(currentWebSocketClientId, new ConvUpdateDto
+                    {
+                        ConvId = importedConv.ConvId, // Target conversation
+                        MessageId = null, // Not a specific message update
+                        Content = loadConvPayload, // The special payload
+                        Source = "system_import", // Indicate source
+                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    });
+
+                    Debug.WriteLine($"[UI] Successfully notified initiating client {currentWebSocketClientId} to load conversation");
+                }
+                catch (Exception loadNotifyEx)
+                {
+                    Debug.WriteLine($"[UI] Error notifying initiating client to load conversation: {loadNotifyEx.Message}");
+                    _logger.LogError(loadNotifyEx, "Failed to notify initiating client to load conversation");
                 }
             }
 
-            // --- NEW LOGIC: Upload "hello world" text file to Google Drive ---
-            string testFileName = $"hello_world_test_{DateTime.Now:yyyyMMdd_HHmmss}.txt"; // Unique filename
-            string testFileContent = "Hello, Google Drive! This is a test file from AiStudio4.";
-            string googleDriveFolderName = "Google AI Studio"; // The target folder on Google Drive
-
-            try
+            // --- Show success message ---
+            string successMessage = $"Successfully imported conversation '{importedConv.Summary}' from Google AI Studio.\n" +
+                                  $"ConvId: {importedConv.ConvId}\n" +
+                                  $"Messages: {importedConv.Messages.Count}";
+            
+            if (!string.IsNullOrEmpty(currentWebSocketClientId))
             {
-                Debug.WriteLine($"[UI] Attempting to upload '{testFileName}' to Google Drive's '{googleDriveFolderName}' folder.");
-                // This assumes _googleDriveService has a method like UploadTextFileAsync
-                string uploadedFileId = await _googleDriveService.UploadTextFileAsync(
-                    testFileName,
-                    testFileContent,
-                    googleDriveFolderName // Pass the target folder name
-                );
-
-                Debug.WriteLine($"[UI] Successfully uploaded '{testFileName}' to Google Drive. File ID: {uploadedFileId}");
-                MessageBox.Show(
-                    $"Successfully uploaded a test file '{testFileName}' to your '{googleDriveFolderName}' folder on Google Drive.\n" +
-                    $"File ID: {uploadedFileId}",
-                    "Test File Uploaded to Google Drive",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information
-                );
+                successMessage += "\n\nThe conversation should now be visible and automatically loaded in your chat view.";
             }
-            catch (Exception uploadEx)
+            else
             {
-                Debug.WriteLine($"[UI] Error uploading test file to Google Drive: {uploadEx.Message}");
-                MessageBox.Show(
-                    $"An error occurred while trying to upload a test file to Google Drive: {uploadEx.Message}",
-                    "Google Drive Upload Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error
-                );
+                successMessage += "\n\nThe conversation is now available in your conversation list. You may need to refresh or click on it to view.";
             }
+
+            MessageBox.Show(successMessage, "Import Successful", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (FileNotFoundException fnfEx) // Specifically for missing credentials.json
         {

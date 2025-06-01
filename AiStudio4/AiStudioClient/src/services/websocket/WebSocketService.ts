@@ -360,3 +360,8 @@ export class WebSocketService {
 
 
 export const webSocketService = new WebSocketService();
+
+// Attach webSocketService to window for C# access
+if (typeof window !== 'undefined') {
+  (window as any).webSocketService = webSocketService;
+}
