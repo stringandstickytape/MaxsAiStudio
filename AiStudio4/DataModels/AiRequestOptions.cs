@@ -29,7 +29,7 @@ namespace AiStudio4.DataModels
         public List<string> ToolIds { get; set; } = new List<string>();
         
         // Behavior flags
-        public bool UseStreaming { get; set; } = true;
+
         public bool AddEmbeddings { get; set; } = false;
         public bool MustNotUseEmbedding { get; set; } = true;
         
@@ -51,7 +51,6 @@ namespace AiStudio4.DataModels
             ApiSettings apiSettings,
             bool mustNotUseEmbedding,
             List<string> toolIds,
-            bool useStreaming = false,
             bool addEmbeddings = false,
             string customSystemPrompt = null,
             List<Attachment> attachments = null)
@@ -67,7 +66,7 @@ namespace AiStudio4.DataModels
                 ApiSettings = apiSettings,
                 MustNotUseEmbedding = mustNotUseEmbedding,
                 ToolIds = toolIds ?? new List<string>(),
-                UseStreaming = useStreaming,
+
                 AddEmbeddings = addEmbeddings,
                 CustomSystemPrompt = customSystemPrompt,
                 Attachments = attachments ?? new List<Attachment>(),

@@ -19,6 +19,9 @@ interface ToolPanelProps {
   onToolSelect?: (toolId: string) => void;
 }
 
+// Define themeable properties for the ToolPanel component
+export const themeableProps = {};
+
 export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect }: ToolPanelProps) {
   
   const {
@@ -192,38 +195,59 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
   const isLoading = toolsLoading || isDeleting || isExporting;
 
   return (
-    <div className="p-4 overflow-y-auto h-full bg-gray-900 text-gray-100"> {/* Removed pt-12 */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-4">
+    <div className="p-4" style={{
+      backgroundColor: 'var(--global-background-color)',
+      color: 'var(--global-text-color)',
+      fontFamily: 'var(--global-font-family)',
+      fontSize: 'var(--global-font-size)',
+      // Removed overflow handling as it's now handled by the parent container
+    }}>
+      <div className="flex justify-between items-center mb-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
+        <div className="flex items-center gap-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
           {/* Removed Close button from here */}
-          <h2 className="text-title">Tool Library</h2>
+          <h2 className="text-title" style={{ color: 'var(--global-text-color)' }}>Tool Library</h2>
         </div>
-        <div className="flex space-x-2 pr-16"> {/* Added pr-16 */}
+        <div className="flex space-x-2 pr-16" style={{ backgroundColor: 'var(--global-background-color)' }}>
           {/* Moved Buttons Start */}
           <Button
             variant="outline"
             size="sm"
-            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
+            className="btn-primary flex items-center space-x-1"
             onClick={handleSelectAll}
             disabled={isLoading || filteredTools.length === 0 || filteredTools.length === activeTools.length}
+            style={{
+              backgroundColor: 'var(--global-background-color)',
+              borderColor: 'var(--global-border-color)',
+              color: 'var(--global-text-color)'
+            }}
           >
             Select All Visible
           </Button>
           <Button
             variant="outline"
             size="sm"
-            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
+            className="btn-primary flex items-center space-x-1"
             onClick={handleSelectNone}
             disabled={isLoading || activeTools.length === 0}
+            style={{
+              backgroundColor: 'var(--global-background-color)',
+              borderColor: 'var(--global-border-color)',
+              color: 'var(--global-text-color)'
+            }}
           >
             Select None
           </Button>
           <Button 
             variant="outline" 
             size="sm"
-            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
+            className="btn-primary flex items-center space-x-1"
             onClick={handleExportTools} 
             disabled={isExporting}
+            style={{
+              backgroundColor: 'var(--global-background-color)',
+              borderColor: 'var(--global-border-color)',
+              color: 'var(--global-text-color)'
+            }}
           >
             <Download className="h-4 w-4 mr-1" />
             {isExporting ? 'Exporting...' : 'Export'}
@@ -233,7 +257,11 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
             variant="outline"
             size="sm"
             onClick={handleAddTool}
-            className="btn-primary bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 flex items-center space-x-1"
+            className="btn-primary flex items-center space-x-1"
+            style={{
+              backgroundColor: 'var(--global-primary-color)',
+              color: '#ffffff'
+            }}
           >
             <PlusCircle className="h-4 w-4 mr-1" />
             <span>New Tool</span>
@@ -241,29 +269,29 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div className="md:col-span-1">
-          <div className="text-sm text-gray-400 mb-2">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
+        <div className="md:col-span-1" style={{ backgroundColor: 'var(--global-background-color)' }}>
+          <div className="text-sm mb-2" style={{ color: 'var(--global-secondary-color)' }}>
               <span className="mr-2">Currently selected: {activeTools.length} tool{activeTools.length !== 1 ? 's' : ''}</span>
             </div>
-          <Card className="card-base">
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-gray-300">Categories</CardTitle>
-              <p className="text-xs text-gray-400 mt-1">(Double-click to select all)</p> 
+          <Card className="card-base" style={{ backgroundColor: 'var(--global-background-color)', borderColor: 'var(--global-border-color)', borderRadius: 'var(--global-border-radius)', boxShadow: 'var(--global-box-shadow)' }}>
+            <CardHeader style={{ backgroundColor: 'var(--global-background-color)' }}>
+              <CardTitle className="text-sm font-medium" style={{ color: 'var(--global-text-color)' }}>Categories</CardTitle>
+              <p className="text-xs mt-1" style={{ color: 'var(--global-secondary-color)' }}>(Double-click to select all)</p> 
             </CardHeader>
-            <CardContent className="p-2">
-              <div className="space-y-1">
+            <CardContent className="p-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
+              <div className="space-y-1" style={{ backgroundColor: 'var(--global-background-color)' }}>
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn(
-                    "w-full justify-start",
-                    selectedCategory === null 
-                      ? "bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 text-white" 
-                      : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
-                  )}
+                  className="w-full justify-start"
                   onClick={() => setSelectedCategory(null)}
                   onDoubleClick={() => handleCategoryDoubleClick(null)} // Add double-click handler
+                  style={{
+                    backgroundColor: selectedCategory === null ? 'var(--global-primary-color)' : 'var(--global-background-color)',
+                    borderColor: 'var(--global-border-color)',
+                    color: selectedCategory === null ? '#ffffff' : 'var(--global-text-color)'
+                  }}
                 >
                   All Tools
                 </Button>
@@ -272,14 +300,14 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                         key={category.id}
                         variant="outline"
                         size="sm"
-                        className={cn(
-                          "w-full justify-start", 
-                          selectedCategory === category.id 
-                            ? "bg-blue-600/30 hover:bg-blue-500/30 border-blue-500/50 text-white" 
-                            : "bg-blue-900/20 hover:bg-blue-500/30 border-blue-800/30 text-gray-300 hover:text-white"
-                          )}
+                        className="w-full justify-start"
                         onClick={() => setSelectedCategory(category.id)}
                         onDoubleClick={() => handleCategoryDoubleClick(category.id)} // Add double-click handler
+                        style={{
+                          backgroundColor: selectedCategory === category.id ? 'var(--global-primary-color)' : 'var(--global-background-color)',
+                          borderColor: 'var(--global-border-color)',
+                          color: selectedCategory === category.id ? '#ffffff' : 'var(--global-text-color)'
+                        }}
                     >
                         {category.name}
                     </Button>
@@ -289,71 +317,87 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                   </Card>
         </div>
 
-        <div className="md:col-span-3">
-          <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-gray-500" />
+        <div className="md:col-span-3" style={{ backgroundColor: 'var(--global-background-color)' }}>
+          <div className="mb-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
+            <div className="relative" style={{ backgroundColor: 'var(--global-background-color)' }}>
+              <Search className="absolute left-2 top-2.5 h-4 w-4" style={{ color: 'var(--global-secondary-color)' }} />
               <Input
                 placeholder="Search tools..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8 input-base"
+                style={{
+                  backgroundColor: 'var(--global-background-color)',
+                  borderColor: 'var(--global-border-color)',
+                  color: 'var(--global-text-color)'
+                }}
               />
             </div>
           </div>
 
           {isLoading ? (
-            <div className="flex-center h-32">
+            <div className="flex-center h-32" style={{ backgroundColor: 'var(--global-background-color)' }}>
               <div className="loading-spinner h-8 w-8"></div>
             </div>
           ) : filteredTools.length === 0 ? (
-            <div className="text-center p-8 text-subtitle">
+            <div className="text-center p-8 text-subtitle" style={{ backgroundColor: 'var(--global-background-color)', color: 'var(--global-secondary-color)' }}>
               {searchTerm ? 'No tools match your search' : 'No tools available'}
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-3" style={{ backgroundColor: 'var(--global-background-color)' }}>
               {filteredTools.map((tool) => {
                 const isActive = activeTools.includes(tool.guid);
                 return (
                 <Card 
                   key={tool.guid} 
-                  className={`card-base ${isActive ? 'border-blue-500 border-2' : ''}`}
+                  className="card-base"
+                  style={{
+                    backgroundColor: 'var(--global-background-color)',
+                    color: 'var(--global-text-color)',
+                    borderRadius: 'var(--global-border-radius)',
+                    boxShadow: 'var(--global-box-shadow)',
+                    border: isActive ? `2px solid var(--global-primary-color)` : `1px solid var(--global-border-color)`
+                  }}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-title text-lg">{tool.name}</h3>
+                  <CardContent className="p-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
+                    <div className="flex justify-between items-start" style={{ backgroundColor: 'var(--global-background-color)' }}>
+                      <div style={{ backgroundColor: 'var(--global-background-color)' }}>
+                        <div className="flex items-center gap-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
+                          <h3 className="text-title text-lg" style={{ color: 'var(--global-text-color)' }}>{tool.name}</h3>
                           {tool.isBuiltIn && (
-                            <span className="text-xs px-2 py-1 bg-blue-700 rounded-full">Built-in</span>
+                            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--global-primary-color)', color: '#ffffff', borderRadius: 'var(--global-border-radius)' }}>Built-in</span>
                           )}
                         </div>
-                        <p className="text-body">{tool.description}</p>
-                        <div className="flex flex-wrap gap-1 mt-2">
+                        <p className="text-body" style={{ color: 'var(--global-text-color)' }}>{tool.description}</p>
+                        <div className="flex flex-wrap gap-1 mt-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
                           {(tool.categories || []).map((catId) => {
                             const category = categories.find((c) => c.id === catId);
                             return category ? (
-                              <span key={catId} className="text-xs px-2 py-1 bg-gray-700 rounded-full">
+                              <span key={catId} className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--global-secondary-color)', color: '#ffffff', borderRadius: 'var(--global-border-radius)' }}>
                                 {category.name}
                               </span>
                             ) : null;
                           })}
-                          <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">{tool.schemaType}</span>
+                          <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--global-background-color)', borderColor: 'var(--global-border-color)', color: 'var(--global-text-color)', borderRadius: 'var(--global-border-radius)' }}>{tool.schemaType}</span>
                           {tool.filetype && (
-                            <span className="text-xs px-2 py-1 bg-gray-700 rounded-full">
+                            <span className="text-xs px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--global-background-color)', borderColor: 'var(--global-border-color)', color: 'var(--global-text-color)', borderRadius: 'var(--global-border-radius)' }}>
                               filetype: {tool.filetype}
                             </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex flex-col gap-2">
-                        <div className="flex space-x-1">
+                      <div className="flex flex-col gap-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
+                        <div className="flex space-x-1" style={{ backgroundColor: 'var(--global-background-color)' }}>
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleEditTool(tool)}
-                            className={`h-8 w-8 ${tool.isBuiltIn ? 'text-blue-400 hover:text-blue-600' : 'text-gray-400 hover:text-gray-100'}`}
+                            className="h-8 w-8"
                             title={tool.isBuiltIn ? 'Edit extra properties for built-in tools' : 'Edit Tool'}
+                            style={{
+                              backgroundColor: 'var(--global-background-color)',
+                              color: 'var(--global-text-color)'
+                            }}
                             // No longer disabled for built-in tools
                           >
                             <Edit className="h-4 w-4" />
@@ -361,8 +405,12 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                           <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="h-8 w-8 text-gray-400 hover:text-gray-100"
+                            className="h-8 w-8"
                             title="Copy Tool"
+                            style={{
+                              backgroundColor: 'var(--global-background-color)',
+                              color: 'var(--global-text-color)'
+                            }}
                           >
                             <Copy className="h-4 w-4" />
                           </Button>
@@ -370,9 +418,14 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                             variant="ghost"
                             size="icon"
                             onClick={() => handleDeleteTool(tool.guid)}
-                            className={`h-8 w-8 ${tool.isBuiltIn ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:text-red-400'}`}
+                            className="h-8 w-8"
                             disabled={isDeleting || tool.isBuiltIn}
                             title={tool.isBuiltIn ? 'Built-in tools cannot be deleted' : 'Delete Tool'}
+                            style={{
+                              backgroundColor: 'var(--global-background-color)',
+                              color: tool.isBuiltIn ? 'var(--global-secondary-color)' : 'var(--global-destructive-color, var(--global-primary-color))',
+                              cursor: tool.isBuiltIn ? 'not-allowed' : 'pointer'
+                            }}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -381,10 +434,12 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
                           variant={isActive ? "default" : "outline"}
                           size="sm"
                           onClick={() => handleSelectTool(tool.guid)}
-                          className={`w-full ${isActive ? 
-                            'bg-blue-600 hover:bg-blue-700 text-white' : 
-                            'bg-gray-700 hover:bg-gray-600 border-gray-600'
-                          }`}
+                          className="w-full"
+                          style={{
+                            backgroundColor: isActive ? 'var(--global-primary-color)' : 'var(--global-background-color)',
+                            borderColor: 'var(--global-border-color)',
+                            color: isActive ? '#ffffff' : 'var(--global-text-color)'
+                          }}
                         >
                           {isActive ? (
                             <>
@@ -408,7 +463,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
         </div>
       </div>
 
-      <div className="flex justify-between items-center mt-4">
+      <div className="flex justify-between items-center mt-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
         {/* Removed 'Currently selected' label from here */}
         {/* Buttons moved to the top */} 
       {/* Tool Editor Dialog removed - now handled by ToolEditorModal */}

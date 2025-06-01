@@ -42,13 +42,13 @@ namespace AiStudio4.AiServices
                 client.DefaultRequestHeaders.Add("anthropic-beta", string.Join(", ", betaFeatures));
         }
 
-        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, bool useStreaming, ApiSettings apiSettings)
+        protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
         {
             var req = new JObject
             {
                 ["model"] = modelName,
                 ["max_tokens"] = (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest") ? 64000 : 8192,
-                ["stream"] = useStreaming,
+                ["stream"] = true,
                 ["temperature"] = apiSettings.Temperature,
             };
 
@@ -152,7 +152,7 @@ namespace AiStudio4.AiServices
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
                 options.Conv.systemprompt = options.CustomSystemPrompt;
 
-            var req = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
+            var req = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
 
             if (!forceNoTools)
             {
@@ -282,7 +282,7 @@ namespace AiStudio4.AiServices
             Action<string> onStreamingUpdate, 
             Action onStreamingComplete)
         {
-            using var response = await SendRequest(content, cancellationToken, true);
+            using var response = await SendRequest(content, cancellationToken);
             using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
 
             var streamProcessor = new StreamProcessor(true);
@@ -336,76 +336,7 @@ namespace AiStudio4.AiServices
             }
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse(
-            HttpContent content, 
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, // Parameter added but not used
-            Action onStreamingComplete) // Parameter added but not used
-        {
-            using var response = await SendRequest(content, cancellationToken);
-            var responseString = await response.Content.ReadAsStringAsync(cancellationToken);
-            var completion = JsonConvert.DeserializeObject<JObject>(responseString);
 
-            if (completion["type"]?.ToString() == "error")
-            {
-                var errorMsg = completion["error"]["message"].ToString();
-                if (errorMsg.Contains("at least 1024 tokens"))
-                    throw new NotEnoughTokensForCachingException(errorMsg);
-                else if (completion["error"]["message"].ToString().StartsWith("Overloaded"))
-                {
-                    //var result = MessageBox.Show("Claude reports that it's overloaded. Would you like to retry?", "Server Overloaded", MessageBoxButtons.YesNo);
-                    //if (result == DialogResult.Yes)
-                    //{
-                    //    return await HandleNonStreamingResponse( content, cancellationToken);
-                    //}
-                }
-
-                return new AiResponse { ResponseText = "error - " + errorMsg, Success = false };
-            }
-
-            var chosenTool = ExtractChosenToolFromCompletion(completion);
-            
-            // Process tool calls if present
-            if (chosenTool != null)
-            {
-                // Handle tool calls and populate ToolResponseSet
-                if (completion["content"] != null && completion["content"][0]["type"]?.ToString() == "tool_use")
-                {
-                    string toolName = completion["content"][0]["name"]?.ToString();
-                    string toolArguments = completion["content"][0]["input"].ToString();
-                    
-                    ToolResponseSet.Tools.Add(new ToolResponseItem
-                    {
-                        ToolName = toolName,
-                        ResponseText = toolArguments
-                    });
-                }
-                else if (completion["tool_calls"] != null && completion["tool_calls"].Any())
-                {
-                    // Process all tool calls in the response
-                    foreach (var toolCall in completion["tool_calls"])
-                    {
-                        string toolName = toolCall["function"]["name"]?.ToString();
-                        string toolArguments = toolCall["function"]["arguments"]?.ToString();
-                        
-                        ToolResponseSet.Tools.Add(new ToolResponseItem
-                        {
-                            ToolName = toolName,
-                            ResponseText = toolArguments
-                        });
-                    }
-                }
-            }
-            
-            return new AiResponse
-            {
-                ResponseText = ExtractResponseTextFromCompletion(completion),
-                Success = true,
-                TokenUsage = ExtractTokenUsageFromCompletion(completion),
-                ChosenTool = chosenTool,
-                ToolResponseSet = ToolResponseSet
-            };
-        }
 
         private string RemoveCachingFromJson(string json)
         {
@@ -428,6 +359,15 @@ namespace AiStudio4.AiServices
             return jObject.ToString();
         }
 
+        private AiResponse HandleError(Exception ex, string additionalInfo = "")
+        {
+            string errorMessage = $"Error: {ex.Message}";
+            if (!string.IsNullOrEmpty(additionalInfo))
+            {
+                errorMessage += $" Additional info: {additionalInfo}";
+            }
+            return new AiResponse { Success = false, ResponseText = errorMessage };
+        }
         private string ExtractResponseTextFromCompletion(JObject completion)
         {
             if (completion["content"] != null)

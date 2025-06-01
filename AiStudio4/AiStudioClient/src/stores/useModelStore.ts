@@ -44,8 +44,8 @@ export const useModelStore = create<ModelStore>((set, get) => ({
       // Find the model by GUID to get its name
       const model = state.models.find(m => m.guid === modelGuid);
       set({ 
-        selectedPrimaryModelGuid: modelGuid,
-          selectedPrimaryModel: model ? model.modelName : modelGuid // Fallback to using the GUID as name
+          selectedPrimaryModelGuid: modelGuid,
+          selectedPrimaryModel: model ? model.friendlyName : modelGuid // Fallback to using the GUID as name
       });
   },
 
@@ -56,7 +56,7 @@ export const useModelStore = create<ModelStore>((set, get) => ({
       const model = state.models.find(m => m.guid === modelGuid);
       set({ 
         selectedSecondaryModelGuid: modelGuid,
-        selectedSecondaryModel: model ? model.modelName : modelGuid // Fallback to using the GUID as name
+          selectedSecondaryModel: model ? model.friendlyName : modelGuid // Fallback to using the GUID as name
       });
 
   },

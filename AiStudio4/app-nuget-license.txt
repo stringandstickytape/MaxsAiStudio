@@ -89,7 +89,7 @@
   },
   {
     "PackageId": "ModelContextProtocol",
-    "PackageVersion": "0.1.0-preview.11",
+    "PackageVersion": "0.2.0-preview.1",
     "PackageProjectUrl": "https://github.com/modelcontextprotocol/csharp-sdk",
     "Copyright": "\u00A9 Anthropic and Contributors.",
     "Authors": "ModelContextProtocolOfficial",
@@ -103,15 +103,6 @@
     "PackageProjectUrl": "https://github.com/openai/openai-dotnet/tree/OpenAI_2.2.0-beta.4",
     "Copyright": "Copyright (c) 2024 OpenAI (https://openai.com)",
     "Authors": "OpenAI",
-    "License": "MIT",
-    "LicenseUrl": "https://licenses.nuget.org/MIT",
-    "LicenseInformationOrigin": 0
-  },
-  {
-    "PackageId": "Whisper.net.AllRuntimes",
-    "PackageVersion": "1.8.1",
-    "PackageProjectUrl": "https://github.com/sandrohanea/whisper.net",
-    "Authors": "Sandro Hanea",
     "License": "MIT",
     "LicenseUrl": "https://licenses.nuget.org/MIT",
     "LicenseInformationOrigin": 0

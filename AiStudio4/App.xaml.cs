@@ -35,6 +35,10 @@ namespace AiStudio4
                 // Other settings like null handling, etc.
             };
 
+            // default project path
+            string reposPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "source", "repos", "AiStudio4TestProject");
+            Directory.CreateDirectory(reposPath);
+
             var services = new ServiceCollection();
             ConfigureServices(services);
             _serviceProvider = services.BuildServiceProvider();
@@ -67,7 +71,6 @@ namespace AiStudio4
             services.AddSingleton<IConvStorage, FileSystemConvStorage>();
             services.AddSingleton<IChatService, DefaultChatService>();
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
-            services.AddSingleton<IAudioTranscriptionService, AudioTranscriptionService>();
             services.AddSingleton<IToolService, ToolService>();
             services.AddSingleton<ISystemPromptService, SystemPromptService>();
             services.AddSingleton<IPinnedCommandService, PinnedCommandService>();
@@ -85,6 +88,7 @@ namespace AiStudio4
             services.AddSingleton<IDotNetProjectAnalyzerService, DotNetProjectAnalyzerService>(); // Add DotNetProjectAnalyzerService
 
             // Register application services
+            services.AddSingleton<IConversationArchivingService, ConversationArchivingService>();
             services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();
             services.AddSingleton<IAppearanceSettingsService, AppearanceSettingsService>();
             services.AddSingleton<IProjectHistoryService, ProjectHistoryService>();

@@ -152,8 +152,9 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                 borderRadius: 'var(--global-border-radius, 0)',
                 boxShadow: 'var(--global-box-shadow, none)',
                 borderColor: 'var(--global-border-color, #1f2937)',
-                ...(window?.theme?.ConvTreeView?.style || {}),
-                ...(isChatRequestOngoing && { pointerEvents: 'none', opacity: 0.5 })
+                ...(window?.theme?.ConvTreeView?.style || {})
+                //,
+                //...(isChatRequestOngoing && { pointerEvents: 'none', opacity: 0.5 })
             }}
         >
             <div

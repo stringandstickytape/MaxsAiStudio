@@ -15,6 +15,9 @@ import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 import { useChatManagement } from '@/hooks/useChatManagement';
+import { useVoiceInputStore } from '@/stores/useVoiceInputStore'; // Added
+import { useVoiceInput } from '@/hooks/useVoiceInput'; // Added
+import { useToast } from "@/hooks/use-toast"; // Added
 
 // Import subcomponents
 import { SystemPromptSection } from './SystemPromptSection';
@@ -34,7 +37,7 @@ import { TemperatureControl } from './TemperatureControl'; // Add this
 
 interface InputBarProps {
     selectedModel: string;
-    onVoiceInputClick?: () => void;
+
     inputValue?: string;
     onInputChange?: (value: string) => void;
     activeTools?: string[];
@@ -55,7 +58,7 @@ declare global {
 
 export function InputBar({
     selectedModel,
-    onVoiceInputClick,
+
     inputValue,
     onInputChange,
     activeTools: activeToolsFromProps,
@@ -97,6 +100,62 @@ export function InputBar({
     const isSm = useMediaQuery('(max-width: 768px)');
     const isMd = useMediaQuery('(max-width: 1024px)');
 
+    // Voice Input Integration
+    const { 
+        isListening: isVoiceListening, // Renamed to avoid conflict if local isListening is ever needed
+        error: voiceError, 
+        startListening: startVoiceStoreListening, 
+        stopListening: stopVoiceStoreListening 
+    } = useVoiceInputStore();
+    
+    const { toast } = useToast();
+
+    const handleFinalVoiceTranscript = useCallback((text: string) => {
+        setInputText(prevText => (prevText ? prevText + ' ' : '') + text.trim());
+        stopVoiceStoreListening(); // Signal store to stop, effect will handle mic
+        // resetTranscript(); // resetTranscript is called by the effect before starting new capture
+        textareaRef.current?.focusWithCursor();
+    }, [setInputText, stopVoiceStoreListening, textareaRef]);
+
+    const {
+        isSupported: voiceIsSupported,
+        startMicCapture,
+        stopMicCapture,
+        resetTranscript
+    } = useVoiceInput({ onTranscriptFinalized: handleFinalVoiceTranscript });
+
+    const handleToggleListening = () => {
+        if (isVoiceListening) {
+            stopVoiceStoreListening();
+        } else {
+            // resetTranscript(); // This will be called by the effect when isListening becomes true
+            startVoiceStoreListening();
+        }
+    };
+
+    // Effect to link store's isListening state to the hook's capture functions
+    useEffect(() => {
+        if (isVoiceListening) {
+            if (voiceIsSupported) {
+                resetTranscript(); // Clear any old transcript in the hook before starting
+                startMicCapture(); // Start the actual browser API listening
+            } else {
+                useVoiceInputStore.getState().setError("Voice input not supported by your browser.");
+                stopVoiceStoreListening(); // Reset store state if not supported
+            }
+        } else {
+            stopMicCapture(); // Stop the actual browser API listening
+        }
+    }, [isVoiceListening, voiceIsSupported, startMicCapture, stopMicCapture, resetTranscript, stopVoiceStoreListening]);
+
+    // Effect to display voice errors via toast
+    useEffect(() => {
+        if (voiceError) {
+            toast({ title: "Voice Input Error", description: voiceError, variant: "destructive" });
+            useVoiceInputStore.getState().setError(null); // Clear error after showing
+        }
+    }, [voiceError, toast]);
+
     useEffect(() => {
         if (onAttachmentChange) {
             onAttachmentChange(attachments);
@@ -112,7 +171,7 @@ export function InputBar({
         setVisibleToolCount(isXs ? 1 : isSm ? 2 : isMd ? 3 : 4);
     }, [isXs, isSm, isMd]);
 
-    const handleChatMessage = useCallback(async (message: string) => {
+    const handleChatMessage = useCallback(async (message: string, messageAttachments?: Attachment[]) => {
         
         try {
             let convId = activeConvId;
@@ -157,7 +216,7 @@ export function InputBar({
                 systemPromptId,
                 systemPromptContent,
                 messageId,
-                attachments: attachments.length > 0 ? useAttachmentStore.getState().getStagedAttachments() : undefined
+                attachments: messageAttachments && messageAttachments.length > 0 ? messageAttachments : undefined
             });
             setCursorPosition(0);
         } catch (error) {
@@ -180,7 +239,7 @@ export function InputBar({
         setCurrentRequest
     ]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (isCancelling) return;
         
         // Check if WebSocket is disconnected
@@ -200,7 +259,8 @@ export function InputBar({
             
             // Get attachments from store and pass them to handleChatMessage
             const messageAttachments = useAttachmentStore.getState().getStagedAttachments();
-            handleChatMessage(fullMessage);
+            await handleChatMessage(fullMessage, messageAttachments);
+            useAttachmentStore.getState().clearStagedAttachments();
             setInputText('');
         }
     };
@@ -239,7 +299,6 @@ export function InputBar({
                 color: "var(--global-text-color, #e2e8f0)",
                 borderColor: "var(--global-border-color, #4a5568)",
                 borderRadius: "var(--global-border-radius, 8px)",
-                boxShadow: "var(--global-box-shadow, 0 4px 12px rgba(0,0,0,0.3))",
                 fontFamily: "var(--global-font-family, inherit)",
                 fontSize: "var(--global-font-size, inherit)",
                 ...(window?.theme?.InputBar?.style || {})
@@ -294,7 +353,9 @@ export function InputBar({
                                 })();
                             }
                         }}
-                        onVoiceInputClick={onVoiceInputClick}
+
+                        isListening={isVoiceListening} // Added
+                        onToggleListening={handleToggleListening} // Added
                         addAttachments={addAttachments}
                         isLoading={isLoading}
                         isCancelling={isCancelling}

@@ -214,11 +214,18 @@ function MessageInputAreaComponent({
 
     // Memoize the style object to prevent unnecessary re-renders
     const textareaStyle = useMemo(() => ({
-        backgroundColor: 'var(--inputbar-edit-bg, #2d3748)',
-        color: 'var(--inputbar-text-color, #e2e8f0)',
+        background: 'var(--global-ai-message-background, #1f2937)',
+        color: 'var(--global-ai-message-text-color, #ffffff)',
+        borderRadius: 'var(--global-border-radius, 0.5rem)',
+        borderColor: 'var(--global-ai-message-border-color, rgba(55, 65, 81, 0.3))',
+        borderWidth: 'var(--global-ai-message-border-width, 0px)',
+        borderStyle: 'var(--global-ai-message-border-style, solid)',
         ...(window?.theme?.InputBar?.style || {})
     }), []);
-    
+
+
+
+
     return (
         <div className="relative flex-1 flex flex-col">
             <Textarea

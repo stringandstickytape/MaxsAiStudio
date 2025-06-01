@@ -103,7 +103,7 @@ namespace AiStudio4.Services
                     CancellationToken = new CancellationToken(false),
                     ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                     MustNotUseEmbedding = true,
-                    UseStreaming = false
+
                 };
                 
                 var response = await aiService.FetchResponse(requestOptions, true);
@@ -144,7 +144,7 @@ namespace AiStudio4.Services
 
                 _logger.LogInformation("Processing chat request for conv {ConvId}", request.BranchedConv.ConvId);
 
-                var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.ModelName == request.Model);
+                var model = _generalSettingsService.CurrentSettings.ModelList.First(x => x.FriendlyName == request.Model);
                 var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
@@ -234,17 +234,20 @@ namespace AiStudio4.Services
                         ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                         MustNotUseEmbedding = true,
                         ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
-                        UseStreaming = true, 
                         OnStreamingUpdate = request.OnStreamingUpdate,
                         OnStreamingComplete = request.OnStreamingComplete
                     };
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
 
-                    // we always make the stop tool available.
+                    // we always make the think tool available - the think tool causes a stop.
                     if (request.ToolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
                     {
-                        var stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
+                        var stopTool = (await _toolService.GetToolByToolNameAsync("Think")).Guid;
+                        if (!request.ToolIds.Contains(stopTool))
+                            request.ToolIds.Add(stopTool);
+
+                        stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
                         if (!request.ToolIds.Contains(stopTool))
                             request.ToolIds.Add(stopTool);
                     }

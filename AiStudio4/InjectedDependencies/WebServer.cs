@@ -79,20 +79,8 @@ namespace AiStudio4.InjectedDependencies
                 }
                 else
                 {
-                    // Listen only on localhost
-                    options.ListenLocalhost(port, listenOptions =>
-                    {
-                        // Load the certificate from the file
-                        string certPath = "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\aistudio4.pfx";
-
-                        using var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
-                        store.Open(OpenFlags.ReadOnly);
-                        string thumbprint = "53C6156992D3C796B2B13A9C0B8DCD26508C0BF5";
-                        var cert = store.Certificates
-                            .Find(X509FindType.FindByThumbprint, thumbprint, false)[0];
-
-                        listenOptions.UseHttps(cert);
-                    });
+                    // Listen only on localhost with HTTP when outside connections are not allowed
+                    options.ListenLocalhost(port);
                 }
             });
 

@@ -74,8 +74,8 @@ The `GitCommit` tool provides a safe, auditable way for the AI to commit selecte
   "commit": {
     "message": "Refactor data access layer for clarity and testability.",
     "files": [
-      "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4\\Core\\Data\\Repository.cs",
-      "C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4\\Core\\Data\\UnitOfWork.cs"
+      "C:\\Users\\username\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4\\Core\\Data\\Repository.cs",
+      "C:\\Users\\username\\source\\repos\\CloneTest\\MaxsAiTool\\AiStudio4\\Core\\Data\\UnitOfWork.cs"
     ]
   }
 }

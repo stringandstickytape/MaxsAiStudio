@@ -159,13 +159,10 @@ namespace AiStudio4.Core.Tools.YouTube
         /// Processes a single YouTube search request based on provided parameters.
         /// </summary>
         /// <param name="parameters">The deserialized parameters for the search.</param>
-        /// <returns>A formatted string containing the search results or an error message.</returns>
-        /// <exception cref="ArgumentException">Thrown if required parameters are missing or invalid.</exception>
-        /// <exception cref="HttpRequestException">Thrown if the API request fails.</exception>
         private async Task<string> ProcessSingleSearchRequestAsync(Dictionary<string, object> parameters)
         {
             // --- Check for API Key first ---
-            string apiKey = _generalSettingsService?.CurrentSettings?.YouTubeApiKey;
+            string apiKey = _generalSettingsService.GetDecryptedYouTubeApiKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                 _logger.LogWarning("YouTube API Key is not configured.");
@@ -252,7 +249,7 @@ namespace AiStudio4.Core.Tools.YouTube
 
         private async Task<YouTubeSearchResult> SearchYouTube(string query, int maxResults, string type)
         {
-            string apiKey = _generalSettingsService?.CurrentSettings?.YouTubeApiKey;
+            string apiKey = _generalSettingsService.GetDecryptedYouTubeApiKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
                  // This case should ideally be caught earlier in ProcessSingleSearchRequestAsync,

@@ -1,12 +1,13 @@
 ﻿// AiStudioClient/src/commands/systemPromptCommands.ts
 import React from 'react';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
+import { windowEventService, WindowEvents, OpenModalEventDetail } from '@/services/windowEvents';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { selectSystemPromptStandalone } from '@/hooks/useSystemPromptSelection';
 import { useModalStore } from '@/stores/useModalStore';
 import { commandRegistry } from '@/services/commandRegistry';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
+
 
 interface SystemPromptCommandsConfig {
     toggleLibrary: () => void;
@@ -30,7 +31,10 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 shortcut('P'),
                 ['system', 'prompt', 'library', 'collection', 'manage', 'browse'],
                 React.createElement(MessageSquare, { size: 16 }),
-                () => windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY),
+                () => {
+                    const payload: OpenModalEventDetail = {}; // No specific action, just open
+                    windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
+                },
             ],
             [
                 'create-new-system-prompt',
@@ -40,8 +44,9 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 ['system', 'prompt', 'create', 'new', 'custom'],
                 React.createElement(PlusCircle, { size: 16 }),
                 () => {
-                    window.localStorage.setItem('systemPrompt_action', 'create');
-                    windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY);
+                    const payload: OpenModalEventDetail = { createNew: true };
+                    console.log('Emitting create new system prompt event with payload:', payload);
+                    windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
                 },
             ],
             [
@@ -64,7 +69,13 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                     if (!promptToEdit && defaultPromptId) promptToEdit = prompts.find((p) => p.guid === defaultPromptId);
                     if (!promptToEdit && prompts.length > 0) promptToEdit = prompts[0];
 
-                    promptToEdit ? config.editPrompt(promptToEdit.guid) : config.createNewPrompt();
+                    if (promptToEdit) {
+                        const payload: OpenModalEventDetail = { editPromptId: promptToEdit.guid };
+                        windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
+                    } else {
+                        const payload: OpenModalEventDetail = { createNew: true };
+                        windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
+                    }
                 },
             ],
         ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({

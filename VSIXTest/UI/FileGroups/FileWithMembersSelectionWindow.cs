@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.IO;
 using System.Windows.Media;
+using static RoslynHelper;
 
 namespace VSIXTest
 {

@@ -3,16 +3,16 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { BookMarked, Mic, Send, X, MessageSquarePlus } from 'lucide-react';
 import { FileAttachment } from '@/components/FileAttachment';
-import { useAttachmentStore } from '@/stores/useAttachmentStore';
+
 import { useModalStore } from '@/stores/useModalStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { webSocketService } from '@/services/websocket/WebSocketService';
-import { Checkbox } from '@/components/ui/checkbox';
+
 
 interface ActionButtonsProps {
     onSend: () => void;
     onCancel: () => void;
-    onVoiceInputClick?: () => void;
+
     addAttachments?: (files: File[]) => void; // Optional since we'll use the store directly
     isLoading: boolean;
     isCancelling: boolean;
@@ -20,19 +20,23 @@ interface ActionButtonsProps {
     inputText: string;
     setInputText: (text: string) => void;
     messageSent?: boolean;
+    isListening: boolean; // Added
+    onToggleListening: () => void; // Added
 }
 
 export function ActionButtons({
     onSend,
     onCancel,
-    onVoiceInputClick,
+
     addAttachments,
     isLoading,
     isCancelling,
     disabled,
     inputText,
     setInputText,
-    messageSent = false
+    messageSent = false,
+    isListening, // Added
+    onToggleListening, // Added
 }: ActionButtonsProps) {
     const isConnected = useWebSocketStore(state => state.isConnected);
     
@@ -76,25 +80,29 @@ export function ActionButtons({
                 <BookMarked className="h-5 w-5" />
             </Button>
 
-            {onVoiceInputClick && (
-                <Button
-                className="h-6"
-                    variant="outline"
-                    size="icon"
-                    onClick={onVoiceInputClick}
-                    aria-label="Voice input"
-                    disabled={isLoading || disabled}
-                    style={{
-                        backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                        borderColor: 'var(--inputbar-border-color, #4a5568)',
-                        color: 'var(--inputbar-text-color, #e2e8f0)',
-                        opacity: (isLoading || disabled) ? 0.5 : 1,
-                        ...(window?.theme?.InputBar?.style || {})
-                    }}
-                >
-                    <Mic className="h-5 w-5" />
-                </Button>
-            )}
+            {/* Voice Input Button - appearance changes based on isListening */}
+            <Button
+                className={`h-6 ${isListening ? 'animate-pulse' : ''}`}
+                variant="outline"
+                size="icon"
+                onClick={onToggleListening}
+                aria-label={isListening ? "Stop Voice Input" : "Start Voice Input"}
+                title={isListening ? "Stop Voice Input" : "Start Voice Input"} // Added title for tooltip consistency
+                disabled={isLoading || disabled} // Retain existing disabled logic
+                style={{
+                    backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
+                    borderColor: 'var(--inputbar-border-color, #4a5568)',
+                    opacity: (isLoading || disabled) ? 0.5 : 1,
+                    ...(window?.theme?.InputBar?.style || {}), // Spread theme first
+                    // Conditional color: active color when listening, otherwise theme/default.
+                    // This ensures our color logic takes precedence, especially when listening.
+                    color: isListening 
+                           ? 'var(--global-primary-color, #3b82f6)' 
+                           : ((window?.theme?.InputBar?.style || {}).color || 'var(--inputbar-text-color, #e2e8f0)'),
+                }}
+            >
+                <Mic className="h-5 w-5" />
+            </Button>
 
             <div className="flex flex-col gap-2">
                 {/* Send Button - Only visible when not loading */}

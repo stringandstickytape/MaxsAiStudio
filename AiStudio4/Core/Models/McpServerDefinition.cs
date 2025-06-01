@@ -18,5 +18,6 @@ namespace AiStudio4.Core.Models
         public Dictionary<string, string> Env { get; set; }
         public bool StdIo { get; set; } = true;
         public List<string> Categories { get; set; } = new List<string>();
+        public List<string> SelectedTools { get; set; } = new List<string>();
     }
 }

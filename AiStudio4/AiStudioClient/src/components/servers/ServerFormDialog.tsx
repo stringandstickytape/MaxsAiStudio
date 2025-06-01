@@ -52,24 +52,45 @@ export function ServerFormDialog({ isOpen, onClose, server, mode }: ServerFormDi
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
+      <DialogContent 
+        className="sm:max-w-3xl ServerFormDialog" 
+        style={{
+          // Theme styles
+          backgroundColor: 'var(--global-background-color)',
+          color: 'var(--global-text-color)',
+          fontFamily: 'var(--global-font-family)',
+          fontSize: 'var(--global-font-size)',
+          borderRadius: 'var(--global-border-radius)',
+          borderColor: 'var(--global-border-color)',
+          boxShadow: 'var(--global-box-shadow)',
+          
+          // Layout styles for fixed height and internal scrolling
+          height: '70vh', // Fixed height, adjust (e.g., 65vh, 75vh) if needed to match "lg" feel
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden', // DialogContent itself should not scroll; inner div will
+        }}
+      >
+        <DialogHeader style={{ flexShrink: 0 }}> {/* Header takes its space, doesn't shrink */}
           <DialogTitle>{mode === 'add' ? 'Add New Server' : 'Edit Server'}</DialogTitle>
         </DialogHeader>
         
         {error && (
-          <Alert variant="destructive" className="mb-4">
+          <Alert variant="destructive" className="mb-4" style={{ flexShrink: 0 }}> {/* Alert takes its space */}
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
         
-        <ServerForm
-          server={server}
-          onSubmit={handleSubmit}
-          onCancel={onClose}
-          isSubmitting={isSubmitting}
-        />
+        {/* Wrapper for ServerForm to make it the scrollable content area */}
+        <div style={{ flexGrow: 1, overflowY: 'auto', minHeight: 0 }}>
+          <ServerForm
+            server={server}
+            onSubmit={handleSubmit}
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

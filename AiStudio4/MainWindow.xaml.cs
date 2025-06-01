@@ -1,10 +1,11 @@
 ﻿// AiStudio4/MainWindow.xaml.cs
+// ... other using statements ...
+using AiStudio4.Dialogs; // For WpfInputDialog
+using AiStudio4.InjectedDependencies; // For IGeneralSettingsService
+using AiStudio4.Services;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
-using AiStudio4.Dialogs; // Added for WpfInputDialog
-using AiStudio4.InjectedDependencies;
-using AiStudio4.Services;
 using AiStudio4.Services.Interfaces; // Added for IDotNetProjectAnalyzerService
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ using System.IO;
 using System.Diagnostics;
 using AiStudio4.Core.Services;
 using static RoslynHelper;
+using System.Collections.Generic; // Required for List<string>
 
 namespace AiStudio4;
 
@@ -36,7 +38,6 @@ public partial class WebViewWindow : Window
     private readonly IAppearanceSettingsService _appearanceSettingsService;
     private readonly IProjectHistoryService _projectHistoryService;
     private readonly IBuiltinToolService _builtinToolService;
-    private readonly IAudioTranscriptionService _audioTranscriptionService; // Add field
     private readonly IWebSocketNotificationService _notificationService;
     private readonly IProjectPackager _projectPackager;
     private readonly ILogger<WebViewWindow> _logger;
@@ -47,15 +48,14 @@ public partial class WebViewWindow : Window
     private readonly string _nugetLicense2Path;
     private string _lastTranscriptionResult = null;
 
-    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IAudioTranscriptionService audioTranscriptionService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager, IDotNetProjectAnalyzerService dotNetProjectAnalyzerService, IProjectFileWatcherService projectFileWatcherService, ILogger<WebViewWindow> logger)
+    public WebViewWindow(WindowManager windowManager, IMcpService mcpService, IGeneralSettingsService generalSettingsService, IAppearanceSettingsService appearanceSettingsService, IProjectHistoryService projectHistoryService, IBuiltinToolService builtinToolService, IWebSocketNotificationService notificationService, IProjectPackager projectPackager, IDotNetProjectAnalyzerService dotNetProjectAnalyzerService, IProjectFileWatcherService projectFileWatcherService, ILogger<WebViewWindow> logger)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
-        _generalSettingsService = generalSettingsService;
+        _generalSettingsService = generalSettingsService; // Ensure this is assigned
         _appearanceSettingsService = appearanceSettingsService;
         _projectHistoryService = projectHistoryService;
         _builtinToolService = builtinToolService;
-        _audioTranscriptionService = audioTranscriptionService;
         _notificationService = notificationService; // Assign injected service
         _projectPackager = projectPackager;
         _logger = logger;
@@ -72,8 +72,32 @@ public partial class WebViewWindow : Window
         UpdateWindowTitle(); // Set initial window title
         UpdateRecentProjectsMenu(); // Populate recent projects menu
         UpdateAllowConnectionsOutsideLocalhostMenuItem(); // Set initial checkbox state
-        webView.Initialize();
+        UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
+        webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
+        _generalSettingsService.SettingsChanged += OnGeneralSettingsChanged;
     }
+
+    private void OnGeneralSettingsChanged(object sender, EventArgs e)
+    {
+        Application.Current.Dispatcher.Invoke(() =>
+        {
+            // This ensures all menu items reflecting settings are updated
+            UpdateWindowTitle();
+            UpdateAllowConnectionsOutsideLocalhostMenuItem();
+            UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
+            // UpdateConversationZipRetentionDays and UpdateConversationDeleteZippedRetentionDays do not have menu items that need updating directly based on settings changes
+        });
+    }
+
+    protected override void OnClosed(EventArgs e)
+    {
+        if (_generalSettingsService != null)
+        {
+            _generalSettingsService.SettingsChanged -= OnGeneralSettingsChanged;
+        }
+        base.OnClosed(e);
+    }
+
     private void UpdateWindowTitle()
     {
         // Ensure ProjectPath is not null or empty before displaying
@@ -241,27 +265,22 @@ public partial class WebViewWindow : Window
             }
         }
     }
+
     private void SetYouTubeApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentKey = _generalSettingsService.CurrentSettings.YouTubeApiKey ?? string.Empty;
-        string prompt = "Enter your YouTube Data API v3 Key:";
-        string title = "Set YouTube API Key";
-
-        var dialog = new WpfInputDialog(title, prompt, currentKey)
-        {
-            Owner = this // Set the owner to center the dialog over the main window
-        };
+        // Get current decrypted key for display, or empty string if null
+        string currentKey = _generalSettingsService.GetDecryptedYouTubeApiKey() ?? string.Empty;
+        var dialog = new WpfInputDialog("Set YouTube API Key", "Enter your YouTube Data API v3 Key:", currentKey) { Owner = this };
 
         if (dialog.ShowDialog() == true)
         {
             string newKey = dialog.ResponseText;
-
-            // Check if the key actually changed
+            // Check if the key actually changed before updating
             if (newKey != currentKey)
             {
                 try
                 {
-                    _generalSettingsService.UpdateYouTubeApiKey(newKey);
+                    _generalSettingsService.UpdateYouTubeApiKey(newKey); // Service handles encryption
                     MessageBox.Show("YouTube API Key updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -271,23 +290,15 @@ public partial class WebViewWindow : Window
             }
         }
     }
-    
+
     private void SetGitHubApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentKey = _generalSettingsService.CurrentSettings.GitHubApiKey ?? string.Empty;
-        string prompt = "Enter your GitHub API Key:";
-        string title = "Set GitHub API Key";
-
-        var dialog = new WpfInputDialog(title, prompt, currentKey)
-        {
-            Owner = this // Set the owner to center the dialog over the main window
-        };
+        string currentKey = _generalSettingsService.GetDecryptedGitHubApiKey() ?? string.Empty;
+        var dialog = new WpfInputDialog("Set GitHub API Key", "Enter your GitHub API Key:", currentKey) { Owner = this };
 
         if (dialog.ShowDialog() == true)
         {
             string newKey = dialog.ResponseText;
-
-            // Check if the key actually changed
             if (newKey != currentKey)
             {
                 try
@@ -302,23 +313,15 @@ public partial class WebViewWindow : Window
             }
         }
     }
-    
+
     private void SetAzureDevOpsPATMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        string currentPAT = _generalSettingsService.CurrentSettings.AzureDevOpsPAT ?? string.Empty;
-        string prompt = "Enter your Azure DevOps Personal Access Token:";
-        string title = "Set Azure DevOps PAT";
-
-        var dialog = new WpfInputDialog(title, prompt, currentPAT)
-        {
-            Owner = this // Set the owner to center the dialog over the main window
-        };
+        string currentPAT = _generalSettingsService.GetDecryptedAzureDevOpsPAT() ?? string.Empty;
+        var dialog = new WpfInputDialog("Set Azure DevOps PAT", "Enter your Azure DevOps Personal Access Token:", currentPAT) { Owner = this };
 
         if (dialog.ShowDialog() == true)
         {
             string newPAT = dialog.ResponseText;
-
-            // Check if the PAT actually changed
             if (newPAT != currentPAT)
             {
                 try
@@ -333,7 +336,7 @@ public partial class WebViewWindow : Window
             }
         }
     }
-
+    
     private void TestAudioTranscriptionMenuItem_Click(object sender, RoutedEventArgs e)
     {
         Task.Run(async () =>
@@ -464,6 +467,30 @@ public partial class WebViewWindow : Window
         if (AllowConnectionsOutsideLocalhostMenuItem != null)
         {
             AllowConnectionsOutsideLocalhostMenuItem.IsChecked = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
+        }
+    }
+
+    private void UseExperimentalCostTrackingMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // The IsChecked state is automatically toggled by WPF for a checkable MenuItem on click.
+            // We read this new state and save it.
+            bool newValue = UseExperimentalCostTrackingMenuItem.IsChecked;
+            _generalSettingsService.UpdateUseExperimentalCostTracking(newValue);
+            // No need to manually set IsChecked here again as WPF handles it.
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error updating 'Use experimental cost tracking' setting: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void UpdateUseExperimentalCostTrackingMenuItem()
+    {
+        if (UseExperimentalCostTrackingMenuItem != null)
+        {
+            UseExperimentalCostTrackingMenuItem.IsChecked = _generalSettingsService.CurrentSettings.UseExperimentalCostTracking;
         }
     }
 
@@ -645,6 +672,56 @@ public partial class WebViewWindow : Window
             _generalSettingsService.CurrentSettings.PackerExcludeFilenames = list;
             _generalSettingsService.SaveSettings();
             MessageBox.Show("Packer exclude filenames updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+    }
+
+    private void SetConversationZipRetentionMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentValue = _generalSettingsService.CurrentSettings.ConversationZipRetentionDays.ToString();
+        var dialog = new WpfInputDialog(
+            "Set Zip Retention",
+            "Enter days after which conversations are zipped (e.g., 30). Enter 0 to disable zipping.",
+            currentValue)
+        {
+            Owner = this
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            if (int.TryParse(dialog.ResponseText, out int days) && days >= 0)
+            {
+                _generalSettingsService.UpdateConversationZipRetentionDays(days);
+                MessageBox.Show($"Conversation zip retention updated to {days} days.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please enter a non-negative integer.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void SetConversationDeleteZippedRetentionMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentValue = _generalSettingsService.CurrentSettings.ConversationDeleteZippedRetentionDays.ToString();
+        var dialog = new WpfInputDialog(
+            "Set Zipped Delete Retention",
+            "Enter days after which ZIPPED conversations are deleted (e.g., 90). Enter 0 to disable deletion.",
+            currentValue)
+        {
+            Owner = this
+        };
+
+        if (dialog.ShowDialog() == true)
+        {
+            if (int.TryParse(dialog.ResponseText, out int days) && days >= 0)
+            {
+                _generalSettingsService.UpdateConversationDeleteZippedRetentionDays(days);
+                MessageBox.Show($"Zipped conversation delete retention updated to {days} days.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show("Invalid input. Please enter a non-negative integer.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
     }
 

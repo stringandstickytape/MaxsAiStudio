@@ -200,14 +200,12 @@ export const useAttachmentStore = create<AttachmentStore>((set, get) => ({
 
   getStagedAttachments: () => {
     const { stagedAttachments } = get();
-    const attachments = [...stagedAttachments];
-    // Clear staged attachments after retrieving them
-    get().clearStagedAttachments();
-    return attachments;
+    return [...stagedAttachments]; // Only return, do not clear
   },
 
   // --- General Attachment Management ---
-  addAttachmentsForId: (id: string, attachments: Attachment[]) => {
+    addAttachmentsForId: (id: string, attachments: Attachment[]) => {
+        console.log("add attachment...");
     set(state => ({
       attachmentsById: {
         ...state.attachmentsById,

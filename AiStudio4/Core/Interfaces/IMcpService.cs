@@ -1,6 +1,6 @@
 ﻿using AiStudio4.Core.Models;
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Protocol.Types;
+using ModelContextProtocol.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -51,7 +51,7 @@ namespace AiStudio4.Core.Interfaces
         /// <returns>A collection of tool information.</returns>
         /// <exception cref="AiStudio4.Core.Exceptions.McpCommunicationException">Thrown if communication with the server fails.</exception>
         /// <exception cref="KeyNotFoundException">Thrown if the server definition doesn't exist.</exception>
-        Task<IEnumerable<ModelContextProtocol.Protocol.Types.Tool>> ListToolsAsync(string serverId);
+        Task<IEnumerable<ModelContextProtocol.Protocol.Tool>> ListToolsAsync(string serverId);
 
         Task<CallToolResponse> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments);
 

@@ -22,7 +22,14 @@
                     <MenuItem Header="_Set Azure DevOps PAT..." Name="SetAzureDevOpsPATMenuItem" Click="SetAzureDevOpsPATMenuItem_Click"/>
                     <MenuItem Header="_Set Conda Path..." Name="SetCondaPathMenuItem" Click="SetCondaPathMenuItem_Click"/>
                     <Separator/>
+                    <MenuItem Header="_Use experimental cost tracking"
+                              Name="UseExperimentalCostTrackingMenuItem"
+                              IsCheckable="True"
+                              Click="UseExperimentalCostTrackingMenuItem_Click"/>
                     <MenuItem Header="_Allow Connections Outside Localhost" Name="AllowConnectionsOutsideLocalhostMenuItem" IsCheckable="True" Click="AllowConnectionsOutsideLocalhostMenuItem_Click"/>
+                    <Separator/>
+                    <MenuItem Header="_Set Conversation Zip Retention (Days)..." Name="SetConversationZipRetentionMenuItem" Click="SetConversationZipRetentionMenuItem_Click"/>
+                    <MenuItem Header="_Set Zipped Conversation Delete Retention (Days)..." Name="SetConversationDeleteZippedRetentionMenuItem" Click="SetConversationDeleteZippedRetentionMenuItem_Click"/>
                 </MenuItem>
                 <MenuItem Header="_Licenses" Name="LicensesMenuItem" Click="LicensesMenuItem_Click"/>
                 <Separator/>

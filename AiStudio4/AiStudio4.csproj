@@ -15,7 +15,7 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.13.0" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
-		<PackageReference Include="ModelContextProtocol" Version="0.1.0-preview.11" />
+		<PackageReference Include="ModelContextProtocol" Version="0.2.0-preview.1" />
 		<PackageReference Include="OpenAI" Version="2.2.0-beta.4" />
 	</ItemGroup>
 
@@ -24,7 +24,6 @@
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="9.0.4" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.4" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3240.44" />
-    <PackageReference Include="Whisper.net.AllRuntimes" Version="1.8.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -83,6 +82,9 @@
 	  <Exec Command="nuget-license -i $(ProjectDir)AiStudio4.csproj -o jsonPretty &gt; $(ProjectDir)app-nuget-license.txt" WorkingDirectory="$(ProjectDir)" IgnoreExitCode="true" />
 	</Target>
 
-
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+      <Message Text="Creating release zip for DebugWithZip configuration..." Importance="high" />
+	  <Exec Command="rem powershell -Command &quot;if (Test-Path '$(ProjectDir)release.zip') { Remove-Item '$(ProjectDir)release.zip' -Force }; Compress-Archive -Path '$(TargetDir)*' -DestinationPath '$(ProjectDir)release.zip' -Force&quot;" />
+	</Target>
 
 </Project>

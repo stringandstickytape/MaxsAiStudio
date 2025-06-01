@@ -20,30 +20,37 @@ namespace AiStudio4.AiServices
     }
 
     internal class Gemini : AiServiceBase
-        {
-private readonly List<GenImage> _generatedImages = new List<GenImage>();
+    {
+        private readonly List<GenImage> _generatedImages = new List<GenImage>();
         public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
-        
+
         public Gemini()
         {
-            }
+        }
 
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
-// Clear any previously generated images
+            // Clear any previously generated images
             _generatedImages.Clear();
             // Reset ToolResponseSet for each new request
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
-            var url = $"{ApiUrl}{ApiModel}:{(options.UseStreaming ? "streamGenerateContent" : "generateContent")}?key={ApiKey}";
-            
+
+            // Check if this is a TTS model request
+            if (options.Model.IsTtsModel)
+            {
+                return await HandleTtsRequestAsync(options);
+            }
+
+            var url = $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}";
+
             // Apply custom system prompt if provided
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
                 options.Conv.systemprompt = options.CustomSystemPrompt;
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.UseStreaming, options.ApiSettings);
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
 
             // Add tools if specified
             if (!forceNoTools)
@@ -60,7 +67,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             }
 
 
-            
+
 
             // Add response modalities for image generation model
             if (ApiModel == "gemini-2.0-flash-exp-image-generation")
@@ -110,7 +117,6 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         protected override JObject CreateRequestPayload(
     string apiModel,
     LinearConv conv,
-    bool useStreaming,
     ApiSettings apiSettings)
         {
             return new JObject
@@ -120,49 +126,49 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         }
 
         protected override JObject CreateMessageObject(LinearConvMessage message)
-            {
-                var partArray = new JArray();
-                partArray.Add(new JObject { ["text"] = message.content });
+        {
+            var partArray = new JArray();
+            partArray.Add(new JObject { ["text"] = message.content });
 
-                // Handle legacy single image
-                if (!string.IsNullOrEmpty(message.base64image))
+            // Handle legacy single image
+            if (!string.IsNullOrEmpty(message.base64image))
+            {
+                partArray.Add(new JObject
                 {
-                    partArray.Add(new JObject
+                    ["inline_data"] = new JObject
                     {
-                        ["inline_data"] = new JObject
-                        {
-                            ["mime_type"] = message.base64type,
-                            ["data"] = message.base64image
-                        }
-                    });
-                }
-                
-                // Handle multiple attachments
-                if (message.attachments != null && message.attachments.Any())
+                        ["mime_type"] = message.base64type,
+                        ["data"] = message.base64image
+                    }
+                });
+            }
+
+            // Handle multiple attachments
+            if (message.attachments != null && message.attachments.Any())
+            {
+                foreach (var attachment in message.attachments)
                 {
-                    foreach (var attachment in message.attachments)
-                    {
                     if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
                     {
-                            partArray.Add(new JObject
+                        partArray.Add(new JObject
+                        {
+                            ["inline_data"] = new JObject
                             {
-                                ["inline_data"] = new JObject
-                                {
-                                    ["mime_type"] = attachment.Type,
-                                    ["data"] = attachment.Content
-                                }
-                            });
-                        }
-                        // Additional attachment types could be handled here
+                                ["mime_type"] = attachment.Type,
+                                ["data"] = attachment.Content
+                            }
+                        });
                     }
+                    // Additional attachment types could be handled here
                 }
-
-                return new JObject
-                {
-                    ["role"] = message.role == "assistant" ? "model" : message.role,
-                    ["parts"] = partArray
-                };
             }
+
+            return new JObject
+            {
+                ["role"] = message.role == "assistant" ? "model" : message.role,
+                ["parts"] = partArray
+            };
+        }
 
 
 
@@ -170,10 +176,10 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         {
             // Gemini uses key as URL parameter, not as Authorization header
         }
-        protected override async Task<AiResponse> HandleStreamingResponse( 
-            HttpContent content, 
+        protected override async Task<AiResponse> HandleStreamingResponse(
+            HttpContent content,
             CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, 
+            Action<string> onStreamingUpdate,
             Action onStreamingComplete)
         {
             StringBuilder fullResponse = new StringBuilder(); // Ensure this is accessible in catch
@@ -228,10 +234,10 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 onStreamingComplete?.Invoke(); // Use callback
                 Debug.WriteLine("Streaming Complete");
 
-                if(ToolResponseSet.Tools.Count == 0)
+                if (ToolResponseSet.Tools.Count == 0)
                 {
                     var json = ExtractTrailingJsonObject(fullResponse.ToString());
-                    if(json != null)
+                    if (json != null)
                     {
                         var jsonResponse = JsonConvert.DeserializeObject<JObject>(json);
 
@@ -242,7 +248,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                             var toolName = jsonResponse["name"]?.ToString();
                             var toolArgs = jsonResponse["args"].ToString();
                             ToolResponseSet.Tools.Add(new ToolResponseItem { ToolName = toolName, ResponseText = toolArgs });
-                            
+
                             // Clear the response text when a tool is chosen
                             //fullResponse.Clear();
                         }
@@ -295,7 +301,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     });
                 }
                 currentResponseItem = null;
-                
+
                 Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set: {string.Join(",", ToolResponseSet.Tools.Select(x => x.ToolName))}... (2)");
                 return new AiResponse
                 {
@@ -347,6 +353,15 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             }
         }
 
+        private AiResponse HandleError(Exception ex, string additionalInfo = "")
+        {
+            string errorMessage = $"Error: {ex.Message}";
+            if (!string.IsNullOrEmpty(additionalInfo))
+            {
+                errorMessage += $" Additional info: {additionalInfo}";
+            }
+            return new AiResponse { Success = false, ResponseText = errorMessage };
+        }
         public static string ExtractTrailingJsonObject(string input)
         {
             if (string.IsNullOrEmpty(input))
@@ -401,7 +416,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             if (completion["candidates"]?[0]?["content"]?["parts"] is JArray parts)
             {
                 StringBuilder textBuilder = new StringBuilder();
-                
+
                 foreach (var part in parts)
                 {
                     // Check if this is a tool response
@@ -420,7 +435,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                         textBuilder.Append("[Generated Image]");
                     }
                 }
-                
+
                 return textBuilder.ToString();
             }
             return completion.ToString();
@@ -439,102 +454,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
             return null;
         }
 
-        protected override async Task<AiResponse> HandleNonStreamingResponse( 
-            HttpContent content, 
-            CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, // Parameter added but not used in non-streaming
-            Action onStreamingComplete) // Parameter added but not used in non-streaming
-        {
-            HttpResponseMessage response = await client.PostAsync($"{ApiUrl}{ApiModel}:generateContent?key={ApiKey}", content, cancellationToken);
 
-            if (response.IsSuccessStatusCode)
-            {
-                string responseContent = await response.Content.ReadAsStringAsync();
-                var completion = JsonConvert.DeserializeObject<JObject>(responseContent);
-
-                var inputTokens = completion["usageMetadata"]?["promptTokenCount"]?.ToString();
-                var outputTokens = completion["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-                var chosenTool = ExtractChosenToolFromCompletion(completion);
-
-                // Extract any images from the response
-                var attachments = new List<DataModels.Attachment>();
-                int imageIndex = 1;
-                
-                if (completion["candidates"]?[0]?["content"]?["parts"] is JArray parts)
-                {
-                    foreach (var part in parts)
-                    {
-                        if (part["inlineData"] != null)
-                        {
-                            string mimeType = part["inlineData"]["mimeType"]?.ToString();
-                            string base64Data = part["inlineData"]["data"]?.ToString();
-                            
-                            if (!string.IsNullOrEmpty(mimeType) && !string.IsNullOrEmpty(base64Data))
-                            {
-                                attachments.Add(new DataModels.Attachment
-                                {
-                                    Id = Guid.NewGuid().ToString(),
-                                    Name = $"generated_image_{imageIndex++}.png",
-                                    Type = mimeType,
-                                    Content = base64Data,
-                                    Size = base64Data.Length * 3 / 4 // Approximate size calculation
-                                });
-                            }
-                        }
-                    }
-                }
-                
-                // Process tool calls if present
-                if (chosenTool != null)
-                {
-                    if (completion["candidates"]?[0]?["content"]?["parts"] is JArray partsX)
-                    {
-                        foreach (var part in partsX)
-                        {
-                            if (part["functionCall"] != null)
-                            {
-                                string toolName = part["functionCall"]["name"]?.ToString();
-                                string toolArguments = part["functionCall"]["args"]?.ToString() ?? "{}";
-                                
-                                // Add to ToolResponseSet
-                                ToolResponseSet.Tools.Add(new ToolResponseItem
-                                {
-                                    ToolName = toolName,
-                                    ResponseText = toolArguments
-                                });
-                                
-                                // When a tool is chosen, don't include the tool response in ResponseText
-                                return new AiResponse
-                                {
-                                    ResponseText = "", // Empty response text for tool calls
-                                    Success = true,
-                                    TokenUsage = new TokenUsage(inputTokens, outputTokens),
-                                    ChosenTool = chosenTool,
-                                    Attachments = attachments.Count > 0 ? attachments : null,
-                                    ToolResponseSet = ToolResponseSet
-                                };
-                            }
-                        }
-                    }
-                }
-
-                currentResponseItem = null;
-                return new AiResponse
-                {
-                    ResponseText = ExtractResponseText(completion),
-                    Success = true,
-                    TokenUsage = new TokenUsage(inputTokens, outputTokens, "0", completion["usageMetadata"]?["cachedContentTokenCount"]?.ToString()),
-                    ChosenTool = chosenTool,
-                    Attachments = attachments.Count > 0 ? attachments : null,
-                    ToolResponseSet = ToolResponseSet
-                };
-            }
-            else
-            {
-                string errorContent = await response.Content.ReadAsStringAsync();
-                return new AiResponse { ResponseText = errorContent, Success = false };
-            }
-        }
 
         private string inputTokenCount = "";
         private string outputTokenCount = "";
@@ -551,7 +471,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                     if (streamData["candidates"] != null && streamData["candidates"][0]["content"]["parts"] != null)
                     {
                         var parts = streamData["candidates"][0]["content"]["parts"] as JArray;
-                        
+
                         foreach (var part in parts)
                         {
                             // Handle function call responses
@@ -560,7 +480,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 var toolResponse = JsonConvert.SerializeObject(part["functionCall"]);
                                 var toolName = part["functionCall"]["name"]?.ToString();
                                 var toolArgs = part["functionCall"]["args"]?.ToString() ?? "{}";
-                                
+
                                 chosenTool = toolName;
 
                                 Debug.WriteLine($"Tool chosen: {chosenTool}");
@@ -568,23 +488,23 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 // If this is a new tool call, create a new response item
                                 //if (currentResponseItem == null || currentResponseItem.ToolName != toolName)
                                 //{
-                                    Debug.WriteLine($"new ToolResponseItem: {chosenTool} -> {toolArgs}");
-                                    currentResponseItem = new ToolResponseItem
-                                    {
-                                        ToolName = toolName,
-                                        ResponseText = toolArgs
-                                    };
+                                Debug.WriteLine($"new ToolResponseItem: {chosenTool} -> {toolArgs}");
+                                currentResponseItem = new ToolResponseItem
+                                {
+                                    ToolName = toolName,
+                                    ResponseText = toolArgs
+                                };
 
-                                    // send the live stream message about tool-chosen
-                                    onStreamingUpdate?.Invoke($"\n\nTool selected: {toolName}\n\n"); // Use callback
+                                // send the live stream message about tool-chosen
+                                onStreamingUpdate?.Invoke($"\n\nTool selected: {toolName}\n\n"); // Use callback
 
-                                    ToolResponseSet.Tools.Add(currentResponseItem);
+                                ToolResponseSet.Tools.Add(currentResponseItem);
                                 //}
                                 //else
                                 //{
                                 //    currentResponseItem.ResponseText += toolArgs;
                                 //}
-                                
+
                                 // Don't append tool response to fullResponse
                                 // fullResponse.Append(toolResponse);
                                 onStreamingUpdate?.Invoke(toolResponse); // Use callback
@@ -613,7 +533,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                 // Capture image for later processing
                                 string mimeType = part["inlineData"]["mimeType"]?.ToString();
                                 string base64Data = part["inlineData"]["data"]?.ToString();
-                                
+
                                 if (!string.IsNullOrEmpty(mimeType) && !string.IsNullOrEmpty(base64Data))
                                 {
                                     // Add image to the collection
@@ -622,7 +542,7 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                                         MimeType = mimeType,
                                         Base64Data = base64Data
                                     });
-                                    
+
                                     // Add a placeholder in the response text
                                     var imagePlaceholder = "[Generated Image]";
                                     fullResponse.Append(imagePlaceholder);
@@ -642,9 +562,9 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                         inputTokenCount = ((int)(streamData["usageMetadata"]?["promptTokenCount"] ?? 0) + (int)(streamData["usageMetadata"]?["thoughtsTokenCount"] ?? 0)).ToString();
                         outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
 
-                            //var x = streamData["usageMetadata"]?["cacheTokensDetails"];
-                            //if (x != null) Debugger.Break();
-                            cachedTokenCount = streamData["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
+                        //var x = streamData["usageMetadata"]?["cacheTokensDetails"];
+                        //if (x != null) Debugger.Break();
+                        cachedTokenCount = streamData["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
                     }
 
                     if (streamData["error"] != null)
@@ -661,12 +581,12 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
         }
 
         protected override TokenUsage ExtractTokenUsage(JObject response)
-            {
-                var inputTokens = response["usageMetadata"]?["promptTokenCount"]?.ToString();
-                var outputTokens = response["usageMetadata"]?["candidatesTokenCount"]?.ToString();
-                var cachedTokens = response["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
-                return new TokenUsage(inputTokens, outputTokens, "0", cachedTokens);
-            }
+        {
+            var inputTokens = response["usageMetadata"]?["promptTokenCount"]?.ToString();
+            var outputTokens = response["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+            var cachedTokens = response["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
+            return new TokenUsage(inputTokens, outputTokens, "0", cachedTokens);
+        }
 
         protected override ToolFormat GetToolFormat()
         {
@@ -705,7 +625,171 @@ private readonly List<GenImage> _generatedImages = new List<GenImage>();
                 obj.Remove(prop);
             }
         }
+
+
+        private async Task<AiResponse> HandleTtsRequestAsync(AiRequestOptions options)
+        {
+            string textToSynthesize = options.Conv?.messages?.LastOrDefault(m => m.role == "user")?.content;
+            if (string.IsNullOrEmpty(textToSynthesize))
+            {
+                return new AiResponse { Success = false, ResponseText = "No text provided for speech synthesis in the last user message." };
+            }
+
+            string voiceName = !string.IsNullOrEmpty(options.Model.TtsVoiceName) ? options.Model.TtsVoiceName : "Kore"; // Default if not set
+
+            // ApiModel is correctly set to the TTS model name by InitializeHttpClient
+            string ttsUrl = $"{ApiUrl}{ApiModel}:generateContent?key={ApiKey}";
+
+            var ttsRequestPayload = new JObject
+            {
+                ["contents"] = new JArray { new JObject { 
+                    ["role"] = "user",
+                    ["parts"] = new JArray { new JObject { ["text"] = textToSynthesize } } 
+                } },
+                ["generationConfig"] = new JObject {
+                    ["responseModalities"] = new JArray { "audio" },
+                    ["temperature"] = 1,
+                    ["speech_config"] = new JObject {
+                        ["voice_config"] = new JObject {
+                            ["prebuilt_voice_config"] = new JObject { ["voice_name"] = voiceName }
+                        }
+                    }
+                }
+            };
+
+            var jsonPayload = JsonConvert.SerializeObject(ttsRequestPayload);
+            using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
+            {
+                try
+                {
+                    HttpResponseMessage httpResponse = await client.PostAsync(ttsUrl, content, options.CancellationToken);
+                    string responseBody = await httpResponse.Content.ReadAsStringAsync();
+
+                    if (!httpResponse.IsSuccessStatusCode)
+                    {
+                        throw new HttpRequestException($"Gemini TTS API request failed: {httpResponse.StatusCode} - {responseBody}");
+                    }
+
+                    var responseObject = JObject.Parse(responseBody);
+                    var inlineData = responseObject?["candidates"]?[0]?["content"]?["parts"]?[0]?["inlineData"];
+                    string base64Audio = inlineData?["data"]?.ToString();
+                    string mimeType = inlineData?["mimeType"]?.ToString() ?? "audio/wav";
+
+                    if (string.IsNullOrEmpty(base64Audio))
+                    {
+                        throw new Exception("No audio data found in Gemini TTS response.");
+                    }
+
+                    var audioBytes = Convert.FromBase64String(base64Audio);
+
+                    // Debug: Write audio file to debug directory
+                    string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "DebugLogs", "AudioFiles");
+                    try
+                    {
+                        // Create directory if it doesn't exist
+                        if (!Directory.Exists(debugDir))
+                        {
+                            Directory.CreateDirectory(debugDir);
+                        }
+                        
+                        // Write audio file
+                        string debugFileName = $"speech_{DateTime.Now:yyyyMMddHHmmss}.wav";
+                        string debugFilePath = Path.Combine(debugDir, debugFileName);
+                        File.WriteAllBytes(debugFilePath, audioBytes);
+                        Debug.WriteLine($"Audio debug file written to: {debugFilePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to write audio debug file: {ex.Message}");
+                    }
+
+                    // Prepend WAV header to raw PCM data
+                    // Assume default audio parameters (can be adjusted if Gemini provides this info)
+                    int sampleRate = 24000; // 24 kHz
+                    short bitsPerSample = 16; // 16-bit
+                    short numChannels = 1;   // Mono
+
+                    byte[] wavFileData = PrependWavHeader(audioBytes, numChannels, sampleRate, bitsPerSample);
+                    string finalBase64Audio = Convert.ToBase64String(wavFileData);
+
+                    // Debug: Write WAV file to debug directory
+                    try
+                    {
+                        string wavDebugFilePath = Path.Combine(debugDir, $"speech_wav_{DateTime.Now:yyyyMMddHHmmss}.wav");
+                        File.WriteAllBytes(wavDebugFilePath, wavFileData);
+                        Debug.WriteLine($"WAV audio debug file written to: {wavDebugFilePath}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"Failed to write WAV audio debug file: {ex.Message}");
+                    }
+
+                    var attachment = new Attachment
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = $"speech_{DateTime.Now:yyyyMMddHHmmss}.wav",
+                        Type = "audio/wav", // Explicitly set to audio/wav since we're creating a WAV file
+                        Content = finalBase64Audio, // Send the complete WAV file (header + PCM data)
+                        Size = wavFileData.Length
+                    };
+
+                    options.OnStreamingComplete?.Invoke();
+
+                    if (responseObject["usageMetadata"] != null)
+                    {
+                        Debug.WriteLine(responseObject["usageMetadata"].ToString());
+                        inputTokenCount = ((int)(responseObject["usageMetadata"]?["promptTokenCount"] ?? 0) + (int)(responseObject["usageMetadata"]?["thoughtsTokenCount"] ?? 0)).ToString();
+                        outputTokenCount = responseObject["usageMetadata"]?["candidatesTokenCount"]?.ToString();
+                    }
+
+                    return new AiResponse
+                    {
+                        Success = true,
+                        ResponseText = $"Audio generated for: \"{textToSynthesize.Substring(0, Math.Min(textToSynthesize.Length, 50))}...\"",
+                        Attachments = new List<Attachment> { attachment },
+                        TokenUsage = new TokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), // Placeholder
+                    };
+                }
+                catch (Exception ex)
+                {
+                    return new AiResponse { Success = false, ResponseText = $"TTS Error: {ex.Message}" };
+                }
+            }
+        }
+
+        // Helper method to prepend a WAV header to raw PCM audio data
+        private static byte[] PrependWavHeader(byte[] pcmData, short numChannels, int sampleRate, short bitsPerSample)
+        {
+            int headerSize = 44;
+            int totalFileSize = pcmData.Length + headerSize;
+            int byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+            short blockAlign = (short)(numChannels * (bitsPerSample / 8));
+
+            using (MemoryStream ms = new MemoryStream(totalFileSize))
+            using (BinaryWriter writer = new BinaryWriter(ms))
+            {
+                // RIFF Header
+                writer.Write(Encoding.ASCII.GetBytes("RIFF")); // ChunkID
+                writer.Write(totalFileSize - 8);              // ChunkSize
+                writer.Write(Encoding.ASCII.GetBytes("WAVE")); // Format
+
+                // Subchunk1: "fmt "
+                writer.Write(Encoding.ASCII.GetBytes("fmt ")); // Subchunk1ID
+                writer.Write(16);                              // Subchunk1Size (16 for PCM)
+                writer.Write((short)1);                        // AudioFormat (1 for PCM)
+                writer.Write(numChannels);                     // NumChannels
+                writer.Write(sampleRate);                      // SampleRate
+                writer.Write(byteRate);                        // ByteRate
+                writer.Write(blockAlign);                      // BlockAlign
+                writer.Write(bitsPerSample);                   // BitsPerSample
+
+                // Subchunk2: "data"
+                writer.Write(Encoding.ASCII.GetBytes("data")); // Subchunk2ID
+                writer.Write(pcmData.Length);                  // Subchunk2Size
+                writer.Write(pcmData);                         // Actual data
+
+                return ms.ToArray();
+            }
+        }
     }
-
-
 }

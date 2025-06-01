@@ -21,4 +21,6 @@ export interface Model {
   supportsPrefill: boolean;
   requires1fTemp: boolean;
   reasoningEffort: 'none' | 'low' | 'medium' | 'high';
+  isTtsModel?: boolean;
+  ttsVoiceName?: string;
 }

@@ -1,4 +1,5 @@
-﻿import { useEffect } from 'react';
+﻿// AiStudio4/AiStudioClient/src/components/commands/CommandInitializer.tsx
+import { useEffect } from 'react';
 import { initializeCoreCommands } from '@/commands/coreCommands';
 import { initializeModelCommands } from '@/commands/modelCommands';
 import { initializeVoiceInputCommand } from '@/commands/voiceInputCommand';
@@ -18,21 +19,45 @@ import { useModelManagement } from '@/hooks/useResourceManagement';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
-import { setupVoiceInputKeyboardShortcut } from '@/commands/voiceInputCommand';
+
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
-import { useModalStore } from '@/stores/useModalStore'; // Added import for modal control
+import { useModalStore } from '@/stores/useModalStore';
 import { useFileSystemManagement } from '@/hooks/useFileSystemManagement';
+import { useCommandStore } from '@/stores/useCommandStore';
+import { useToolStore } from '@/stores/useToolStore';
+import { useFileSystemStore } from '@/stores/useFileSystemStore';
+import { useMcpServerStore } from '@/stores/useMcpServerStore';
+import { registerMcpServersAsCommands, initializeMcpServerManagementCommand } from '@/commands/mcpServerCommands';
 
 export function CommandInitializer() {
+  // Panel and UI management
   const { togglePanel } = usePanelStore();
+  
+  // Model management
   const { models, handleModelSelect } = useModelManagement();
+  
+  // Command and pinned commands management
   const { fetchPinnedCommands } = usePinnedCommandsStore();
-  const { fetchUserPrompts } = useUserPromptManagement();
+  
+  // Tools management
   const { fetchTools, fetchToolCategories } = useToolsManagement();
+  
+  // User prompts management
+  const { fetchUserPrompts } = useUserPromptManagement();
+  
+  // File system management
   const { fetchFileSystem } = useFileSystemManagement();
+  
+  // MCP server management
+  const {
+    servers: mcpServers,
+    setServerEnabled: toggleMcpServerEnabled,
+    fetchServers: fetchMcpServers,
+  } = useMcpServerStore();
 
+  // UI event handlers
   const handleOpenNewWindow = () => {
     window.open(window.location.href, '_blank');
   };
@@ -41,6 +66,7 @@ export function CommandInitializer() {
     window.dispatchEvent(new CustomEvent('open-tool-library'));
   };
 
+  // Register tool commands
   useToolCommands({
     openToolLibrary,
     createNewTool: () => {
@@ -53,7 +79,7 @@ export function CommandInitializer() {
     },
   });
 
-  
+  // Initial data loading
   useEffect(() => {
     const loadInitialData = async () => {
       try {
@@ -62,10 +88,11 @@ export function CommandInitializer() {
           fetchTools(),
           fetchToolCategories(),
           fetchUserPrompts(),
-          fetchFileSystem() // Fetch file system data on startup
+          fetchFileSystem(),
+          fetchMcpServers()
         ]);
         
-        
+        // Register commands that depend on loaded data
         registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
         registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
         
@@ -75,8 +102,27 @@ export function CommandInitializer() {
     };
     
     loadInitialData();
-  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, fetchFileSystem, togglePanel]);
+  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, fetchFileSystem, fetchMcpServers, togglePanel]);
 
+  // Register MCP server commands when servers change
+  useEffect(() => {
+    if (mcpServers && mcpServers.length > 0) {
+      registerMcpServersAsCommands(mcpServers, toggleMcpServerEnabled);
+    } else if (mcpServers && mcpServers.length === 0) {
+      try {
+        // Unregister group if no servers
+        const { commandRegistry } = require('@/services/commandRegistry');
+        commandRegistry.unregisterGroup('mcp-servers-list');
+      } catch (e) {}
+    }
+  }, [mcpServers, toggleMcpServerEnabled]);
+
+  // Register static MCP server management command
+  useEffect(() => {
+    initializeMcpServerManagementCommand();
+  }, []);
+
+  // Initialize core commands and UI interactions
   useEffect(() => {
     initializeCoreCommands({
       toggleSidebar: () => togglePanel('sidebar'),
@@ -86,7 +132,7 @@ export function CommandInitializer() {
       openNewWindow: handleOpenNewWindow,
     });
 
-      initializeSystemPromptCommands({
+    initializeSystemPromptCommands({
       toggleLibrary: () => window.dispatchEvent(new CustomEvent('open-system-prompt-library')),
       createNewPrompt: () => {
         window.dispatchEvent(new CustomEvent('open-system-prompt-library'));
@@ -121,8 +167,8 @@ export function CommandInitializer() {
 
     initializeModelCommands({
       getAvailableModels: () => models,
-        selectPrimaryModel: (guid) => handleModelSelect('primary', guid),
-        selectSecondaryModel: (guid) => handleModelSelect('secondary', guid),
+      selectPrimaryModel: (guid) => handleModelSelect('primary', guid),
+      selectSecondaryModel: (guid) => handleModelSelect('secondary', guid),
     });
 
     // Register theme commands initially and subscribe to theme changes
@@ -139,14 +185,14 @@ export function CommandInitializer() {
 
     initializeVoiceInputCommand();
 
-
+    // Register system prompts as commands and subscribe to changes
     const systemPromptsUpdated = () => {
       registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
     };
 
     systemPromptsUpdated();
-
     
+    // Register user prompts as commands and subscribe to changes
     const userPromptsUpdated = () => {
       registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
     };
@@ -181,10 +227,10 @@ export function CommandInitializer() {
       },
     );
 
-    const cleanupKeyboardShortcut = setupVoiceInputKeyboardShortcut();
 
+    // Cleanup function to unsubscribe from all subscriptions
     return () => {
-      cleanupKeyboardShortcut();
+
       unsubscribePrompts();
       unsubscribeUserPrompts();
       unsubscribeModels();

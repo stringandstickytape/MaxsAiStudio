@@ -10,8 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AiStudio4.Core.Exceptions;
-using ModelContextProtocol.Protocol.Transport;
-using ModelContextProtocol.Protocol.Types;
+using ModelContextProtocol.Protocol;
 
 namespace AiStudio4.Services
 {
@@ -44,79 +43,6 @@ namespace AiStudio4.Services
                 if (_isInitialized) return;
 
                 LoadDefinitions();
-
-                // Create default if none exist
-                if (!_serverDefinitions.Any())
-                {
-                    _logger.LogInformation("No MCP server definitions found, creating default 'Everything' server.");
-                    _serverDefinitions.Add(new McpServerDefinition
-                    {
-                        Id = "blendermcp",
-                        Name = "Blender",
-                        Command = "uvx",
-                        Arguments = "blender-mcp", // Note: This might need changing if uvx expects different args for 'Everything'
-                        Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = false,
-                        Categories = new List<string> { "3D Modelling" },
-
-                    });
-
-                    _serverDefinitions.Add(new McpServerDefinition
-                    {
-                        Id = "browsermcp",
-                        Name = "browsermcp",
-                        Command = "npx",
-                        Arguments = "@browsermcp/mcp@latest", // Note: This might need changing if uvx expects different args for 'Everything'
-                        Description = "Browser MCP",
-                        IsEnabled = false,
-                        Categories = new List<string> { "Web" },
-
-                    });
-
-                    _serverDefinitions.Add(new McpServerDefinition
-                    {
-                        Id = "fusion",
-                        Name = "mcp-server-fusion",
-                        Command = "http://127.0.0.1:6050/sse",
-                        Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = false,
-                        StdIo = false,
-                        Categories = new List<string> { "3D Modelling" },
-
-
-                    });
-
-                    _serverDefinitions.Add(new McpServerDefinition
-                    {
-                        Id = "claudecode",
-                        Name = "ClaudeCode",
-                        Command = "uvx",
-                        Arguments = "--from mcp-claude-code claudecode --allow-path C:\\Users\\maxhe\\source\\repos\\CloneTest\\MaxsAiTool", 
-                        Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = false,
-                        Categories = new List<string> { "Development" },
-
-                    });
-
-
-                    var env = new Dictionary<string, string>();
-                    env.Add("EVERYTHING_SDK_PATH", "C:\\Program Files\\Everything\\Everything64.dll");
-                    _serverDefinitions.Add(
-                        new McpServerDefinition
-                    {
-                        Id = "everythingsearch",
-                        Name = "Everything File Search",
-                        Command = "uvx",
-                        Arguments = "mcp-server-everything-search", // Note: This might need changing if uvx expects different args for 'Everything'
-                        Description = "Example MCP server using uvx (Update arguments if needed)",
-                        IsEnabled = true,
-                        Env = env,
-                            Categories = new List<string> { "Filesystem" },
-
-                        })
-                        ;
-                    SaveDefinitions();
-                }
 
                 _isInitialized = true;
                 _logger.LogInformation("McpService initialized with {Count} definitions.", _serverDefinitions.Count);
@@ -279,7 +205,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<IEnumerable<ModelContextProtocol.Protocol.Types.Tool>> ListToolsAsync(string serverId)
+        public async Task<IEnumerable<ModelContextProtocol.Protocol.Tool>> ListToolsAsync(string serverId)
         {
             await EnsureInitialized();
 
@@ -293,7 +219,7 @@ namespace AiStudio4.Services
             try
             {
                 _logger.LogInformation("Listing tools for MCP server {ServerId}", serverId);
-                List<ModelContextProtocol.Protocol.Types.Tool> tools = new List<ModelContextProtocol.Protocol.Types.Tool>();
+                List<ModelContextProtocol.Protocol.Tool> tools = new List<ModelContextProtocol.Protocol.Tool>();
                 var availableTools = await client.ListToolsAsync();
                 foreach (var tool in availableTools)
                 {
@@ -301,7 +227,7 @@ namespace AiStudio4.Services
                 }
 
                 _logger.LogInformation("Successfully listed {Count} tools for MCP server {ServerId}", tools?.Count() ?? 0, serverId);
-                return tools ?? Enumerable.Empty<ModelContextProtocol.Protocol.Types.Tool>();
+                return tools ?? Enumerable.Empty<ModelContextProtocol.Protocol.Tool>();
             }
             catch (Exception ex)
             {
