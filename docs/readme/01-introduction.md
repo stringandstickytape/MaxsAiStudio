@@ -13,6 +13,7 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
 *   **Powerful Tool Ecosystem:** Leverage built-in tools for file operations (read, write, search, diff), web tasks (DuckDuckGo, YouTube, URL scraping), developer integrations (Git, GitHub, Azure DevOps, Sentry, Vite), and more. Allows AI to iterate over your code, edit it, and even launch it.
 *   **Extensible & Customizable AI:** Define new tools with JSON schemas or connect to external MCP-compliant tool servers.
 *   **Deep Project Integration:** Work directly with your local codebase using the `ProjectPath` setting for context-aware AI assistance and file operations.
+*   **Google AI Studio Integration:** Import existing conversations from your Google AI Studio projects via Google Drive
 *   **Advanced Conversation Management:** Navigate complex discussions with branched conversation history, powerful search, and an interactive tree view.
 *   **Modern Desktop Experience:** A .NET 9 WPF application hosting a fluid, responsive React/TypeScript UI via WebView2.
 *   **Personalizable Interface:** AI tool-based theming engine.

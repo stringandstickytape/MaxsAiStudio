@@ -11,5 +11,16 @@
 *   **Project Path Dependent Features Not Working:**
     *   Verify `File > Project > Set Project Path...` is set to the correct root directory of your project.
 *   **Audio Transcription Fails:**
-    *   Ensure Conda is installed and the path to `activate.bat` is correctly set in `File > Settings > Set Conda Path...` if you are using Conda-dependent WhisperX features.
+    *   Ensure Conda is installed and the path to `activate.bat` is correctly set in `File > Settings > Set CondaPath...` if you are using Conda-dependent WhisperX features.
     *   Ensure you have a Conda environment with `whisperx` (and its dependencies like `ffmpeg`) installed. For basic Whisper.net, Conda might not be strictly necessary.
+
+*   **Google Drive Integration Issues:**
+    *   **Import/Export Fails or 'Credentials Not Found' Error:**
+        *   Ensure you have authorized AiStudio4 to access your Google Drive when prompted during the first use of the feature.
+        *   A `credentials.json` file might be required in `%APPDATA%\AiStudio4\Config\`. This file should be an OAuth 2.0 Client ID credential for a Desktop application, obtained from your Google Cloud Console. Ensure it's correctly named and placed.
+        *   Verify that a folder named "Google AI Studio" (case-sensitive) exists in the root of your Google Drive. AiStudio4 will look for files to import from, and save exported files to, this specific folder.
+    *   **No Files Listed for Import:**
+        *   Check that your JSON files exported from Google AI Studio are located directly within the "Google AI Studio" folder in your Google Drive. Subfolders are not currently scanned.
+        *   Ensure the files are in the expected JSON format.
+    *   **Conversion Errors During Import/Export:**
+        *   The file format from Google AI Studio or AiStudio4 might have changed or might not be fully compatible. Report this issue with details of the error message if possible. This can happen if the structure of the exported/imported JSON is not what AiStudio4 expects.

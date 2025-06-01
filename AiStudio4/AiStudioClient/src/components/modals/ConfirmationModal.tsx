@@ -30,13 +30,13 @@ export function ConfirmationModal() {
   } = props;
 
   const handleCancel = () => {
-    // closeModal(); // Let onOpenChange handle closing
     onCancel?.();
+    closeModal(); // Explicitly close the modal
   };
 
   const handleConfirm = () => {
-    // closeModal(); // Let onOpenChange handle closing
     onConfirm();
+    closeModal(); // Explicitly close the modal
   };
 
   return (

@@ -129,3 +129,35 @@ AiStudio4 can transcribe audio from media files using a local Whisper.net model 
     *   Once complete, a message will indicate the transcription is ready.
     *   Select `Transcribe > Insert Last Transcription` from the menu.
     *   The transcribed text (in VTT format) will be appended to your current input in the Input Bar.
+
+## 4.7 Google AI Studio Integration
+AiStudio4 allows you to import conversations from Google AI Studio and export conversations back to Google Drive for use in Google's ecosystem.
+
+### 4.7.1 Importing Conversations from Google AI Studio
+1.  **Ensure Setup:** 
+    *   You may need to authorize AiStudio4 to access your Google Drive the first time you use this feature.
+    *   A `credentials.json` file (obtained from your Google Cloud Console for an OAuth 2.0 Desktop app) is required in your `%APPDATA%\AiStudio4\Config\` directory.
+    **Initiate Import:**
+    *   Go to `File > Import/Export > Import from Google AI Studio via Google Drive` in the application menu.
+3.  **Select Files:**
+    *   A dialog will appear listing JSON files found in your "Google AI Studio" Drive folder.
+    *   Select the conversation file(s) you wish to import and click "Import Selected".
+4.  **Select Messages (Per File):**
+    *   For each selected file, another dialog will appear showing the messages from that conversation.
+    *   Select the specific messages you want to include in the imported AiStudio4 conversation.
+    *   Click "Import Selected" or "Import All" for that file.
+5.  **Completion:**
+    *   The selected messages will be converted and saved as a new conversation in AiStudio4.
+    *   The new conversation(s) will appear in your Conversation History, and the first successfully imported conversation will be automatically loaded.
+
+### 4.7.2 Exporting Conversations to Google AI Studio
+1.  **Ensure Setup:** Similar to importing, ensure Google Drive authorization is complete and the "Google AI Studio" folder exists.
+2.  **Initiate Export:**
+    *   Go to `File > Import/Export > Upload current thread to Google AI Studio....`
+3.  **Conversation Selection:**
+    *   AiStudio4 will automatically select the main branch of your most recently modified conversation for export.
+4.  **Filename Prompt:**
+    *   A dialog will prompt you for a filename. A default name based on the conversation summary and timestamp will be provided (e.g., `MySummary_20250601103000.json`). You can change this if needed.
+5.  **Upload:**
+    *   The conversation will be converted to Google AI Studio format and uploaded as a JSON file to your "Google AI Studio" folder on Google Drive.
+    *   A confirmation message will appear with the file ID if successful.

@@ -164,4 +164,22 @@ WebSockets are extensively used for:
 *   Streaming AI responses.
 *   Live conversation updates across different UI components.
 *   Displaying status messages from the backend.
-*   (Potentially) Project file system monitoring for real-time updates.
+
+## 5.6 Integrations
+
+### 5.6.1 Google AI Studio Integration
+AiStudio4 offers integration with Google AI Studio via Google Drive, allowing for a seamless exchange of conversation data.
+
+*   **Purpose:** Facilitates users who work across both AiStudio4 and Google AI Studio or wish to migrate/backup conversations between these platforms.
+*   **Import Process:** 
+    1.  AiStudio4 accesses your Google Drive (requires authorization).
+    2.  It looks for JSON files within a dedicated "Google AI Studio" folder.
+    3.  Users select which files to import.
+    4.  For each file, users can then select specific messages to include.
+    5.  The selected data is converted from Google AI Studio format and saved as a new AiStudio4 conversation.
+*   **Export Process:**
+    1.  The main branch of the most recently modified AiStudio4 conversation is selected.
+    2.  It's converted to Google AI Studio's JSON format.
+    3.  Users are prompted for a filename.
+    4.  The resulting file is uploaded to the "Google AI Studio" folder in your Google Drive.
+*   **Setup:** This feature requires a `credentials.json` file (OAuth 2.0 Desktop App credential from Google Cloud Console) to be placed in `%APPDATA%\AiStudio4\Config\`.
