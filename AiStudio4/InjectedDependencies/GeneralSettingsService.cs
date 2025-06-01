@@ -370,7 +370,7 @@ namespace AiStudio4.InjectedDependencies
             CurrentSettings.SecondaryModel = model?.ModelName ?? modelGuidOrName;
             SaveSettings(); 
         }
-        public void MigrateModelNamesToGuids() { /* As before */ }
+        public void MigrateModelNamesToGuids() { }
         public void AddModel(Model model) { CurrentSettings.ModelList.Add(model); SaveSettings(); }
         public void UpdateModel(Model updatedModel) { 
             var existing = CurrentSettings.ModelList.FirstOrDefault(m => m.Guid == updatedModel.Guid);

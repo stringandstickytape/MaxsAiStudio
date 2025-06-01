@@ -113,7 +113,7 @@ namespace VSIXTest
 
                             List<MemberDetail> methods = RoslynHelper.ExtractMembersUsingRoslyn(sourceCode, fileName);
 
-                            List<Member> members = methods.Select(m => new Member(m.ItemName, m.MemberType, m.SourceCode)).ToList();
+                            List<Member> members = methods.Select(m => new Member(m.ItemName, m.MemberType, m.SourceCode, m.Namespace)).ToList();
 
                             filesWithMembers.Add(new FileWithMembers(filePath, members));
                         }
@@ -336,11 +336,6 @@ namespace VSIXTest
             // Add your file extension filters here
             string[] validExtensions = new string[0] { /* ".cs", ".vb", ".ts", ".js" */ }; // modify as needed
 
-            // Check if it's a valid extension
-            //if (!validExtensions.Contains(Path.GetExtension(filePath).ToLower()))
-            //    return false;
-
-            // Exclude binary folders and hidden folders
             string[] excludeFolders = new[] {
         "\\bin\\",
         "\\obj\\",

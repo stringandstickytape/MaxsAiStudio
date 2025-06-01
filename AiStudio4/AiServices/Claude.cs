@@ -550,15 +550,7 @@ namespace AiStudio4.AiServices
                 var eventType = eventData["type"].ToString();
 
                 switch (eventType)
-                {/*{
-                    "type": "content_block_start",
-  "index": 0,
-  "content_block": {
-                        "type": "tool_use",
-    "id": "toolu_01FbXDHWtGJh7WqjbBEGyQxR",
-    "name": "codeblock",
-    "input": { }
-                    }*/
+                {
                     case "content_block_start":
                         var contentBlockType = eventData["content_block"]?["type"];
                         if (contentBlockType.ToString() == "tool_use")

@@ -335,16 +335,6 @@ namespace AiStudio4.Core.Tools
             ((JArray)request["tools"][0]["function_declarations"]).Add(toolConfig);
             
 
-              /*  request["tools"] = new JArray
-            {
-                new JObject
-                {
-                    ["function_declarations"] = new JArray { toolConfig }
-                }
-            };*/
-
-
-
             request["tool_config"] = new JObject
             {
                 ["function_calling_config"] = new JObject
