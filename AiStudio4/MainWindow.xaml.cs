@@ -1,4 +1,4 @@
-
+﻿
 using AiStudio4.Dialogs; 
 using AiStudio4.InjectedDependencies; 
 using AiStudio4.Services;
@@ -989,6 +989,33 @@ public partial class WebViewWindow : Window
             MessageBox.Show("Packer exclude filenames updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
+
+private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEventArgs e)
+{
+    var currentList = _generalSettingsService.CurrentSettings.PackerExcludeFolderNames ?? new System.Collections.Generic.List<string>();
+    string defaultValue = string.Join(Environment.NewLine, currentList);
+    var dialog = new WpfInputDialog(
+        "Set Packer Exclude Folder Names",
+        "Enter folder names to exclude (one per line, e.g., bin, obj, node_modules):",
+        defaultValue)
+    {
+        Owner = this
+    };
+    if (dialog.ShowDialog() == true)
+    {
+        var input = dialog.ResponseText;
+        var list = input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+            .Select(s => s.Trim())
+            .Where(s => !string.IsNullOrEmpty(s) && 
+                        !s.Contains(Path.DirectorySeparatorChar) && 
+                        !s.Contains(Path.AltDirectorySeparatorChar)) // Ensure only names, no paths
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
+        _generalSettingsService.CurrentSettings.PackerExcludeFolderNames = list;
+        _generalSettingsService.SaveSettings();
+        MessageBox.Show("Packer exclude folder names updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+}
 
     private void SetConversationZipRetentionMenuItem_Click(object sender, RoutedEventArgs e)
     {

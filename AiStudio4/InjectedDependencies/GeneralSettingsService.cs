@@ -1,4 +1,4 @@
-
+﻿
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -218,6 +218,13 @@ namespace AiStudio4.InjectedDependencies
                         {
                             CurrentSettings.EncryptedAzureDevOpsPAT = CurrentSettings.AzureDevOpsPAT != null ? Convert.ToBase64String(ProtectData(CurrentSettings.AzureDevOpsPAT)) : null;
                             CurrentSettings.AzureDevOpsPAT = null;
+                            settingsModifiedDuringLoad = true;
+                        }
+
+                        // Initialize PackerExcludeFolderNames if it's null (e.g., from older settings file)
+                        if (CurrentSettings.PackerExcludeFolderNames == null)
+                        {
+                            CurrentSettings.PackerExcludeFolderNames = new List<string>();
                             settingsModifiedDuringLoad = true;
                         }
 

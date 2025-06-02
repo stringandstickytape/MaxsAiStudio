@@ -1,4 +1,4 @@
-
+﻿
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
 using SharedClasses.Git;
@@ -132,32 +132,82 @@ namespace AiStudio4.Core.Services
 
 
 
-        private List<string> GetAllDirectories(string rootPath, GitIgnoreFilterManager gitIgnoreFilter)
+    // Add this helper method to ProjectPackager class
+    private bool IsFolderExcluded(string folderName)
+    {
+        if (string.IsNullOrWhiteSpace(folderName))
         {
-            var directories = new List<string>();
+            return false;
+        }
+        var excludeFolderNames = _generalSettingsService.CurrentSettings.PackerExcludeFolderNames;
+        if (excludeFolderNames == null || !excludeFolderNames.Any())
+        {
+            return false;
+        }
+        return excludeFolderNames.Contains(folderName, StringComparer.OrdinalIgnoreCase);
+    }
 
-            try
+        private List<string> GetAllDirectories(string rootPath, GitIgnoreFilterManager gitIgnoreFilter)
+    {
+        var directories = new List<string>();
+        try
+        {
+            var queue = new Queue<string>();
+            queue.Enqueue(rootPath);
+
+            while (queue.Count > 0)
             {
-                foreach (var dir in Directory.GetDirectories(rootPath, "*", SearchOption.AllDirectories))
+                var currentDir = queue.Dequeue();
+                
+                // Gitignore check
+                if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(currentDir + Path.DirectorySeparatorChar) && currentDir != rootPath)
                 {
-                    if (dir.EndsWith("\\.git") || dir.Contains("\\.git\\"))
-                        continue;
+                    _logger.LogInformation($"Skipping directory {currentDir} (in GetAllDirectories) due to .gitignore rules.");
+                    continue;
+                }
 
-                    if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(dir + Path.DirectorySeparatorChar))
+                // Folder name exclusion check
+                var currentDirName = Path.GetFileName(currentDir); // Name of the current directory being processed
+                if (currentDir != rootPath && IsFolderExcluded(currentDirName))
+                {
+                    _logger.LogInformation($"Skipping directory {currentDir} (in GetAllDirectories) due to packer exclude folder name '{currentDirName}'.");
+                    continue;
+                }
+
+                if (currentDir != rootPath) {
+                    directories.Add(currentDir);
+                }
+
+                foreach (var subDir in Directory.GetDirectories(currentDir))
+                {
+                    var subDirName = Path.GetFileName(subDir);
+                    if (subDirName.Equals(".git", StringComparison.OrdinalIgnoreCase) ||
+                        subDirName.Equals(".vs", StringComparison.OrdinalIgnoreCase)) 
                     {
                         continue;
                     }
-
-                    directories.Add(dir);
+                    // Check .gitignore for subdirectory before enqueuing
+                    if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(subDir + Path.DirectorySeparatorChar))
+                    {
+                         _logger.LogInformation($"Skipping subdirectory {subDir} (in GetAllDirectories queueing) due to .gitignore rules.");
+                        continue;
+                    }
+                    // Check exclude list for subdirectory before enqueuing
+                    if (IsFolderExcluded(subDirName))
+                    {
+                        _logger.LogInformation($"Skipping subdirectory {subDir} (in GetAllDirectories queueing) due to packer exclude folder name '{subDirName}'.");
+                        continue;
+                    }
+                    queue.Enqueue(subDir);
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, $"Error accessing directories: {ex.Message}");
-            }
-
-            return directories;
         }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Error accessing directories: {ex.Message}");
+        }
+        return directories;
+    }
 
 
 
@@ -187,6 +237,7 @@ namespace AiStudio4.Core.Services
         private void AddFilesFromDirectory(string directory, List<string> files, GitIgnoreFilterManager gitIgnoreFilter,
             List<string> textExtensions, List<string> binaryExtensions)
         {
+            // Existing file processing logic from current ProjectPackager.cs
             try
             {
                 foreach (var file in Directory.GetFiles(directory))
@@ -228,6 +279,37 @@ namespace AiStudio4.Core.Services
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, $"Error accessing files in directory {directory}: {ex.Message}");
+            }
+
+            // --- MODIFIED RECURSION PART (from design document) ---
+            try
+            {
+                foreach (var subDir in Directory.GetDirectories(directory))
+                {
+                    var subDirName = Path.GetFileName(subDir);
+                    if (subDirName.Equals(".git", StringComparison.OrdinalIgnoreCase) ||
+                        subDirName.Equals(".vs", StringComparison.OrdinalIgnoreCase)) 
+                    {
+                        continue;
+                    }
+                    
+                    if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(subDir + Path.DirectorySeparatorChar))
+                    {
+                        _logger.LogInformation($"Skipping subdirectory {subDir} (in AddFilesFromDirectory recursion) due to .gitignore rules.");
+                        continue;
+                    }
+
+                    if (IsFolderExcluded(subDirName)) // This is the new check from the design
+                    {
+                        _logger.LogInformation($"Skipping subdirectory {subDir} (in AddFilesFromDirectory recursion) due to packer exclude folder name '{subDirName}'.");
+                        continue;
+                    }
+                    AddFilesFromDirectory(subDir, files, gitIgnoreFilter, textExtensions, binaryExtensions); // Recursive call
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Error accessing subdirectories in {directory}: {ex.Message}");
             }
         }
 

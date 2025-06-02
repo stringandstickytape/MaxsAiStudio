@@ -188,7 +188,7 @@ In the Input Bar:
 *   From the application menu: `Project > Pack Project Source Code`.
 *   This tool creates a comprehensive XML package containing the source code of your project.
 *   It respects `.gitignore` rules.
-*   You can configure which file types to include (`Project > Set Packer Include File Types...`) and specific filenames/patterns to exclude (`Project > Set Packer Exclude Filenames...`).
+*   You can configure which file types to include (`Project > Set Packer Include File Types...`), specific filenames/patterns to exclude (`Project > Set Packer Exclude Filenames...`), and specific folder names to exclude (`Project > Set Packer Exclude Folder Names...`).
 *   The output XML includes the directory structure and the content of each included file. This is useful for providing a large codebase snapshot to an AI that might have context window limitations or no direct file system access.
 
 ## 5.5 Backend and Core Functionality

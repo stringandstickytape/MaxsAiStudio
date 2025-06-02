@@ -16,6 +16,7 @@ Most user preferences and data are stored in JSON files within this directory on
     *   `CondaPath`: Path to your Conda environment.
     *   `AllowConnectionsOutsideLocalhost`: (Requires restart) If `true`, the Kestrel server listens on all network interfaces.
     *   `PackerIncludeFileTypes`, `PackerExcludeFilenames`: Settings for the Project Packager.
+    *   `PackerExcludeFolderNames`: (List of strings) A list of folder names (e.g., "bin", "obj", "node_modules") that will be excluded during project source code packaging. Case-insensitive.
     *   `ConversationZipRetentionDays`, `ConversationDeleteZippedRetentionDays`: Settings for conversation archiving.
 *   **`systemPrompts/`**: Directory containing your saved System Prompts as `.prompt.json` files.
 *   **`UserPrompts/`**: Directory containing your saved User Prompts as `.prompt.json` files.
