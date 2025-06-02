@@ -391,12 +391,8 @@ export function InputBar({
                         <TopPControl />
                     </div>
 
-                    {/* Status Message Section - Placed at the end for right alignment */}
-                    <div className="ml-auto"> {/* This will push StatusMessage to the right */}
-                        <StatusSection isAtBottom={isAtBottom} disabled={disabled} />
-                    </div>
-
                     <StatusMessage />
+                    
                 </div>
             </div>
         </div>
