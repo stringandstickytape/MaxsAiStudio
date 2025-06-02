@@ -6,6 +6,8 @@
 
 Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered to serve as a comprehensive AI-powered workspace for software developers, power users, and anyone looking to harness the capabilities of modern AI models. It provides a unified interface for interacting with various Large Language Models (LLMs), an extensible tool ecosystem, and deep integration with local development projects.
 
+![My Image](docs/readme/main.png)
+
 ## Quick Start
 
 1. **Set Project Path**: Go to `File > Project > Set Project Path...` and select your project root directory
