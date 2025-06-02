@@ -1,17 +1,17 @@
-﻿// AiStudio4/MainWindow.xaml.cs
-using AiStudio4.Dialogs; // For WpfInputDialog
-using AiStudio4.InjectedDependencies; // For IGeneralSettingsService
+
+using AiStudio4.Dialogs; 
+using AiStudio4.InjectedDependencies; 
 using AiStudio4.Services;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
-using AiStudio4.Services.Interfaces; // Added for IDotNetProjectAnalyzerService
+using AiStudio4.Services.Interfaces; 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32; // Added for OpenFolderDialog
+using Microsoft.Win32; 
 using System;
 using System.Text;
-using AiStudio4.Dialogs; // For GoogleDriveFileSelectionDialog
+using AiStudio4.Dialogs; 
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -26,7 +26,7 @@ using System.IO;
 using System.Diagnostics;
 using AiStudio4.Core.Services;
 using static RoslynHelper;
-using System.Collections.Generic; // Required for List<string>
+using System.Collections.Generic; 
 using AiStudio4.Core.Models;
 using Newtonsoft.Json;
 
@@ -80,37 +80,37 @@ public partial class WebViewWindow : Window
         _projectFileWatcherService = projectFileWatcherService;
         _googleDriveService = googleDriveService; 
 
-        // Initialize license file paths
+        
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
         _licensesJsonPath = Path.Combine(baseDir, "AiStudioClient", "dist", "licenses.txt");
         _nugetLicense1Path = Path.Combine(baseDir, "app-nuget-license.txt");
         _nugetLicense2Path = Path.Combine(baseDir, "sharedclasses-nuget-license.txt");
         
         InitializeComponent();
-        UpdateWindowTitle(); // Set initial window title
-        UpdateRecentProjectsMenu(); // Populate recent projects menu
-        UpdateAllowConnectionsOutsideLocalhostMenuItem(); // Set initial checkbox state
-        UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
+        UpdateWindowTitle(); 
+        UpdateRecentProjectsMenu(); 
+        UpdateAllowConnectionsOutsideLocalhostMenuItem(); 
+        UpdateUseExperimentalCostTrackingMenuItem(); 
         webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
         _generalSettingsService.SettingsChanged += OnGeneralSettingsChanged;
     }
 
     private async void ImportFromGoogleDriveMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        ImportFromGoogleDriveMenuItem.IsEnabled = false; // Disable while processing
+        ImportFromGoogleDriveMenuItem.IsEnabled = false; 
         try
         {
             Debug.WriteLine("[UI] Clicked Import from Google Drive.");
 
-            // --- Obtain Client ID ---
+            
             string currentWebSocketClientId = null;
-            if (webView.CoreWebView2 != null) // Ensure CoreWebView2 is initialized
+            if (webView.CoreWebView2 != null) 
             {
                 try
                 {
-                    // Ensure webView is your AiStudioWebView2 instance
+                    
                     string jsResult = await webView.CoreWebView2.ExecuteScriptAsync("window.webSocketService ? window.webSocketService.getClientId() : null;");
-                    if (jsResult != null && jsResult != "null" && jsResult != "\"null\"") // jsResult is a JSON string like "\"client-guid\""
+                    if (jsResult != null && jsResult != "null" && jsResult != "\"null\"") 
                     {
                         currentWebSocketClientId = JsonConvert.DeserializeObject<string>(jsResult);
                         _logger.LogInformation("Obtained clientId from WebView2: {ClientId}", currentWebSocketClientId);
@@ -123,7 +123,7 @@ public partial class WebViewWindow : Window
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Failed to get clientId from WebView2 for import notification.");
-                    // Decide if to proceed without targeted notification or show an error
+                    
                 }
             }
             else
@@ -131,10 +131,10 @@ public partial class WebViewWindow : Window
                 _logger.LogWarning("CoreWebView2 not initialized when trying to get clientId.");
             }
 
-            // --- Get file list from Google Drive ---
+            
             var fileList = await _googleDriveService.ListFilesFromAiStudioFolderAsync();
 
-            if (fileList == null) // Indicates an error during service execution
+            if (fileList == null) 
             {
                 Debug.WriteLine("[UI] Failed to retrieve file list from Google Drive. See logs/previous messages.");
                 MessageBox.Show("Could not connect to Google Drive or an error occurred. Please check the application logs. Ensure you have authorized AiStudio4 and have a 'credentials.json' file.", "Google Drive Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -148,10 +148,10 @@ public partial class WebViewWindow : Window
                 return;
             }
 
-            // --- Display file selection dialog ---
+            
             var dialog = new GoogleDriveFileSelectionDialog(fileList)
             {
-                Owner = this // Set the owner to center the dialog over the main window
+                Owner = this 
             };
 
             bool? dialogResult = dialog.ShowDialog();
@@ -181,10 +181,10 @@ public partial class WebViewWindow : Window
                     Debug.WriteLine($"[UI] Error downloading file content for {fileToImport.Name}: {downloadEx.Message}");
                     _logger.LogError(downloadEx, "Error downloading file content for {FileName}", fileToImport.Name);
                     MessageBox.Show($"Error downloading file content for '{fileToImport.Name}': {downloadEx.Message}", "Download Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    continue; // Continue with next file
+                    continue; 
                 }
 
-                // --- Convert Google AI Studio format to AiStudio4 format ---
+                
                 v4BranchedConv convertedConv;
                 try
                 {
@@ -196,10 +196,10 @@ public partial class WebViewWindow : Window
                     Debug.WriteLine($"[UI] Error converting Google AI Studio format for {fileToImport.Name}: {convertEx.Message}");
                     _logger.LogError(convertEx, "Error converting Google AI Studio format for {FileName}", fileToImport.Name);
                     MessageBox.Show($"Error converting Google AI Studio format for '{fileToImport.Name}': {convertEx.Message}", "Conversion Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    continue; // Continue with next file
+                    continue; 
                 }
 
-                // --- Show message selection dialog ---
+                
                 var messageSelectionDialog = new MessageSelectionDialog(convertedConv)
                 {
                     Owner = this
@@ -209,10 +209,10 @@ public partial class WebViewWindow : Window
                 if (messageDialogResult != true || !messageSelectionDialog.SelectedMessages.Any())
                 {
                     Debug.WriteLine($"[UI] Message selection cancelled or no messages selected for {fileToImport.Name}.");
-                    continue; // Skip this conversation
+                    continue; 
                 }
 
-                // --- Create filtered conversation with selected messages ---
+                
                 var importedConv = new v4BranchedConv
                 {
                     ConvId = convertedConv.ConvId,
@@ -221,20 +221,20 @@ public partial class WebViewWindow : Window
                     Messages = new List<v4BranchedConvMessage>()
                 };
 
-                // Add system root message if it exists
+                
                 var systemMessage = convertedConv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.System);
                 if (systemMessage != null)
                 {
                     importedConv.Messages.Add(systemMessage.Clone());
                 }
 
-                // Add selected messages
+                
                 foreach (var selectedMessage in messageSelectionDialog.SelectedMessages)
                 {
                     importedConv.Messages.Add(selectedMessage.Clone());
                 }
 
-                // Rebuild parent-child relationships for selected messages
+                
                 RebuildMessageRelationships(importedConv.Messages);
 
                 importedConversations.Add(importedConv);
@@ -245,7 +245,7 @@ public partial class WebViewWindow : Window
 
                 Debug.WriteLine($"[UI] Created filtered conversation with {importedConv.Messages.Count} messages (including system message).");
 
-                // --- Save the converted conversation ---
+                
                 try
                 {
                     if (_convStorage == null)
@@ -261,10 +261,10 @@ public partial class WebViewWindow : Window
                     Debug.WriteLine($"[UI] Error saving imported conversation: {saveEx.Message}");
                     _logger.LogError(saveEx, "Error saving imported conversation {ConvId}", importedConv.ConvId);
                     MessageBox.Show($"Error saving imported conversation '{importedConv.Summary}': {saveEx.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    continue; // Continue with next file
+                    continue; 
                 }
 
-                // --- Notify all clients to update conversation list for this single conversation ---
+                
                 try
                 {
                     var messagesForListDto = importedConv.Messages.Select(m => new
@@ -286,7 +286,7 @@ public partial class WebViewWindow : Window
                     {
                         ConvId = importedConv.ConvId,
                         Summary = importedConv.Summary,
-                        LastModified = DateTime.UtcNow.ToString("o"), // ISO 8601 format
+                        LastModified = DateTime.UtcNow.ToString("o"), 
                         FlatMessageStructure = messagesForListDto
                     });
 
@@ -305,7 +305,7 @@ public partial class WebViewWindow : Window
                 return;
             }
 
-            // --- Notify initiating client to load the first successfully imported conversation ---
+            
             if (!string.IsNullOrEmpty(currentWebSocketClientId) && !string.IsNullOrEmpty(firstImportedConvId))
             {
                 var firstConvToLoad = importedConversations.First(c => c.ConvId == firstImportedConvId);
@@ -328,21 +328,21 @@ public partial class WebViewWindow : Window
 
                     var loadConvPayload = new
                     {
-                        messageType = "loadConv", // Client-side uses this to identify the action
+                        messageType = "loadConv", 
                         content = new
                         {
                             convId = firstConvToLoad.ConvId,
-                            messages = fullMessagesForLoad, // The array of full messages
-                            summary = firstConvToLoad.Summary // Optional: if client needs it for 'loadConv'
+                            messages = fullMessagesForLoad, 
+                            summary = firstConvToLoad.Summary 
                         }
                     };
 
                     await _notificationService.NotifyConvUpdate(currentWebSocketClientId, new ConvUpdateDto
                     {
-                        ConvId = firstConvToLoad.ConvId, // Target conversation
-                        MessageId = null, // Not a specific message update
-                        Content = loadConvPayload, // The special payload
-                        Source = "system_import", // Indicate source
+                        ConvId = firstConvToLoad.ConvId, 
+                        MessageId = null, 
+                        Content = loadConvPayload, 
+                        Source = "system_import", 
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     });
 
@@ -355,7 +355,7 @@ public partial class WebViewWindow : Window
                 }
             }
 
-            // --- Show success message ---
+            
             string successMessage;
             if (importedConversations.Count == 1)
             {
@@ -377,7 +377,7 @@ public partial class WebViewWindow : Window
 
             MessageBox.Show(successMessage, "Import Successful", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-        catch (FileNotFoundException fnfEx) // Specifically for missing credentials.json
+        catch (FileNotFoundException fnfEx) 
         {
             Debug.WriteLine($"[UI] Google Drive credentials error: {fnfEx.Message}");
             MessageBox.Show(fnfEx.Message, "Google Drive Setup Required", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -389,18 +389,18 @@ public partial class WebViewWindow : Window
         }
         finally
         {
-            ImportFromGoogleDriveMenuItem.IsEnabled = true; // Re-enable menu item
+            ImportFromGoogleDriveMenuItem.IsEnabled = true; 
         }
     }
     private void OnGeneralSettingsChanged(object sender, EventArgs e)
     {
         Application.Current.Dispatcher.Invoke(() =>
         {
-            // This ensures all menu items reflecting settings are updated
+            
             UpdateWindowTitle();
             UpdateAllowConnectionsOutsideLocalhostMenuItem();
-            UpdateUseExperimentalCostTrackingMenuItem(); // <-- Add this
-            // UpdateConversationZipRetentionDays and UpdateConversationDeleteZippedRetentionDays do not have menu items that need updating directly based on settings changes
+            UpdateUseExperimentalCostTrackingMenuItem(); 
+            
         });
     }
 
@@ -415,7 +415,7 @@ public partial class WebViewWindow : Window
 
     private void UpdateWindowTitle()
     {
-        // Ensure ProjectPath is not null or empty before displaying
+        
         var projectPathDisplay = string.IsNullOrWhiteSpace(_generalSettingsService.CurrentSettings.ProjectPath)
             ? "[Project Path Not Set]"
             : _generalSettingsService.CurrentSettings.ProjectPath;
@@ -440,7 +440,7 @@ public partial class WebViewWindow : Window
                 string selectedPath = dialog.FolderName;
                 string oldPath = _generalSettingsService.CurrentSettings.ProjectPath;
                 
-                // Only update if the path actually changed
+                
                 if (selectedPath != oldPath)
                 {
                     _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
@@ -448,11 +448,11 @@ public partial class WebViewWindow : Window
                     _generalSettingsService.SaveSettings();
                     _projectHistoryService.SaveSettings();
                     
-                    // Make sure to update the project root in all tools
+                    
                     _builtinToolService.UpdateProjectRoot();
                     
-                    UpdateWindowTitle(); // Update title bar after changing the path
-                    UpdateRecentProjectsMenu(); // Update the recent projects menu
+                    UpdateWindowTitle(); 
+                    UpdateRecentProjectsMenu(); 
                 }
             }
             catch (Exception ex)
@@ -480,7 +480,7 @@ public partial class WebViewWindow : Window
             var menuItem = new MenuItem
             {
                 Header = FormatPathForMenu(path, i + 1),
-                Tag = path // Store the full path
+                Tag = path 
             };
             menuItem.Click += RecentProjectPathMenuItem_Click;
             RecentProjectsMenuItem.Items.Add(menuItem);
@@ -489,10 +489,10 @@ public partial class WebViewWindow : Window
 
     private string FormatPathForMenu(string path, int index)
     {
-        // Simple formatting, potentially shorten long paths
+        
         const int maxLength = 50;
         string displayPath = path.Length > maxLength ? "..." + path.Substring(path.Length - maxLength) : path;
-        return $"_{index} {displayPath}"; // Add accelerator key
+        return $"_{index} {displayPath}"; 
     }
 
     private void RecentProjectPathMenuItem_Click(object sender, RoutedEventArgs e)
@@ -503,7 +503,7 @@ public partial class WebViewWindow : Window
             {
                 string oldPath = _generalSettingsService.CurrentSettings.ProjectPath;
                 
-                // Only update if the path actually changed
+                
                 if (selectedPath != oldPath)
                 {
                     _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
@@ -511,7 +511,7 @@ public partial class WebViewWindow : Window
                     _generalSettingsService.SaveSettings();
                     _projectHistoryService.SaveSettings();
                     
-                    // Make sure to update the project root in all tools
+                    
                     _builtinToolService.UpdateProjectRoot();
                     
                     UpdateWindowTitle();
@@ -558,14 +558,14 @@ public partial class WebViewWindow : Window
 
         var dialog = new WpfInputDialog(title, prompt, currentKey)
         {
-            Owner = this // Set the owner to center the dialog over the main window
+            Owner = this 
         };
 
         if (dialog.ShowDialog() == true)
         {
             string newKey = dialog.ResponseText;
 
-            // Check if the key actually changed
+            
             if (newKey != currentKey)
             {
                 try
@@ -583,19 +583,19 @@ public partial class WebViewWindow : Window
 
     private void SetYouTubeApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        // Get current decrypted key for display, or empty string if null
+        
         string currentKey = _generalSettingsService.GetDecryptedYouTubeApiKey() ?? string.Empty;
         var dialog = new WpfInputDialog("Set YouTube API Key", "Enter your YouTube Data API v3 Key:", currentKey) { Owner = this };
 
         if (dialog.ShowDialog() == true)
         {
             string newKey = dialog.ResponseText;
-            // Check if the key actually changed before updating
+            
             if (newKey != currentKey)
             {
                 try
                 {
-                    _generalSettingsService.UpdateYouTubeApiKey(newKey); // Service handles encryption
+                    _generalSettingsService.UpdateYouTubeApiKey(newKey); 
                     MessageBox.Show("YouTube API Key updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -695,7 +695,7 @@ public partial class WebViewWindow : Window
             }
 
             var destPath = Path.GetDirectoryName(filename);
-            //destPath = destPath.Replace("\\", "/");
+            
             if (destPath.EndsWith("/") || destPath.EndsWith("\\"))
                 destPath = destPath.Substring(0, destPath.Length - 1);
 
@@ -755,15 +755,15 @@ public partial class WebViewWindow : Window
     {
         try
         {
-            // Toggle the setting
+            
             bool currentValue = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
             _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost = !currentValue;
             _generalSettingsService.SaveSettings();
             
-            // Update the menu item
+            
             UpdateAllowConnectionsOutsideLocalhostMenuItem();
             
-            // Show a message to restart the application
+            
             MessageBox.Show(
                 "The server connection setting has been changed. Please restart the application for the changes to take effect.",
                 "Restart Required",
@@ -778,7 +778,7 @@ public partial class WebViewWindow : Window
     
     private void UpdateAllowConnectionsOutsideLocalhostMenuItem()
     {
-        // Update the checkbox state based on the current setting
+        
         if (AllowConnectionsOutsideLocalhostMenuItem != null)
         {
             AllowConnectionsOutsideLocalhostMenuItem.IsChecked = _generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost;
@@ -789,11 +789,11 @@ public partial class WebViewWindow : Window
     {
         try
         {
-            // The IsChecked state is automatically toggled by WPF for a checkable MenuItem on click.
-            // We read this new state and save it.
+            
+            
             bool newValue = UseExperimentalCostTrackingMenuItem.IsChecked;
             _generalSettingsService.UpdateUseExperimentalCostTracking(newValue);
-            // No need to manually set IsChecked here again as WPF handles it.
+            
         }
         catch (Exception ex)
         {
@@ -829,7 +829,7 @@ public partial class WebViewWindow : Window
     {
         try
         {
-            // Validate project path
+            
             string projectPath = _generalSettingsService.CurrentSettings.ProjectPath;
             if (string.IsNullOrWhiteSpace(projectPath))
             {
@@ -843,7 +843,7 @@ public partial class WebViewWindow : Window
                 return;
             }
 
-            // Configure SaveFileDialog
+            
             var saveFileDialog = new SaveFileDialog
             {
                 Title = "Save Project Source Code Package",
@@ -856,10 +856,10 @@ public partial class WebViewWindow : Window
 
             if (saveFileDialog.ShowDialog() == true)
             {
-                // Get file extensions to include from settings
+                
                 var includeExtensions = _generalSettingsService.CurrentSettings.PackerIncludeFileTypes ?? new System.Collections.Generic.List<string>();
 
-                // Define binary file extensions to exclude
+                
                 var binaryFileExtensions = new List<string>
                 {
                     ".exe", ".dll", ".pdb", ".obj", ".bin", ".dat", ".zip", ".rar", ".7z", ".tar", ".gz",
@@ -867,13 +867,13 @@ public partial class WebViewWindow : Window
                     ".avi", ".mov", ".wmv", ".flv", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
                 };
 
-                // Show progress message
+                
                 MessageBox.Show("Creating project source code package. This may take a while for large projects.", "Processing", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // Create the package
+                
                 string xmlContent = await _projectPackager.CreatePackageAsync(projectPath, includeExtensions, binaryFileExtensions);
 
-                // Save the XML to the selected file
+                
                 await File.WriteAllTextAsync(saveFileDialog.FileName, xmlContent);
 
                 MessageBox.Show($"Project source code package created successfully at:\n{saveFileDialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -887,7 +887,7 @@ public partial class WebViewWindow : Window
 
     private async void TestReapplyMergeMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        // Create OpenFileDialog to browse for merge failure JSON files
+        
         var openFileDialog = new OpenFileDialog
         {
             Title = "Select Merge Failure JSON File",
@@ -902,7 +902,7 @@ public partial class WebViewWindow : Window
             
             try
             {
-                // Get required services from DI
+                
                 var app = Application.Current as App;
                 var logger = app.Services.GetService(typeof(ILogger<ModifyFileHandler>)) as ILogger;
                 var statusMessageService = app.Services.GetService(typeof(IStatusMessageService)) as IStatusMessageService;
@@ -914,10 +914,10 @@ public partial class WebViewWindow : Window
                     return;
                 }
 
-                // Generate a client ID for status messages
+                
                 string clientId = Guid.NewGuid().ToString();
 
-                // Call the static method to reapply the merge failure
+                
                 var result = await AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers.ModifyFileHandler.ReapplyMergeFailureAsync(
                     mergeFailureJsonPath,
                     logger,
@@ -925,7 +925,7 @@ public partial class WebViewWindow : Window
                     clientId,
                     secondaryAiService);
 
-                // Show the result
+                
                 MessageBox.Show(
                     result.Success ? "Merge successfully reapplied!" : $"Failed to reapply merge: {result.Message}",
                     result.Success ? "Success" : "Error",
@@ -1053,24 +1053,24 @@ public partial class WebViewWindow : Window
         }
     }
     
-    /// <summary>
-    /// Rebuilds parent-child relationships for a list of messages to ensure proper conversation flow.
-    /// This method chains messages sequentially based on their timestamps.
-    /// </summary>
-    /// <param name="messages">List of messages to rebuild relationships for</param>
+    
+    
+    
+    
+    
     private void RebuildMessageRelationships(List<v4BranchedConvMessage> messages)
     {
         if (messages == null || messages.Count <= 1)
             return;
 
-        // Sort messages by timestamp to ensure proper order
+        
         var sortedMessages = messages.OrderBy(m => m.Timestamp).ToList();
         
-        // Find the system message (if any) to use as root
+        
         var systemMessage = sortedMessages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.System);
         string currentParentId = systemMessage?.Id;
         
-        // Chain non-system messages sequentially
+        
         foreach (var message in sortedMessages.Where(m => m.Role != v4BranchedConvMessageRole.System))
         {
             message.ParentId = currentParentId;
@@ -1085,9 +1085,9 @@ public partial class WebViewWindow : Window
         {
             _logger.LogInformation("[UI] Clicked Upload current thread to Google Drive.");
 
-            // 1. Get the current/active conversation
-            // For simplicity, let's try to get the most recently modified conversation.
-            // A more robust solution would involve better state sharing with the client.
+            
+            
+            
             var allConvs = await _convStorage.GetAllConvs();
             if (allConvs == null || !allConvs.Any())
             {
@@ -1095,9 +1095,9 @@ public partial class WebViewWindow : Window
                 return;
             }
 
-            // Assuming GetAllConvs returns them ordered by last modified, or we sort here.
-            // For this example, let's just take the first one as "most recent".
-            // A real implementation might need a more sophisticated way to determine the "current thread".
+            
+            
+            
             var convToUpload = allConvs.OrderByDescending(c => 
                 c.Messages.Any() ? c.Messages.Max(m => m.Timestamp) : DateTime.MinValue
             ).FirstOrDefault();
@@ -1110,9 +1110,9 @@ public partial class WebViewWindow : Window
             
             _logger.LogInformation("Selected conversation '{ConvSummary}' (ID: {ConvId}) for upload.", convToUpload.Summary ?? "Untitled", convToUpload.ConvId);
 
-            // 2. Determine the "current thread" (e.g., main branch up to latest message)
-            // For this, we'll use GetMessageHistory up to the latest message in the conversation.
-            // We need to find the ID of the latest message.
+            
+            
+            
             string latestMessageId = null;
             if (convToUpload.Messages.Any())
             {
@@ -1125,8 +1125,8 @@ public partial class WebViewWindow : Window
                 return;
             }
 
-            // 3. Get default model name for runSettings
-            string defaultPrimaryModelName = "models/gemini-1.5-pro-latest"; // Fallback default
+            
+            string defaultPrimaryModelName = "models/gemini-1.5-pro-latest"; 
             if (!string.IsNullOrEmpty(_generalSettingsService.CurrentSettings.DefaultModelGuid))
             {
                 var primaryModel = _generalSettingsService.CurrentSettings.ModelList.FirstOrDefault(
@@ -1138,7 +1138,7 @@ public partial class WebViewWindow : Window
                 }
             }
             
-            // 4. Convert to Google AI Studio format
+            
             string googleJsonString;
             try
             {
@@ -1152,7 +1152,7 @@ public partial class WebViewWindow : Window
                 return;
             }
 
-            // 5. Prompt for filename
+            
             var safeSummary = SanitizeFileName(convToUpload.Summary ?? "aistudio_conversation");
             var defaultFileName = $"{safeSummary}_{DateTime.Now:yyyyMMddHHmmss}.json";
             
@@ -1163,9 +1163,9 @@ public partial class WebViewWindow : Window
                 return;
             }
             string fileName = SanitizeFileName(fileNameDialog.ResponseText);
-            //if (!fileName.EndsWith(".json", StringComparison.OrdinalIgnoreCase)) fileName += ".json";
+            
 
-            // 6. Upload to Google Drive
+            
             _logger.LogInformation("Attempting to upload '{FileName}' to Google Drive folder: Google AI Studio", fileName);
             string fileId = await _googleDriveService.UploadTextFileAsync(fileName, googleJsonString, "Google AI Studio");
 
@@ -1176,11 +1176,11 @@ public partial class WebViewWindow : Window
             }
             else
             {
-                // Specific error should have been logged by GoogleDriveService
+                
                 MessageBox.Show($"Failed to upload conversation to Google Drive. Please check logs.", "Upload Failed", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-        catch (FileNotFoundException fnfEx) // Specifically for missing credentials.json
+        catch (FileNotFoundException fnfEx) 
         {
             _logger.LogError(fnfEx, "Google Drive credentials error during upload.");
             MessageBox.Show(fnfEx.Message, "Google Drive Setup Required", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -1198,11 +1198,11 @@ public partial class WebViewWindow : Window
 
     private string SanitizeFileName(string fileName)
     {
-        // Remove invalid characters
+        
         string invalidChars = System.Text.RegularExpressions.Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
         string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
         string sanitized = System.Text.RegularExpressions.Regex.Replace(fileName, invalidRegStr, "_");
-        // Ensure it's not too long (Google Drive has limits, though generous)
+        
         return sanitized.Length > 100 ? sanitized.Substring(0, 100) : sanitized;
     }
 
@@ -1211,7 +1211,7 @@ public partial class WebViewWindow : Window
         _logger.LogInformation("Analyze .NET Projects menu item clicked.");
         try
         {
-            // Check if project path is set
+            
             string projectRootPath = _generalSettingsService.CurrentSettings.ProjectPath;
             if (string.IsNullOrEmpty(projectRootPath))
             {
@@ -1227,7 +1227,7 @@ public partial class WebViewWindow : Window
             overallResults.AppendLine($"Analysis Date: {DateTime.Now}");
             overallResults.AppendLine("===================================");
 
-            // Analyze all C# files in the project
+            
             _logger.LogInformation("Analyzing C# files in project: {ProjectPath}", projectRootPath);
             overallResults.AppendLine($"\nProject Directory: {projectRootPath}");
             overallResults.AppendLine("-----------------------------------");
@@ -1274,7 +1274,7 @@ public partial class WebViewWindow : Window
             string outputFileName = "DotNetProjectAnalysis.txt";
             string outputFilePath = System.IO.Path.Combine(projectRootPath, outputFileName);
 
-            // 3. Write concatenated results to the output file
+            
             try
             {
                 await System.IO.File.WriteAllTextAsync(outputFilePath, overallResults.ToString());

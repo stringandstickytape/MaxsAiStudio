@@ -1,4 +1,4 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
@@ -21,9 +21,9 @@ namespace AiStudio4.AiServices
     {
         public IToolService ToolService { get; set; }
         public IMcpService McpService { get; set; }
-        // Events removed
-        // public event EventHandler<string> StreamingTextReceived;
-        // public event EventHandler<string> StreamingComplete;
+        
+        
+        
 
         public string ChosenTool { get; set; } = null;
 
@@ -44,7 +44,7 @@ namespace AiStudio4.AiServices
         {
             if (!clientInitialised)
             {
-                // THIS LINE IS KEY: serviceProvider.ApiKey is now plaintext in memory
+                
                 ApiKey = serviceProvider.ApiKey;
                 ApiModel = model.ModelName;
                 ApiUrl = serviceProvider.Url;
@@ -52,12 +52,12 @@ namespace AiStudio4.AiServices
 
                 if (clientInitialised && client.DefaultRequestHeaders.Authorization?.Parameter == ApiKey && client.DefaultRequestHeaders.Authorization?.Scheme == "Bearer")
                 {
-                    // If already initialized with the same key, no need to reconfigure headers
-                    // Potentially check other headers if they might change too.
+                    
+                    
                     return;
                 }
 
-                ConfigureHttpClientHeaders(apiSettings); // This will use the (now plaintext) this.ApiKey
+                ConfigureHttpClientHeaders(apiSettings); 
 
                 client.Timeout = TimeSpan.FromSeconds(timeout);
                 clientInitialised = true;
@@ -72,14 +72,14 @@ namespace AiStudio4.AiServices
             }
         }
 
-        // New implementation using the options pattern
+        
         public virtual async Task<AiResponse> FetchResponse(AiRequestOptions options, bool forceNoTools = false)
         {
-            // Default implementation that calls the legacy method to be overridden by derived classes
+            
             return await FetchResponseInternal(options, forceNoTools);
         }
 
-        // Legacy method for backward compatibility
+        
         public Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,
             Model model,
@@ -93,20 +93,20 @@ namespace AiStudio4.AiServices
             bool addEmbeddings = false,
             string customSystemPrompt = null)
         {
-            // Convert to options and call the new method
+            
             var options = AiRequestOptions.Create(
                 serviceProvider, model, conv, base64image, base64ImageType,
                 cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
                 addEmbeddings, customSystemPrompt);
             
-            // Pass null for callbacks in the legacy overload
+            
             options.OnStreamingUpdate = null;
             options.OnStreamingComplete = null;
             
             return FetchResponse(options);
         }
         
-        // Internal method to be implemented by derived classes
+        
         protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false);
 
         protected virtual async Task<string> AddEmbeddingsIfRequired(
@@ -116,14 +116,14 @@ namespace AiStudio4.AiServices
             bool addEmbeddings,
             string content)
         {
-            //if (!addEmbeddings) 
+            
             return content;
-            //return await OllamaEmbeddingsHelper.AddEmbeddingsToInput(
-            //    conv,
-            //    apiSettings,
-            //    content,
-            //    mustNotUseEmbedding
-            //);
+            
+            
+            
+            
+            
+            
         }
         
         protected virtual JArray CreateAttachmentsArray(List<Attachment> attachments)
@@ -146,7 +146,7 @@ namespace AiStudio4.AiServices
                         }
                     });
                 }
-                // Text attachments could be added here if needed
+                
             }
             
             return result;
@@ -184,17 +184,17 @@ namespace AiStudio4.AiServices
 
         protected virtual TokenUsage ExtractTokenUsage(JObject response)
         {
-            return new TokenUsage("0", "0");  // Override in derived classes
+            return new TokenUsage("0", "0");  
         }
 
         protected virtual void ValidateResponse(HttpResponseMessage response)
         {
-            //response.EnsureSuccessStatusCode();
+            
         }
 
         protected virtual async Task<string> ExtractResponseText(JObject response)
         {
-            return await Task.FromResult(string.Empty);  // Override in derived classes
+            return await Task.FromResult(string.Empty);  
         }
 
         protected virtual async Task ProcessStreamingData(
@@ -202,13 +202,13 @@ namespace AiStudio4.AiServices
             StringBuilder responseBuilder,
             CancellationToken cancellationToken)
         {
-            // Override in derived classes to implement specific streaming logic
+            
             await Task.CompletedTask;
         }
 
         protected virtual JObject CreateMessageObject(LinearConvMessage message)
         {
-            // Override in derived classes to implement specific message format
+            
             return new JObject();
         }
 
@@ -216,7 +216,7 @@ namespace AiStudio4.AiServices
         {
             var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
             
-            // Add each tool to the request
+            
             foreach (var toolID in toolIDs)
             {
                 await toolRequestBuilder.AddToolToRequestAsync(request, toolID, GetToolFormat());
@@ -227,7 +227,7 @@ namespace AiStudio4.AiServices
 
         protected virtual ToolFormat GetToolFormat()
         {
-            return ToolFormat.OpenAI; // Default format
+            return ToolFormat.OpenAI; 
         }
     }
 }

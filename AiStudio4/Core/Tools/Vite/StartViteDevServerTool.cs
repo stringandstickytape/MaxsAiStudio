@@ -1,4 +1,4 @@
-﻿// AiStudio4/Core/Tools/Vite/StartViteDevServerTool.cs
+
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools.Vite
 {
-    /// <summary>
-    /// Implementation of the StartViteDevServer tool
-    /// </summary>
+    
+    
+    
     public class StartViteDevServerTool : BaseToolImplementation
     {
         private static Process _runningDevServer;
@@ -26,9 +26,9 @@ namespace AiStudio4.Core.Tools.Vite
             _dialogService = dialogService;
         }
 
-        /// <summary>
-        /// Gets the StartViteDevServer tool definition
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
@@ -69,9 +69,9 @@ namespace AiStudio4.Core.Tools.Vite
             };
         }
 
-        /// <summary>
-        /// Processes a StartViteDevServer tool call
-        /// </summary>
+        
+        
+        
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
@@ -79,12 +79,12 @@ namespace AiStudio4.Core.Tools.Vite
                 SendStatusUpdate("Starting StartViteDevServer tool execution...");
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
-                // Extract parameters with defaults
+                
                 var workingDirectory = parameters.ContainsKey("workingDirectory") ? parameters["workingDirectory"].ToString() : "";
                 var port = parameters.ContainsKey("port") ? Convert.ToInt32(parameters["port"]) : 5174;
                 var host = parameters.ContainsKey("host") ? parameters["host"].ToString() : "localhost";
 
-                // Get the working directory path (relative to project root for security)
+                
                 var workingPath = _projectRoot;
                 if (!string.IsNullOrEmpty(workingDirectory) && workingDirectory != _projectRoot)
                 {
@@ -96,7 +96,7 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                // Check if package.json exists
+                
                 var packageJsonPath = Path.Combine(workingPath, "package.json");
                 if (!File.Exists(packageJsonPath))
                 {
@@ -104,7 +104,7 @@ namespace AiStudio4.Core.Tools.Vite
                     return CreateResult(true, true, "Error: package.json not found in the specified directory.");
                 }
 
-                // Kill any existing dev server process
+                
                 if (_runningDevServer != null && !_runningDevServer.HasExited)
                 {
                     try
@@ -118,7 +118,7 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                // Confirmation Dialog
+                
                 string commandForDisplay = $"npm run dev -- --port {port} --host {host}";
                 string confirmationPrompt = $"AI wants to start the Vite development server in directory '{workingPath}' on {host}:{port}. This will open a new command window. Proceed?";
                 
@@ -131,37 +131,37 @@ namespace AiStudio4.Core.Tools.Vite
 
                 SendStatusUpdate($"Starting Vite dev server in {workingPath} on {host}:{port}...");
 
-                // Build the command with host and port options
+                
                 string command = $"npm run dev -- --port {port} --host {host}";
 
-                // Execute the dev server command using cmd.exe for npm
-                string npmCommand = "npm";
-                bool useCmd = true; // npm is a batch file and needs cmd.exe
                 
-                // Use the helper to create the process with window shown
+                string npmCommand = "npm";
+                bool useCmd = true; 
+                
+                
                 _runningDevServer = ViteCommandHelper.CreateProcess(npmCommand, command.Replace("npm ", ""), useCmd, workingPath, _logger, true);
 
-                // Start the process and don't redirect output/error since we want to show the window
+                
                 _runningDevServer.Start();
 
-                // Read the first few lines of output to get the server URL
-                //string output = "";
-                //for (int i = 0; i < 20; i++)
-                //{
-                //    string line = await _runningDevServer.StandardOutput.ReadLineAsync();
-                //    if (line == null) break;
-                //    output += line + "\n";
-                //    if (line.Contains("Local:") || line.Contains("ready in"))
-                //    {
-                //        break;
-                //    }
-                //}
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
 
-                // We don't need to read output if we're showing the window
-                // The user will see the output directly in the cmd window
+                
+                
 
-                // We don't need to read error output if we're showing the window
-                // The user will see the errors directly in the cmd window
+                
+                
 
                 SendStatusUpdate("Vite dev server started successfully.");
                 return CreateResult(true, true, $"Vite dev server started successfully on http://{host}:{port}\n\nInitial output:\n");

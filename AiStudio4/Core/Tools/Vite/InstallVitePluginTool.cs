@@ -1,4 +1,4 @@
-﻿// AiStudio4/Core/Tools/Vite/InstallVitePluginTool.cs
+
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools.Vite
 {
-    /// <summary>
-    /// Implementation of the InstallVitePlugin tool
-    /// </summary>
+    
+    
+    
     public class InstallVitePluginTool : BaseToolImplementation
     {
         private readonly IDialogService _dialogService;
@@ -27,9 +27,9 @@ namespace AiStudio4.Core.Tools.Vite
             _dialogService = dialogService;
         }
 
-        /// <summary>
-        /// Gets the InstallVitePlugin tool definition
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
@@ -65,9 +65,9 @@ namespace AiStudio4.Core.Tools.Vite
             };
         }
 
-        /// <summary>
-        /// Processes an InstallVitePlugin tool call
-        /// </summary>
+        
+        
+        
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
@@ -75,7 +75,7 @@ namespace AiStudio4.Core.Tools.Vite
                 SendStatusUpdate("Starting InstallVitePlugin tool execution...");
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
-                // Extract parameters
+                
                 var pluginName = parameters.ContainsKey("pluginName") ? parameters["pluginName"].ToString() : "";
                 var projectDirectory = parameters.ContainsKey("projectDirectory") ? parameters["projectDirectory"].ToString() : "";
 
@@ -84,7 +84,7 @@ namespace AiStudio4.Core.Tools.Vite
                     return CreateResult(false, true, "Error: Plugin name is required.");
                 }
 
-                // Get the project directory path (relative to project root for security)
+                
                 var projectPath = _projectRoot;
                 if (!string.IsNullOrEmpty(projectDirectory) && projectDirectory != _projectRoot)
                 {
@@ -96,7 +96,7 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                // Check if package.json exists
+                
                 var packageJsonPath = Path.Combine(projectPath, "package.json");
                 if (!File.Exists(packageJsonPath))
                 {
@@ -104,7 +104,7 @@ namespace AiStudio4.Core.Tools.Vite
                     return CreateResult(false, true, "Error: package.json not found in the specified directory.");
                 }
 
-                // Find vite.config.js or vite.config.ts
+                
                 string viteConfigPath = Path.Combine(projectPath, "vite.config.js");
                 bool isTypeScript = false;
                 if (!File.Exists(viteConfigPath))
@@ -118,7 +118,7 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                // Confirmation Dialog
+                
                 string confirmationPrompt = $"AI wants to:\n1. Install npm package '{pluginName}'.\n2. Modify the Vite configuration file '{Path.GetFileName(viteConfigPath)}' to include it.\nProceed with both actions?";
                 string commandForDisplay = $"1. npm install {pluginName} --save-dev\n2. Modify: {Path.GetFileName(viteConfigPath)}";
 
@@ -129,13 +129,13 @@ namespace AiStudio4.Core.Tools.Vite
                     return CreateResult(true, false, "Operation cancelled by user.");
                 }
 
-                // Install the plugin using the helper
+                
                 SendStatusUpdate($"Installing Vite plugin: {pluginName}...");
                 string npmCommand = "npm";
                 string arguments = $"install {pluginName} --save-dev";
-                bool useCmd = true; // npm is a batch file and needs cmd.exe
+                bool useCmd = true; 
                 
-                // Use the enhanced helper to execute the command
+                
                 var result = await ViteCommandHelper.ExecuteCommandAsync(npmCommand, arguments, useCmd, projectPath, _logger);
                 
                 if (!result.Success)
@@ -146,12 +146,12 @@ namespace AiStudio4.Core.Tools.Vite
                 
                 string output = result.Output;
 
-                // Update the Vite config to use the plugin
+                
                 SendStatusUpdate("Updating Vite configuration to use the plugin...");
                 string configContent = await File.ReadAllTextAsync(viteConfigPath);
                 string originalContent = configContent;
 
-                // Extract plugin name without version or scope
+                
                 string pluginImportName = pluginName;
                 if (pluginName.Contains("/"))
                 {
@@ -162,15 +162,15 @@ namespace AiStudio4.Core.Tools.Vite
                     pluginImportName = pluginImportName.Substring("vite-plugin-".Length);
                 }
 
-                // Add import statement for the plugin
+                
                 string importStatement = isTypeScript ?
                     $"import {pluginImportName} from '{pluginName}';\n" :
                     $"import {pluginImportName} from '{pluginName}'\n";
 
-                // Add import at the top of the file, after any existing imports
+                
                 if (Regex.IsMatch(configContent, @"import\s+.*?\s+from\s+['""].*?['""];?\s*\n"))
                 {
-                    // Match all consecutive import statements as a group
+                    
                     configContent = Regex.Replace(configContent,
                         @"((?:import\s+.*?\s+from\s+['""].*?['""];?\s*\n)+)",
                         $"$1{importStatement}");
@@ -180,10 +180,10 @@ namespace AiStudio4.Core.Tools.Vite
                     configContent = importStatement + configContent;
                 }
 
-                // Add the plugin to the plugins array
+                
                 if (Regex.IsMatch(configContent, @"plugins\s*:\s*\[.*?\]", RegexOptions.Singleline))
                 {
-                    // Add to existing plugins array
+                    
                     configContent = Regex.Replace(configContent, 
                         @"(plugins\s*:\s*\[)(.*?)(\])", 
                         m => {
@@ -196,13 +196,13 @@ namespace AiStudio4.Core.Tools.Vite
                 }
                 else
                 {
-                    // Add new plugins array to the defineConfig object
+                    
                     configContent = Regex.Replace(configContent, 
                         @"(defineConfig\s*\(\s*\{)([^\}]*)(\}\s*\))", 
                         $"$1$2  plugins: [{pluginImportName}()],$3");
                 }
 
-                // Write the updated config back to the file
+                
                 if (configContent != originalContent)
                 {
                     await File.WriteAllTextAsync(viteConfigPath, configContent);

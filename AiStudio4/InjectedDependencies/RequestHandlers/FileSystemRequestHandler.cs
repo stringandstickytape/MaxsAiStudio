@@ -1,4 +1,4 @@
-﻿// AiStudio4/InjectedDependencies/RequestHandlers/FileSystemRequestHandler.cs
+
 using AiStudio4.Core.Interfaces;
 using AiStudio4.InjectedDependencies;
 using Newtonsoft.Json;
@@ -13,9 +13,9 @@ using Microsoft.Win32;
 
 namespace AiStudio4.InjectedDependencies.RequestHandlers
 {
-    /// <summary>
-    /// Handles requests related to the file system
-    /// </summary>
+    
+    
+    
     public class FileSystemRequestHandler : BaseRequestHandler
     {
         private readonly IProjectFileWatcherService _fileWatcherService;
@@ -56,36 +56,36 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             try
             {
 
-                // Create OpenFileDialog to allow user to select files
+                
                 var openFileDialog = new OpenFileDialog();
                 {
-                    // Configure dialog
+                    
                     openFileDialog.Title = "Select File(s) to Attach";
                     openFileDialog.Filter = "All Files (*.*)|*.*";
                     openFileDialog.Multiselect = true;
                     openFileDialog.CheckFileExists = true;
                     openFileDialog.CheckPathExists = true;
 
-                    // Show dialog and process results
+                    
                     if (((bool)openFileDialog.ShowDialog()))
                     {
-                        // Process selected files
+                        
                         var attachments = new List<object>();
                         foreach (string filePath in openFileDialog.FileNames)
                         {
                             try
                             {
-                                // Get file info for metadata
+                                
                                 var fileInfo = new FileInfo(filePath);
                                 string fileName = Path.GetFileName(filePath);
                                 string mimeType = GetMimeTypeFromExtension(Path.GetExtension(filePath));
                                 bool isBinary = IsBinaryFile(mimeType);
                                 
-                                // Read file content
+                                
                                 byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
                                 string base64Content = Convert.ToBase64String(fileBytes);
                                 
-                                // For text files, also include the text content
+                                
                                 string textContent = null;
                                 if (!isBinary)
                                 {
@@ -95,11 +95,11 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                                     }
                                     catch
                                     {
-                                        // If we can't read as text, just continue without text content
+                                        
                                     }
                                 }
 
-                                // Add to attachments list
+                                
                                 attachments.Add(new
                                 {
                                     name = fileName,
@@ -113,11 +113,11 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                             catch (Exception ex)
                             {
                                 Console.WriteLine($"Error processing file {filePath}: {ex.Message}");
-                                // Continue with other files even if one fails
+                                
                             }
                         }
 
-                        // Return all attachments
+                        
                         return JsonConvert.SerializeObject(new
                         {
                             success = true,
@@ -126,7 +126,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     }
                     else
                     {
-                        // User canceled the dialog
+                        
                         return JsonConvert.SerializeObject(new
                         {
                             success = true,
@@ -158,17 +158,17 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     return SerializeError($"File not found: {filePath}");
                 }
 
-                // Get file info for metadata
+                
                 var fileInfo = new FileInfo(filePath);
                 string fileName = Path.GetFileName(filePath);
                 string mimeType = GetMimeTypeFromExtension(Path.GetExtension(filePath));
                 bool isBinary = IsBinaryFile(mimeType);
                 
-                // Read file content
+                
                 byte[] fileBytes = await File.ReadAllBytesAsync(filePath);
                 string base64Content = Convert.ToBase64String(fileBytes);
                 
-                // For text files, also include the text content
+                
                 string textContent = null;
                 if (!isBinary)
                 {
@@ -178,11 +178,11 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     }
                     catch
                     {
-                        // If we can't read as text, just continue without text content
+                        
                     }
                 }
 
-                // Return as attachment object
+                
                 return JsonConvert.SerializeObject(new
                 {
                     success = true,
@@ -210,7 +210,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
 
             extension = extension.ToLowerInvariant().TrimStart('.');
 
-            // Common mime types
+            
             var mimeTypes = new Dictionary<string, string>
             {
                 { "txt", "text/plain" },
@@ -237,7 +237,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 { "xlsx", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" },
                 { "ppt", "application/vnd.ms-powerpoint" },
                 { "pptx", "application/vnd.openxmlformats-officedocument.presentationml.presentation" },
-                // Code files
+                
                 { "cs", "text/plain" },
                 { "ts", "text/plain" },
                 { "tsx", "text/plain" },
@@ -274,11 +274,11 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
 
         private bool IsBinaryFile(string mimeType)
         {
-            // Consider all text/* mime types as non-binary
+            
             if (mimeType.StartsWith("text/"))
                 return false;
 
-            // Some application types that are actually text
+            
             var textApplicationTypes = new[]
             {
                 "application/json",
@@ -289,7 +289,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             if (Array.IndexOf(textApplicationTypes, mimeType) >= 0)
                 return false;
 
-            // All other types are considered binary
+            
             return true;
         }
     }

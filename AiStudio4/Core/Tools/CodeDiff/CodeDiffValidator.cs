@@ -1,4 +1,4 @@
-﻿// AiStudio4.Core\Tools\CodeDiff\CodeDiffValidator.cs
+
 using AiStudio4.Core.Tools.CodeDiff.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -9,9 +9,9 @@ using System.Text;
 
 namespace AiStudio4.Core.Tools.CodeDiff
 {
-    /// <summary>
-    /// Handles validation of CodeDiff changesets
-    /// </summary>
+    
+    
+    
     public class CodeDiffValidator
     {
         private readonly ILogger _logger;
@@ -23,13 +23,13 @@ namespace AiStudio4.Core.Tools.CodeDiff
             _pathSecurityManager = pathSecurityManager ?? throw new ArgumentNullException(nameof(pathSecurityManager));
         }
 
-        /// <summary>
-        /// Groups changes by normalized path and validates the overall changeset consistency.
-        /// </summary>
-        /// <param name="filesArray">The array of file entries from the changeset</param>
-        /// <param name="changesByPath">Dictionary to populate with changes grouped by path</param>
-        /// <param name="validationErrorMessages">StringBuilder to populate with validation errors</param>
-        /// <returns>True if validation passed, false otherwise</returns>
+        
+        
+        
+        
+        
+        
+        
         public bool GroupAndValidateChanges(JArray filesArray, Dictionary<string, List<JObject>> changesByPath, StringBuilder validationErrorMessages)
         {
             bool validationSuccess = true;
@@ -53,24 +53,24 @@ namespace AiStudio4.Core.Tools.CodeDiff
                     continue;
                 }
 
-                // --- Normalize and Security Check Path ---
+                
                 string normalizedPath = _pathSecurityManager.NormalizeAndValidatePath(rawFilePath, validationErrorMessages);
                 if (normalizedPath == null)
                 {
-                    // Error message added within NormalizeAndValidatePath
+                    
                     validationSuccess = false;
-                    continue; // Don't process changes for invalid paths
+                    continue; 
                 }
 
-                // --- Get or Create Path Details for Validation ---
+                
                 if (!pathDetails.TryGetValue(normalizedPath, out var details))
                 {
                     details = new PathValidationDetails { FilePath = normalizedPath };
                     pathDetails[normalizedPath] = details;
-                    changesByPath[normalizedPath] = new List<JObject>(); // Initialize change list for this path
+                    changesByPath[normalizedPath] = new List<JObject>(); 
                 }
 
-                // --- Validate and Add Changes for this File Entry ---
+                
                 var changes = fileObj["changes"] as JArray;
                 if (changes == null || !changes.Any())
                 {
@@ -97,7 +97,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
                         continue;
                     }
 
-                    // Validate content presence based on type
+                    
                     string oldContent = change["oldContent"]?.ToString();
                     string newContent = change["newContent"]?.ToString();
 
@@ -105,13 +105,13 @@ namespace AiStudio4.Core.Tools.CodeDiff
                     if (!contentValid)
                     {
                         validationSuccess = false;
-                        continue; // Don't add invalid change
+                        continue; 
                     }
 
-                    // If rename, validate the target path as well
+                    
                     if (changeType == "renameFile")
                     {
-                        string newPathRaw = newContent; // newContent holds the new path for rename
+                        string newPathRaw = newContent; 
                         string newPathNormalized = _pathSecurityManager.NormalizeAndValidatePath(newPathRaw, validationErrorMessages);
                         if (newPathNormalized == null)
                         {
@@ -119,36 +119,36 @@ namespace AiStudio4.Core.Tools.CodeDiff
                             continue;
                         }
                         
-                        // Check for rename collision (another file being renamed TO the same target) - basic check here
+                        
                         if (pathDetails.Values.Any(pd => pd.RenameTargetPath == newPathNormalized))
                         {
                             validationErrorMessages.AppendLine($"Error: Multiple files are being renamed to the same target path '{newPathNormalized}'.");
                             validationSuccess = false;
-                            // Note: More complex collision detection (e.g., file A->B, file C->A) is harder to validate upfront.
+                            
                         }
-                        details.RenameTargetPath = newPathNormalized; // Store for collision check
+                        details.RenameTargetPath = newPathNormalized; 
                     }
 
-                    // Add valid change to the grouped list
+                    
                     changesByPath[normalizedPath].Add(change);
 
-                    // Update validation details for conflict checks
+                    
                     if (changeType == "deleteFile") details.HasDelete = true;
                     if (changeType == "renameFile") details.HasRename = true;
                     if (changeType == "replaceFile") details.HasReplace = true;
                     if (changeType == "createnewFile") details.HasCreate = true;
                     if (changeType == "modifyFile") details.HasModify = true;
 
-                } // End foreach change in entry
-            } // End for each file entry
+                } 
+            } 
 
-            // --- Final Cross-Path Validation ---
+            
             foreach (var kvp in pathDetails)
             {
                 string path = kvp.Key;
                 var details = kvp.Value;
 
-                // Check for conflicting top-level actions on the SAME path
+                
                 int exclusiveActions = (details.HasDelete ? 1 : 0) + (details.HasRename ? 1 : 0) + (details.HasReplace ? 1 : 0) + (details.HasCreate ? 1 : 0);
 
                 if (exclusiveActions > 1)
@@ -162,7 +162,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
                     validationSuccess = false;
                 }
 
-                // Add more checks? E.g., check if a rename target path conflicts with a create/replace path?
+                
                 if (details.HasRename && !string.IsNullOrEmpty(details.RenameTargetPath))
                 {
                     if (pathDetails.TryGetValue(details.RenameTargetPath, out var targetDetails))
@@ -174,7 +174,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
                         }
                         if (targetDetails.HasDelete)
                         {
-                            // Renaming to a path that is also being deleted might be okay, but log warning?
+                            
                             _logger.LogWarning("File '{OriginalPath}' is being renamed to '{TargetPath}', which is also marked for deletion.", path, details.RenameTargetPath);
                         }
                     }
@@ -184,23 +184,23 @@ namespace AiStudio4.Core.Tools.CodeDiff
             return validationSuccess;
         }
 
-        /// <summary>
-        /// Validates required content fields based on change type.
-        /// </summary>
+        
+        
+        
         private bool ValidateChangeContent(string changeType, string oldContent, string newContent, string filePath, StringBuilder validationErrorMessages)
         {
             bool isValid = true;
             switch (changeType)
             {
                 case "modifyFile":
-                    // oldContent is technically required for context matching by the AI, though AI might handle missing.
-                    // newContent can be null/empty if the intention is to delete the oldContent lines.
-                    if (oldContent == null) // Make oldContent mandatory for modify
+                    
+                    
+                    if (oldContent == null) 
                     {
                         validationErrorMessages.AppendLine($"Error: 'oldContent' is required for 'modifyFile' operation on '{filePath}'.");
                         isValid = false;
                     }
-                    // newContent can be null, so no check here.
+                    
                     break;
                 case "createnewFile":
                 case "replaceFile":
@@ -209,21 +209,21 @@ namespace AiStudio4.Core.Tools.CodeDiff
                         validationErrorMessages.AppendLine($"Error: 'newContent' is required for '{changeType}' operation on '{filePath}'.");
                         isValid = false;
                     }
-                    // oldContent is ignored
+                    
                     break;
                 case "renameFile":
-                    if (string.IsNullOrEmpty(newContent)) // newContent holds the new path here
+                    if (string.IsNullOrEmpty(newContent)) 
                     {
                         validationErrorMessages.AppendLine($"Error: 'newContent' (the new path) is required and cannot be empty for 'renameFile' operation on '{filePath}'.");
                         isValid = false;
                     }
-                    // oldContent is ignored
+                    
                     break;
                 case "deleteFile":
-                    // oldContent and newContent are ignored
+                    
                     break;
                 default:
-                    // Should be caught earlier, but defensive check
+                    
                     validationErrorMessages.AppendLine($"Internal Error: Unexpected change type '{changeType}' encountered in ValidateChangeContent for '{filePath}'.");
                     isValid = false;
                     break;
@@ -231,9 +231,9 @@ namespace AiStudio4.Core.Tools.CodeDiff
             return isValid;
         }
 
-        /// <summary>
-        /// Checks if the change type is valid
-        /// </summary>
+        
+        
+        
         private bool IsValidChangeType(string changeType)
         {
             return changeType == "modifyFile" ||

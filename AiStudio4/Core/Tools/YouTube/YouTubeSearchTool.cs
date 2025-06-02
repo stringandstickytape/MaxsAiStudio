@@ -1,4 +1,4 @@
-﻿// AiStudio4/Core/Tools/YouTubeSearchTool.cs
+
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -15,12 +15,12 @@ using System.Web;
 
 namespace AiStudio4.Core.Tools.YouTube
 {
-    /// <summary>
-    /// Tool to search YouTube using the Data API v3.
-    /// </summary>
+    
+    
+    
     public class YouTubeSearchTool : BaseToolImplementation, IDisposable
     {
-        // Removed hardcoded API Key
+        
         private const string ApiBaseUrl = "https://www.googleapis.com/youtube/v3/search";
         private readonly HttpClient _httpClient;
         private readonly IGeneralSettingsService _generalSettingsService;
@@ -29,18 +29,18 @@ namespace AiStudio4.Core.Tools.YouTube
         {
             _generalSettingsService = generalSettingsService;
             _httpClient = new HttpClient();
-            _httpClient.Timeout = TimeSpan.FromSeconds(30); // Default timeout
+            _httpClient.Timeout = TimeSpan.FromSeconds(30); 
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4/1.0 YouTubeSearchTool");
         }
 
-        /// <summary>
-        /// Gets the YouTubeSearch tool definition.
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
             {
-                Guid = "d1e2f3a4-b5c6-7890-1234-567890abcdef10", // Generate a unique GUID for this tool
+                Guid = "d1e2f3a4-b5c6-7890-1234-567890abcdef10", 
                 Name = "YouTubeSearch",
                 Description = "Searches YouTube for videos, channels, or playlists based on a query.",
                 Schema = @"{ 
@@ -70,15 +70,15 @@ namespace AiStudio4.Core.Tools.YouTube
   }
 }",
                 Categories = new List<string> { "Development" },
-                OutputFileType = "", // Changed from json to text
+                OutputFileType = "", 
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
         }
 
-        /// <summary>
-        /// Processes a YouTubeSearch tool call. Handles single or multiple concatenated JSON objects.
-        /// </summary>
+        
+        
+        
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _logger.LogInformation("YouTubeSearch tool called with parameters: {Parameters}", toolParameters);
@@ -106,7 +106,7 @@ namespace AiStudio4.Core.Tools.YouTube
                                 var parameters = serializer.Deserialize<Dictionary<string, object>>(jsonReader);
                                 string singleResult = await ProcessSingleSearchRequestAsync(parameters);
                                 overallResultBuilder.AppendLine(singleResult);
-                                anySuccess = true; // Mark success if at least one request processes without throwing an exception here
+                                anySuccess = true; 
                             }
                             catch (JsonSerializationException jsonEx)
                             {
@@ -135,7 +135,7 @@ namespace AiStudio4.Core.Tools.YouTube
                         }
                     }
 
-                    if (requestIndex == 0) // Handle case where input was empty or not valid JSON at all
+                    if (requestIndex == 0) 
                     {
                          _logger.LogWarning("No valid JSON objects found in the input parameters.");
                          SendStatusUpdate("Error: No valid JSON search requests found in input.");
@@ -143,11 +143,11 @@ namespace AiStudio4.Core.Tools.YouTube
                     }
                 }
 
-                // Return combined result
+                
                 SendStatusUpdate(allSuccess ? "YouTube search completed successfully." : "YouTube search completed with some errors.");
                 return CreateResult(true, allSuccess && anySuccess, overallResultBuilder.ToString().TrimEnd());
             }
-            catch (Exception ex) // Catch errors during the reader setup or initial read
+            catch (Exception ex) 
             {
                 _logger.LogError(ex, "An unexpected error occurred while processing multiple YouTube search requests.");
                 SendStatusUpdate($"Error processing YouTubeSearch tool: {ex.Message}");
@@ -155,13 +155,13 @@ namespace AiStudio4.Core.Tools.YouTube
             }
         }
 
-        /// <summary>
-        /// Processes a single YouTube search request based on provided parameters.
-        /// </summary>
-        /// <param name="parameters">The deserialized parameters for the search.</param>
+        
+        
+        
+        
         private async Task<string> ProcessSingleSearchRequestAsync(Dictionary<string, object> parameters)
         {
-            // --- Check for API Key first ---
+            
             string apiKey = _generalSettingsService.GetDecryptedYouTubeApiKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
@@ -169,7 +169,7 @@ namespace AiStudio4.Core.Tools.YouTube
                 SendStatusUpdate("Error: YouTube API Key is not configured.");
                 return "## Error: YouTube API Key is not configured. Please set it in the File -> Secrets menu.";
             }
-            // --- End API Key check ---
+            
 
             if (!parameters.TryGetValue("query", out var queryObj) || string.IsNullOrWhiteSpace(queryObj as string))
             {
@@ -177,8 +177,8 @@ namespace AiStudio4.Core.Tools.YouTube
             }
 
             string query = queryObj.ToString();
-            int maxResults = 10; // Default value
-            string type = "video,channel,playlist"; // Default value
+            int maxResults = 10; 
+            string type = "video,channel,playlist"; 
 
             if (parameters.TryGetValue("maxResults", out var maxResultsObj))
             {
@@ -197,14 +197,14 @@ namespace AiStudio4.Core.Tools.YouTube
                 type = typeStr;
             }
 
-            // Perform the search (throws HttpRequestException on failure)
+            
             SendStatusUpdate($"Searching YouTube for: {query}...");
             var searchResult = await SearchYouTube(query, maxResults, type);
 
-            // Format results as a Markdown list
+            
             var outputBuilder = new StringBuilder();
             outputBuilder.AppendLine($"## YouTube Search Results for \\\"{query}\\\":");
-            outputBuilder.AppendLine(); // Add a blank line for spacing
+            outputBuilder.AppendLine(); 
 
             if (searchResult?.items != null && searchResult.items.Any(i => i.id?.kind == "youtube#video"))
             {
@@ -215,24 +215,24 @@ namespace AiStudio4.Core.Tools.YouTube
                     {
                         videosFound = true;
                         string title = item.snippet?.title ?? "(No Title)";
-                        // Escape Markdown characters in title if necessary (e.g., brackets)
+                        
                         title = title.Replace("[", "\\[").Replace("]", "\\]");
                         string url = $"https://www.youtube.com/watch?v={item.id.videoId}";
                         outputBuilder.AppendLine($"* [{title}]({url})");
                     }
-                    // Optionally handle other types like channels or playlists here
-                    // else if (item.id?.kind == "youtube#channel" && !string.IsNullOrEmpty(item.id.channelId))
-                    // {
-                    //     string title = item.snippet?.title ?? "(No Title)";
-                    //     string url = $"https://www.youtube.com/channel/{item.id.channelId}";
-                    //     outputBuilder.AppendLine($"* Channel: [{title}]({url})");
-                    // }
-                    // else if (item.id?.kind == "youtube#playlist" && !string.IsNullOrEmpty(item.id.playlistId))
-                    // {
-                    //     string title = item.snippet?.title ?? "(No Title)";
-                    //     string url = $"https://www.youtube.com/playlist?list={item.id.playlistId}";
-                    //     outputBuilder.AppendLine($"* Playlist: [{title}]({url})");
-                    // }
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
+                    
                 }
                 if (!videosFound)
                 {
@@ -252,8 +252,8 @@ namespace AiStudio4.Core.Tools.YouTube
             string apiKey = _generalSettingsService.GetDecryptedYouTubeApiKey();
             if (string.IsNullOrWhiteSpace(apiKey))
             {
-                 // This case should ideally be caught earlier in ProcessSingleSearchRequestAsync,
-                 // but we add a check here for robustness.
+                 
+                 
                 _logger.LogError("YouTube Search attempted without an API key.");
                 throw new InvalidOperationException("YouTube API Key is missing or not configured.");
             }
@@ -264,7 +264,7 @@ namespace AiStudio4.Core.Tools.YouTube
             queryParams["q"] = query;
             queryParams["maxResults"] = maxResults.ToString();
             queryParams["type"] = type;
-            queryParams["key"] = apiKey; // Use the API Key from settings
+            queryParams["key"] = apiKey; 
 
             urlBuilder.Query = queryParams.ToString();
             string requestUrl = urlBuilder.ToString();
@@ -272,7 +272,7 @@ namespace AiStudio4.Core.Tools.YouTube
             _logger.LogInformation("YouTube Search URL: {RequestUrl}", requestUrl);
 
             var response = await _httpClient.GetAsync(requestUrl);
-            response.EnsureSuccessStatusCode(); // Throw exception if not a success code.
+            response.EnsureSuccessStatusCode(); 
 
             string jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<YouTubeSearchResult>(jsonResponse);
@@ -284,7 +284,7 @@ namespace AiStudio4.Core.Tools.YouTube
         }
     }
 
-    // Define classes to deserialize the JSON response from the YouTube API
+    
     public class YouTubeSearchResult
     {
         public string kind { get; set; }

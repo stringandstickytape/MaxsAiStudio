@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -15,9 +15,9 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
 {
-    /// <summary>
-    /// Implementation of the FindAndReplace tool
-    /// </summary>
+    
+    
+    
     public class FindAndReplaceTool : BaseToolImplementation
     {
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
@@ -26,9 +26,9 @@ namespace AiStudio4.Core.Tools
         {
         }
 
-        /// <summary>
-        /// Gets the FindAndReplace tool definition
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
@@ -105,9 +105,9 @@ namespace AiStudio4.Core.Tools
             };
         }
 
-        /// <summary>
-        /// Represents a search and replace pair
-        /// </summary>
+        
+        
+        
         private class ReplacementPair
         {
             public string Search { get; set; }
@@ -118,9 +118,9 @@ namespace AiStudio4.Core.Tools
                 StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
         }
 
-        /// <summary>
-        /// Represents a file modification result
-        /// </summary>
+        
+        
+        
         private class FileModificationResult
         {
             public string FilePath { get; set; }
@@ -129,9 +129,9 @@ namespace AiStudio4.Core.Tools
             public Dictionary<string, int> ReplacementCounts { get; set; } = new Dictionary<string, int>();
         }
 
-        /// <summary>
-        /// Recursively searches and replaces text in files within a directory
-        /// </summary>
+        
+        
+        
         private void ProcessFilesRecursively(
             string rootSearchPath, 
             string currentPath, 
@@ -141,14 +141,14 @@ namespace AiStudio4.Core.Tools
             bool previewOnly,
             List<FileModificationResult> results)
         {
-            // Base case: Check depth limitations
+            
             int initialDepth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 0;
             if (initialDepth > 0 && remainingDepth < 0)
             {
                 return;
             }
 
-            // --- Process Files in Current Directory ---
+            
             try
             {
                 var excludedExtensionsCsv = _extraProperties.TryGetValue("ExcludedFileExtensions (CSV)", out var extCsv) ? extCsv : 
@@ -163,7 +163,7 @@ namespace AiStudio4.Core.Tools
 
                 foreach (var filePath in Directory.EnumerateFiles(currentPath))
                 {
-                    // Check if file is ignored by .gitignore
+                    
                     if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(filePath))
                     {
                         continue;
@@ -172,15 +172,15 @@ namespace AiStudio4.Core.Tools
                     var fileName = Path.GetFileName(filePath).ToLowerInvariant();
                     var fileExt = Path.GetExtension(filePath).ToLowerInvariant();
                     
-                    // Exclude by extension
+                    
                     if (excludedExtensions.Contains(fileExt))
                         continue;
                     
-                    // Exclude by prefix
+                    
                     if (excludedPrefixes.Any(prefix => fileName.StartsWith(prefix)))
                         continue;
 
-                    // Process the file
+                    
                     try
                     {
                         Debug.WriteLine("FindAndReplace checking " + filePath);
@@ -211,25 +211,25 @@ namespace AiStudio4.Core.Tools
                 return;
             }
 
-            // --- Recurse into Subdirectories ---
+            
             if (initialDepth == 0 || remainingDepth > 0)
             {
                 try
                 {
                     foreach (var dirPath in Directory.EnumerateDirectories(currentPath))
                     {
-                        // Skip common large directories
+                        
                         if (dirPath.EndsWith("node_modules") || dirPath.EndsWith("bin") || 
                             dirPath.EndsWith("dist") || dirPath.EndsWith("obj"))
                             continue;
                         
-                        // Check if directory is ignored by .gitignore
+                        
                         if (gitIgnoreFilter != null && gitIgnoreFilter.PathIsIgnored(dirPath + Path.DirectorySeparatorChar))
                         {
                             continue;
                         }
 
-                        // Recurse with decremented depth if depth is limited
+                        
                         ProcessFilesRecursively(
                             rootSearchPath, 
                             dirPath, 
@@ -251,19 +251,19 @@ namespace AiStudio4.Core.Tools
             }
         }
 
-        /// <summary>
-        /// Process a single file for find and replace operations
-        /// </summary>
+        
+        
+        
         private void ProcessFile(string filePath, List<ReplacementPair> replacements, bool previewOnly, List<FileModificationResult> results)
         {
-            // Read the file content
+            
             string content = File.ReadAllText(filePath);
             string originalContent = content;
             bool fileModified = false;
             
             var result = new FileModificationResult { FilePath = filePath };
             
-            // Process each line separately to track line numbers and show context
+            
             var lines = File.ReadAllLines(filePath);
             for (int i = 0; i < lines.Length; i++)
             {
@@ -272,18 +272,18 @@ namespace AiStudio4.Core.Tools
                 
                 foreach (var replacement in replacements)
                 {
-                    // Skip if the search term isn't in the line (optimization)
+                    
                     if (!ContainsText(modifiedLine, replacement.Search, replacement.ComparisonType))
                         continue;
                     
-                    // Count occurrences before replacement
+                    
                     int count = CountOccurrences(modifiedLine, replacement.Search, replacement.ComparisonType);
                     if (count > 0)
                     {
-                        // Perform the replacement
+                        
                         modifiedLine = ReplaceText(modifiedLine, replacement.Search, replacement.Replace, replacement.ComparisonType);
                         
-                        // Update counts
+                        
                         result.ReplacementsCount += count;
                         if (!result.ReplacementCounts.ContainsKey(replacement.Search))
                             result.ReplacementCounts[replacement.Search] = 0;
@@ -293,18 +293,18 @@ namespace AiStudio4.Core.Tools
                     }
                 }
                 
-                // If the line was modified, add it to the results
+                
                 if (originalLine != modifiedLine)
                 {
                     result.ModifiedLines.Add($"Line {i+1}:\n- {originalLine}\n+ {modifiedLine}");
-                    lines[i] = modifiedLine; // Update the line for actual replacement
+                    lines[i] = modifiedLine; 
                 }
             }
             
-            // If we found replacements, add the result
+            
             if (fileModified)
             {
-                // Only write the file if not in preview mode
+                
                 if (!previewOnly)
                 {
                     File.WriteAllLines(filePath, lines);
@@ -314,17 +314,17 @@ namespace AiStudio4.Core.Tools
             }
         }
         
-        /// <summary>
-        /// Check if a string contains a substring using the specified comparison
-        /// </summary>
+        
+        
+        
         private bool ContainsText(string source, string search, StringComparison comparison)
         {
             return source.IndexOf(search, comparison) >= 0;
         }
         
-        /// <summary>
-        /// Count occurrences of a substring in a string using the specified comparison
-        /// </summary>
+        
+        
+        
         private int CountOccurrences(string source, string search, StringComparison comparison)
         {
             int count = 0;
@@ -337,9 +337,9 @@ namespace AiStudio4.Core.Tools
             return count;
         }
         
-        /// <summary>
-        /// Replace all occurrences of a substring in a string using the specified comparison
-        /// </summary>
+        
+        
+        
         private string ReplaceText(string source, string search, string replacement, StringComparison comparison)
         {
             if (comparison == StringComparison.Ordinal)
@@ -349,28 +349,28 @@ namespace AiStudio4.Core.Tools
             int currentIndex = 0;
             int matchIndex;
             
-            // Find and replace all occurrences
+            
             while ((matchIndex = source.IndexOf(search, currentIndex, comparison)) >= 0)
             {
-                // Append everything up to the match
+                
                 result.Append(source.Substring(currentIndex, matchIndex - currentIndex));
-                // Append the replacement
+                
                 result.Append(replacement);
-                // Move past this match
+                
                 currentIndex = matchIndex + search.Length;
             }
             
-            // Append any remaining text
+            
             if (currentIndex < source.Length)
                 result.Append(source.Substring(currentIndex));
                 
             return result.ToString();
         }
 
-        // Helper to get parameters safely, needed for depth check inside recursive function
+        
         private Dictionary<string, object> parameters = new Dictionary<string, object>();
 
-        // Override ProcessAsync to store parameters before calling the recursive function
+        
         public override Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             _extraProperties = extraProperties;
@@ -380,7 +380,7 @@ namespace AiStudio4.Core.Tools
                 SendStatusUpdate("Starting FindAndReplace tool execution...");
                 parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
 
-                // Now call the main logic which uses this.parameters
+                
                 return ProcessFindAndReplaceInternal(toolParameters);
             }
             catch (JsonException jsonEx)
@@ -395,13 +395,13 @@ namespace AiStudio4.Core.Tools
             }
         }
 
-        // Main processing logic
+        
         private Task<BuiltinToolResult> ProcessFindAndReplaceInternal(string toolParameters)
         {
             List<FileModificationResult> results = new List<FileModificationResult>();
             try
             {
-                // --- Extract Parameters ---
+                
                 var path = parameters.ContainsKey("path") ? parameters["path"].ToString() : string.Empty;
                 var depth = parameters.ContainsKey("depth") ? Convert.ToInt32(parameters["depth"]) : 0;
                 var includeFiltered = parameters.ContainsKey("include_filtered") ? Convert.ToBoolean(parameters["include_filtered"]) : false;
@@ -430,7 +430,7 @@ namespace AiStudio4.Core.Tools
                     }
                 }
 
-                // --- Validation ---
+                
                 if (string.IsNullOrWhiteSpace(path))
                 {
                     SendStatusUpdate("Error: 'path' parameter is required.");
@@ -457,18 +457,18 @@ namespace AiStudio4.Core.Tools
                     return Task.FromResult(CreateResult(true, true, errorMessage));
                 }
                 
-                // Log what we're doing
+                
                 StringBuilder operationDescription = new StringBuilder();
                 operationDescription.AppendLine($"Operation: {(previewOnly ? "Preview" : "Replace")} in {Path.GetFileName(searchPath)}");
                 operationDescription.AppendLine("Replacements:");
                 foreach (var replacement in replacements)
                 {
-                    operationDescription.AppendLine($"- '{replacement.Search}' → '{replacement.Replace}' (Case {(replacement.CaseSensitive ? "sensitive" : "insensitive")})");
+                    operationDescription.AppendLine($"- '{replacement.Search}' ? '{replacement.Replace}' (Case {(replacement.CaseSensitive ? "sensitive" : "insensitive")})");
                 }
                 
                 SendStatusUpdate(operationDescription.ToString());
 
-                // --- GitIgnore Setup ---
+                
                 GitIgnoreFilterManager gitIgnoreFilterManager = null;
                 if (!includeFiltered)
                 {
@@ -505,11 +505,11 @@ namespace AiStudio4.Core.Tools
                     }
                 }
 
-                // --- Perform Find and Replace ---
+                
                 SendStatusUpdate($"Beginning find and replace with depth: {depth}...");
                 ProcessFilesRecursively(searchPath, searchPath, depth, replacements, gitIgnoreFilterManager, previewOnly, results);
 
-                // --- Format Result ---
+                
                 if (results.Any())
                 {
                     StringBuilder resultText = new StringBuilder();
@@ -520,7 +520,7 @@ namespace AiStudio4.Core.Tools
                     resultText.AppendLine($"Total replacements: {totalReplacements}");
                     resultText.AppendLine();
                     
-                    // Summarize replacements by search term
+                    
                     resultText.AppendLine("Replacement counts by search term:");
                     var allReplacementCounts = new Dictionary<string, int>();
                     foreach (var result in results)
@@ -539,13 +539,13 @@ namespace AiStudio4.Core.Tools
                     }
                     resultText.AppendLine();
                     
-                    // Show details for each file
+                    
                     foreach (var result in results)
                     {
                         resultText.AppendLine($"File: {result.FilePath}");
                         resultText.AppendLine($"Replacements: {result.ReplacementsCount}");
                         
-                        // Show the first 10 modified lines for context
+                        
                         int linesToShow = Math.Min(10, result.ModifiedLines.Count);
                         for (int i = 0; i < linesToShow; i++)
                         {

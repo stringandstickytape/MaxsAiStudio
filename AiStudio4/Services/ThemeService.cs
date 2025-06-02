@@ -1,4 +1,4 @@
-﻿// Services/ThemeService.cs
+
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using Microsoft.Extensions.Configuration;
@@ -13,9 +13,9 @@ using Newtonsoft.Json.Converters;
 
 namespace AiStudio4.Services
 {
-    /// <summary>
-    /// Service for managing UI themes
-    /// </summary>
+    
+    
+    
     public class ThemeService : IThemeService
     {
         private readonly string _settingsFilePath;
@@ -30,9 +30,9 @@ namespace AiStudio4.Services
             LoadSettings();
         }
 
-        /// <summary>
-        /// Loads theme settings from the file
-        /// </summary>
+        
+        
+        
         private void LoadSettings()
         {
             lock (_lock)
@@ -50,7 +50,7 @@ namespace AiStudio4.Services
                 var themesSection = json["themes"];
                 if (themesSection != null)
                 {
-                    // Use JsonSerializerSettings to handle complex JSON objects
+                    
                     var settings = new JsonSerializerSettings
                     {
                         TypeNameHandling = TypeNameHandling.None,
@@ -76,7 +76,7 @@ namespace AiStudio4.Services
                     _activeThemeId = "";
                 }
                 
-                // If no themes exist or no active theme is set, create a default theme
+                
                 if (_userThemes.Count == 0)
                 {
                     CreateDefaultTheme2();
@@ -84,7 +84,7 @@ namespace AiStudio4.Services
                 }
                 else if (string.IsNullOrEmpty(_activeThemeId) || !_userThemes.Any(t => t.Guid == _activeThemeId))
                 {
-                    // Set the first theme as active if no active theme is set or the active theme doesn't exist
+                    
                     _activeThemeId = _userThemes.First().Guid;
                     SaveSettings();
                 }
@@ -116,7 +116,7 @@ namespace AiStudio4.Services
         ""global-borderRadius"": ""10px"",
         ""global-fontFamily"": ""'Gabarito', sans-serif"",
         ""global-fontSize"": ""17px"",
-        ""global-fontCdnUrl"": ""https://fonts.googleapis.com/css2?family=Gabarito&display=swap"",
+        ""global-fontCdnUrl"": ""https:
         ""global-boxShadow"": ""none"",
         ""global-userMessageBackground"": ""#1f1f1f"",
         ""global-userMessageTextColor"": ""#f1faee"",
@@ -162,14 +162,14 @@ namespace AiStudio4.Services
             _activeThemeId = "42bcc320-b10f-4412-ae72-86bbdb550024";
         }
 
-        /// <summary>
-        /// Saves theme settings to the file
-        /// </summary>
+        
+        
+        
         private void SaveSettings()
         {
             lock (_lock)
             {
-                // Use JsonSerializerSettings to handle complex JSON objects
+                
                 var settings = new JsonSerializerSettings
                 {
                     TypeNameHandling = TypeNameHandling.None,
@@ -192,9 +192,9 @@ namespace AiStudio4.Services
         }
         
 
-        /// <summary>
-        /// Gets all themes for a client
-        /// </summary>
+        
+        
+        
         public List<Theme> GetAllThemes()
         {
             lock (_lock)
@@ -204,9 +204,9 @@ namespace AiStudio4.Services
             }
         }
 
-        /// <summary>
-        /// Gets a theme by its ID
-        /// </summary>
+        
+        
+        
         public Theme GetThemeById(string themeId)
         {
             lock (_lock)
@@ -216,20 +216,20 @@ namespace AiStudio4.Services
             }
         }
 
-        /// <summary>
-        /// Adds a new theme
-        /// </summary>
+        
+        
+        
         public Theme AddTheme(Theme theme)
         {
             lock (_lock)
             {
-                // Ensure the theme has a GUID
+                
                 if (string.IsNullOrEmpty(theme.Guid))
                 {
                     theme.Guid = Guid.NewGuid().ToString();
                 }
 
-                // Set timestamps if not provided
+                
                 var now = DateTime.UtcNow.ToString("o");
                 if (string.IsNullOrEmpty(theme.Created))
                 {
@@ -240,7 +240,7 @@ namespace AiStudio4.Services
                     theme.LastModified = now;
                 }
 
-                // Initialize collections if null
+                
                 theme.PreviewColors ??= new List<string>();
                 theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
 
@@ -251,9 +251,9 @@ namespace AiStudio4.Services
             }
         }
 
-        /// <summary>
-        /// Updates an existing theme
-        /// </summary>
+        
+        
+        
         public Theme UpdateTheme(Theme theme)
         {
             lock (_lock)
@@ -264,16 +264,16 @@ namespace AiStudio4.Services
                     throw new KeyNotFoundException($"Theme with ID {theme.Guid} not found");
                 }
 
-                // Update last modified timestamp
+                
                 theme.LastModified = DateTime.UtcNow.ToString("o");
                 
-                // Preserve creation timestamp
+                
                 if (string.IsNullOrEmpty(theme.Created))
                 {
                     theme.Created = _userThemes[existingThemeIndex].Created;
                 }
 
-                // Initialize collections if null
+                
                 theme.PreviewColors ??= new List<string>();
                 theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
 
@@ -284,9 +284,9 @@ namespace AiStudio4.Services
             }
         }
 
-        /// <summary>
-        /// Deletes a theme
-        /// </summary>
+        
+        
+        
         public bool DeleteTheme(string themeId)
         {
             lock (_lock)
@@ -299,9 +299,9 @@ namespace AiStudio4.Services
             }
         }
 
-        /// <summary>
-        /// Sets the active theme for a client
-        /// </summary>
+        
+        
+        
         public bool SetActiveTheme(string themeId)
         {
             lock (_lock)
@@ -313,9 +313,9 @@ namespace AiStudio4.Services
             }
         }
 
-        /// <summary>
-        /// Gets the active theme ID for a client
-        /// </summary>
+        
+        
+        
         public string GetActiveThemeId()
         {
             lock (_lock)

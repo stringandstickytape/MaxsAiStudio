@@ -1,4 +1,4 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.Core.Models;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 
 namespace AiStudio4.AiServices
 {
-    // Class to hold generated image data
+    
     internal class GenImage
     {
         public string MimeType { get; set; }
@@ -30,13 +30,13 @@ namespace AiStudio4.AiServices
 
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
-            // Clear any previously generated images
+            
             _generatedImages.Clear();
-            // Reset ToolResponseSet for each new request
+            
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
 
-            // Check if this is a TTS model request
+            
             if (options.Model.IsTtsModel)
             {
                 return await HandleTtsRequestAsync(options);
@@ -44,7 +44,7 @@ namespace AiStudio4.AiServices
 
             var url = $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}";
 
-            // Apply custom system prompt if provided
+            
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
             {
                 options.Conv.systemprompt = options.CustomSystemPrompt;
@@ -52,13 +52,13 @@ namespace AiStudio4.AiServices
 
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
 
-            // Add tools if specified
+            
             if (!forceNoTools)
             {
                 await AddToolsToRequestAsync(requestPayload, options.ToolIds);
             }
 
-            // Construct the messages array
+            
             var contentsArray = new JArray();
             foreach (var message in options.Conv.messages)
             {
@@ -69,7 +69,7 @@ namespace AiStudio4.AiServices
 
 
 
-            // Add response modalities for image generation model
+            
             if (ApiModel == "gemini-2.0-flash-exp-image-generation")
             {
                 requestPayload["generationConfig"] = new JObject
@@ -100,17 +100,17 @@ namespace AiStudio4.AiServices
                 requestPayload.Remove("contents");
             }
 
-            // Add "contents" at the end
+            
             requestPayload.Add("contents", contentsArray);
 
-            // Test that removes all other tools and enables Google Grounding
-            //requestPayload["tools"] = new JArray();
-            //((JArray)requestPayload["tools"]).Add(new JObject { ["google_search"] = new JObject() });
-            //File.WriteAllText(DateTime.Now.Ticks + ".json", requestPayload.ToString());
+            
+            
+            
+            
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
             {
-                return await HandleResponse(options, content); // Pass options
+                return await HandleResponse(options, content); 
             }
         }
 
@@ -130,7 +130,7 @@ namespace AiStudio4.AiServices
             var partArray = new JArray();
             partArray.Add(new JObject { ["text"] = message.content });
 
-            // Handle legacy single image
+            
             if (!string.IsNullOrEmpty(message.base64image))
             {
                 partArray.Add(new JObject
@@ -143,7 +143,7 @@ namespace AiStudio4.AiServices
                 });
             }
 
-            // Handle multiple attachments
+            
             if (message.attachments != null && message.attachments.Any())
             {
                 foreach (var attachment in message.attachments)
@@ -159,7 +159,7 @@ namespace AiStudio4.AiServices
                             }
                         });
                     }
-                    // Additional attachment types could be handled here
+                    
                 }
             }
 
@@ -174,7 +174,7 @@ namespace AiStudio4.AiServices
 
         protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
-            // Gemini uses key as URL parameter, not as Authorization header
+            
         }
         protected override async Task<AiResponse> HandleStreamingResponse(
             HttpContent content,
@@ -182,8 +182,8 @@ namespace AiStudio4.AiServices
             Action<string> onStreamingUpdate,
             Action onStreamingComplete)
         {
-            StringBuilder fullResponse = new StringBuilder(); // Ensure this is accessible in catch
-            onStreamingUpdate?.Invoke(""); // Use callback
+            StringBuilder fullResponse = new StringBuilder(); 
+            onStreamingUpdate?.Invoke(""); 
             try
             {
                 using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
@@ -203,14 +203,14 @@ namespace AiStudio4.AiServices
                                 string line = await reader.ReadLineAsync(cancellationToken);
                                 if (cancellationToken.IsCancellationRequested)
                                 {
-                                    // Throwing ensures we jump to the catch block
+                                    
                                     throw new OperationCanceledException(cancellationToken);
                                 }
-                                //System.Diagnostics.Debug.WriteLine(line);
-                                // :-/
+                                
+                                
                                 if (isFirstLine)
                                 {
-                                    // Remove leading '[' from the first line
+                                    
                                     line = line.TrimStart('[');
                                     isFirstLine = false;
                                 }
@@ -218,20 +218,20 @@ namespace AiStudio4.AiServices
                                 jsonBuffer.Append(line);
                                 if (line == "," || line == "]")
                                 {
-                                    // We have a complete JSON object
+                                    
                                     string jsonObject = jsonBuffer.ToString().TrimEnd(',').TrimEnd(']');
-                                    await ProcessJsonObject(jsonObject, fullResponse, onStreamingUpdate); // Pass callback
+                                    await ProcessJsonObject(jsonObject, fullResponse, onStreamingUpdate); 
                                     jsonBuffer.Clear();
                                 }
                             }
 
-                            //response.EnsureSuccessStatusCode();
+                            
                         }
                     }
                 }
 
-                // Normal completion
-                onStreamingComplete?.Invoke(); // Use callback
+                
+                onStreamingComplete?.Invoke(); 
                 Debug.WriteLine("Streaming Complete");
 
                 if (ToolResponseSet.Tools.Count == 0)
@@ -249,8 +249,8 @@ namespace AiStudio4.AiServices
                             var toolArgs = jsonResponse["args"].ToString();
                             ToolResponseSet.Tools.Add(new ToolResponseItem { ToolName = toolName, ResponseText = toolArgs });
 
-                            // Clear the response text when a tool is chosen
-                            //fullResponse.Clear();
+                            
+                            
                         }
                     }
                 }
@@ -277,16 +277,16 @@ namespace AiStudio4.AiServices
                             TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
                             ChosenTool = toolName,
                             ToolResponseSet = ToolResponseSet,
-                            IsCancelled = false // Explicitly false on normal completion
+                            IsCancelled = false 
                         };
                     }
                 }
                 catch (Exception e)
                 {
-                    // Fall through to default response
+                    
                 }
 
-                // Create attachments from any generated images
+                
                 var attachments = new List<DataModels.Attachment>();
                 int imageIndex = 1;
                 foreach (var image in _generatedImages)
@@ -297,7 +297,7 @@ namespace AiStudio4.AiServices
                         Name = $"generated_image_{imageIndex++}.png",
                         Type = image.MimeType,
                         Content = image.Base64Data,
-                        Size = image.Base64Data.Length * 3 / 4 // Approximate size calculation
+                        Size = image.Base64Data.Length * 3 / 4 
                     });
                 }
                 currentResponseItem = null;
@@ -311,14 +311,14 @@ namespace AiStudio4.AiServices
                     ChosenTool = null,
                     Attachments = attachments.Count > 0 ? attachments : null,
                     ToolResponseSet = ToolResponseSet,
-                    IsCancelled = false // Explicitly false on normal completion
+                    IsCancelled = false 
                 };
             }
             catch (OperationCanceledException)
             {
-                // Cancellation happened
-                //System.Diagnostics.Debug.WriteLine("Gemini streaming cancelled.");
-                // Create attachments from any partially generated images
+                
+                
+                
                 Debug.WriteLine("Cancelled. ");
                 var attachments = new List<DataModels.Attachment>();
                 int imageIndex = 1;
@@ -330,25 +330,25 @@ namespace AiStudio4.AiServices
                         Name = $"generated_image_{imageIndex++}.png",
                         Type = image.MimeType,
                         Content = image.Base64Data,
-                        Size = image.Base64Data.Length * 3 / 4 // Approximate size calculation
+                        Size = image.Base64Data.Length * 3 / 4 
                     });
                 }
                 currentResponseItem = null;
-                // Return partial response
+                
                 return new AiResponse
                 {
                     ResponseText = fullResponse.ToString(),
-                    Success = true, // Indicate successful handling of cancellation
+                    Success = true, 
                     TokenUsage = new TokenUsage(inputTokenCount ?? "0", outputTokenCount ?? "0", "0", cachedTokenCount ?? "0"),
-                    ChosenTool = chosenTool, // Use the tool identified so far
+                    ChosenTool = chosenTool, 
                     Attachments = attachments.Count > 0 ? attachments : null,
-                    ToolResponseSet = ToolResponseSet, // Use partially populated set
+                    ToolResponseSet = ToolResponseSet, 
                     IsCancelled = true
                 };
             }
             catch (Exception ex)
             {
-                // Handle other errors
+                
                 return HandleError(ex, "Error during streaming response");
             }
         }
@@ -367,12 +367,12 @@ namespace AiStudio4.AiServices
             if (string.IsNullOrEmpty(input))
                 return null;
 
-            // Start from the end and work backwards
+            
             for (int i = input.Length - 1; i >= 0; i--)
             {
                 if (input[i] == '}')
                 {
-                    // Found a closing brace, now find the matching opening brace
+                    
                     int depth = 1;
                     int j;
 
@@ -383,17 +383,17 @@ namespace AiStudio4.AiServices
                         else if (input[j] == '{')
                             depth--;
 
-                        // When depth reaches 0, we've found the outermost matching opening brace
+                        
                         if (depth == 0)
                             break;
                     }
 
-                    // If we found a matching opening brace
+                    
                     if (j >= 0)
                     {
                         string potentialJson = input.Substring(j);
 
-                        // Validate it's proper JSON
+                        
                         try
                         {
                             System.Text.Json.JsonDocument.Parse(potentialJson);
@@ -401,8 +401,8 @@ namespace AiStudio4.AiServices
                         }
                         catch (System.Text.Json.JsonException)
                         {
-                            // Not valid JSON, continue searching
-                            i = j; // Skip to before this opening brace
+                            
+                            i = j; 
                         }
                     }
                 }
@@ -419,17 +419,17 @@ namespace AiStudio4.AiServices
 
                 foreach (var part in parts)
                 {
-                    // Check if this is a tool response
+                    
                     if (part["functionCall"] != null)
                     {
                         textBuilder.Append(JsonConvert.SerializeObject(part["functionCall"]));
                     }
-                    // Handle text parts
+                    
                     else if (part["text"] != null)
                     {
                         textBuilder.Append(part["text"]?.ToString() ?? "");
                     }
-                    // Add a placeholder for images
+                    
                     else if (part["inlineData"] != null)
                     {
                         textBuilder.Append("[Generated Image]");
@@ -474,7 +474,7 @@ namespace AiStudio4.AiServices
 
                         foreach (var part in parts)
                         {
-                            // Handle function call responses
+                            
                             if (part["functionCall"] != null)
                             {
                                 var toolResponse = JsonConvert.SerializeObject(part["functionCall"]);
@@ -485,9 +485,9 @@ namespace AiStudio4.AiServices
 
                                 Debug.WriteLine($"Tool chosen: {chosenTool}");
 
-                                // If this is a new tool call, create a new response item
-                                //if (currentResponseItem == null || currentResponseItem.ToolName != toolName)
-                                //{
+                                
+                                
+                                
                                 Debug.WriteLine($"new ToolResponseItem: {chosenTool} -> {toolArgs}");
                                 currentResponseItem = new ToolResponseItem
                                 {
@@ -495,21 +495,21 @@ namespace AiStudio4.AiServices
                                     ResponseText = toolArgs
                                 };
 
-                                // send the live stream message about tool-chosen
-                                onStreamingUpdate?.Invoke($"\n\nTool selected: {toolName}\n\n"); // Use callback
+                                
+                                onStreamingUpdate?.Invoke($"\n\nTool selected: {toolName}\n\n"); 
 
                                 ToolResponseSet.Tools.Add(currentResponseItem);
-                                //}
-                                //else
-                                //{
-                                //    currentResponseItem.ResponseText += toolArgs;
-                                //}
+                                
+                                
+                                
+                                
+                                
 
-                                // Don't append tool response to fullResponse
-                                // fullResponse.Append(toolResponse);
-                                onStreamingUpdate?.Invoke(toolResponse); // Use callback
+                                
+                                
+                                onStreamingUpdate?.Invoke(toolResponse); 
                             }
-                            // Handle text responses
+                            
                             else if (part["text"] != null)
                             {
                                 var textChunk = part["text"]?.ToString();
@@ -518,7 +518,7 @@ namespace AiStudio4.AiServices
                                     if (fullResponse.Length != 0 || (textChunk != "ny"))
                                     {
                                         fullResponse.Append(textChunk);
-                                        onStreamingUpdate?.Invoke(textChunk); // Use callback
+                                        onStreamingUpdate?.Invoke(textChunk); 
                                         Debug.WriteLine($"text: {textChunk}");
                                     }
                                     else
@@ -527,26 +527,26 @@ namespace AiStudio4.AiServices
                                     }
                                 }
                             }
-                            // Handle image responses
+                            
                             else if (part["inlineData"] != null)
                             {
-                                // Capture image for later processing
+                                
                                 string mimeType = part["inlineData"]["mimeType"]?.ToString();
                                 string base64Data = part["inlineData"]["data"]?.ToString();
 
                                 if (!string.IsNullOrEmpty(mimeType) && !string.IsNullOrEmpty(base64Data))
                                 {
-                                    // Add image to the collection
+                                    
                                     _generatedImages.Add(new GenImage
                                     {
                                         MimeType = mimeType,
                                         Base64Data = base64Data
                                     });
 
-                                    // Add a placeholder in the response text
+                                    
                                     var imagePlaceholder = "[Generated Image]";
                                     fullResponse.Append(imagePlaceholder);
-                                    onStreamingUpdate?.Invoke(imagePlaceholder); // Use callback
+                                    onStreamingUpdate?.Invoke(imagePlaceholder); 
                                 }
                             }
                             else
@@ -562,8 +562,8 @@ namespace AiStudio4.AiServices
                         inputTokenCount = ((int)(streamData["usageMetadata"]?["promptTokenCount"] ?? 0) + (int)(streamData["usageMetadata"]?["thoughtsTokenCount"] ?? 0)).ToString();
                         outputTokenCount = streamData["usageMetadata"]?["candidatesTokenCount"]?.ToString();
 
-                        //var x = streamData["usageMetadata"]?["cacheTokensDetails"];
-                        //if (x != null) Debugger.Break();
+                        
+                        
                         cachedTokenCount = streamData["usageMetadata"]?["cachedContentTokenCount"]?.ToString();
                     }
 
@@ -635,9 +635,9 @@ namespace AiStudio4.AiServices
                 return new AiResponse { Success = false, ResponseText = "No text provided for speech synthesis in the last user message." };
             }
 
-            string voiceName = !string.IsNullOrEmpty(options.Model.TtsVoiceName) ? options.Model.TtsVoiceName : "Kore"; // Default if not set
+            string voiceName = !string.IsNullOrEmpty(options.Model.TtsVoiceName) ? options.Model.TtsVoiceName : "Kore"; 
 
-            // ApiModel is correctly set to the TTS model name by InitializeHttpClient
+            
             string ttsUrl = $"{ApiUrl}{ApiModel}:generateContent?key={ApiKey}";
 
             var ttsRequestPayload = new JObject
@@ -682,17 +682,17 @@ namespace AiStudio4.AiServices
 
                     var audioBytes = Convert.FromBase64String(base64Audio);
 
-                    // Debug: Write audio file to debug directory
+                    
                     string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "DebugLogs", "AudioFiles");
                     try
                     {
-                        // Create directory if it doesn't exist
+                        
                         if (!Directory.Exists(debugDir))
                         {
                             Directory.CreateDirectory(debugDir);
                         }
                         
-                        // Write audio file
+                        
                         string debugFileName = $"speech_{DateTime.Now:yyyyMMddHHmmss}.wav";
                         string debugFilePath = Path.Combine(debugDir, debugFileName);
                         File.WriteAllBytes(debugFilePath, audioBytes);
@@ -703,16 +703,16 @@ namespace AiStudio4.AiServices
                         Debug.WriteLine($"Failed to write audio debug file: {ex.Message}");
                     }
 
-                    // Prepend WAV header to raw PCM data
-                    // Assume default audio parameters (can be adjusted if Gemini provides this info)
-                    int sampleRate = 24000; // 24 kHz
-                    short bitsPerSample = 16; // 16-bit
-                    short numChannels = 1;   // Mono
+                    
+                    
+                    int sampleRate = 24000; 
+                    short bitsPerSample = 16; 
+                    short numChannels = 1;   
 
                     byte[] wavFileData = PrependWavHeader(audioBytes, numChannels, sampleRate, bitsPerSample);
                     string finalBase64Audio = Convert.ToBase64String(wavFileData);
 
-                    // Debug: Write WAV file to debug directory
+                    
                     try
                     {
                         string wavDebugFilePath = Path.Combine(debugDir, $"speech_wav_{DateTime.Now:yyyyMMddHHmmss}.wav");
@@ -728,8 +728,8 @@ namespace AiStudio4.AiServices
                     {
                         Id = Guid.NewGuid().ToString(),
                         Name = $"speech_{DateTime.Now:yyyyMMddHHmmss}.wav",
-                        Type = "audio/wav", // Explicitly set to audio/wav since we're creating a WAV file
-                        Content = finalBase64Audio, // Send the complete WAV file (header + PCM data)
+                        Type = "audio/wav", 
+                        Content = finalBase64Audio, 
                         Size = wavFileData.Length
                     };
 
@@ -747,7 +747,7 @@ namespace AiStudio4.AiServices
                         Success = true,
                         ResponseText = $"Audio generated for: \"{textToSynthesize.Substring(0, Math.Min(textToSynthesize.Length, 50))}...\"",
                         Attachments = new List<Attachment> { attachment },
-                        TokenUsage = new TokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), // Placeholder
+                        TokenUsage = new TokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), 
                     };
                 }
                 catch (Exception ex)
@@ -757,7 +757,7 @@ namespace AiStudio4.AiServices
             }
         }
 
-        // Helper method to prepend a WAV header to raw PCM audio data
+        
         private static byte[] PrependWavHeader(byte[] pcmData, short numChannels, int sampleRate, short bitsPerSample)
         {
             int headerSize = 44;
@@ -768,25 +768,25 @@ namespace AiStudio4.AiServices
             using (MemoryStream ms = new MemoryStream(totalFileSize))
             using (BinaryWriter writer = new BinaryWriter(ms))
             {
-                // RIFF Header
-                writer.Write(Encoding.ASCII.GetBytes("RIFF")); // ChunkID
-                writer.Write(totalFileSize - 8);              // ChunkSize
-                writer.Write(Encoding.ASCII.GetBytes("WAVE")); // Format
+                
+                writer.Write(Encoding.ASCII.GetBytes("RIFF")); 
+                writer.Write(totalFileSize - 8);              
+                writer.Write(Encoding.ASCII.GetBytes("WAVE")); 
 
-                // Subchunk1: "fmt "
-                writer.Write(Encoding.ASCII.GetBytes("fmt ")); // Subchunk1ID
-                writer.Write(16);                              // Subchunk1Size (16 for PCM)
-                writer.Write((short)1);                        // AudioFormat (1 for PCM)
-                writer.Write(numChannels);                     // NumChannels
-                writer.Write(sampleRate);                      // SampleRate
-                writer.Write(byteRate);                        // ByteRate
-                writer.Write(blockAlign);                      // BlockAlign
-                writer.Write(bitsPerSample);                   // BitsPerSample
+                
+                writer.Write(Encoding.ASCII.GetBytes("fmt ")); 
+                writer.Write(16);                              
+                writer.Write((short)1);                        
+                writer.Write(numChannels);                     
+                writer.Write(sampleRate);                      
+                writer.Write(byteRate);                        
+                writer.Write(blockAlign);                      
+                writer.Write(bitsPerSample);                   
 
-                // Subchunk2: "data"
-                writer.Write(Encoding.ASCII.GetBytes("data")); // Subchunk2ID
-                writer.Write(pcmData.Length);                  // Subchunk2Size
-                writer.Write(pcmData);                         // Actual data
+                
+                writer.Write(Encoding.ASCII.GetBytes("data")); 
+                writer.Write(pcmData.Length);                  
+                writer.Write(pcmData);                         
 
                 return ms.ToArray();
             }

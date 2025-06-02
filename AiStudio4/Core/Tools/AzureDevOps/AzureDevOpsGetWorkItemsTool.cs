@@ -14,9 +14,9 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
-    /// <summary>
-    /// Implementation of the Azure DevOps Get Work Items tool
-    /// </summary>
+    
+    
+    
     public class AzureDevOpsGetWorkItemsTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -29,9 +29,9 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4-AzureDevOps-Tool");
         }
 
-        /// <summary>
-        /// Gets the Azure DevOps Get Work Items tool definition
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
@@ -105,7 +105,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 SendStatusUpdate("Starting Azure DevOps Get Work Items tool execution...");
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
 
-                // Extract required parameters
+                
                 if (!parameters.TryGetValue("organization", out var organizationObj) || !(organizationObj is string organization) || string.IsNullOrWhiteSpace(organization))
                 {
                     return CreateResult(true, true, $"Parameters: organization=<missing>, project=<unknown>, ids=<unknown>\n\nError: 'organization' parameter is required.");
@@ -121,7 +121,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, ids=<missing or empty>\n\nError: 'ids' parameter is required and must contain at least one work item ID.");
                 }
 
-                // Convert JArray to List<int>
+                
                 var ids = new List<int>();
                 foreach (var idToken in idsArray)
                 {
@@ -140,7 +140,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, ids=<invalid>\n\nError: 'ids' parameter must contain valid integer work item IDs.");
                 }
 
-                // Extract optional parameters
+                
                 List<string> fields = null;
                 if (parameters.TryGetValue("fields", out var fieldsObj) && fieldsObj is Newtonsoft.Json.Linq.JArray fieldsArray && fieldsArray.Count > 0)
                 {
@@ -166,18 +166,18 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     expand = expandStr;
                 }
 
-                // Get API key from settings
+                
                 string apiKey = _generalSettingsService.GetDecryptedAzureDevOpsPAT();
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, ids={string.Join(",", ids)}\n\nError: Azure DevOps PAT is not configured. Please set it in File > Settings > Set Azure DevOps PAT.");
                 }
 
-                // Set up authentication header
+                
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", 
                     Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", apiKey))));
 
-                // Make the API request
+                
                 return await GetWorkItemsAsync(organization, project, ids, fields, asOf, expand);
             }
             catch (JsonException jsonEx)
@@ -199,22 +199,22 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             {
                 SendStatusUpdate($"Fetching work items for {organization}/{project}...");
                 
-                // Build query parameters
+                
                 var queryParams = new List<string>();
                 
-                // Add fields parameter if specified
+                
                 if (fields != null && fields.Count > 0)
                 {
                     queryParams.Add($"fields={string.Join(",", fields)}");
                 }
                 
-                // Add asOf parameter if specified
+                
                 if (!string.IsNullOrEmpty(asOf))
                 {
                     queryParams.Add($"asOf={asOf}");
                 }
                 
-                // Add expand parameter if specified and not 'none'
+                
                 if (!string.IsNullOrEmpty(expand) && expand != "none")
                 {
                     queryParams.Add($"$expand={expand}");
@@ -222,7 +222,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 
                 string queryString = queryParams.Count > 0 ? $"?{string.Join("&", queryParams)}" : "";
                 
-                // For work items, we need to use a comma-separated list of IDs in the URL
+                
                 string idsString = string.Join(",", ids);
                 string url = $"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems?ids={idsString}{queryString}";
                 
@@ -278,7 +278,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         continue;
                     }
                     
-                    // Extract common fields (these might not be available for all work item types)
+                    
                     string workItemType = fields["System.WorkItemType"]?.ToString() ?? "Unknown Type";
                     string title = fields["System.Title"]?.ToString() ?? "No Title";
                     string state = fields["System.State"]?.ToString() ?? "Unknown State";
@@ -292,21 +292,21 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     sb.AppendLine($"**Created on:** {createdDate}");
                     sb.AppendLine($"**Assigned to:** {assignedTo}");
                     
-                    // Add description if available
+                    
                     if (fields["System.Description"] != null)
                     {
                         sb.AppendLine("\n**Description:**");
                         sb.AppendLine(fields["System.Description"].ToString());
                     }
                     
-                    // Add acceptance criteria if available (common for user stories)
+                    
                     if (fields["Microsoft.VSTS.Common.AcceptanceCriteria"] != null)
                     {
                         sb.AppendLine("\n**Acceptance Criteria:**");
                         sb.AppendLine(fields["Microsoft.VSTS.Common.AcceptanceCriteria"].ToString());
                     }
                     
-                    // Add iteration and area path
+                    
                     if (fields["System.IterationPath"] != null)
                     {
                         sb.AppendLine($"\n**Iteration Path:** {fields["System.IterationPath"]}");
@@ -317,20 +317,20 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         sb.AppendLine($"**Area Path:** {fields["System.AreaPath"]}");
                     }
                     
-                    // Add effort/story points if available
+                    
                     if (fields["Microsoft.VSTS.Scheduling.StoryPoints"] != null || fields["Microsoft.VSTS.Scheduling.Effort"] != null)
                     {
                         var points = fields["Microsoft.VSTS.Scheduling.StoryPoints"] ?? fields["Microsoft.VSTS.Scheduling.Effort"];
                         sb.AppendLine($"**Story Points/Effort:** {points}");
                     }
                     
-                    // Add priority if available
+                    
                     if (fields["Microsoft.VSTS.Common.Priority"] != null)
                     {
                         sb.AppendLine($"**Priority:** {fields["Microsoft.VSTS.Common.Priority"]}");
                     }
                     
-                    // Add relations if expanded
+                    
                     if (workItem["relations"] is JArray relations && relations.Count > 0)
                     {
                         sb.AppendLine("\n**Relations:**");
@@ -339,7 +339,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                             string relationType = relation["rel"]?.ToString() ?? "Unknown";
                             string url = relation["url"]?.ToString() ?? "";
                             
-                            // Extract the work item ID from the URL if it's a work item relation
+                            
                             string relatedId = "";
                             if (url.Contains("workitems"))
                             {
@@ -353,7 +353,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         }
                     }
                     
-                    // Add a separator between work items
+                    
                     sb.AppendLine("\n---\n");
                 }
                 

@@ -14,9 +14,9 @@ using System.Web;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
-    /// <summary>
-    /// Implementation of the Azure DevOps Get Item Content tool
-    /// </summary>
+    
+    
+    
     public class AzureDevOpsGetItemContentTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -29,9 +29,9 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4-AzureDevOps-Tool");
         }
 
-        /// <summary>
-        /// Gets the Azure DevOps Get Item Content tool definition
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
@@ -100,7 +100,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 SendStatusUpdate("Starting Azure DevOps Get Item Content tool execution...");
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
 
-                // Extract required parameters
+                
                 if (!parameters.TryGetValue("organization", out var organizationObj) || !(organizationObj is string organization) || string.IsNullOrWhiteSpace(organization))
                 {
                     return CreateResult(true, true, $"Parameters: organization=<missing>, project=<unknown>, repository_id=<unknown>, path=<unknown>\n\nError: 'organization' parameter is required.");
@@ -121,7 +121,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, repository_id={repositoryId}, path=<missing>\n\nError: 'path' parameter is required.");
                 }
 
-                // Extract optional parameters
+                
                 string versionType = "branch";
                 if (parameters.TryGetValue("version_type", out var versionTypeObj) && versionTypeObj is string versionTypeStr && !string.IsNullOrWhiteSpace(versionTypeStr))
                 {
@@ -134,18 +134,18 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     version = versionStr;
                 }
 
-                // Get API key from settings
+                
                 string apiKey = _generalSettingsService.GetDecryptedAzureDevOpsPAT();
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, repository_id={repositoryId}, path={path}\n\nError: Azure DevOps PAT is not configured. Please set it in File > Settings > Set Azure DevOps PAT.");
                 }
 
-                // Set up authentication header
+                
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", 
                     Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", apiKey))));
 
-                // Make the API request
+                
                 return await GetItemContentAsync(organization, project, repositoryId, path, versionType, version);
             }
             catch (JsonException jsonEx)
@@ -167,16 +167,16 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             {
                 SendStatusUpdate($"Fetching content for {path} from {organization}/{project}/{repositoryId}...");
                 
-                // URL encode the path
+                
                 string encodedPath = HttpUtility.UrlEncode(path);
                 
-                // Build query parameters
+                
                 var queryParams = new List<string>();
                 
-                // Add version parameters if specified
+                
                 if (!string.IsNullOrEmpty(versionType) && !string.IsNullOrEmpty(version))
                 {
-                    // Convert version type to Azure DevOps API parameter
+                    
                     string versionParameter = versionType.ToLowerInvariant() switch
                     {
                         "branch" => "versionDescriptor.versionType=branch&versionDescriptor.version=" + HttpUtility.UrlEncode(version),
@@ -188,7 +188,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     queryParams.Add(versionParameter);
                 }
                 
-                // Add download parameter to get raw content
+                
                 queryParams.Add("download=true");
                 
                 string queryString = queryParams.Count > 0 ? $"?{string.Join("&", queryParams)}" : "";
@@ -199,7 +199,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Try to parse error message from JSON response
+                    
                     try
                     {
                         var errorObj = JObject.Parse(content);
@@ -208,12 +208,12 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     }
                     catch
                     {
-                        // If parsing fails, return the raw error
+                        
                         return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, repository_id={repositoryId}, path={path}\n\nAzure DevOps API Error: (Status code: {response.StatusCode})\n\n{content}");
                     }
                 }
                 
-                // Format the response based on file type
+                
                 var formattedContent = FormatItemContent(path, content);
                 
                 SendStatusUpdate("Successfully retrieved item content.");
@@ -232,11 +232,11 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             {
                 var sb = new StringBuilder();
                 
-                // Add file information header
+                
                 sb.AppendLine($"# File: {path}");
                 sb.AppendLine();
                 
-                // Try to determine if this is a binary file
+                
                 bool isBinary = IsPossiblyBinaryContent(content);
                 
                 if (isBinary)
@@ -245,10 +245,10 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 }
                 else
                 {
-                    // For text files, add the content with appropriate formatting
+                    
                     string fileExtension = System.IO.Path.GetExtension(path).ToLowerInvariant();
                     
-                    // Add markdown code block with language hint based on file extension
+                    
                     string languageHint = GetLanguageHintFromExtension(fileExtension);
                     sb.AppendLine($"```{languageHint}");
                     sb.AppendLine(content);
@@ -266,18 +266,18 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         
         private bool IsPossiblyBinaryContent(string content)
         {
-            // Simple heuristic to detect binary content
-            // Check for null bytes or high concentration of non-printable characters
+            
+            
             if (string.IsNullOrEmpty(content))
                 return false;
                 
-            // If content contains null bytes, it's likely binary
+            
             if (content.Contains("\0"))
                 return true;
                 
-            // Count non-printable characters
+            
             int nonPrintableCount = 0;
-            int sampleSize = Math.Min(content.Length, 1000); // Check first 1000 chars
+            int sampleSize = Math.Min(content.Length, 1000); 
             
             for (int i = 0; i < sampleSize; i++)
             {
@@ -288,7 +288,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 }
             }
             
-            // If more than 10% are non-printable, consider it binary
+            
             return nonPrintableCount > (sampleSize * 0.1);
         }
         

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Models;
@@ -30,9 +30,9 @@ namespace AiStudio4.Services
         private readonly IStatusMessageService _statusMessageService;
         private readonly IServiceProvider _serviceProvider;
 
-        // Events removed
-        // public event EventHandler<string> StreamingTextReceived;
-        // public event EventHandler<string> StreamingComplete;
+        
+        
+        
 
         public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider)
         {
@@ -54,7 +54,7 @@ namespace AiStudio4.Services
             {
                 _logger.LogInformation("Processing simple chat request");
                 
-                // Get the secondary model
+                
                 var secondaryModelName = _generalSettingsService.CurrentSettings.SecondaryModel;
                 if (string.IsNullOrEmpty(secondaryModelName))
                 {
@@ -66,7 +66,7 @@ namespace AiStudio4.Services
                     };
                 }
 
-                // Find the model and service provider
+                
                 var model = _generalSettingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
                 if (model == null)
                 {
@@ -81,7 +81,7 @@ namespace AiStudio4.Services
                 var service = SharedClasses.Providers.ServiceProvider.GetProviderForGuid(_generalSettingsService.CurrentSettings.ServiceProviders, model.ProviderGuid);
                 var aiService = AiServiceResolver.GetAiService(service.ServiceName, _toolService, _mcpService);
 
-                // Create a simple chat request
+                
                 var conv = new LinearConv(DateTime.Now)
                 {
                     systemprompt = "You are a helpful assistant.",
@@ -134,7 +134,7 @@ namespace AiStudio4.Services
             {
                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Processing request...");
 
-                // Clear any existing interjections at the start of a new request
+                
                 var clearInterjectionService = _serviceProvider.GetService<IInterjectionService>();
                 if (clearInterjectionService != null)
                 {
@@ -150,28 +150,28 @@ namespace AiStudio4.Services
 
                 string systemPromptContent = await GetSystemPrompt(request);
 
-                const int MAX_ITERATIONS = 50; // Maximum number of tool call iterations
+                const int MAX_ITERATIONS = 50; 
 
 
                 int currentIteration = 0;
                 bool continueLoop = true;
-                AiResponse response = null; // Store the latest response
+                AiResponse response = null; 
                 AiStudio4.Core.Models.TokenCost accumulatedCostInfo = null;
-                List<Attachment> finalAttachments = new List<Attachment>(); // Initialize here
+                List<Attachment> finalAttachments = new List<Attachment>(); 
 
 
                 StringBuilder collatedResponse = new StringBuilder();
 
 
-                // --- Tool Use Loop ---
-                string previousToolRequested = null; // Track previous tool request for loop detection
+                
+                string previousToolRequested = null; 
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
                     if(currentIteration != 0)
                         await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Looping...");
                         
 
-                    // Check for cancellation at the start of each loop iteration
+                    
                     if (request.CancellationToken.IsCancellationRequested)
                     {
                         _logger.LogInformation("Cancellation requested during tool loop. Exiting loop.");
@@ -181,7 +181,7 @@ namespace AiStudio4.Services
                     collatedResponse = new StringBuilder();
                     currentIteration++;
 
-                    // Prepare initial conversation state
+                    
                     var linearConversation = new LinearConv(DateTime.Now)
                     {
                         systemprompt = systemPromptContent,
@@ -197,7 +197,7 @@ namespace AiStudio4.Services
                         }).ToList();
 
 
-                    // Add all messages from history first
+                    
                     foreach (var historyItem in messageHistory.Where(x => x.Role != "system"))
                     {
                         var message = new LinearConvMessage
@@ -205,15 +205,15 @@ namespace AiStudio4.Services
                             role = historyItem.Role,
                             content = historyItem.Content,
                             attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
-                            // Assuming LinearConvMessage doesn't explicitly store tool calls/results from history
-                            // If it does, map historyItem.ToolCalls and historyItem.ToolResults here
+                            
+                            
                         };
                         linearConversation.messages.Add(message);
                     }
 
-                    // Add the latest user message (the trigger for this request)
+                    
                     var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");
-                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content)) // Avoid duplicates if history includes the trigger
+                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content)) 
                     {
                         linearConversation.messages.Add(new LinearConvMessage
                         {
@@ -229,18 +229,18 @@ namespace AiStudio4.Services
                     {
                         ServiceProvider = service,
                         Model = model,
-                        Conv = linearConversation, // Use the current state of the conversation
+                        Conv = linearConversation, 
                         CancellationToken = request.CancellationToken,
                         ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                         MustNotUseEmbedding = true,
-                        ToolIds = request.ToolIds ?? new List<string>(), // Pass available tools
+                        ToolIds = request.ToolIds ?? new List<string>(), 
                         OnStreamingUpdate = request.OnStreamingUpdate,
                         OnStreamingComplete = request.OnStreamingComplete
                     };
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
 
-                    // we always make the think tool available - the think tool causes a stop.
+                    
                     if (request.ToolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
                     {
                         var stopTool = (await _toolService.GetToolByToolNameAsync("Think")).Guid;
@@ -258,7 +258,7 @@ namespace AiStudio4.Services
 
                     if (response.Attachments != null && response.Attachments.Any())
                     {
-                        finalAttachments.AddRange(response.Attachments); // Accumulate attachments
+                        finalAttachments.AddRange(response.Attachments); 
                     }
 
                     var newAssistantMessageId = $"msg_{Guid.NewGuid()}";
@@ -267,7 +267,7 @@ namespace AiStudio4.Services
 
                     bool duplicateDetection = false;
 
-                    // --- Tool "Infinite"-Loop Detection ---
+                    
                     if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
                     {
                         _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);
@@ -275,7 +275,7 @@ namespace AiStudio4.Services
                         duplicateDetection = true;
                     }
                     previousToolRequested = toolResult.RequestedToolsSummary;
-                    // --- End Tool Loop Detection ---
+                    
 
                     continueLoop = toolResult.ShouldContinueToolLoop;
 
@@ -289,20 +289,20 @@ namespace AiStudio4.Services
 
                     var costInfo = new TokenCost(response.TokenUsage, model);
 
-                    // If the loop should continue, add a user message to prompt the next step
+                    
                     if (continueLoop)
                     {
-                        // Check for interjections before continuing the loop
+                        
                         var interjectionService = _serviceProvider.GetService<IInterjectionService>();
                         if (interjectionService != null && await interjectionService.HasInterjectionAsync(request.ClientId))
                         {
                             string interjection = await interjectionService.GetAndClearInterjectionAsync(request.ClientId);
                             if (!string.IsNullOrEmpty(interjection))
                             {
-                                // Prepend the interjection to the collated response
+                                
                                 collatedResponse.Insert(0, $"User interjection: {interjection}\n\n");
 
-                                // Notify the client that the interjection was processed
+                                
                                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, "Your interjection has been added to the conversation.");
                             }
                         }
@@ -380,7 +380,7 @@ namespace AiStudio4.Services
 
                    }
 
-                } // --- End of Tool Use Loop ---
+                } 
 
                 return new ChatResponse
                 {
@@ -401,17 +401,17 @@ namespace AiStudio4.Services
         private async Task<string> GetSystemPrompt(ChatRequest request)
         {
             
-            // Get the appropriate system prompt
+            
             string systemPromptContent = "You are a helpful chatbot.";
 
             if (!string.IsNullOrEmpty(request.SystemPromptContent))
             {
-                // Use custom system prompt content provided in the request
+                
                 systemPromptContent = request.SystemPromptContent;
             }
             else if (!string.IsNullOrEmpty(request.SystemPromptId))
             {
-                // Use specified system prompt ID
+                
                 var systemPrompt = await _systemPromptService.GetSystemPromptByIdAsync(request.SystemPromptId);
                 if (systemPrompt != null)
                 {
@@ -420,7 +420,7 @@ namespace AiStudio4.Services
             }
             else if (request.BranchedConv != null)
             {
-                // Use conv-specific system prompt
+                
                 var systemPrompt = await _systemPromptService.GetConvSystemPromptAsync(request.BranchedConv.ConvId);
                 if (systemPrompt != null)
                 {
@@ -430,7 +430,7 @@ namespace AiStudio4.Services
 
             systemPromptContent = systemPromptContent.Replace("{ProjectPath}", _generalSettingsService.CurrentSettings.ProjectPath);
 
-            // Replace CommonAiMistakes token if it exists
+            
             if(systemPromptContent.Contains("{CommonAiMistakes}"))
             {
                 string commonMistakesPath = Path.Combine(_generalSettingsService.CurrentSettings.ProjectPath, "CommonAiMistakes.md");
@@ -441,7 +441,7 @@ namespace AiStudio4.Services
                 }
                 else
                 {
-                    // If file doesn't exist, just remove the token
+                    
                     systemPromptContent = systemPromptContent.Replace("{CommonAiMistakes}", "");
                 }
             }
@@ -486,7 +486,7 @@ namespace AiStudio4.Services
                     return dictionary;
 
                 case JsonValueKind.Array:
-                    // Check if all elements are numbers - if so, return as float[]
+                    
                     bool allNumbers = true;
                     foreach (var item in element.EnumerateArray())
                     {
@@ -514,7 +514,7 @@ namespace AiStudio4.Services
                     return element.GetString();
 
                 case JsonValueKind.Number:
-                    // You could add additional logic here if needed
+                    
                     return element.GetSingle();
 
                 case JsonValueKind.True:

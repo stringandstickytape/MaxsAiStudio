@@ -1,4 +1,4 @@
-﻿// AiStudio4/Core/Tools/Vite/ModifyViteConfigTool.cs
+
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools.Vite
 {
-    /// <summary>
-    /// Implementation of the ModifyViteConfig tool
-    /// </summary>
+    
+    
+    
     public class ModifyViteConfigTool : BaseToolImplementation
     {
         private readonly IDialogService _dialogService;
@@ -25,9 +25,9 @@ namespace AiStudio4.Core.Tools.Vite
             _dialogService = dialogService;
         }
 
-        /// <summary>
-        /// Gets the ModifyViteConfig tool definition
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
@@ -63,9 +63,9 @@ namespace AiStudio4.Core.Tools.Vite
             };
         }
 
-        /// <summary>
-        /// Processes a ModifyViteConfig tool call
-        /// </summary>
+        
+        
+        
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
             try
@@ -73,7 +73,7 @@ namespace AiStudio4.Core.Tools.Vite
                 SendStatusUpdate("Starting ModifyViteConfig tool execution...");
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
-                // Extract parameters
+                
                 var projectDirectory = parameters.ContainsKey("projectDirectory") ? parameters["projectDirectory"].ToString() : "";
                 var configChanges = parameters.ContainsKey("configChanges") ? 
                     JsonConvert.DeserializeObject<Dictionary<string, object>>(parameters["configChanges"].ToString()) : 
@@ -84,7 +84,7 @@ namespace AiStudio4.Core.Tools.Vite
                     return CreateResult(false, true, "Error: No configuration changes specified.");
                 }
 
-                // Get the project directory path (relative to project root for security)
+                
                 var projectPath = _projectRoot;
                 if (!string.IsNullOrEmpty(projectDirectory) && projectDirectory != _projectRoot)
                 {
@@ -96,7 +96,7 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                // Find vite.config.js or vite.config.ts
+                
                 string viteConfigPath = Path.Combine(projectPath, "vite.config.js");
                 bool isTypeScript = false;
                 if (!File.Exists(viteConfigPath))
@@ -110,11 +110,11 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                 }
 
-                // Read the current config file
+                
                 string configContent = await File.ReadAllTextAsync(viteConfigPath);
                 string originalContent = configContent;
 
-                // Confirmation Dialog
+                
                 string changesSummary = string.Join(", ", configChanges.Keys);
                 string confirmationPrompt = $"AI wants to modify the Vite configuration file: '{Path.GetFileName(viteConfigPath)}'. This will alter project settings. Proceed?";
                 string commandForDisplay = $"Modify: {viteConfigPath}\nChanges involve: [{changesSummary}]";
@@ -126,24 +126,24 @@ namespace AiStudio4.Core.Tools.Vite
                     return CreateResult(true, false, "Operation cancelled by user.");
                 }
 
-                // Apply changes to the config file
+                
                 foreach (var change in configChanges)
                 {
                     string key = change.Key;
                     string value = JsonConvert.SerializeObject(change.Value);
 
-                    // Handle special case for plugins array
+                    
                     if (key == "plugins")
                     {
                         configContent = ModifyPluginsArray(configContent, value);
                         continue;
                     }
 
-                    // For other properties, try to find and replace the property
+                    
                     string pattern = $@"({key}\s*:\s*)(.*?)(,|\n|\r|\}})";
                     if (Regex.IsMatch(configContent, pattern, RegexOptions.Singleline))
                     {
-                        // Property exists, update it
+                        
                         configContent = Regex.Replace(configContent, pattern, m => 
                         {
                             return $"{m.Groups[1].Value}{value}{m.Groups[3].Value}";
@@ -151,14 +151,14 @@ namespace AiStudio4.Core.Tools.Vite
                     }
                     else
                     {
-                        // Property doesn't exist, add it to the defineConfig object
+                        
                         configContent = Regex.Replace(configContent, 
                             @"(defineConfig\s*\(\s*\{)([^\}]*)(\}\s*\))", 
                             $"$1$2  {key}: {value},$3");
                     }
                 }
 
-                // Write the updated config back to the file
+                
                 if (configContent != originalContent)
                 {
                     await File.WriteAllTextAsync(viteConfigPath, configContent);
@@ -179,15 +179,15 @@ namespace AiStudio4.Core.Tools.Vite
             }
         }
 
-        /// <summary>
-        /// Helper method to modify the plugins array in the Vite config
-        /// </summary>
+        
+        
+        
         private string ModifyPluginsArray(string configContent, string pluginsValue)
         {
-            // Check if plugins array exists
+            
             if (Regex.IsMatch(configContent, @"plugins\s*:\s*\[.*?\]", RegexOptions.Singleline))
             {
-                // Replace the existing plugins array
+                
                 return Regex.Replace(configContent, 
                     @"(plugins\s*:\s*)\[.*?\](,|\n|\r|\}})", 
                     $"$1{pluginsValue}$2", 
@@ -195,7 +195,7 @@ namespace AiStudio4.Core.Tools.Vite
             }
             else
             {
-                // Add plugins array to the defineConfig object
+                
                 return Regex.Replace(configContent, 
                     @"(defineConfig\s*\(\s*\{)([^\}]*)(\}\s*\))", 
                     $"$1$2  plugins: {pluginsValue},$3");

@@ -1,4 +1,4 @@
-﻿// AiStudio4.Core\Tools\ModifyFilesTool.cs
+
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools.CodeDiff;
@@ -18,10 +18,10 @@ using System.Windows;
 
 namespace AiStudio4.Core.Tools
 {
-    /// <summary>
-    /// Implementation of the ModifyFile tool that modifies existing files.
-    /// Uses a secondary AI for content modifications when needed.
-    /// </summary>
+    
+    
+    
+    
     public class ModifyFilesTool : BaseToolImplementation
     {
 
@@ -43,7 +43,7 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd43", // Fixed GUID for ModifyFiles
+                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd43", 
                 Description = "Modifies content within one or more existing files.",
                 Name = "ModifyFiles",
                 Schema = @"{
@@ -119,18 +119,18 @@ namespace AiStudio4.Core.Tools
             _validationErrorMessages.Clear();
             var overallSuccess = true;
             
-            // Send initial status update
+            
             SendStatusUpdate("Starting ModifyFiles tool execution...");
             
             JObject parameters;
             JArray modifications = null;
 
-            // --- Parse and Validate Input Structure ---
+            
             try
             {
                 parameters = JObject.Parse(toolParameters);
                 
-                // Get the modifications array
+                
                 modifications = parameters["modifications"] as JArray;
                 if (modifications == null || modifications.Count == 0)
                 {
@@ -139,7 +139,7 @@ namespace AiStudio4.Core.Tools
                 }
                 else
                 {
-                    // Validate each modification
+                    
                     foreach (JObject modification in modifications)
                     {
                         string filePath = modification["path"]?.ToString();
@@ -150,7 +150,7 @@ namespace AiStudio4.Core.Tools
                             continue;
                         }
                         
-                        // Validate file path security
+                        
                         if (!_pathSecurityManager.IsPathSafe(filePath))
                         {
                             _validationErrorMessages.AppendLine($"Error: Path '{filePath}' is outside the allowed project directory.");
@@ -158,7 +158,7 @@ namespace AiStudio4.Core.Tools
                             continue;
                         }
                         
-                        // Validate file exists
+                        
                         if (!File.Exists(filePath))
                         {
                             _validationErrorMessages.AppendLine($"Error: File '{filePath}' does not exist.");
@@ -166,7 +166,7 @@ namespace AiStudio4.Core.Tools
                             continue;
                         }
                         
-                        // Validate changes array
+                        
                         var changes = modification["changes"] as JArray;
                         if (changes == null || changes.Count == 0)
                         {
@@ -175,10 +175,10 @@ namespace AiStudio4.Core.Tools
                             continue;
                         }
                         
-                        // Validate each change
+                        
                         foreach (JObject change in changes)
                         {
-                            // Validate required fields
+                            
                             if (change["lineNumber"] == null)
                             {
                                 _validationErrorMessages.AppendLine($"Error: 'lineNumber' is missing in a change for file '{filePath}'.");
@@ -193,7 +193,7 @@ namespace AiStudio4.Core.Tools
                             }
                             
                             string newContent = change["newContent"]?.ToString();
-                            if (newContent == null) // Allow empty string for newContent
+                            if (newContent == null) 
                             {
                                 _validationErrorMessages.AppendLine($"Error: 'newContent' is missing in a change for file '{filePath}'.");
                                 overallSuccess = false;
@@ -220,7 +220,7 @@ namespace AiStudio4.Core.Tools
                 overallSuccess = false;
             }
 
-            // --- Stop if Validation Failed ---
+            
             if (!overallSuccess)
             {
                 _logger.LogError("ModifyFiles request validation failed:\n{Errors}", _validationErrorMessages.ToString());
@@ -229,10 +229,10 @@ namespace AiStudio4.Core.Tools
                 return CreateResult(false, false, $"Validation failed: {_validationErrorMessages.ToString()}");
             }
             
-            // --- Preprocess Modifications to Consolidate Changes by File Path ---
+            
             if (modifications != null && modifications.Count > 0)
             {
-                // Group changes by file path
+                
                 var changesByFilePath = new Dictionary<string, List<JObject>>();
                 
                 foreach (JObject modification in modifications)
@@ -245,14 +245,14 @@ namespace AiStudio4.Core.Tools
                         changesByFilePath[filePath] = new List<JObject>();
                     }
                     
-                    // Add all changes for this file path
+                    
                     foreach (JObject change in changes)
                     {
                         changesByFilePath[filePath].Add(change);
                     }
                 }
                 
-                // Rebuild modifications array with consolidated changes
+                
                 var consolidatedModifications = new JArray();
                 foreach (var kvp in changesByFilePath)
                 {
@@ -264,12 +264,12 @@ namespace AiStudio4.Core.Tools
                     consolidatedModifications.Add(newModification);
                 }
                 
-                // Replace the original modifications array
+                
                 modifications = consolidatedModifications;
                 SendStatusUpdate($"Consolidated changes for {changesByFilePath.Count} file(s)...");
             }
 
-            // --- Process the Modifications ---
+            
             try
             {
                 SendStatusUpdate($"Processing {modifications.Count} file modification(s)...");
@@ -278,7 +278,7 @@ namespace AiStudio4.Core.Tools
                 var results = new List<(string FilePath, bool Success, string Message)>();
                 var processedFiles = new HashSet<string>();
                 
-                // Process each file modification
+                
                 foreach (JObject modification in modifications)
                 {
                     string filePath = modification["path"].ToString();
@@ -287,10 +287,10 @@ namespace AiStudio4.Core.Tools
                     processedFiles.Add(filePath);
                     SendStatusUpdate($"Modifying file: {Path.GetFileName(filePath)} ({changesArray.Count} change(s))");
                     
-                    // Convert JArray to List<JObject> for the handler
+                    
                     var changes = changesArray.Select(c => c as JObject).Where(c => c != null).ToList();
                     
-                    // Use the HandleModifyFileAsync method which can process multiple changes at once
+                    
                     var result = await handler.HandleModifyFilesAsync(filePath, changes);
                     results.Add((filePath, result.Success, result.Message));
                     
@@ -300,7 +300,7 @@ namespace AiStudio4.Core.Tools
                     }
                 }
                 
-                // Check if all modifications were successful
+                
                 bool allSuccessful = results.All(r => r.Success);
                 
                 if (allSuccessful)
@@ -310,7 +310,7 @@ namespace AiStudio4.Core.Tools
                 }
                 else
                 {
-                    // Build error message with details of failed modifications
+                    
                     var failedResults = results.Where(r => !r.Success).ToList();
                     var errorMessage = new StringBuilder("Failed to modify some files:\n");
                     foreach (var failure in failedResults)

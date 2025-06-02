@@ -13,9 +13,9 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
-    /// <summary>
-    /// Implementation of the Azure DevOps Query Work Items tool
-    /// </summary>
+    
+    
+    
     public class AzureDevOpsQueryWorkItemsTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -28,9 +28,9 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4-AzureDevOps-Tool");
         }
 
-        /// <summary>
-        /// Gets the Azure DevOps Query Work Items tool definition
-        /// </summary>
+        
+        
+        
         public override Tool GetToolDefinition()
         {
             return new Tool
@@ -99,7 +99,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 SendStatusUpdate("Starting Azure DevOps Query Work Items tool execution...");
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters) ?? new Dictionary<string, object>();
 
-                // Extract required parameters
+                
                 if (!parameters.TryGetValue("organization", out var organizationObj) || !(organizationObj is string organization) || string.IsNullOrWhiteSpace(organization))
                 {
                     return CreateResult(true, true, $"Parameters: organization=<missing>, project=<unknown>\n\nError: 'organization' parameter is required.");
@@ -115,7 +115,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, query=<missing>\n\nError: 'query' parameter is required.");
                 }
 
-                // Extract optional parameters
+                
                 int top = 100;
                 if (parameters.TryGetValue("top", out var topObj))
                 {
@@ -148,18 +148,18 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     timePrecision = timePrecisionBool;
                 }
 
-                // Get API key from settings
+                
                 string apiKey = _generalSettingsService.GetDecryptedAzureDevOpsPAT();
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}\n\nError: Azure DevOps PAT is not configured. Please set it in File > Settings > Set Azure DevOps PAT.");
                 }
 
-                // Set up authentication header
+                
                 _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", 
                     Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", apiKey))));
 
-                // Make the API request
+                
                 return await QueryWorkItemsAsync(organization, project, query, top, skip, timePrecision);
             }
             catch (JsonException jsonEx)
@@ -180,7 +180,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             {
                 SendStatusUpdate($"Executing WIQL query for {organization}/{project}...");
                 
-                // Prepare the WIQL query request
+                
                 var wiqlRequest = new
                 {
                     query = query
@@ -188,7 +188,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 
                 var content = new StringContent(JsonConvert.SerializeObject(wiqlRequest), Encoding.UTF8, "application/json");
                 
-                // First, execute the WIQL query to get work item references
+                
                 string wiqlUrl = $"https://dev.azure.com/{organization}/{project}/_apis/wit/wiql";
                 var wiqlResponse = await _httpClient.PostAsync(wiqlUrl, content);
                 var wiqlContent = await wiqlResponse.Content.ReadAsStringAsync();
@@ -200,7 +200,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}\n\nAzure DevOps API Error: {errorMessage} (Status code: {wiqlResponse.StatusCode})");
                 }
                 
-                // Parse the WIQL response to get work item IDs
+                
                 var wiqlResult = JObject.Parse(wiqlContent);
                 var workItemRefs = wiqlResult["workItems"] as JArray;
                 
@@ -209,12 +209,12 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}\n\n# Azure DevOps Work Items\n\nNo work items found matching the query criteria.");
                 }
                 
-                // Apply pagination
+                
                 var paginatedWorkItemRefs = workItemRefs
                     .Skip(skip)
                     .Take(top);
                 
-                // Get the IDs of the work items
+                
                 var workItemIds = new List<int>();
                 foreach (var workItemRef in paginatedWorkItemRefs)
                 {
@@ -229,7 +229,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}\n\n# Azure DevOps Work Items\n\nNo valid work item IDs found in the query results.");
                 }
                 
-                // Now get the details of these work items
+                
                 string idsParam = string.Join(",", workItemIds);
                 string timePrecisionParam = timePrecision ? "&timePrecision=true" : "";
                 string workItemsUrl = $"https://dev.azure.com/{organization}/{project}/_apis/wit/workitems?ids={idsParam}&$expand=all{timePrecisionParam}";
@@ -280,7 +280,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     var fields = workItem["fields"] as JObject;
                     if (fields == null) continue;
                     
-                    // Extract common fields (these might vary based on your process template)
+                    
                     string id = workItem["id"]?.ToString() ?? "Unknown";
                     string title = fields["System.Title"]?.ToString() ?? "No Title";
                     string state = fields["System.State"]?.ToString() ?? "Unknown State";
@@ -295,7 +295,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                     sb.AppendLine($"**Created:** {createdDate}");
                     sb.AppendLine($"**Last Updated:** {changedDate}");
                     
-                    // Add description if available
+                    
                     if (fields["System.Description"] != null)
                     {
                         string description = fields["System.Description"].ToString();
@@ -306,7 +306,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         }
                     }
                     
-                    // Add acceptance criteria if available (common in user stories)
+                    
                     if (fields["Microsoft.VSTS.Common.AcceptanceCriteria"] != null)
                     {
                         string acceptanceCriteria = fields["Microsoft.VSTS.Common.AcceptanceCriteria"].ToString();
@@ -317,7 +317,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         }
                     }
                     
-                    // Add priority and effort if available
+                    
                     if (fields["Microsoft.VSTS.Common.Priority"] != null)
                     {
                         sb.AppendLine($"\n**Priority:** {fields["Microsoft.VSTS.Common.Priority"]}");
@@ -334,7 +334,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         sb.AppendLine($"**Effort/Size:** {effort}");
                     }
                     
-                    // Add iteration and area path
+                    
                     if (fields["System.IterationPath"] != null)
                     {
                         sb.AppendLine($"**Iteration:** {fields["System.IterationPath"]}");
@@ -345,7 +345,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         sb.AppendLine($"**Area:** {fields["System.AreaPath"]}");
                     }
                     
-                    // Add links to related work items if available
+                    
                     if (workItem["relations"] is JArray relations && relations.Count > 0)
                     {
                         var relatedItems = new List<string>();
@@ -356,7 +356,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                             
                             if (!string.IsNullOrEmpty(relationType) && !string.IsNullOrEmpty(url))
                             {
-                                // Extract work item ID from URL if it's a work item relation
+                                
                                 if (url.Contains("_apis/wit/workItems/"))
                                 {
                                     string[] urlParts = url.Split('/');
@@ -378,7 +378,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                         }
                     }
                     
-                    // Add URL to the work item
+                    
                     string projectName = fields["System.TeamProject"]?.ToString() ?? project;
                     sb.AppendLine($"\n**URL:** https://dev.azure.com/{organization}/{projectName}/_workitems/edit/{id}");
                     
