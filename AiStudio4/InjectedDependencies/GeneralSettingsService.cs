@@ -228,6 +228,15 @@ namespace AiStudio4.InjectedDependencies
                             settingsModifiedDuringLoad = true;
                         }
 
+                        // Initialize TopP if it's missing (e.g., from older settings file)
+                        // GeneralSettings constructor defaults TopP to 0.9f.
+                        // This explicit check ensures settingsModifiedDuringLoad is true if it was missing.
+                        if (section["TopP"] == null) // Check if TopP was actually missing in the loaded JSON
+                        {
+                            CurrentSettings.TopP = 0.9f; // Ensure default if somehow not set by constructor or if we want to force save
+                            settingsModifiedDuringLoad = true;
+                        }
+
                         
                         if (CurrentSettings.ServiceProviders != null)
                         {
@@ -440,5 +449,11 @@ namespace AiStudio4.InjectedDependencies
         public void UpdateUseExperimentalCostTracking(bool value) { CurrentSettings.UseExperimentalCostTracking = value; SaveSettings(); }
         public void UpdateConversationZipRetentionDays(int days) { CurrentSettings.ConversationZipRetentionDays = days; SaveSettings(); }
         public void UpdateConversationDeleteZippedRetentionDays(int days) { CurrentSettings.ConversationDeleteZippedRetentionDays = days; SaveSettings(); }
+
+        public void UpdateTopP(float topP)
+        {
+            CurrentSettings.TopP = topP;
+            SaveSettings();
+        }
     }
 }

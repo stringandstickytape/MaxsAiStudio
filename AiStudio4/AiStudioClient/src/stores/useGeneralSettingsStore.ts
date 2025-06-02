@@ -4,21 +4,25 @@ import { createApiRequest } from '@/utils/apiUtils';
 
 interface GeneralSettingsState {
   temperature: number;
+  topP: number; // Added topP
   useExperimentalCostTracking: boolean; // <-- Add this
   isLoading: boolean;
   error: string | null;
   setTemperatureLocally: (temp: number) => void; // For UI responsiveness
+  setTopPLocally: (topP: number) => void; // Added for UI responsiveness
   fetchSettings: () => Promise<void>;
   updateTemperatureOnServer: (temp: number) => Promise<boolean>;
 }
 
 export const useGeneralSettingsStore = create<GeneralSettingsState>((set, get) => ({
   temperature: 0.2, // Default initial value, will be overwritten by fetchSettings
+  topP: 0.9, // Default initial value, will be overwritten by fetchSettings
   useExperimentalCostTracking: false, // <-- Add default
   isLoading: false,
   error: null,
 
   setTemperatureLocally: (temp) => set({ temperature: temp }),
+  setTopPLocally: (topP) => set({ topP: topP }), // Added setTopPLocally
 
   fetchSettings: async () => {
     set({ isLoading: true, error: null });
@@ -28,6 +32,7 @@ export const useGeneralSettingsStore = create<GeneralSettingsState>((set, get) =
       if (data.success) {
         set({ 
           temperature: typeof data.temperature === 'number' ? data.temperature : 0.2, 
+          topP: typeof data.topP === 'number' ? data.topP : 0.9, // Added topP
           // Populate the new setting from the API response
           useExperimentalCostTracking: typeof data.useExperimentalCostTracking === 'boolean' ? data.useExperimentalCostTracking : false, // <-- Add this
           isLoading: false 
@@ -62,6 +67,30 @@ export const useGeneralSettingsStore = create<GeneralSettingsState>((set, get) =
       // Optionally revert local state:
       // get().fetchSettings();
       console.error('Error updating temperature on server:', err);
+      return false;
+    }
+  },
+
+  updateTopPOnServer: async (topP) => {
+    set({ isLoading: true, error: null });
+    try {
+      const setTopPRequest = createApiRequest('/api/setTopP', 'POST');
+      const response = await setTopPRequest({ topP: topP });
+      if (response.success) {
+        set({ topP: topP, isLoading: false }); // Confirm local state
+        return true;
+      } else {
+        set({ error: response.error || 'Failed to update Top P on server', isLoading: false });
+        // Optionally revert local state if server update fails:
+        // get().fetchSettings(); 
+        return false;
+      }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error updating Top P';
+      set({ error: errorMsg, isLoading: false });
+      // Optionally revert local state:
+      // get().fetchSettings();
+      console.error('Error updating Top P on server:', err);
       return false;
     }
   },

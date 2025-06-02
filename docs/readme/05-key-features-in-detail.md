@@ -29,6 +29,19 @@ When adding or editing a model, you can configure:
 ### 5.1.5 Temperature Control
 You can easily adjust the AI's creativity/randomness via a slider in the Input Bar. This setting directly influences the 'temperature' parameter sent with requests to the AI model.
 
+### 5.1.6 Top P (Nucleus Sampling) Control
+AiStudio4 provides a "Top P" slider in the Input Bar, allowing fine-grained control over the AI's token selection process during generation. This setting adjusts the "Top P" or "Nucleus Sampling" parameter sent to compatible AI models.
+
+*   **What is Top P?** Top P, also known as nucleus sampling, is a technique used in language models to control the randomness and diversity of generated text. Instead of considering all possible next words, the model considers only the smallest set of words whose cumulative probability exceeds a certain threshold (the "P" value).
+*   **Effect on Generation:**
+    *   **Higher Top P values (e.g., 0.9 to 1.0):** The model considers a larger, more diverse set of words. This can lead to more creative, varied, and sometimes unexpected outputs. A value of 1.0 typically means all words are considered (though behavior can vary by model API).
+    *   **Lower Top P values (e.g., 0.1 to 0.5):** The model focuses on a smaller, more probable set of words. This results in more deterministic, focused, and often safer or more predictable outputs.
+*   **How to Use:**
+    *   The Top P slider is located in the Input Bar, typically next to the Temperature control.
+    *   The slider ranges from **0.0 to 1.0**.
+    *   The default value is **0.9**.
+    *   Adjust the slider to experiment with different levels of output diversity. It can be used in conjunction with Temperature for more nuanced control over the AI's responses.
+
 ## 5.2 Tool System
 
 ### 5.2.1 Overview of Built-in Tools

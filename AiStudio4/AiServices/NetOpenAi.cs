@@ -95,6 +95,13 @@ namespace AiStudio4.AiServices
                    Temperature = temp
                 };
 
+                // Add TopP from options.TopP (which was populated from ApiSettings)
+                // The value in options.TopP should be pre-validated (0.0 to 1.0).
+                if (options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
+                {
+                    chatOptions.TopP = options.TopP.Value;
+                }
+
                 // Set ReasoningEffortLevel if Model.ReasoningEffort is not 'none'
                 if (!string.IsNullOrEmpty(options.Model.ReasoningEffort) && options.Model.ReasoningEffort != "none")
                 {

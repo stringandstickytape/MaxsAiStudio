@@ -28,6 +28,7 @@ import { ToolsSection } from './ToolsSection';
 import { ModelStatusSection } from './ModelStatusSection';
 import { StatusSection } from './StatusSection';
 import { TemperatureControl } from './TemperatureControl'; // Add this
+import { TopPControl } from './TopPControl'; // Added TopPControl
 
 /*
  * InputBar.tsx
@@ -385,6 +386,7 @@ export function InputBar({
 
                     {/* NEW: Temperature Control Section */}
                     <TemperatureControl /> {/* Add this line */}
+                    <TopPControl /> {/* Added TopPControl */}
 
                     {/* Status Message Section - Placed at the end for right alignment */}
                     <div className="ml-auto"> {/* This will push StatusMessage to the right */}

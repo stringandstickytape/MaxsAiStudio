@@ -24,7 +24,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
         protected override IEnumerable<string> SupportedRequestTypes => new[]
         {
             "getConfig",
-            "setTemperature" // <-- Add this
+            "setTemperature",
+            "setTopP" // Added setTopP
         };
 
         public override async Task<string> HandleAsync(string clientId, string requestType, JObject requestObject)
@@ -34,7 +35,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 return requestType switch
                 {
                     "getConfig" => HandleGetConfigRequest(),
-                    "setTemperature" => await HandleSetTemperatureRequest(requestObject), // <-- Add this
+                    "setTemperature" => await HandleSetTemperatureRequest(requestObject), 
+                    "setTopP" => await HandleSetTopPRequest(requestObject), // Added setTopP handler
                     _ => SerializeError($"Unsupported request type: {requestType}")
                 };
             }
@@ -69,6 +71,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 secondaryModel = _generalSettingsService.CurrentSettings.SecondaryModel ?? "",
                 secondaryModelGuid = secondaryModelGuid ?? "",
                 temperature = _generalSettingsService.CurrentSettings.Temperature,
+                topP = _generalSettingsService.CurrentSettings.TopP, // Added TopP
                 useExperimentalCostTracking = _generalSettingsService.CurrentSettings.UseExperimentalCostTracking // <-- Add this line
             });
         }
@@ -100,6 +103,32 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             catch (Exception ex)
             {
                 return SerializeError($"Error setting temperature: {ex.Message}");
+            }
+        }
+
+        private async Task<string> HandleSetTopPRequest(JObject requestObject)
+        {
+            try
+            {
+                float? topP = requestObject["topP"]?.Value<float?>();
+                if (topP == null) 
+                    return SerializeError("TopP value is required and must be a number.");
+                
+                // Validate TopP range (e.g., 0.0 to 1.0)
+                if (topP < 0.0f || topP > 1.0f) 
+                    return SerializeError("TopP must be between 0.0 and 1.0.");
+
+                _generalSettingsService.UpdateTopP(topP.Value); // Use the new service method
+                
+                return JsonConvert.SerializeObject(new { success = true });
+            }
+            catch (JsonException jsonEx)
+            {
+                return SerializeError($"Invalid TopP format: {jsonEx.Message}");
+            }
+            catch (Exception ex)
+            {
+                return SerializeError($"Error setting TopP: {ex.Message}");
             }
         }
     }

@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Exceptions;
 using AiStudio4.Core.Models;
@@ -102,6 +102,7 @@ namespace AiStudio4.Services
                     Conv = conv,
                     CancellationToken = new CancellationToken(false),
                     ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
+                    TopP = _generalSettingsService.CurrentSettings.ToApiSettings().TopP, // Added TopP
                     MustNotUseEmbedding = true,
 
                 };
@@ -232,6 +233,7 @@ namespace AiStudio4.Services
                         Conv = linearConversation, 
                         CancellationToken = request.CancellationToken,
                         ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
+                        TopP = _generalSettingsService.CurrentSettings.ToApiSettings().TopP, // Added TopP
                         MustNotUseEmbedding = true,
                         ToolIds = request.ToolIds ?? new List<string>(), 
                         OnStreamingUpdate = request.OnStreamingUpdate,

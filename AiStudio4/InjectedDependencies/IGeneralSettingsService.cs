@@ -39,5 +39,7 @@ namespace AiStudio4.InjectedDependencies
         void UpdateUseExperimentalCostTracking(bool value);
         void UpdateConversationZipRetentionDays(int days);
         void UpdateConversationDeleteZippedRetentionDays(int days);
+
+        void UpdateTopP(float topP);
     }
 }

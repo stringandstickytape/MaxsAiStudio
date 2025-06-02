@@ -1,4 +1,4 @@
-using AiStudio4.Convs;
+﻿using AiStudio4.Convs;
 using AiStudio4.Core.Models;
 using AiStudio4.DataModels;
 using Newtonsoft.Json;
@@ -77,6 +77,12 @@ namespace AiStudio4.AiServices
                     ["responseModalities"] = new JArray { "Text", "Image" },
                     ["temperature"] = options.ApiSettings.Temperature
                 };
+                // Add TopP from options.TopP (which was populated from ApiSettings)
+                // The value in options.TopP should be pre-validated (0.0 to 1.0).
+                if (options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
+                {
+                    ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
+                }
             }
             else
             {
@@ -91,6 +97,12 @@ namespace AiStudio4.AiServices
                 {
                     ["temperature"] = options.ApiSettings.Temperature
                 };
+                // Add TopP from options.TopP (which was populated from ApiSettings)
+                // The value in options.TopP should be pre-validated (0.0 to 1.0).
+                if (options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
+                {
+                    ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
+                }
             }
 
 

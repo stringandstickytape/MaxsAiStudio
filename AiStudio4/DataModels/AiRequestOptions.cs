@@ -32,6 +32,7 @@ namespace AiStudio4.DataModels
 
         public bool AddEmbeddings { get; set; } = false;
         public bool MustNotUseEmbedding { get; set; } = true;
+        public float? TopP { get; set; } // Added TopP
         
         // Custom system prompt override
         public string CustomSystemPrompt { get; set; }
@@ -53,7 +54,8 @@ namespace AiStudio4.DataModels
             List<string> toolIds,
             bool addEmbeddings = false,
             string customSystemPrompt = null,
-            List<Attachment> attachments = null)
+            List<Attachment> attachments = null,
+            float? topP = null) // Added topP parameter
         {
             return new AiRequestOptions
             {
@@ -63,13 +65,14 @@ namespace AiStudio4.DataModels
                 Base64Image = base64image,
                 Base64ImageType = base64ImageType,
                 CancellationToken = cancellationToken,
-                ApiSettings = apiSettings,
+                ApiSettings = apiSettings, // This will carry the general TopP from settings
                 MustNotUseEmbedding = mustNotUseEmbedding,
                 ToolIds = toolIds ?? new List<string>(),
 
                 AddEmbeddings = addEmbeddings,
                 CustomSystemPrompt = customSystemPrompt,
                 Attachments = attachments ?? new List<Attachment>(),
+                TopP = topP, // Set the specific TopP for this request if provided
                 // Initialize callbacks to null for backward compatibility
                 OnStreamingUpdate = null,
                 OnStreamingComplete = null

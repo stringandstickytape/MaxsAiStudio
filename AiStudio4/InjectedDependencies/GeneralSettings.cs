@@ -12,6 +12,7 @@ namespace AiStudio4.InjectedDependencies
         public List<Model> ModelList { get; set; } = new();
         public List<ServiceProvider> ServiceProviders { get; set; } = new();
         public float Temperature { get; set; } = 0.2f;
+        public float TopP { get; set; } = 0.9f; // Added TopP
         public bool UseEmbeddings { get; set; } = false;
         public bool UsePromptCaching { get; set; } = true;
         public string EmbeddingsFilename { get; set; }
@@ -55,6 +56,7 @@ namespace AiStudio4.InjectedDependencies
         public ApiSettings ToApiSettings() => new()
         {
             Temperature = this.Temperature,
+            TopP = this.TopP, // Added TopP
             UsePromptCaching = this.UsePromptCaching,
             EmbeddingModel = this.EmbeddingModel,
             EmbeddingsFilename = this.EmbeddingsFilename,

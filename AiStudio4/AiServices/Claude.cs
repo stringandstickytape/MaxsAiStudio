@@ -52,6 +52,16 @@ namespace AiStudio4.AiServices
                 ["temperature"] = apiSettings.Temperature,
             };
 
+            // Add TopP if it has a meaningful value (e.g. not 0, typical range (0,1])
+            // Design implies using apiSettings.TopP. Default is 0.9f.
+            // Assuming values 0 < TopP <= 1.0 are to be sent.
+            // Claude's API might have specific behavior for default or values outside typical range.
+            // The value in apiSettings.TopP should be pre-validated (0.0 to 1.0).
+            if (apiSettings.TopP > 0.0f && apiSettings.TopP <= 1.0f) // Send if TopP is in a valid, active range
+            {
+                req["top_p"] = apiSettings.TopP;
+            }
+
             if (!string.IsNullOrWhiteSpace(conv.systemprompt))
                 req["system"] = conv.systemprompt;
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace SharedClasses.Providers
@@ -9,6 +9,7 @@ namespace SharedClasses.Providers
     public class ApiSettings
     {
         public float Temperature { get; set; } = 0.2f;
+        public float TopP { get; set; } // Added TopP - default will come from GeneralSettings
         public bool UsePromptCaching { get; set; } = true;
         public bool StreamResponses { get; set; } = true;
         public string EmbeddingModel { get; set; } = "mxbai-embed-large";
