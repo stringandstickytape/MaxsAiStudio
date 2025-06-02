@@ -61,6 +61,7 @@
                     Click="UploadToGoogleDriveMenuItem_Click"/>
                 <!-- More import/export options can be added later -->
             </MenuItem>
+            <MenuItem Header="Update Available" Name="UpdateAvailableMenuItem" Click="UpdateAvailableMenuItem_Click" Visibility="Collapsed" Foreground="DarkRed" FontWeight="Bold"/>
         </Menu>
         <controls:AiStudioWebView2 x:Name="webView" Grid.Row="1" />
     </Grid>

@@ -24,7 +24,7 @@ namespace AiStudio4
 {
     public partial class App : Application
     {
-        public const decimal VersionNumber = 0.9m;
+        public const decimal VersionNumber = 0.91m;
 
         private ServiceProvider _serviceProvider;
         public ServiceProvider Services => _serviceProvider;
@@ -94,6 +94,7 @@ namespace AiStudio4
             services.AddSingleton<IInterjectionService, InterjectionService>(); // Add InterjectionService
             services.AddSingleton<IDotNetProjectAnalyzerService, DotNetProjectAnalyzerService>(); // Add DotNetProjectAnalyzerService
             services.AddSingleton<IGitHubReleaseService, GitHubReleaseService>(); // Added for GitHubReleaseService
+            services.AddSingleton<IUpdateNotificationService, UpdateNotificationService>(); // Added for update notifications
 
             // Register application services
             services.AddSingleton<IConversationArchivingService, ConversationArchivingService>();

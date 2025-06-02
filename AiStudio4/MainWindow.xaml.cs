@@ -47,6 +47,7 @@ public partial class WebViewWindow : Window
     private readonly IProjectFileWatcherService _projectFileWatcherService;
     private readonly IGoogleDriveService _googleDriveService;
     private readonly IConvStorage _convStorage;
+    private readonly IUpdateNotificationService _updateNotificationService;
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
@@ -64,7 +65,8 @@ public partial class WebViewWindow : Window
                          IProjectFileWatcherService projectFileWatcherService,
                          ILogger<WebViewWindow> logger,
                          IConvStorage convStorage,
-                         IGoogleDriveService googleDriveService)
+                         IGoogleDriveService googleDriveService,
+                         IUpdateNotificationService updateNotificationService)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
@@ -78,7 +80,8 @@ public partial class WebViewWindow : Window
         _logger = logger;
         _dotNetProjectAnalyzerService = dotNetProjectAnalyzerService;
         _projectFileWatcherService = projectFileWatcherService;
-        _googleDriveService = googleDriveService; 
+        _googleDriveService = googleDriveService;
+        _updateNotificationService = updateNotificationService; 
 
         
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -90,7 +93,8 @@ public partial class WebViewWindow : Window
         UpdateWindowTitle(); 
         UpdateRecentProjectsMenu(); 
         UpdateAllowConnectionsOutsideLocalhostMenuItem(); 
-        UpdateUseExperimentalCostTrackingMenuItem(); 
+        UpdateUseExperimentalCostTrackingMenuItem();
+        UpdateUpdateAvailableMenuItem();
         webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
         _generalSettingsService.SettingsChanged += OnGeneralSettingsChanged;
     }
@@ -1318,6 +1322,53 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
         {
             _logger.LogError(ex, "An unexpected error occurred during .NET project analysis.");
             MessageBox.Show($"An unexpected error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void UpdateUpdateAvailableMenuItem()
+    {
+        if (UpdateAvailableMenuItem != null && _updateNotificationService != null)
+        {
+            if (_updateNotificationService.IsUpdateAvailable)
+            {
+                UpdateAvailableMenuItem.Header = $"Update Available ({_updateNotificationService.UpdateVersion})";
+                UpdateAvailableMenuItem.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                UpdateAvailableMenuItem.Visibility = Visibility.Collapsed;
+            }
+        }
+    }
+
+    private void UpdateAvailableMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            if (_updateNotificationService != null && _updateNotificationService.IsUpdateAvailable)
+            {
+                string updateUrl = _updateNotificationService.UpdateUrl;
+                if (!string.IsNullOrEmpty(updateUrl))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                    {
+                        FileName = updateUrl,
+                        UseShellExecute = true
+                    });
+                }
+                else
+                {
+                    MessageBox.Show("Update URL is not available.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("No update is currently available.", "Information", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error opening update page: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

@@ -43,14 +43,19 @@ namespace AiStudio4.Services
             return 0m;
         }
 
-        public async Task CheckAndLogLatestReleaseAsync(string owner, string repo)
+        public async Task<UpdateCheckResult> CheckForUpdatesAsync(string owner, string repo)
         {
             string apiUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
             _logger.LogInformation($"Fetching latest release from {apiUrl}");
 
+            var result = new UpdateCheckResult
+            {
+                CheckSuccessful = false,
+                IsUpdateAvailable = false
+            };
+
             try
             {
-
                 var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
                 request.Headers.UserAgent.ParseAdd("AiStudio4-ReleaseChecker/1.0");
                 request.Headers.Accept.ParseAdd("application/vnd.github+json");
@@ -65,7 +70,15 @@ namespace AiStudio4.Services
                     if (releaseInfo != null)
                     {
                         decimal latestReleaseNumber = ParseReleaseNumberFromTag(releaseInfo?.TagName);
-                        _logger.LogInformation($"Parsed latest release number: {latestReleaseNumber} => {latestReleaseNumber == App.VersionNumber}");
+                        bool isUpdateAvailable = latestReleaseNumber > App.VersionNumber;
+                        
+                        result.CheckSuccessful = true;
+                        result.IsUpdateAvailable = isUpdateAvailable;
+                        result.LatestVersion = releaseInfo.TagName;
+                        result.ReleaseUrl = releaseInfo.HtmlUrl;
+                        result.ReleaseName = releaseInfo.Name;
+                        
+                        _logger.LogInformation($"Parsed latest release number: {latestReleaseNumber} (Current: {App.VersionNumber}) => Update available: {isUpdateAvailable}");
                         _logger.LogDebug($"Successfully fetched latest release info:");
                         _logger.LogDebug($"  Tag: {releaseInfo.TagName}");
                         _logger.LogDebug($"  Name: {releaseInfo.Name}");
@@ -89,37 +102,44 @@ namespace AiStudio4.Services
                     }
                     else
                     {
-                        _logger.LogWarning("Failed to deserialize GitHub release information.");
+                        result.ErrorMessage = "Failed to deserialize GitHub release information.";
+                        _logger.LogWarning(result.ErrorMessage);
                     }
-
                 }
-                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    _logger.LogWarning($"Repository '{owner}/{repo}' or its latest release not found (404).");
+                    result.ErrorMessage = $"Repository '{owner}/{repo}' or its latest release not found (404).";
+                    _logger.LogWarning(result.ErrorMessage);
                 }
                 else if (response.StatusCode == System.Net.HttpStatusCode.Forbidden || response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
                 {
-                    _logger.LogWarning($"GitHub API request failed due to restrictions (Status: {response.StatusCode}). This might be due to rate limiting.");
-                    // User requested to omit detailed rate limit header logging.
+                    result.ErrorMessage = $"GitHub API request failed due to restrictions (Status: {response.StatusCode}). This might be due to rate limiting.";
+                    _logger.LogWarning(result.ErrorMessage);
                 }
                 else
                 {
                     string errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError($"Failed to fetch GitHub release information. Status: {response.StatusCode}. Response: {errorContent}");
+                    result.ErrorMessage = $"Failed to fetch GitHub release information. Status: {response.StatusCode}. Response: {errorContent}";
+                    _logger.LogError(result.ErrorMessage);
                 }
             }
             catch (HttpRequestException ex)
             {
-                _logger.LogError(ex, "HTTP request failed while checking for GitHub release.");
+                result.ErrorMessage = $"HTTP request failed while checking for GitHub release: {ex.Message}";
+                _logger.LogError(ex, result.ErrorMessage);
             }
             catch (JsonException ex)
             {
-                _logger.LogError(ex, "Failed to deserialize GitHub release JSON response.");
+                result.ErrorMessage = $"Failed to deserialize GitHub release JSON response: {ex.Message}";
+                _logger.LogError(ex, result.ErrorMessage);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An unexpected error occurred while checking for GitHub release.");
+                result.ErrorMessage = $"An unexpected error occurred while checking for GitHub release: {ex.Message}";
+                _logger.LogError(ex, result.ErrorMessage);
             }
+
+            return result;
         }
     }
 }

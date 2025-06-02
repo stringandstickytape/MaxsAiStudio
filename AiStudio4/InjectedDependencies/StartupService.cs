@@ -21,13 +21,15 @@ namespace AiStudio4.InjectedDependencies
         private readonly FileSystemChangeHandler _fileSystemChangeHandler;
         private readonly IConversationArchivingService _archivingService;
         private readonly IGitHubReleaseService _gitHubReleaseService; // Added
+        private readonly IUpdateNotificationService _updateNotificationService; // Added
 
         public StartupService(IServiceProvider serviceProvider, ILogger<StartupService> logger,
             IProjectFileWatcherService projectFileWatcherService,
             IGeneralSettingsService generalSettingsService,
             FileSystemChangeHandler fileSystemChangeHandler,
             IConversationArchivingService archivingService,
-            IGitHubReleaseService gitHubReleaseService) // Added
+            IGitHubReleaseService gitHubReleaseService, // Added
+            IUpdateNotificationService updateNotificationService) // Added
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
@@ -36,6 +38,7 @@ namespace AiStudio4.InjectedDependencies
             _fileSystemChangeHandler = fileSystemChangeHandler ?? throw new ArgumentNullException(nameof(fileSystemChangeHandler));
             _archivingService = archivingService ?? throw new ArgumentNullException(nameof(archivingService));
             _gitHubReleaseService = gitHubReleaseService ?? throw new ArgumentNullException(nameof(gitHubReleaseService)); // Added
+            _updateNotificationService = updateNotificationService ?? throw new ArgumentNullException(nameof(updateNotificationService)); // Added
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -59,7 +62,25 @@ namespace AiStudio4.InjectedDependencies
             {
                 string owner = "stringandstickytape";
                 string repo = "MaxsAiStudio";
-                await _gitHubReleaseService.CheckAndLogLatestReleaseAsync(owner, repo);
+                var updateResult = await _gitHubReleaseService.CheckForUpdatesAsync(owner, repo);
+                
+                if (updateResult.CheckSuccessful)
+                {
+                    _updateNotificationService.SetUpdateInfo(updateResult);
+                    if (updateResult.IsUpdateAvailable)
+                    {
+                        _logger.LogInformation("Update available: {Version} at {Url}", updateResult.LatestVersion, updateResult.ReleaseUrl);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Application is up to date.");
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("GitHub release check failed: {Error}", updateResult.ErrorMessage);
+                }
+                
                 _logger.LogInformation("GitHub release check completed.");
             }
             catch (Exception ex)
