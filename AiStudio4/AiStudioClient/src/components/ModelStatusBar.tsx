@@ -13,7 +13,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatus
   const { selectedPrimaryModel, selectedSecondaryModel } = useModelManagement();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-col gap-1">
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

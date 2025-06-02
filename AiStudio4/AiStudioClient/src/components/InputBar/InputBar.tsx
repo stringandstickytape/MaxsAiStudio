@@ -384,9 +384,11 @@ export function InputBar({
                         />
                     </div>
 
-                    {/* NEW: Temperature Control Section */}
-                    <TemperatureControl /> {/* Add this line */}
-                    <TopPControl /> {/* Added TopPControl */}
+                    {/* Temperature and Top-P Controls - Stacked Vertically */}
+                    <div className="flex flex-col gap-1">
+                        <TemperatureControl />
+                        <TopPControl />
+                    </div>
 
                     {/* Status Message Section - Placed at the end for right alignment */}
                     <div className="ml-auto"> {/* This will push StatusMessage to the right */}

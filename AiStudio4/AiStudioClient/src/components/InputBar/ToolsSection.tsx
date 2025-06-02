@@ -23,7 +23,7 @@ export function ToolsSection({
     
     return (
         <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-1">
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -95,8 +95,8 @@ export function ToolsSection({
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-                <StatusMessage />
             </div>
+            <StatusMessage />
         </div>
     );
 }
