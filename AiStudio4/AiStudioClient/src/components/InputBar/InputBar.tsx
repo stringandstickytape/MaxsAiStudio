@@ -27,7 +27,6 @@ import { AttachmentSection } from './AttachmentSection';
 import { ActionButtons } from './ActionButtons';
 import { ToolsSection } from './ToolsSection';
 import { ModelStatusSection } from './ModelStatusSection';
-import { StatusSection } from './StatusSection';
 import { TemperatureControl } from './TemperatureControl'; // Add this
 import { TopPControl } from './TopPControl'; // Added TopPControl
 
@@ -309,8 +308,6 @@ export function InputBar({
                 ...(window?.theme?.InputBar?.style || {})
             }}
         >
-            {/* Scroll to Bottom Button */}
-            <StatusSection isAtBottom={isAtBottom} disabled={disabled} />
 
             <div className="flex flex-col h-full">
                 {/* System Prompt Section */}
@@ -392,6 +389,7 @@ export function InputBar({
                     </div>
 
                     <StatusMessage />
+
                     
                 </div>
             </div>
