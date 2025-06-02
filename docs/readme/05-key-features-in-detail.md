@@ -32,37 +32,71 @@ You can easily adjust the AI's creativity/randomness via a slider in the Input B
 ## 5.2 Tool System
 
 ### 5.2.1 Overview of Built-in Tools
-AiStudio4 includes a variety of built-in tools, categorized for ease of use. Here are some key examples:
+AiStudio4 includes a variety of built-in tools. Click on a tool name to learn more about its usage, parameters, and examples.
 
-*   **File System (`MaxCode` Category):**
-    *   `ReadFiles`: Reads content of specified files.
-    *   `ReadPartialFiles`: Reads specific line ranges from files.
-    *   `FileRegExSearch`: Searches files for lines matching regular expressions.
-    *   `FileSearch`: Searches files for specific text terms.
-    *   `DirectoryTree`: Generates a tree view of a directory.
-    *   `FindAndReplace`: Performs text replacements across files.
-    *   `CreateNewFile`: Creates a new file with specified content.
-    *   `DeleteFile`: Deletes a file.
-    *   `ModifyFiles`: Applies complex modifications to existing files (can use secondary AI for merging, includes handling merge failures).
-    *   `RenameFile`: Renames a file.
-    *   `ReplaceFile`: Replaces the entire content of a file.
-    *   `GitCommit`: Commits specified files with a message (requires project to be a Git repo).
-    *   `ReadDatabaseSchema`: (SQL Server) Reads table or column information from a hardcoded 'SHEFFIELD' database on localhost.
-*   **Web & Information Retrieval (`Development` Category):**
-    *   `RetrieveTextFromUrl`: Scrapes text content from web pages.
-    *   `RunDuckDuckGoSearch`: Performs a DuckDuckGo web search (Note: can be prone to bot detection).
-    *   `YouTubeSearch`: Searches YouTube for videos.
-    *   `LaunchUrl`: Opens URLs in the default browser.
-*   **Developer Integrations:**
-    *   **GitHub (`GitHub` Category):** Tools to get repo info, list contents, get file content, search code. Requires GitHub API Key.
-    *   **Azure DevOps (`AzureDevOps` Category):** Tools to interact with work items, pull requests, repositories, commits, diffs, and wiki pages. Requires Azure DevOps PAT.
-    *   **Sentry (`APITools` Category):** Tools to get organization details, project info, and issue lists. Requires Sentry API token and Org Slug configured in tool properties.
-    *   **Vite (`Vite` Category):** Tools to create Vite projects, manage npm dependencies, run scripts, start/stop dev server, modify `vite.config.js`, check Node.js version. (Note: Some Vite commands may prompt for user confirmation before execution).
-*   **Utility & Meta-Tools (`MaxCode` & `Development` Categories):**
-    *   `Think`: Allows AI to "think out loud" or log its reasoning process.
-    *   `Stop`: Signals completion of a multi-step task, terminating the tool loop. This tool is always available to the AI when other tools are active.
-    *   `InfoRequest`: AI can request more information from the user.
-    *   `RecordMistake`: Logs AI errors to `CommonAiMistakes.md` in the project root, which is then used to refine future AI interactions (includes AI-assisted consolidation).
+#### Core Tools
+*   [CreateNewFileTool](tools/create-new-file-tool.md)
+*   [DeleteFileTool](tools/delete-file-tool.md)
+*   [DirectoryTreeTool](tools/directory-tree-tool.md)
+*   [FileRegExSearch](tools/file-reg-ex-search.md)
+*   [FileSearchTool](tools/file-search-tool.md)
+*   [FindAndReplaceTool](tools/find-and-replace-tool.md)
+*   [InfoRequestTool](tools/info-request-tool.md)
+*   [LaunchUrlTool](tools/launch-url-tool.md)
+*   [ModifyFilesTool](tools/modify-files-tool.md)
+*   [ReadFilesTool](tools/read-files-tool.md)
+*   [ReadPartialFilesTool](tools/read-partial-files-tool.md)
+*   [ReadDatabaseSchemaTool](tools/read-database-schema-tool.md)
+*   [RecordMistakeTool](tools/record-mistake-tool.md)
+*   [RenameFileTool](tools/rename-file-tool.md)
+*   [ReplaceFileTool](tools/replace-file-tool.md)
+*   [RetrieveTextFromUrlTool](tools/retrieve-text-from-url-tool.md)
+*   [RunDuckDuckGoSearchTool](tools/run-duck-duck-go-search-tool.md)
+*   [StopTool](tools/stop-tool.md)
+*   [ThinkTool](tools/think-tool.md)
+
+#### Azure DevOps Tools
+*   [AzureDevOpsGetCommitDiffsTool](tools/azure-dev-ops-get-commit-diffs-tool.md)
+*   [AzureDevOpsGetCommitsTool](tools/azure-dev-ops-get-commits-tool.md)
+*   [AzureDevOpsGetItemContentTool](tools/azure-dev-ops-get-item-content-tool.md)
+*   [AzureDevOpsGetPullRequestByIdTool](tools/azure-dev-ops-get-pull-request-by-id-tool.md)
+*   [AzureDevOpsGetPullRequestChangesTool](tools/azure-dev-ops-get-pull-request-changes-tool.md)
+*   [AzureDevOpsGetPullRequestIterationsTool](tools/azure-dev-ops-get-pull-request-iterations-tool.md)
+*   [AzureDevOpsGetPullRequestsTool](tools/azure-dev-ops-get-pull-requests-tool.md)
+*   [AzureDevOpsGetPullRequestThreadsTool](tools/azure-dev-ops-get-pull-request-threads-tool.md)
+*   [AzureDevOpsGetRepositoriesTool](tools/azure-dev-ops-get-repositories-tool.md)
+*   [AzureDevOpsGetWikiPageContentTool](tools/azure-dev-ops-get-wiki-page-content-tool.md)
+*   [AzureDevOpsGetWikiPagesTool](tools/azure-dev-ops-get-wiki-pages-tool.md)
+*   [AzureDevOpsGetWorkItemCommentsTool](tools/azure-dev-ops-get-work-item-comments-tool.md)
+*   [AzureDevOpsGetWorkItemsTool](tools/azure-dev-ops-get-work-items-tool.md)
+*   [AzureDevOpsGetWorkItemUpdatesTool](tools/azure-dev-ops-get-work-item-updates-tool.md)
+*   [AzureDevOpsQueryWorkItemsTool](tools/azure-dev-ops-query-work-items-tool.md)
+
+#### Git Tools
+*   [GitCommitTool](tools/git-commit-tool.md)
+
+#### GitHub Tools
+*   [GitHubGetContentTool](tools/git-hub-get-content-tool.md)
+*   [GitHubListContentsTool](tools/git-hub-list-contents-tool.md)
+*   [GitHubRepoInfoTool](tools/git-hub-repo-info-tool.md)
+*   [GitHubSearchCodeTool](tools/git-hub-search-code-tool.md)
+
+#### Sentry Tools
+*   [SentryTool](tools/sentry-tool.md)
+
+#### Vite Tools
+*   [CheckNodeVersionTool](tools/check-node-version-tool.md)
+*   [GetViteProjectInfoTool](tools/get-vite-project-info-tool.md)
+*   [InstallVitePluginTool](tools/install-vite-plugin-tool.md)
+*   [ModifyViteConfigTool](tools/modify-vite-config-tool.md)
+*   [NpmCreateViteTool](tools/npm-create-vite-tool.md)
+*   [NpmInstallTool](tools/npm-install-tool.md)
+*   [NpmRunScriptTool](tools/npm-run-script-tool.md)
+*   [OpenBrowserTool](tools/open-browser-tool.md)
+*   [StartViteDevServerTool](tools/start-vite-dev-server-tool.md)
+
+#### YouTube Tools
+*   [YouTubeSearchTool](tools/you-tube-search-tool.md)
 
 ### 5.2.2 Model Context Protocol (MCP)
 AiStudio4 can connect to external tool servers that implement the Model Context Protocol.
