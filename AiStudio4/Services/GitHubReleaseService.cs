@@ -4,6 +4,7 @@ using AiStudio4.Core.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -21,6 +22,27 @@ namespace AiStudio4.Services
             _httpClient = httpClient;
         }
 
+        decimal ParseReleaseNumberFromTag(string tagName)
+        {
+            if (string.IsNullOrWhiteSpace(tagName))
+                return 0m;
+
+            // Extract the initial n.n pattern from the tagName
+            int i = 0;
+            while (i < tagName.Length && (char.IsDigit(tagName[i]) || tagName[i] == '.'))
+            {
+                i++;
+            }
+
+            string versionPart = tagName.Substring(0, i);
+
+            // Try parse as decimal with invariant culture
+            if (decimal.TryParse(versionPart, NumberStyles.Number, CultureInfo.InvariantCulture, out decimal result))
+                return result;
+
+            return 0m;
+        }
+
         public async Task CheckAndLogLatestReleaseAsync(string owner, string repo)
         {
             string apiUrl = $"https://api.github.com/repos/{owner}/{repo}/releases/latest";
@@ -28,6 +50,7 @@ namespace AiStudio4.Services
 
             try
             {
+
                 var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
                 request.Headers.UserAgent.ParseAdd("AiStudio4-ReleaseChecker/1.0");
                 request.Headers.Accept.ParseAdd("application/vnd.github+json");
@@ -41,6 +64,8 @@ namespace AiStudio4.Services
 
                     if (releaseInfo != null)
                     {
+                        decimal latestReleaseNumber = ParseReleaseNumberFromTag(releaseInfo?.TagName);
+                        _logger.LogInformation($"Parsed latest release number: {latestReleaseNumber} => {latestReleaseNumber == App.VersionNumber}");
                         _logger.LogDebug($"Successfully fetched latest release info:");
                         _logger.LogDebug($"  Tag: {releaseInfo.TagName}");
                         _logger.LogDebug($"  Name: {releaseInfo.Name}");
@@ -66,8 +91,9 @@ namespace AiStudio4.Services
                     {
                         _logger.LogWarning("Failed to deserialize GitHub release information.");
                     }
+
                 }
-                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     _logger.LogWarning($"Repository '{owner}/{repo}' or its latest release not found (404).");
                 }

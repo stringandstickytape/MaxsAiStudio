@@ -24,6 +24,8 @@ namespace AiStudio4
 {
     public partial class App : Application
     {
+        public const decimal VersionNumber = 0.9m;
+
         private ServiceProvider _serviceProvider;
         public ServiceProvider Services => _serviceProvider;
 
@@ -70,6 +72,7 @@ namespace AiStudio4
             // Register core services
             services.AddSingleton<HttpClient>(); // Added for GitHubReleaseService
             services.AddSingleton<IGoogleDriveService, GoogleDriveService>();
+
             services.AddSingleton<FileSystemChangeHandler>();
             services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
             services.AddSingleton<IConvStorage, FileSystemConvStorage>();
