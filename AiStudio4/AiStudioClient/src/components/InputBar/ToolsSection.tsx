@@ -5,7 +5,6 @@ import { Wrench, Server } from 'lucide-react';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 import { useToolStore } from '@/stores/useToolStore';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
-import { StatusMessage } from '@/components/StatusMessage';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ToolsSectionProps {
@@ -96,7 +95,7 @@ export function ToolsSection({
                     </Tooltip>
                 </TooltipProvider>
             </div>
-            <StatusMessage />
+
         </div>
     );
 }

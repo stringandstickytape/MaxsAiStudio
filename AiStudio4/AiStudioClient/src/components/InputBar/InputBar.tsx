@@ -1,6 +1,7 @@
 ﻿// AiStudioClient/src/components/InputBar/InputBar.tsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import { StatusMessage } from '@/components/StatusMessage';
 import { useModalStore } from '@/stores/useModalStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
@@ -394,6 +395,8 @@ export function InputBar({
                     <div className="ml-auto"> {/* This will push StatusMessage to the right */}
                         <StatusSection isAtBottom={isAtBottom} disabled={disabled} />
                     </div>
+
+                    <StatusMessage />
                 </div>
             </div>
         </div>
