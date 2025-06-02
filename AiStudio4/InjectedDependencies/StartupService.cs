@@ -20,12 +20,14 @@ namespace AiStudio4.InjectedDependencies
         private readonly IGeneralSettingsService _generalSettingsService;
         private readonly FileSystemChangeHandler _fileSystemChangeHandler;
         private readonly IConversationArchivingService _archivingService;
+        private readonly IGitHubReleaseService _gitHubReleaseService; // Added
 
         public StartupService(IServiceProvider serviceProvider, ILogger<StartupService> logger,
             IProjectFileWatcherService projectFileWatcherService,
             IGeneralSettingsService generalSettingsService,
             FileSystemChangeHandler fileSystemChangeHandler,
-            IConversationArchivingService archivingService)
+            IConversationArchivingService archivingService,
+            IGitHubReleaseService gitHubReleaseService) // Added
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
@@ -33,6 +35,7 @@ namespace AiStudio4.InjectedDependencies
             _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
             _fileSystemChangeHandler = fileSystemChangeHandler ?? throw new ArgumentNullException(nameof(fileSystemChangeHandler));
             _archivingService = archivingService ?? throw new ArgumentNullException(nameof(archivingService));
+            _gitHubReleaseService = gitHubReleaseService ?? throw new ArgumentNullException(nameof(gitHubReleaseService)); // Added
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -49,6 +52,20 @@ namespace AiStudio4.InjectedDependencies
             {
                 _logger.LogError(ex, "An error occurred during the conversation archiving and pruning process. Application startup will continue.");
                 // Do not re-throw; allow the app to continue starting.
+            }
+
+            _logger.LogInformation("Checking for latest GitHub release...");
+            try
+            {
+                string owner = "stringandstickytape";
+                string repo = "MaxsAiStudio";
+                await _gitHubReleaseService.CheckAndLogLatestReleaseAsync(owner, repo);
+                _logger.LogInformation("GitHub release check completed.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to check for GitHub releases during startup. This is non-critical.");
+                // Do not re-throw; allow app to continue starting.
             }
 
             using (var scope = _serviceProvider.CreateScope())

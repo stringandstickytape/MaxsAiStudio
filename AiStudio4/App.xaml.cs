@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using AiStudio4.Core.Interfaces;
@@ -17,6 +18,7 @@ using AiStudio4.Core;
 using System;
 using System.Threading.Tasks;
 using AiStudio4.Services.Interfaces;
+using System.Net.Http; // Added for HttpClient
 
 namespace AiStudio4
 {
@@ -66,6 +68,7 @@ namespace AiStudio4
             services.AddToolServices();
 
             // Register core services
+            services.AddSingleton<HttpClient>(); // Added for GitHubReleaseService
             services.AddSingleton<IGoogleDriveService, GoogleDriveService>();
             services.AddSingleton<FileSystemChangeHandler>();
             services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
@@ -87,6 +90,7 @@ namespace AiStudio4
             services.AddSingleton<LicenseService>(); // Add InterjectionService
             services.AddSingleton<IInterjectionService, InterjectionService>(); // Add InterjectionService
             services.AddSingleton<IDotNetProjectAnalyzerService, DotNetProjectAnalyzerService>(); // Add DotNetProjectAnalyzerService
+            services.AddSingleton<IGitHubReleaseService, GitHubReleaseService>(); // Added for GitHubReleaseService
 
             // Register application services
             services.AddSingleton<IConversationArchivingService, ConversationArchivingService>();
