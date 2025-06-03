@@ -13,6 +13,7 @@ import { useToolStore } from '@/stores/useToolStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 // AiStudioClient/src/components/ChatSpace.tsx
 export function ChatSpace() {
@@ -112,21 +113,27 @@ export function ChatSpace() {
             />
         </div >
 
-      <div className="flex-1 overflow-auto w-full">
-        <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
-      </div>
-
-      <div className="flex-none w-full">
-        <InputBar
-          selectedModel={selectedPrimaryModel}
-          inputValue={inputValue}
-          onInputChange={setInputValue}
-          activeTools={activeTools}
-          onManageTools={openToolLibrary}
-          disabled={isCancelling}
-          onAttachmentChange={handleAttachmentChange}
-        />
-      </div>
+      <PanelGroup direction="vertical" className="flex-1 w-full overflow-hidden">
+        <Panel defaultSize={70} minSize={20} className="overflow-auto">
+          <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
+        </Panel>
+        <PanelResizeHandle className="flex h-2 items-center justify-center bg-background hover:bg-muted transition-colors">
+          <div className="h-1 w-10 rounded-full bg-border" />
+        </PanelResizeHandle>
+        <Panel defaultSize={30} minSize={10} maxSize={50} collapsible={true} collapsedSize={5}>
+          <div className="h-full flex flex-col">
+            <InputBar
+              selectedModel={selectedPrimaryModel}
+              inputValue={inputValue}
+              onInputChange={setInputValue}
+              activeTools={activeTools}
+              onManageTools={openToolLibrary}
+              disabled={isCancelling}
+              onAttachmentChange={handleAttachmentChange}
+            />
+          </div>
+        </Panel>
+      </PanelGroup>
 
     </>
   );
