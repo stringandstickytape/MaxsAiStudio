@@ -22,8 +22,13 @@ import { useToast } from "@/hooks/use-toast"; // Added
 
 // Import subcomponents
 import { SystemPromptSection } from './SystemPromptSection';
-import { InputAreaWithButtons, InputAreaWithButtonsRef } from './InputAreaWithButtons';
+import { MessageInputArea, MessageInputAreaRef } from './MessageInputArea';
 import { AttachmentSection } from './AttachmentSection';
+import { ActionButtons } from './ActionButtons';
+import { ToolsSection } from './ToolsSection';
+import { ModelStatusSection } from './ModelStatusSection';
+import { TemperatureControl } from './TemperatureControl'; // Add this
+import { TopPControl } from './TopPControl'; // Added TopPControl
 
 /*
  * InputBar.tsx
@@ -62,7 +67,7 @@ export function InputBar({
     onAttachmentChange,
     disabled = false,
 }: InputBarProps) {
-    const textareaRef = useRef<InputAreaWithButtonsRef>(null);
+    const textareaRef = useRef<MessageInputAreaRef>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
 
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -305,19 +310,32 @@ export function InputBar({
         >
 
             <div className="flex flex-col h-full">
-                {/* Status Message */}
-                <StatusMessage />
-                
                 {/* System Prompt Section */}
                 <SystemPromptSection activeConvId={activeConvId} />
                 
-                {/* Middle Section (Textarea with integrated buttons, Attachments) */}
+                {/* Middle Section (Textarea, Attachments, Buttons) */}
                 <div className="flex-1 flex gap-2 overflow-hidden mb-2">
-                    {/* Combined Input Area with Buttons */}
-                    <InputAreaWithButtons
+                    {/* Textarea Column */}
+                    <MessageInputArea
                         ref={textareaRef}
                         inputText={inputText}
                         setInputText={setInputText}
+                        onSend={handleSend}
+                        isLoading={isLoading}
+                        disabled={disabled}
+                        onCursorPositionChange={setCursorPosition}
+                        onAttachFile={addAttachment}
+                    />
+
+                    {/* Attachments Section */}
+                    <AttachmentSection
+                        attachments={attachments}
+                        removeAttachment={removeAttachment}
+                        clearAttachments={clearAttachments}
+                    />
+
+                    {/* Action Buttons */}
+                    <ActionButtons
                         onSend={handleSend}
                         onCancel={() => {
                             if (isLoading && currentRequest) {
@@ -337,28 +355,44 @@ export function InputBar({
                                 })();
                             }
                         }}
+
+                        isListening={isVoiceListening} // Added
+                        onToggleListening={handleToggleListening} // Added
+                        addAttachments={addAttachments}
                         isLoading={isLoading}
                         isCancelling={isCancelling}
                         disabled={disabled}
+                        inputText={inputText}
+                        setInputText={setInputText}
                         messageSent={!!currentRequest}
-                        isListening={isVoiceListening}
-                        onToggleListening={handleToggleListening}
-                        onCursorPositionChange={setCursorPosition}
-                        onAttachFile={addAttachment}
-                        addAttachments={addAttachments}
-                        activeTools={activeTools}
-                        removeActiveTool={removeActiveTool}
-                    />
-
-                    {/* Attachments Section */}
-                    <AttachmentSection
-                        attachments={attachments}
-                        removeAttachment={removeAttachment}
-                        clearAttachments={clearAttachments}
                     />
                 </div>
 
+                {/* Bottom Bar: Model Status, Tools, Servers, Temperature */}
+                <div className="border-t border-gray-700/30 flex-shrink-0 flex items-start gap-x-1 gap-y-1.5 flex-wrap">
+                    {/* Model Status */}
+                    <ModelStatusSection />
 
+                    {/* Tools Section */}
+                    <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
+                        <ToolsSection
+                            activeTools={activeTools}
+                            removeActiveTool={removeActiveTool}
+                            disabled={disabled}
+                        />
+                    </div>
+
+                    {/* Temperature and Top-P Controls - Stacked Vertically */}
+                    <div className="flex flex-col gap-1">
+                        <TemperatureControl />
+                        <TopPControl />
+                    </div>
+
+                    {/* Status Message - Flexible width with larger constraints */}
+                    <div className="flex-1 min-w-0 max-w-2xl">
+                        <StatusMessage />
+                    </div>
+                </div>
             </div>
         </div>
     );
