@@ -369,30 +369,27 @@ export function InputBar({
                 </div>
 
                 {/* Bottom Bar: Model Status, Tools, Servers, Temperature */}
-                <div className="border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5 gap-x-1"> {/* Added gap-x-4 for spacing */}
-                    {/* Left side: Model Status, Tools, Temperature Controls */}
-                    <div className="flex items-center flex-wrap gap-x-1 gap-y-1.5 flex-1 min-w-0">
-                        {/* Model Status */}
-                        <ModelStatusSection />
+                <div className="border-t border-gray-700/30 flex-shrink-0 flex items-start gap-x-1 gap-y-1.5 flex-wrap">
+                    {/* Model Status */}
+                    <ModelStatusSection />
 
-                        {/* Tools Section */}
-                        <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
-                            <ToolsSection
-                                activeTools={activeTools}
-                                removeActiveTool={removeActiveTool}
-                                disabled={disabled}
-                            />
-                        </div>
-
-                        {/* Temperature and Top-P Controls - Stacked Vertically */}
-                        <div className="flex flex-col gap-1">
-                            <TemperatureControl />
-                            <TopPControl />
-                        </div>
+                    {/* Tools Section */}
+                    <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
+                        <ToolsSection
+                            activeTools={activeTools}
+                            removeActiveTool={removeActiveTool}
+                            disabled={disabled}
+                        />
                     </div>
 
-                    {/* Right side: Status Message with stable positioning */}
-                    <div className="flex-shrink-0">
+                    {/* Temperature and Top-P Controls - Stacked Vertically */}
+                    <div className="flex flex-col gap-1">
+                        <TemperatureControl />
+                        <TopPControl />
+                    </div>
+
+                    {/* Status Message - Flexible width with larger constraints */}
+                    <div className="flex-1 min-w-0 max-w-2xl">
                         <StatusMessage />
                     </div>
                 </div>

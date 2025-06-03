@@ -35,12 +35,18 @@ export function StatusMessage() {
     if (!message) return null;
 
     return (
-        <div className="status-message-container py-1 px-2 rounded-md text-sm font-medium bg-blue-900/80 text-blue-200 flex items-center gap-2 animate-fade-in max-w-xs overflow-hidden">
-            <span className="animate-pulse flex-shrink-0">⚙️</span>
-            {elapsedTime && (
-                <span className="opacity-70 flex-shrink-0">{elapsedTime}</span>
-            )}
-            <span className="truncate" title={message}>{message}</span>
+        <div className="status-message-container py-1 px-2 rounded-md text-sm font-medium bg-blue-900/80 text-blue-200 animate-fade-in w-full">
+            <div className="flex items-start gap-2">
+                <span className="animate-pulse flex-shrink-0 mt-0.5">⚙️</span>
+                <div className="min-w-0 flex-1">
+                    <div className="flex items-start gap-2 flex-wrap">
+                        {elapsedTime && (
+                            <span className="opacity-70 text-xs leading-tight flex-shrink-0">{elapsedTime}</span>
+                        )}
+                        <div className="break-words leading-tight text-xs flex-1 min-w-0">{message}</div>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
