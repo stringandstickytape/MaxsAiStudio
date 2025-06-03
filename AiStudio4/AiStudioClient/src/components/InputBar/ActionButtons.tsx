@@ -48,7 +48,7 @@ export function ActionButtons({
     };
     
     return (
-        <div className="flex flex-col gap-2 justify-end">
+        <div className="flex flex-row gap-2 items-center">
             <FileAttachment
                 className="h-6"
                 disabled={isLoading || disabled}
@@ -104,72 +104,70 @@ export function ActionButtons({
                 <Mic className="h-5 w-5" />
             </Button>
 
-            <div className="flex flex-col gap-2">
-                {/* Send Button - Only visible when not loading */}
-                {!isLoading && (
-                    <Button
-                        className="h-14"
-                        variant="outline"
-                        size="icon"
-                        onClick={onSend}
-                        aria-label={isConnected ? 'Send message' : 'Reconnect and Send'}
-                        disabled={disabled}
-                        title={!isConnected ? 'WebSocket disconnected. Click to reconnect.' : ''}
-                        style={{
-                            backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                            borderColor: !isConnected ? 'red' : 'var(--inputbar-border-color, #4a5568)',
-                            color: 'var(--inputbar-text-color, #e2e8f0)',
-                            opacity: disabled ? 0.5 : 1,
-                            ...(window?.theme?.InputBar?.style || {})
-                        }}
-                    >
-                        <Send className="h-5 w-5" />
-                    </Button>
-                )}
-                
-                {/* Cancel Button - Only visible when loading and not cancelling */}
-                {isLoading && !isCancelling && (
-                    <Button
-                        className="h-6"
-                        variant="outline"
-                        size="icon"
-                        onClick={onCancel}
-                        aria-label="Cancel"
-                        disabled={isCancelling || disabled}
-                        style={{
-                            backgroundColor: '#dc2626',
-                            borderColor: 'var(--inputbar-border-color, #4a5568)',
-                            color: 'var(--inputbar-text-color, #e2e8f0)',
-                            opacity: (isCancelling || disabled) ? 0.5 : 1,
-                            ...(window?.theme?.InputBar?.style || {})
-                        }}
-                    >
-                        <X className="h-5 w-5" />
-                    </Button>
-                )}
-                
-                {/* Interject Button - Only visible when loading, not cancelling, and there's text */}
-                {isLoading && !isCancelling && messageSent && (
-                    <Button
-                        className="h-6"
-                        variant="outline"
-                        size="icon"
-                        onClick={handleInterjection}
-                        aria-label="Send interjection"
-                        title="Send interjection during processing"
-                        disabled={!inputText.trim() || disabled}
-                        style={{
-                            backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                            borderColor: 'var(--inputbar-border-color, #4a5568)',
-                            color: 'var(--inputbar-text-color, #e2e8f0)',
-                            opacity: (!inputText.trim() || disabled) ? 0.5 : 1,
-                            ...(window?.theme?.InputBar?.style || {})
-                        }}
-                    >
-                        <MessageSquarePlus className="h-5 w-5" />
-                    </Button>
-                )}
-            </div>
+            {/* Send Button - Only visible when not loading */}
+            {!isLoading && (
+                <Button
+                    className="h-8"
+                    variant="outline"
+                    size="icon"
+                    onClick={onSend}
+                    aria-label={isConnected ? 'Send message' : 'Reconnect and Send'}
+                    disabled={disabled}
+                    title={!isConnected ? 'WebSocket disconnected. Click to reconnect.' : ''}
+                    style={{
+                        backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
+                        borderColor: !isConnected ? 'red' : 'var(--inputbar-border-color, #4a5568)',
+                        color: 'var(--inputbar-text-color, #e2e8f0)',
+                        opacity: disabled ? 0.5 : 1,
+                        ...(window?.theme?.InputBar?.style || {})
+                    }}
+                >
+                    <Send className="h-5 w-5" />
+                </Button>
+            )}
+            
+            {/* Cancel Button - Only visible when loading and not cancelling */}
+            {isLoading && !isCancelling && (
+                <Button
+                    className="h-8"
+                    variant="outline"
+                    size="icon"
+                    onClick={onCancel}
+                    aria-label="Cancel"
+                    disabled={isCancelling || disabled}
+                    style={{
+                        backgroundColor: '#dc2626',
+                        borderColor: 'var(--inputbar-border-color, #4a5568)',
+                        color: 'var(--inputbar-text-color, #e2e8f0)',
+                        opacity: (isCancelling || disabled) ? 0.5 : 1,
+                        ...(window?.theme?.InputBar?.style || {})
+                    }}
+                >
+                    <X className="h-5 w-5" />
+                </Button>
+            )}
+            
+            {/* Interject Button - Only visible when loading, not cancelling, and there's text */}
+            {isLoading && !isCancelling && messageSent && (
+                <Button
+                    className="h-8"
+                    variant="outline"
+                    size="icon"
+                    onClick={handleInterjection}
+                    aria-label="Send interjection"
+                    title="Send interjection during processing"
+                    disabled={!inputText.trim() || disabled}
+                    style={{
+                        backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
+                        borderColor: 'var(--inputbar-border-color, #4a5568)',
+                        color: 'var(--inputbar-text-color, #e2e8f0)',
+                        opacity: (!inputText.trim() || disabled) ? 0.5 : 1,
+                        ...(window?.theme?.InputBar?.style || {})
+                    }}
+                >
+                    <MessageSquarePlus className="h-5 w-5" />
+                </Button>
+            )}
         </div>
     );
 }

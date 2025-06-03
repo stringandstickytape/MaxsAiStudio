@@ -318,7 +318,7 @@ export function InputBar({
                 {/* System Prompt Section */}
                 <SystemPromptSection activeConvId={activeConvId} />
                 
-                {/* Middle Section (Textarea, Attachments, Buttons) */}
+                {/* Middle Section (Textarea and Attachments) */}
                 <div className="flex-1 flex gap-2 overflow-hidden mb-2">
                     {/* Textarea Column */}
                     <MessageInputArea
@@ -338,8 +338,10 @@ export function InputBar({
                         removeAttachment={removeAttachment}
                         clearAttachments={clearAttachments}
                     />
+                </div>
 
-                    {/* Action Buttons */}
+                {/* Action Buttons Bar */}
+                <div className="flex-shrink-0 flex justify-end mb-2">
                     <ActionButtons
                         onSend={handleSend}
                         onCancel={() => {
