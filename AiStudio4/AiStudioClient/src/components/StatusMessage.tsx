@@ -35,7 +35,13 @@ export function StatusMessage() {
     if (!message) return null;
 
     return (
-        <div className="status-message-container py-1 px-2 rounded-md text-sm font-medium bg-blue-900/80 text-blue-200 animate-fade-in w-full">
+        <div className="status-message-container py-1 px-2 rounded-md text-sm font-medium animate-fade-in w-full"
+             style={{
+                 backgroundColor: 'var(--global-background-color, #1f2937)',
+                 color: 'var(--global-text-color, #e2e8f0)',
+                 borderColor: 'var(--global-border-color, #4a5568)',
+                 border: '1px solid'
+             }}>
             <div className="flex items-start gap-2">
                 <span className="animate-pulse flex-shrink-0 mt-0.5">⚙️</span>
                 <div className="min-w-0 flex-1">

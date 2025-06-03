@@ -305,6 +305,9 @@ export function InputBar({
         >
 
             <div className="flex flex-col h-full">
+                {/* Status Message */}
+                <StatusMessage />
+                
                 {/* System Prompt Section */}
                 <SystemPromptSection activeConvId={activeConvId} />
                 
@@ -355,13 +358,7 @@ export function InputBar({
                     />
                 </div>
 
-                {/* Bottom Bar: Status Message only */}
-                <div className="border-t border-gray-700/30 flex-shrink-0 flex items-start gap-x-1 gap-y-1.5 flex-wrap">
-                    {/* Status Message - Flexible width with larger constraints */}
-                    <div className="flex-1 min-w-0 max-w-2xl">
-                        <StatusMessage />
-                    </div>
-                </div>
+
             </div>
         </div>
     );
