@@ -332,13 +332,9 @@ public partial class WebViewWindow : Window
 
                     var loadConvPayload = new
                     {
-                        messageType = "loadConv", 
-                        content = new
-                        {
-                            convId = firstConvToLoad.ConvId,
-                            messages = fullMessagesForLoad, 
-                            summary = firstConvToLoad.Summary 
-                        }
+                        convId = firstConvToLoad.ConvId,
+                        messages = fullMessagesForLoad, 
+                        summary = firstConvToLoad.Summary 
                     };
 
                     await _notificationService.NotifyConvUpdate(currentWebSocketClientId, new ConvUpdateDto
