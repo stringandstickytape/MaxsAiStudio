@@ -59,8 +59,9 @@ export function SystemPromptPortal({
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={onToggleEdit} className="h-7 w-7">
+          <Button variant="ghost" size="sm" onClick={onToggleEdit} className="h-7 flex items-center gap-1 px-2">
             <Edit className="h-4 w-4" />
+            <span className="text-xs font-medium">Quick Edit</span>
           </Button>
           <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7">
             <ChevronUp className="h-4 w-4" />
