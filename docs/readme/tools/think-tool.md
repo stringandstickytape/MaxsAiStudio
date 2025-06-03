@@ -1,6 +1,6 @@
 ﻿# ThinkTool
 
-*Use the tool to think about something. It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed.*
+*Use the tool to think about something. It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed. This tool's operation allows for continued processing by the AI after the thought is logged.*
 
 ## Usage
 
@@ -29,6 +29,6 @@ After analyzing search results, the AI might use it to summarize findings:
 
 ## Notes
 
--   The `ThinkTool` itself does **not** pause the tool loop or wait for user input (unlike `InfoRequestTool`). It's a way for the AI to "talk to itself" or "show its work" transparently.
--   The output of `ThinkTool` (the `thought` content) is usually aggregated with other tool outputs and presented to you when the AI either calls `StopTool` or `InfoRequestTool`.
+-   The `ThinkTool` itself does **not** pause the tool loop or wait for user input (unlike `InfoRequestTool` or the `ThinkAndAwaitUserInputTool`). It's a way for the AI to "talk to itself" or "show its work" transparently, allowing processing to continue.
+-   The output of `ThinkTool` (the `thought` content) is usually aggregated with other tool outputs and presented to you when the AI either calls `StopTool`, `InfoRequestTool`, or another tool that pauses execution.
 -   This is very useful for debugging the AI's decision-making process and understanding why it chooses certain actions or tools.

@@ -29,12 +29,12 @@ namespace AiStudio4.Core.Tools
             {
                 Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef03",
                 Name = "Think",
-                Description = "Use the tool to think about something. It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed. For example, if you explore the repo and discover the source of a bug, call this tool to brainstorm several unique ways of fixing the bug, and assess which change(s) are likely to be simplest and most effective. Alternatively, if you receive some test results, call this tool to brainstorm ways to fix the failing tests.",
+                Description = "Use the tool to think about something. It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed. This tool's operation allows for continued processing by the AI after the thought is logged. For example, if you explore the repo and discover the source of a bug, call this tool to brainstorm several unique ways of fixing the bug, and assess which change(s) are likely to be simplest and most effective. Alternatively, if you receive some test results, call this tool to brainstorm ways to fix the failing tests.",
                 Schema = @"{
   ""name"": ""Think"",
   ""description"": ""Use the tool to think about something.
 
-It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed. For example, if you explore the repo and discover the source of a bug, call this tool to brainstorm several unique ways of fixing the bug, and assess which change(s) are likely to be simplest and most effective. Similarly, if you receive some test results, call this tool to brainstorm ways to fix the failing tests."",
+It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed. This tool's operation allows for continued processing by the AI after the thought is logged. For example, if you explore the repo and discover the source of a bug, call this tool to brainstorm several unique ways of fixing the bug, and assess which change(s) are likely to be simplest and most effective. Similarly, if you receive some test results, call this tool to brainstorm ways to fix the failing tests."",
   ""input_schema"": {
                 ""properties"": {
                 ""thought"": {
@@ -71,7 +71,7 @@ It will not obtain new information or make any changes to the repository, but ju
             var parameters = Newtonsoft.Json.JsonConvert.DeserializeObject<JObject>(toolParameters);
 
             var thought = parameters?["thought"]?.ToString() ?? "";
-            var continueProcessing = false; // parameters?["continueProcessing"]?.Value<bool>() ?? false;
+            var continueProcessing = true; // Always continue processing for Think tool
 
             _logger.LogInformation("Think tool called with parameters: {Parameters}, continueProcessing: {ContinueProcessing}", thought, continueProcessing);
             SendStatusUpdate("Think tool completed.");

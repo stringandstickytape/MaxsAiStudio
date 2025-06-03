@@ -67,6 +67,8 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [RunDuckDuckGoSearchTool](tools/run-duck-duck-go-search-tool.md)
 *   [StopTool](tools/stop-tool.md)
 *   [ThinkTool](tools/think-tool.md)
+*   [ThinkAndAwaitUserInputTool](tools/think-and-await-user-input-tool.md)
+*   [PresentResultsAndAwaitUserInputTool](tools/present-results-and-await-user-input-tool.md)
 
 #### Azure DevOps Tools
 *   [AzureDevOpsGetCommitDiffsTool](tools/azure-dev-ops-get-commit-diffs-tool.md)
