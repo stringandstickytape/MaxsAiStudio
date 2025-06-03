@@ -1,6 +1,7 @@
 ﻿using AiStudio4.Convs;
 using AiStudio4.Core.Models;
 using AiStudio4.DataModels;
+using Azure.Core;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SharedClasses.Providers;
@@ -198,6 +199,8 @@ namespace AiStudio4.AiServices
             onStreamingUpdate?.Invoke(""); 
             try
             {
+                string contentString = await content.ReadAsStringAsync();
+
                 using (var request = new HttpRequestMessage(HttpMethod.Post, $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}"))
                 {
                     request.Content = content;
@@ -243,7 +246,89 @@ namespace AiStudio4.AiServices
                 }
 
                 
-                onStreamingComplete?.Invoke(); 
+                onStreamingComplete?.Invoke();
+                
+                // Enhanced error handling for any "Invalid JSON payload received" errors
+                // Provides detailed information about the function and property causing the issue
+                var responseText = fullResponse.ToString();
+                if (responseText.Contains("Invalid JSON payload received"))
+                {
+                    // Extract function information from the error message - supports various error patterns
+                    var match = Regex.Match(responseText, @"tools\[(\d+)\]\.function_declarations\[(\d+)\]\.parameters\.properties\[(\d+)\]\.([^'\s:]+)");
+                    if (match.Success)
+                    {
+                        
+                        var toolIndex = match.Groups[1].Value;
+                        var functionIndex = match.Groups[2].Value;
+                        var propertyIndex = match.Groups[3].Value;
+                        var propertyPath = match.Groups[4].Value;
+                        
+                        var enhancedError = $"{responseText}\n\n" +
+                            $"DEBUGGING INFO:\n" +
+                            $"- Tool Index: {toolIndex}\n" +
+                            $"- Function Declaration Index: {functionIndex}\n" +
+                            $"- Property Index: {propertyIndex}\n" +
+                            $"- Property Path: {propertyPath}\n" +
+                            $"- Common causes: Invalid 'type' field (array instead of string), unsupported schema keywords, malformed property definitions.\n" +
+                            $"- Check the function definition for property at index {propertyIndex} for schema validation issues.\n" +
+                            $"- The problematic function is at position {functionIndex} in the tools array.";
+
+                        // Parse contentString to get actual function details
+                        try
+                        {
+                            var requestJson = JObject.Parse(contentString);
+                            var tools = requestJson["tools"] as JArray;
+                            
+                            if (tools != null && int.TryParse(toolIndex, out int tIdx) && tIdx < tools.Count)
+                            {
+                                var tool = tools[tIdx];
+                                var functionDeclarations = tool["function_declarations"] as JArray;
+                                
+                                if (functionDeclarations != null && int.TryParse(functionIndex, out int fIdx) && fIdx < functionDeclarations.Count)
+                                {
+                                    var functionDecl = functionDeclarations[fIdx];
+                                    var functionName = functionDecl["name"]?.ToString();
+                                    var functionDescription = functionDecl["description"]?.ToString();
+                                    
+                                    // Navigate to the problematic property
+                                    var parameters = functionDecl["parameters"];
+                                    var properties = parameters?["properties"] as JObject;
+                                    
+                                    if (properties != null && int.TryParse(propertyIndex, out int pIdx))
+                                    {
+                                        var propertyNames = properties.Properties().ToArray();
+                                        if (pIdx < propertyNames.Length)
+                                        {
+                                            var problematicProperty = propertyNames[pIdx];
+                                            var propertyName = problematicProperty.Name;
+                                            var propertyValue = problematicProperty.Value;
+                                            
+                                            enhancedError += $"\n\n" +
+                                                $"FUNCTION DETAILS:\n" +
+                                                $"- Function Name: {functionName}\n" +
+                                                $"- Function Description: {(functionDescription?.Length > 100 ? functionDescription.Substring(0, 100) + "..." : functionDescription)}\n" +
+                                                $"- Problematic Property Name: {propertyName}\n" +
+                                                $"- Problematic Property Definition: {propertyValue?.ToString()}\n" +
+                                                $"- Property Path in Schema: parameters.properties.{propertyName}.{propertyPath}";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception parseEx)
+                        {
+                            enhancedError += $"\n\nFailed to parse request JSON for additional details: {parseEx.Message}";
+                        }
+
+                        // contentstring example:
+                        // {"tools":[{"function_declarations":[{"name":"DirectoryTree","description":"Get a recursive tree view of files and directories with customizable depth and filtering.\r\n\r\nReturns a structured view of the directory tree with files and subdirectories. Directories are marked with trailing slashes. The output is formatted as an indented list for readability. By default, common development directories like .git, node_modules, and venv are noted but not traversed unless explicitly requested. Only works within allowed directories.","parameters":{"properties":{"path":{"title":"Path","type":"string","description":"The path to the directory to view"},"depth":{"title":"Depth","type":"integer","description":"The maximum depth to traverse (0 for unlimited)"}},"required":["path"],"title":"DirectoryTreeArguments","type":"object"}}, ...
+
+                        fullResponse.Clear();
+                        fullResponse.Append(enhancedError);
+                        Debug.WriteLine($"Enhanced Gemini error with debugging info: {enhancedError}");
+                    }
+                }
+
                 Debug.WriteLine("Streaming Complete");
 
                 if (ToolResponseSet.Tools.Count == 0)

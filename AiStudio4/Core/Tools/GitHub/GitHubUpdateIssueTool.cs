@@ -55,7 +55,7 @@ namespace AiStudio4.Core.Tools.GitHub
       ""state_reason"": { ""type"": ""string"", ""description"": ""Reason for closing the issue (if state is 'closed'). (Optional)"", ""enum"": [""completed"", ""not_planned""] },
       ""labels"": { ""type"": ""array"", ""description"": ""Array of label names. This will REPLACE all existing labels. (Optional)"", ""items"": { ""type"": ""string"" } },
       ""assignees"": { ""type"": ""array"", ""description"": ""Array of login names. This will REPLACE all existing assignees. (Optional)"", ""items"": { ""type"": ""string"" } },
-      ""milestone"": { ""type"": [""integer"", ""null""], ""description"": ""The number of the milestone to associate, or null to remove milestone. (Optional)"" }
+      ""milestone"": { ""type"": ""integer"", ""description"": ""The number of the milestone to associate, or -1 to remove milestone. (Optional)"" }
     },
     ""required"": [""owner"", ""repo"", ""issue_number""]
   }
@@ -129,13 +129,16 @@ namespace AiStudio4.Core.Tools.GitHub
                 bool removeMilestone = false;
                 if (parameters.TryGetValue("milestone", out var milestoneObj))
                 {
-                    if (milestoneObj == null || milestoneObj is JValue jValue && jValue.Type == JTokenType.Null)
+                    if (int.TryParse(milestoneObj.ToString(), out int milestoneInt))
                     {
-                        removeMilestone = true;
-                    }
-                    else if (int.TryParse(milestoneObj.ToString(), out int milestoneInt))
-                    {
-                        milestone = milestoneInt;
+                        if (milestoneInt == -1)
+                        {
+                            removeMilestone = true;
+                        }
+                        else
+                        {
+                            milestone = milestoneInt;
+                        }
                     }
                 }
 
