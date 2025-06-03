@@ -15,7 +15,7 @@ export function SystemPromptSection({ activeConvId }: SystemPromptSectionProps) 
         <div className="mb-2 rounded-lg flex-shrink-0 flex justify-between items-center">
             <SystemPromptComponent
                 convId={activeConvId || undefined}
-                onOpenLibrary={() => windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_LIBRARY)}
+                onOpenLibrary={() => windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, {})}
             />
         </div>
     );
