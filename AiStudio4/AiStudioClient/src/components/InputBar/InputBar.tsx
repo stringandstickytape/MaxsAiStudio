@@ -22,9 +22,8 @@ import { useToast } from "@/hooks/use-toast"; // Added
 
 // Import subcomponents
 import { SystemPromptSection } from './SystemPromptSection';
-import { MessageInputArea, MessageInputAreaRef } from './MessageInputArea';
+import { InputAreaWithButtons, InputAreaWithButtonsRef } from './InputAreaWithButtons';
 import { AttachmentSection } from './AttachmentSection';
-import { ActionButtons } from './ActionButtons';
 import { ToolsSection } from './ToolsSection';
 import { ModelStatusSection } from './ModelStatusSection';
 import { TemperatureControl } from './TemperatureControl'; // Add this
@@ -67,7 +66,7 @@ export function InputBar({
     onAttachmentChange,
     disabled = false,
 }: InputBarProps) {
-    const textareaRef = useRef<MessageInputAreaRef>(null);
+    const textareaRef = useRef<InputAreaWithButtonsRef>(null);
     const toolsContainerRef = useRef<HTMLDivElement>(null);
 
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
@@ -313,29 +312,13 @@ export function InputBar({
                 {/* System Prompt Section */}
                 <SystemPromptSection activeConvId={activeConvId} />
                 
-                {/* Middle Section (Textarea, Attachments, Buttons) */}
+                {/* Middle Section (Textarea with integrated buttons, Attachments) */}
                 <div className="flex-1 flex gap-2 overflow-hidden mb-2">
-                    {/* Textarea Column */}
-                    <MessageInputArea
+                    {/* Combined Input Area with Buttons */}
+                    <InputAreaWithButtons
                         ref={textareaRef}
                         inputText={inputText}
                         setInputText={setInputText}
-                        onSend={handleSend}
-                        isLoading={isLoading}
-                        disabled={disabled}
-                        onCursorPositionChange={setCursorPosition}
-                        onAttachFile={addAttachment}
-                    />
-
-                    {/* Attachments Section */}
-                    <AttachmentSection
-                        attachments={attachments}
-                        removeAttachment={removeAttachment}
-                        clearAttachments={clearAttachments}
-                    />
-
-                    {/* Action Buttons */}
-                    <ActionButtons
                         onSend={handleSend}
                         onCancel={() => {
                             if (isLoading && currentRequest) {
@@ -355,16 +338,22 @@ export function InputBar({
                                 })();
                             }
                         }}
-
-                        isListening={isVoiceListening} // Added
-                        onToggleListening={handleToggleListening} // Added
-                        addAttachments={addAttachments}
                         isLoading={isLoading}
                         isCancelling={isCancelling}
                         disabled={disabled}
-                        inputText={inputText}
-                        setInputText={setInputText}
                         messageSent={!!currentRequest}
+                        isListening={isVoiceListening}
+                        onToggleListening={handleToggleListening}
+                        onCursorPositionChange={setCursorPosition}
+                        onAttachFile={addAttachment}
+                        addAttachments={addAttachments}
+                    />
+
+                    {/* Attachments Section */}
+                    <AttachmentSection
+                        attachments={attachments}
+                        removeAttachment={removeAttachment}
+                        clearAttachments={clearAttachments}
                     />
                 </div>
 
