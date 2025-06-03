@@ -116,7 +116,7 @@ namespace AiStudio4.Services
         ""global-borderRadius"": ""10px"",
         ""global-fontFamily"": ""'Gabarito', sans-serif"",
         ""global-fontSize"": ""17px"",
-        ""global-fontCdnUrl"": ""https:
+        ""global-fontCdnUrl"": ""https://fonts.googleapis.com/css2?family=Gabarito&display=swap"",
         ""global-boxShadow"": ""none"",
         ""global-userMessageBackground"": ""#1f1f1f"",
         ""global-userMessageTextColor"": ""#f1faee"",
