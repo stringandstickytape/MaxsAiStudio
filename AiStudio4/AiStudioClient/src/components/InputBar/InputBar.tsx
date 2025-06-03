@@ -24,10 +24,6 @@ import { useToast } from "@/hooks/use-toast"; // Added
 import { SystemPromptSection } from './SystemPromptSection';
 import { InputAreaWithButtons, InputAreaWithButtonsRef } from './InputAreaWithButtons';
 import { AttachmentSection } from './AttachmentSection';
-import { ToolsSection } from './ToolsSection';
-import { ModelStatusSection } from './ModelStatusSection';
-import { TemperatureControl } from './TemperatureControl'; // Add this
-import { TopPControl } from './TopPControl'; // Added TopPControl
 
 /*
  * InputBar.tsx
@@ -347,6 +343,8 @@ export function InputBar({
                         onCursorPositionChange={setCursorPosition}
                         onAttachFile={addAttachment}
                         addAttachments={addAttachments}
+                        activeTools={activeTools}
+                        removeActiveTool={removeActiveTool}
                     />
 
                     {/* Attachments Section */}
@@ -357,26 +355,8 @@ export function InputBar({
                     />
                 </div>
 
-                {/* Bottom Bar: Model Status, Tools, Servers, Temperature */}
+                {/* Bottom Bar: Status Message only */}
                 <div className="border-t border-gray-700/30 flex-shrink-0 flex items-start gap-x-1 gap-y-1.5 flex-wrap">
-                    {/* Model Status */}
-                    <ModelStatusSection />
-
-                    {/* Tools Section */}
-                    <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
-                        <ToolsSection
-                            activeTools={activeTools}
-                            removeActiveTool={removeActiveTool}
-                            disabled={disabled}
-                        />
-                    </div>
-
-                    {/* Temperature and Top-P Controls - Stacked Vertically */}
-                    <div className="flex flex-col gap-1">
-                        <TemperatureControl />
-                        <TopPControl />
-                    </div>
-
                     {/* Status Message - Flexible width with larger constraints */}
                     <div className="flex-1 min-w-0 max-w-2xl">
                         <StatusMessage />

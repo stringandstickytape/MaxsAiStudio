@@ -8,6 +8,10 @@ import { SlashDropdown } from '@/components/SlashDropdown';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { useModalStore } from '@/stores/useModalStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { ModelStatusSection } from './ModelStatusSection';
+import { ToolsSection } from './ToolsSection';
+import { TemperatureControl } from './TemperatureControl';
+import { TopPControl } from './TopPControl';
 
 interface InputAreaWithButtonsProps {
     inputText: string;
@@ -23,6 +27,8 @@ interface InputAreaWithButtonsProps {
     onCursorPositionChange?: (position: number | null) => void;
     onAttachFile?: (file: File) => void;
     addAttachments?: (files: File[]) => void;
+    activeTools: string[];
+    removeActiveTool: (toolId: string) => void;
 }
 
 function InputAreaWithButtonsComponent({
@@ -38,7 +44,9 @@ function InputAreaWithButtonsComponent({
     onToggleListening,
     onCursorPositionChange,
     onAttachFile,
-    addAttachments
+    addAttachments,
+    activeTools,
+    removeActiveTool
 }: InputAreaWithButtonsProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const [localInputText, setLocalInputText] = useState<string>(propInputText);
@@ -279,8 +287,23 @@ function InputAreaWithButtonsComponent({
                 />
                 
                 {/* Button row at the bottom - using flexbox */}
-                <div className="flex justify-end items-center gap-2 p-2 border-t border-gray-700/30">
-                    {/* Utility buttons */}
+                <div className="flex justify-between items-center gap-2 p-2 border-t border-gray-700/30">
+                    {/* Left side: Model status, tools, temperature controls */}
+                    <div className="flex items-center gap-2">
+                        <ModelStatusSection />
+                        <ToolsSection
+                            activeTools={activeTools}
+                            removeActiveTool={removeActiveTool}
+                            disabled={disabled}
+                        />
+                        <div className="flex flex-col gap-1">
+                            <TemperatureControl />
+                            <TopPControl />
+                        </div>
+                    </div>
+                    
+                    {/* Right side: Action buttons */}
+                    <div className="flex items-center gap-2">
                     <FileAttachment
                         className="h-8 w-8"
                         disabled={isLoading || disabled}
@@ -398,6 +421,7 @@ function InputAreaWithButtonsComponent({
                             <MessageSquarePlus className="h-4 w-4" />
                         </Button>
                     )}
+                    </div>
                 </div>
             </div>
             
