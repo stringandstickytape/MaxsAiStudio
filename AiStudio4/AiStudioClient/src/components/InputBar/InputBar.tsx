@@ -310,6 +310,11 @@ export function InputBar({
         >
 
             <div className="flex flex-col h-full">
+                {/* Status Message */}
+                <div className="flex-shrink-0 mb-2">
+                    <StatusMessage />
+                </div>
+                
                 {/* System Prompt Section */}
                 <SystemPromptSection activeConvId={activeConvId} />
                 
@@ -386,11 +391,6 @@ export function InputBar({
                     <div className="flex flex-col gap-1">
                         <TemperatureControl />
                         <TopPControl />
-                    </div>
-
-                    {/* Status Message - Flexible width with larger constraints */}
-                    <div className="flex-1 min-w-0 max-w-2xl">
-                        <StatusMessage />
                     </div>
                 </div>
             </div>
