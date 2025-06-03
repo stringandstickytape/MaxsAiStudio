@@ -14,5 +14,15 @@
         /// Whether to use dark mode
         /// </summary>
         public bool IsDarkMode { get; set; } = true;
+
+        /// <summary>
+        /// Chat container panel size as percentage (0-100)
+        /// </summary>
+        public int ChatPanelSize { get; set; } = 70;
+
+        /// <summary>
+        /// InputBar panel size as percentage (0-100)
+        /// </summary>
+        public int InputBarPanelSize { get; set; } = 30;
     }
 }

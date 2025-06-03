@@ -52,7 +52,9 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 {
                     success = true,
                     fontSize = settings.FontSize,
-                    isDarkMode = settings.IsDarkMode
+                    isDarkMode = settings.IsDarkMode,
+                    chatPanelSize = settings.ChatPanelSize,
+                    inputBarPanelSize = settings.InputBarPanelSize,
                 });
             }
             catch (Exception ex)
@@ -71,7 +73,9 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 var settings = new AppearanceSettings
                 {
                     FontSize = fontSize,
-                    IsDarkMode = isDarkMode
+                    IsDarkMode = isDarkMode,
+                    ChatPanelSize = requestObject["chatPanelSize"]?.Value<int>() ?? 30,
+                    InputBarPanelSize = requestObject["inputBarPanelSize"]?.Value<int>() ?? 30,
                 };
 
                 _appearanceSettingsService.UpdateAppearanceSettings(settings);

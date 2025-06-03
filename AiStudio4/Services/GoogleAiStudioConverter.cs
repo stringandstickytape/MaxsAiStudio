@@ -154,7 +154,7 @@ namespace AiStudio4.Services
 
                             foreach(var attachment in attachments)
                             {
-                                newMessage.UserMessage += $"\n\n{BacktickHelper.ThreeTicks}\n{attachment.Content}\n```\n";
+                                newMessage.UserMessage += $"\n\n{BacktickHelper.ThreeTicks}{Path.GetExtension(attachment.Name).Replace(".","")}\n{attachment.Content}\n```\n";
                             }
 
                             pendingAttachments.Clear();

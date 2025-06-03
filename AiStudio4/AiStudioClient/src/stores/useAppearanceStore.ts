@@ -1,4 +1,4 @@
-
+﻿
 import { create } from 'zustand';
 import { apiClient } from '@/services/api/apiClient';
 
@@ -6,6 +6,8 @@ interface AppearanceState {
   
   fontSize: number;
   isDarkMode: boolean;
+  chatPanelSize: number;
+  inputBarPanelSize: number;
   isLoading: boolean;
   error: string | null;
 
@@ -14,6 +16,9 @@ interface AppearanceState {
   decreaseFontSize: () => void;
   setFontSize: (size: number) => void;
   toggleDarkMode: () => void;
+  setChatPanelSize: (size: number) => void;
+  setInputBarPanelSize: (size: number) => void;
+  setPanelSizes: (chatSize: number, inputBarSize: number) => void;
   saveAppearanceSettings: () => Promise<void>;
   loadAppearanceSettings: () => Promise<void>;
   setError: (error: string | null) => void;
@@ -28,7 +33,9 @@ const FONT_SIZE_STEP = 1;
 export const useAppearanceStore = create<AppearanceState>((set, get) => ({
   
   fontSize: DEFAULT_FONT_SIZE,
-  isDarkMode: true, 
+  isDarkMode: true,
+  chatPanelSize: 70,
+  inputBarPanelSize: 30,
   isLoading: false,
   error: null,
 
@@ -59,14 +66,32 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
       isDarkMode: !state.isDarkMode,
     })),
 
+  setChatPanelSize: (size) =>
+    set((state) => ({
+      chatPanelSize: Math.max(20, Math.min(80, size)), // Constrain between 20-80%
+    })),
+
+  setInputBarPanelSize: (size) =>
+    set((state) => ({
+      inputBarPanelSize: Math.max(10, Math.min(50, size)), // Constrain between 10-50%
+    })),
+
+  setPanelSizes: (chatSize, inputBarSize) =>
+    set((state) => ({
+      chatPanelSize: Math.max(20, Math.min(80, chatSize)),
+      inputBarPanelSize: Math.max(10, Math.min(50, inputBarSize)),
+    })),
+
   saveAppearanceSettings: async () => {
-    const { fontSize, isDarkMode } = get();
+    const { fontSize, isDarkMode, chatPanelSize, inputBarPanelSize } = get();
     set({ isLoading: true, error: null });
 
     try {
       const response = await apiClient.post('/api/saveAppearanceSettings', {
         fontSize,
         isDarkMode,
+        chatPanelSize,
+        inputBarPanelSize,
       });
 
       const data = response.data;
@@ -96,11 +121,14 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         throw new Error(data.error || 'Failed to load appearance settings');
       }
 
-      
       const fontSize = Number(data.fontSize) || DEFAULT_FONT_SIZE;
+      const chatPanelSize = Number(data.chatPanelSize) || 70;
+      const inputBarPanelSize = Number(data.inputBarPanelSize) || 30;
       set({
         fontSize,
         isDarkMode: data.isDarkMode ?? true,
+        chatPanelSize,
+        inputBarPanelSize,
       });
 
       
