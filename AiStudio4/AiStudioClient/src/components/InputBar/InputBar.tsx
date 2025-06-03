@@ -340,8 +340,30 @@ export function InputBar({
                     />
                 </div>
 
-                {/* Action Buttons Bar */}
-                <div className="flex-shrink-0 flex justify-end mb-2">
+                {/* Action Buttons Bar with Controls */}
+                <div className="flex-shrink-0 flex justify-between items-start mb-2">
+                    {/* Left side: Model Status, Tools, Temperature Controls */}
+                    <div className="flex items-start gap-x-1 gap-y-1.5 flex-wrap">
+                        {/* Model Status */}
+                        <ModelStatusSection />
+
+                        {/* Tools Section */}
+                        <div ref={toolsContainerRef}>
+                            <ToolsSection
+                                activeTools={activeTools}
+                                removeActiveTool={removeActiveTool}
+                                disabled={disabled}
+                            />
+                        </div>
+
+                        {/* Temperature and Top-P Controls - Stacked Vertically */}
+                        <div className="flex flex-col gap-1">
+                            <TemperatureControl />
+                            <TopPControl />
+                        </div>
+                    </div>
+                    
+                    {/* Right side: Action Buttons */}
                     <ActionButtons
                         onSend={handleSend}
                         onCancel={() => {
@@ -373,27 +395,6 @@ export function InputBar({
                         setInputText={setInputText}
                         messageSent={!!currentRequest}
                     />
-                </div>
-
-                {/* Bottom Bar: Model Status, Tools, Servers, Temperature */}
-                <div className="border-t border-gray-700/30 flex-shrink-0 flex items-start gap-x-1 gap-y-1.5 flex-wrap">
-                    {/* Model Status */}
-                    <ModelStatusSection />
-
-                    {/* Tools Section */}
-                    <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
-                        <ToolsSection
-                            activeTools={activeTools}
-                            removeActiveTool={removeActiveTool}
-                            disabled={disabled}
-                        />
-                    </div>
-
-                    {/* Temperature and Top-P Controls - Stacked Vertically */}
-                    <div className="flex flex-col gap-1">
-                        <TemperatureControl />
-                        <TopPControl />
-                    </div>
                 </div>
             </div>
         </div>
