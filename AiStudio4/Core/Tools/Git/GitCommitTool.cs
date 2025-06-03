@@ -31,10 +31,10 @@ namespace AiStudio4.Core.Tools.Git
             {
                 Guid = "c3d4e5f6-a7b8-9012-3456-7890abcdef12",
                 Name = "GitCommit",
-                Description = "Commits a specified set of files to the git repository with a provided commit message. Only files within the project root may be committed. No other git operations are permitted.",
+                Description = "Commits a specified set of files to the git repository with a provided commit message and pushes changes by default. Only files within the project root may be committed.",
                 Schema = @"{
   ""name"": ""GitCommit"",
-  ""description"": ""Commits a specified set of files to the git repository with a provided commit message. Only files within the project root may be committed. No other git operations are permitted."",
+  ""description"": ""Commits a specified set of files to the git repository with a provided commit message and pushes changes by default. Only files within the project root may be committed."",
   ""input_schema"": {
     ""type"": ""object"",
     ""properties"": {
@@ -53,6 +53,11 @@ namespace AiStudio4.Core.Tools.Git
               ""type"": ""string""
             },
             ""minItems"": 1
+          },
+          ""push"": {
+            ""type"": ""boolean"",
+            ""description"": ""Whether to push changes after committing. Defaults to true."",
+            ""default"": true
           }
         },
         ""required"": [""message"", ""files""]
@@ -78,6 +83,7 @@ namespace AiStudio4.Core.Tools.Git
             JObject commitObj = null;
             string commitMessage = null;
             JArray filesArray = null;
+            bool shouldPush = true; // Default to true
             List<string> filesToCommit = new List<string>();
 
             // --- 1. Parse and Validate Input ---
@@ -94,6 +100,12 @@ namespace AiStudio4.Core.Tools.Git
                 {
                     commitMessage = commitObj["message"]?.ToString();
                     filesArray = commitObj["files"] as JArray;
+                    // Parse push parameter, default to true if not specified
+                    var pushToken = commitObj["push"];
+                    if (pushToken != null)
+                    {
+                        shouldPush = pushToken.Value<bool>();
+                    }
                     if (string.IsNullOrWhiteSpace(commitMessage))
                     {
                         errors.Add("Commit message must be a non-empty string.");
@@ -190,7 +202,29 @@ namespace AiStudio4.Core.Tools.Git
                 {
                     resultSummary.AppendLine($"Committed files:\n{string.Join("\n", filesToCommit)}");
                     resultSummary.AppendLine($"Commit message: {commitMessage}");
-                    resultSummary.AppendLine($"Git output: {commitResult.Output}");
+                    resultSummary.AppendLine($"Git commit output: {commitResult.Output}");
+                    
+                    // Push changes if requested (default behavior)
+                    if (shouldPush)
+                    {
+                        SendStatusUpdate("Pushing changes to remote repository...");
+                        var pushResult = await RunGitCommand("push");
+                        if (!pushResult.Success)
+                        {
+                            errors.Add($"Git push failed: {pushResult.Error}");
+                            overallSuccess = false;
+                            resultSummary.AppendLine($"Push failed: {pushResult.Error}");
+                        }
+                        else
+                        {
+                            resultSummary.AppendLine($"Git push output: {pushResult.Output}");
+                            resultSummary.AppendLine("Changes pushed successfully.");
+                        }
+                    }
+                    else
+                    {
+                        resultSummary.AppendLine("Push skipped as requested.");
+                    }
                 }
             }
             catch (Exception ex)
@@ -205,19 +239,24 @@ namespace AiStudio4.Core.Tools.Git
                 ["overallSuccess"] = overallSuccess,
                 ["committedFiles"] = new JArray(filesToCommit),
                 ["commitMessage"] = commitMessage,
+                ["pushRequested"] = shouldPush,
                 ["errors"] = new JArray(errors),
                 ["summary"] = resultSummary.ToString().Trim()
             };
             if (overallSuccess)
             {
-                SendStatusUpdate("GitCommit completed successfully.");
+                string successMessage = shouldPush ? "GitCommit and push completed successfully." : "GitCommit completed successfully (push skipped).";
+                SendStatusUpdate(successMessage);
             }
             else
             {
                 SendStatusUpdate("GitCommit completed with errors. See details.");
             }
 
-            return CreateResult(true, continueProcessing: false, resultJson.ToString(), overallSuccess ? "Commit successful." : "Commit failed.");
+            string resultMessage = overallSuccess 
+                ? (shouldPush ? "Commit and push successful." : "Commit successful (push skipped).")
+                : "Commit failed.";
+            return CreateResult(true, continueProcessing: false, resultJson.ToString(), resultMessage);
         }
 
         /// <summary>
