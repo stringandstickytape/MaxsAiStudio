@@ -36,6 +36,7 @@ This user guide is organized into the following sections:
 - **[License](docs/readme/10-license.md)** - Licensing information
 - **[Author & Acknowledgements](docs/readme/11-author-acknowledgements.md)** - Credits and acknowledgements
 - **[Further Reading & Links](docs/readme/12-further-reading-links.md)** - Additional resources and external links
+- **[Changelog](docs/readme/CHANGELOG.md)** - Recent changes and version history
 
 ## Key Features
 
