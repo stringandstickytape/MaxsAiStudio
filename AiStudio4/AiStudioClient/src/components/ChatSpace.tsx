@@ -117,8 +117,8 @@ export function ChatSpace() {
         <Panel defaultSize={70} minSize={20} className="overflow-auto">
           <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
         </Panel>
-        <PanelResizeHandle className="flex h-2 items-center justify-center bg-background hover:bg-muted transition-colors">
-          <div className="h-1 w-10 rounded-full bg-border" />
+        <PanelResizeHandle className="flex h-2 items-center justify-center bg-transparent hover:bg-muted/50 transition-all duration-300 group">
+          <div className="h-1 w-10 rounded-full bg-transparent group-hover:bg-border transition-all duration-300" />
         </PanelResizeHandle>
         <Panel defaultSize={30} minSize={10} maxSize={50} collapsible={true} collapsedSize={5}>
           <div className="h-full flex flex-col">
