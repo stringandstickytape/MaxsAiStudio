@@ -11,7 +11,7 @@ export function ModelStatusSection() {
         windowEventService.emit(WindowEvents.SELECT_SECONDARY_MODEL);
         
     return (
-        <div className="flex items-center mr-3 pr-3 border-r border-gray-700/50">
+        <div className="flex items-center mr-2">
             <ModelStatusBar
                 onPrimaryClick={handlePrimaryModelClick}
                 onSecondaryClick={handleSecondaryModelClick}

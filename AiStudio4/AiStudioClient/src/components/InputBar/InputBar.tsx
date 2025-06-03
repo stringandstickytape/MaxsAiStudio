@@ -297,7 +297,7 @@ export function InputBar({
     }, [setInputText]);
 
     return (
-        <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-3 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
+        <div className="InputBar h-[280px] bg-gray-900 border-gray-700/50 shadow-2xl p-2 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
             style={{
                 backgroundColor: "var(--global-background-color, #1f2937)",
                 color: "var(--global-text-color, #e2e8f0)",
@@ -369,7 +369,7 @@ export function InputBar({
                 </div>
 
                 {/* Bottom Bar: Model Status, Tools, Servers, Temperature */}
-                <div className="pt-2 border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5 gap-x-4"> {/* Added gap-x-4 for spacing */}
+                <div className="border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5 gap-x-1"> {/* Added gap-x-4 for spacing */}
                     {/* Model Status */}
                     <ModelStatusSection />
 

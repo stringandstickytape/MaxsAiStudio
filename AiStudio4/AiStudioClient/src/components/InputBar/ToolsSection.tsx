@@ -21,7 +21,7 @@ export function ToolsSection({
     const { enabledCount } = useMcpServerStore();
     
     return (
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mr-2">
             <div className="flex flex-col gap-1">
                 <TooltipProvider delayDuration={300}>
                     <Tooltip>
