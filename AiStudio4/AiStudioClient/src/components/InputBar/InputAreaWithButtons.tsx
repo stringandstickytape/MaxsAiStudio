@@ -252,7 +252,7 @@ function InputAreaWithButtonsComponent({
         color: 'var(--global-ai-message-text-color, #ffffff)',
         borderRadius: 'var(--global-border-radius, 0.5rem)',
         borderColor: 'var(--global-ai-message-border-color, rgba(55, 65, 81, 0.3))',
-        borderWidth: 'var(--global-ai-message-border-width, 0px)',
+        borderWidth: '0px',
         borderStyle: 'var(--global-ai-message-border-style, solid)',
         ...(window?.theme?.InputBar?.style || {})
     }), []);
@@ -260,7 +260,7 @@ function InputAreaWithButtonsComponent({
     return (
         <div className="relative flex-1 flex flex-col">
             {/* Main input area using flexbox layout */}
-            <div className="flex flex-col flex-1 border rounded-xl overflow-hidden"
+            <div className="flex flex-col flex-1 rounded-xl overflow-hidden"
                  style={{
                      backgroundColor: 'var(--global-ai-message-background, #1f2937)',
                      borderColor: 'var(--global-ai-message-border-color, rgba(55, 65, 81, 0.3))',
@@ -269,7 +269,7 @@ function InputAreaWithButtonsComponent({
                 {/* Textarea takes most of the space */}
                 <Textarea
                     ref={textareaRef}
-                    className="flex-1 w-full p-4 border-0 resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
+                    className="flex-1 w-full p-4 border-none outline-none resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
                     value={localInputText}
                     onChange={handleTextAreaInput}
                     onClick={handleTextAreaClick}
