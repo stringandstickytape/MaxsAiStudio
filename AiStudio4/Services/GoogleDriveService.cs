@@ -442,12 +442,17 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<string> DownloadFileContentAsync(string fileId)
+        public async Task<(string,string)> DownloadFileContentAsync(string fileId)
         {
             try
             {
                 _logger.LogInformation("Attempting to download file content for file ID: {FileId}", fileId);
                 var service = await GetDriveServiceAsync();
+
+                var metadataRequest = service.Files.Get(fileId);
+                metadataRequest.Fields = "name"; // Only fetch the name field for efficiency
+                var fileMetadata = await metadataRequest.ExecuteAsync();
+                var filename = fileMetadata.Name;
 
                 var request = service.Files.Get(fileId);
                 var stream = new MemoryStream();
@@ -459,7 +464,7 @@ namespace AiStudio4.Services
                 {
                     string content = await reader.ReadToEndAsync();
                     _logger.LogInformation("Successfully downloaded file content for file ID: {FileId}, size: {Size} characters", fileId, content.Length);
-                    return content;
+                    return (filename,content);
                 }
             }
             catch (Exception ex)

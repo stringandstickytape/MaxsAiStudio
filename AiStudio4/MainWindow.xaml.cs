@@ -174,11 +174,11 @@ public partial class WebViewWindow : Window
             {
                 Debug.WriteLine($"[UI] Downloading file: {fileToImport.Name} (ID: {fileToImport.Id})");
 
-                string fileContent;
+                (string,string) fileContent;
                 try
                 {
                     fileContent = await _googleDriveService.DownloadFileContentAsync(fileToImport.Id);
-                    Debug.WriteLine($"[UI] Successfully downloaded file content for {fileToImport.Name}, size: {fileContent.Length} characters");
+                    Debug.WriteLine($"[UI] Successfully downloaded file content for {fileToImport.Name}, size: {fileContent.Item2.Length} characters");
                 }
                 catch (Exception downloadEx)
                 {
@@ -192,7 +192,7 @@ public partial class WebViewWindow : Window
                 v4BranchedConv convertedConv;
                 try
                 {
-                    convertedConv = GoogleAiStudioConverter.ConvertToAiStudio4(fileContent, fileToImport.Name);
+                    convertedConv = await GoogleAiStudioConverter.ConvertToAiStudio4Async(fileContent.Item2, fileContent.Item1, _googleDriveService);
                     Debug.WriteLine($"[UI] Successfully converted conversation. ConvId: {convertedConv.ConvId}, Messages: {convertedConv.Messages.Count}");
                 }
                 catch (Exception convertEx)

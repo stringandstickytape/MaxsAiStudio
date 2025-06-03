@@ -1,5 +1,6 @@
 ﻿// AiStudio4/Services/GoogleAiStudioConverter.cs
 using AiStudio4.InjectedDependencies;
+using AiStudio4.DataModels;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -7,6 +8,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
+using SharedClasses;
 
 namespace AiStudio4.Services
 {
@@ -19,11 +22,17 @@ namespace AiStudio4.Services
             // Potentially other settings
         }
 
+        private class GoogleDriveDocument
+        {
+            public string id { get; set; }
+        }
+
         private class GoogleChunk
         {
             public string text { get; set; }
             public string role { get; set; }
             public bool? isThought { get; set; }
+            public GoogleDriveDocument driveDocument { get; set; }
         }
 
         private class GoogleChunkedPrompt
@@ -43,7 +52,7 @@ namespace AiStudio4.Services
             public GoogleSystemInstruction systemInstruction { get; set; }
         }
 
-        public static v4BranchedConv ConvertToAiStudio4(string googleJsonContent, string originalFileName)
+        public static async Task<v4BranchedConv> ConvertToAiStudio4Async(string googleJsonContent, string originalFileName, Core.Interfaces.IGoogleDriveService googleDriveService = null)
         {
             try
             {
@@ -77,7 +86,10 @@ namespace AiStudio4.Services
                 // 4. Initialize a StringBuilder for pending thoughts
                 var pendingThoughts = new StringBuilder();
 
-                // 5. Iterate through googleData.chunkedPrompt.chunks
+                // 5. Collect attachment file IDs and process chunks
+                var pendingAttachments = new List<string>();
+                
+                // 6. Iterate through googleData.chunkedPrompt.chunks
                 foreach (var chunk in googleData.chunkedPrompt.chunks)
                 {
                     if (chunk.isThought == true)
@@ -88,6 +100,11 @@ namespace AiStudio4.Services
                             pendingThoughts.Append("\n");
                         }
                         pendingThoughts.Append(chunk.text);
+                    }
+                    else if (chunk.driveDocument != null && !string.IsNullOrEmpty(chunk.driveDocument.id))
+                    {
+                        // This is an attachment chunk - collect the file ID
+                        pendingAttachments.Add(chunk.driveDocument.id);
                     }
                     else
                     {
@@ -115,7 +132,7 @@ namespace AiStudio4.Services
                         // If current chunk role is "model" and pendingThoughts.Length > 0:
                         if (role == v4BranchedConvMessageRole.Assistant && pendingThoughts.Length > 0)
                         {
-                            finalContent = $"<Thought>\n{pendingThoughts.ToString().Trim()}\n</Thought>\n\n{finalContent}";
+                            finalContent = $"\n<Thought>\n{pendingThoughts.ToString().Trim()}\n</Thought>\n\n{finalContent}";
                             pendingThoughts.Clear();
                         }
 
@@ -130,6 +147,19 @@ namespace AiStudio4.Services
                             Temperature = role == v4BranchedConvMessageRole.Assistant ? googleData.runSettings?.temperature : null
                         };
 
+                        // Process any pending attachments for this message (typically user messages)
+                        if (pendingAttachments.Count > 0 && googleDriveService != null)
+                        {
+                            var attachments = await ProcessAttachmentsAsync(pendingAttachments, googleDriveService);
+
+                            foreach(var attachment in attachments)
+                            {
+                                newMessage.UserMessage += $"\n\n{BacktickHelper.ThreeTicks}\n{attachment.Content}\n```\n";
+                            }
+
+                            pendingAttachments.Clear();
+                        }
+
                         // Add this message to our flat list
                         aiStudioConv.Messages.Add(newMessage);
 
@@ -138,7 +168,7 @@ namespace AiStudio4.Services
                     }
                 }
 
-                // 6. Handle any remaining thoughts
+                // 7. Handle any remaining thoughts
                 if (pendingThoughts.Length > 0)
                 {
                     var lastAssistantMsg = aiStudioConv.Messages.LastOrDefault(m => m.Role == v4BranchedConvMessageRole.Assistant);
@@ -161,7 +191,7 @@ namespace AiStudio4.Services
                     }
                 }
 
-                // 7. Return the populated aiStudioConv
+                // 8. Return the populated aiStudioConv
                 return aiStudioConv;
             }
             catch (JsonException ex)
@@ -172,6 +202,92 @@ namespace AiStudio4.Services
             {
                 throw new InvalidOperationException($"Failed to convert Google AI Studio format: {ex.Message}", ex);
             }
+        }
+
+        private static async Task<List<Attachment>> ProcessAttachmentsAsync(List<string> fileIds, Core.Interfaces.IGoogleDriveService googleDriveService)
+        {
+            var attachments = new List<Attachment>();
+            
+            foreach (var fileId in fileIds)
+            {
+                try
+                {
+                    // Download file content from Google Drive
+                    var fileContent = await googleDriveService.DownloadFileContentAsync(fileId);
+                    
+                    // Create attachment object.  This is pretty ropey.
+                    var attachment = new Attachment
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = fileContent.Item1,
+                        Type = DetermineFileType(fileContent.Item2),
+                        Content = fileContent.Item2,
+                        Size = System.Text.Encoding.UTF8.GetByteCount(fileContent.Item2),
+                        TextContent = IsTextFile(fileContent.Item2) ? fileContent.Item2 : null,
+                        LastModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    };
+                    
+                    attachments.Add(attachment);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but continue processing other attachments
+                    // Create a placeholder attachment to indicate the error
+                    var errorAttachment = new Attachment
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Name = $"failed_attachment_{fileId}",
+                        Type = "error",
+                        Content =$"Failed to download attachment: {ex.Message}",
+                        Size = 0,
+                        TextContent = $"Error downloading attachment with ID {fileId}: {ex.Message}",
+                        LastModified = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
+                    };
+                    
+                    attachments.Add(errorAttachment);
+                }
+            }
+            
+            return attachments;
+        }
+        
+        private static string DetermineFileType(string content)
+        {
+            // Simple heuristic to determine file type based on content
+            if (string.IsNullOrEmpty(content))
+                return "unknown";
+                
+            // Check for common text file patterns
+            if (content.StartsWith("{") && content.TrimEnd().EndsWith("}"))
+                return "application/json";
+            if (content.StartsWith("<") && content.Contains(">"))
+                return "text/html";
+            if (content.Contains("\n") || content.Length < 1000) // Assume short content or multi-line is text
+                return "text/plain";
+                
+            return "application/octet-stream";
+        }
+        
+        private static bool IsTextFile(string content)
+        {
+            // Simple check to determine if content is text-based
+            if (string.IsNullOrEmpty(content))
+                return false;
+                
+            // Check for binary content indicators
+            foreach (char c in content.Take(Math.Min(1000, content.Length)))
+            {
+                if (c == 0 || (c < 32 && c != '\t' && c != '\n' && c != '\r'))
+                    return false;
+            }
+            
+            return true;
+        }
+
+        // Keep the original synchronous method for backward compatibility
+        public static v4BranchedConv ConvertToAiStudio4(string googleJsonContent, string originalFileName)
+        {
+            return ConvertToAiStudio4Async(googleJsonContent, originalFileName, null).GetAwaiter().GetResult();
         }
     }
 }
