@@ -218,7 +218,7 @@ function MessageInputAreaComponent({
         color: 'var(--global-ai-message-text-color, #ffffff)',
         borderRadius: 'var(--global-border-radius, 0.5rem)',
         borderColor: 'var(--global-ai-message-border-color, rgba(55, 65, 81, 0.3))',
-        borderWidth: 'var(--global-ai-message-border-width, 0px)',
+        borderWidth: '0px',
         borderStyle: 'var(--global-ai-message-border-style, solid)',
         ...(window?.theme?.InputBar?.style || {})
     }), []);
