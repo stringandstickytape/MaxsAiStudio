@@ -163,7 +163,21 @@
         @apply animate-spin rounded-full h-4 w-4 border-2 border-t-transparent border-blue-500;
     }
 
+    /* Status Message Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 
+    .animate-fade-in {
+        animation: fadeIn 0.3s ease-in-out;
+    }
 
     .app-container {
         position: relative;

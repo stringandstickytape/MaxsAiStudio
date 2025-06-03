@@ -370,27 +370,31 @@ export function InputBar({
 
                 {/* Bottom Bar: Model Status, Tools, Servers, Temperature */}
                 <div className="border-t border-gray-700/30 flex-shrink-0 flex items-center flex-wrap gap-y-1.5 gap-x-1"> {/* Added gap-x-4 for spacing */}
-                    {/* Model Status */}
-                    <ModelStatusSection />
+                    {/* Left side: Model Status, Tools, Temperature Controls */}
+                    <div className="flex items-center flex-wrap gap-x-1 gap-y-1.5 flex-1 min-w-0">
+                        {/* Model Status */}
+                        <ModelStatusSection />
 
-                    {/* Tools Section */}
-                    <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
-                        <ToolsSection
-                            activeTools={activeTools}
-                            removeActiveTool={removeActiveTool}
-                            disabled={disabled}
-                        />
+                        {/* Tools Section */}
+                        <div ref={toolsContainerRef}> {/* Keep ref if used for tool count logic */}
+                            <ToolsSection
+                                activeTools={activeTools}
+                                removeActiveTool={removeActiveTool}
+                                disabled={disabled}
+                            />
+                        </div>
+
+                        {/* Temperature and Top-P Controls - Stacked Vertically */}
+                        <div className="flex flex-col gap-1">
+                            <TemperatureControl />
+                            <TopPControl />
+                        </div>
                     </div>
 
-                    {/* Temperature and Top-P Controls - Stacked Vertically */}
-                    <div className="flex flex-col gap-1">
-                        <TemperatureControl />
-                        <TopPControl />
+                    {/* Right side: Status Message with stable positioning */}
+                    <div className="flex-shrink-0">
+                        <StatusMessage />
                     </div>
-
-                    <StatusMessage />
-
-                    
                 </div>
             </div>
         </div>
