@@ -1,14 +1,18 @@
 ﻿# 3. Core Concepts
 
 ## 3.1 The Main Interface
-*   **Header:** Contains the Command Bar access, Pinned Shortcuts, Model Status, and System Prompt display.
+*   **Header:** Contains the Command Bar access, Pinned Shortcuts, and quick access controls.
 *   **Chat View:** The central area where your conversation with the AI is displayed.
-*   **Input Bar:** Located at the bottom, this is where you type messages, manage attachments, select tools, and access system prompts. It also shows temperature settings (see [Section 5.1.5](05-key-features-in-detail.md#515-temperature-control)) and status messages.
+*   **Input Bar:** Located at the bottom with an improved layout featuring:
+    *   **Top Action Bar:** Model status, tools, and temperature controls in a consolidated horizontal layout
+    *   **Status Messages:** Prominently displayed for better visibility
+    *   **System Prompt Section:** Easy access to system prompt management
+    *   **Main Input Area:** Text input field with attachment and send controls
 *   **Sidebar (Toggle: `Ctrl+B` or `Cmd+B`):**
     *   **Conversation History:** Lists your past conversations. Click to load one.
     *   **Search Bar:** Search through your conversation history.
     *   **Current Conversation Tree View:** An interactive D3.js visualization of the current conversation's message branches.
-*   **Panels:** Other panels like Settings, Tool Library, etc., can be opened via the Command Bar or menus.
+*   **Panels:** Other panels like Settings, Tool Library, etc., can be opened via the Command Bar or menus. Panel sizes are now automatically saved and restored.
 
 ## 3.2 Project Path: Its Importance
 The **Project Path** is the root directory of your software development project or working folder. Setting this correctly is **critical** because:

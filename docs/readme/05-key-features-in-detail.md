@@ -87,6 +87,7 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 
 #### Git Tools
 *   [GitCommitTool](tools/git-commit-tool.md)
+*   [GitLogTool](tools/git-log-tool.md)
 
 #### GitHub Tools
 *   [GitHubGetContentTool](tools/git-hub-get-content-tool.md)
@@ -193,6 +194,7 @@ In the Input Bar:
 *   Command Bar (`Ctrl+K`) > "Appearance Settings".
 *   **Font Size:** Adjust the global font size for the application.
 *   **Dark Mode:** (Default) AiStudio4 primarily uses a dark theme aesthetic. Theming allows full customization.
+*   **Panel Size Persistence:** Panel sizes are automatically saved and restored between sessions with debounced saving to prevent performance issues.
 
 ## 5.4 Project Integration
 

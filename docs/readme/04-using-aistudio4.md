@@ -7,13 +7,21 @@
 2.  Press `Enter` to send. Use `Shift+Enter` for multi-line input.
 3.  AI responses will stream in.
 
-### 4.1.2 Interjecting During Tool Use
+### 4.1.2 Input Bar Layout
+The Input Bar has been redesigned with an improved layout featuring:
+*   **Top Action Bar:** Contains model status, tools, and temperature controls in a consolidated horizontal layout
+*   **Status Messages:** Displayed prominently above the input area for better visibility
+*   **System Prompt Section:** Located below the status messages for easy access
+*   **Main Input Area:** The text input field with attachment and send controls
+*   **Organized Controls:** All interactive elements are logically grouped for better usability
+
+### 4.1.3 Interjecting During Tool Use
 If the AI is taking a long time processing a tool or you realize you need to provide more information:
 1.  Type your follow-up message or clarification in the input bar (it remains active).
 2.  Press `Ctrl+Enter` (or `Cmd+Enter` on Mac) or click the "Interject" button (💬➕ icon).
 3.  Your interjection will be incorporated by the AI in its next processing step. This allows you to correct the AI or provide more context without fully interrupting its flow.
 
-### 4.1.3 Rich Content (Markdown, Diagrams, Tables)
+### 4.1.4 Rich Content (Markdown, Diagrams, Tables)
 AiStudio4 renders AI responses that include:
 *   **Markdown:** For formatted text, lists, etc.
 *   **Code Blocks:** With syntax highlighting for various languages.
