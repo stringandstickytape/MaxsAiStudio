@@ -266,7 +266,7 @@ namespace AiStudio4.Core.Tools.Git
             string resultMessage = overallSuccess 
                 ? $"Retrieved {commits.Count} commits from {fromRef} to {toRef}."
                 : "Git log failed.";
-            return CreateResult(true, continueProcessing: false, resultJson.ToString(), resultMessage);
+            return CreateResult(true, continueProcessing: overallSuccess, resultJson.ToString(), resultMessage);
         }
 
         /// <summary>
