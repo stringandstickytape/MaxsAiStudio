@@ -178,7 +178,7 @@ namespace AiStudio4.AiServices
             };
 
             var response = await client.SendAsync(request, sendOption, cancellationToken);
-            response.EnsureSuccessStatusCode();
+            
             return response;
         }
 
