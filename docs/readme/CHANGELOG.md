@@ -4,6 +4,14 @@
 
 ### New Features
 
+#### Git Branch Management and GitHub PR Tools
+- **New GitBranch Tool**: Complete branch management including create, switch, list, delete operations
+- **New GitStatus Tool**: Repository state information including working directory status, current branch, and remote tracking
+- **New GitHubCreatePullRequest Tool**: Create pull requests directly from the AI with full GitHub API integration
+- **Enhanced GitCommitTool**: Added `push_new_branch` parameter to automatically set upstream for new branches
+- Complete workflow support: create issue → create branch → fix code → push branch → submit PR
+- See [GitBranch documentation](tools/git-branch-tool.md), [GitStatus documentation](tools/git-status-tool.md), and [GitHubCreatePullRequest documentation](tools/github-create-pull-request-tool.md) for details
+
 #### GitLogTool
 - **New Tool Added**: `GitLogTool` for retrieving git commit history between references
 - Supports various output formats (oneline, short, full)
@@ -14,6 +22,7 @@
 #### Enhanced GitCommitTool
 - **Push by Default**: GitCommitTool now pushes changes by default after committing
 - **Optional Push Parameter**: Added `push` parameter to control whether changes are pushed
+- **New Branch Support**: Added `push_new_branch` parameter for automatic upstream setting
 - **Backward Compatibility**: Existing usage continues to work, but now pushes automatically
 - See updated [GitCommitTool documentation](tools/git-commit-tool.md) for details
 
