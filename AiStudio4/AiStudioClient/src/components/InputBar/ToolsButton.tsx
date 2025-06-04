@@ -26,7 +26,7 @@ export function ToolsButton({ activeTools, removeActiveTool, disabled }: ToolsBu
                                 activeTools.forEach(toolId => removeActiveTool(toolId));
                             }
                         }}
-                        className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors flex-shrink-0 relative"
+                        className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors relative [&_svg]:shrink [&>*]:shrink min-w-0"
                         disabled={disabled}
                         style={{
                             color: 'var(--global-text-color)',
@@ -35,9 +35,9 @@ export function ToolsButton({ activeTools, removeActiveTool, disabled }: ToolsBu
                         }}
                     >
                         <Wrench className="h-3 w-3 mr-1" />
-                        <span>Tools</span>
+                        <span className="truncate">Tools</span>
                         {activeTools.length > 0 && (
-                            <span className="ml-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-blue-500 rounded-full" title="Middle-click to clear all">
+                            <span className="ml-1 inline-flex items-center justify-center px-1 py-0 text-xs font-bold leading-none text-white bg-blue-500 rounded-full min-w-0 shrink overflow-hidden" style={{ minWidth: '0px', minHeight: '0px' }} title="Middle-click to clear all">
                                 {activeTools.length}
                             </span>
                         )}
