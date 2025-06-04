@@ -43,7 +43,6 @@ This user guide is organized into the following sections:
 - **Unified AI Chat** with OpenAI, Anthropic Claude, Google Gemini, and MCP servers
 - **Powerful Tool Ecosystem** for file operations, web tasks, and developer integrations
 - **Deep Project Integration** with context-aware AI assistance
-- **Azure DevOps Wiki Sync** for automatic system prompt synchronization with team documentation
 - **Advanced Conversation Management** with branched history and tree visualization
 - **Extensible & Customizable** with custom tools and AI-powered theming
 - **Real-time Interaction** with streaming responses and tool interjection
