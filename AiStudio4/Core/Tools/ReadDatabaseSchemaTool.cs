@@ -51,7 +51,10 @@ namespace AiStudio4.Core.Tools
                 Categories = new List<string> { "Development" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
-                LastModified = DateTime.UtcNow
+                LastModified = DateTime.UtcNow,
+                ExtraProperties = new Dictionary<string, string> {
+                    { "DatabaseSchema", "SHEFFIELD" }
+                }
             };
         }
 
@@ -72,8 +75,11 @@ namespace AiStudio4.Core.Tools
                 
                 SendStatusUpdate($"Reading database schema for type: {detailType}{(filter != null ? $", filter: {filter}" : "")}");
 
+                // Get database schema from extraProperties or default to SHEFFIELD
+                string databaseSchema = extraProperties != null && extraProperties.TryGetValue("DatabaseSchema", out var schemaName) && !string.IsNullOrWhiteSpace(schemaName) ? schemaName : "SHEFFIELD";
+
                 // Connection string for SQL Server using Windows Authentication
-                string connectionString = @"Data Source=localhost;Initial Catalog=SHEFFIELD;Integrated Security=True;TrustServerCertificate=True";
+                string connectionString = $@"Data Source=localhost;Initial Catalog={databaseSchema};Integrated Security=True;TrustServerCertificate=True";
 
                 using (var connection = new SqlConnection(connectionString))
                 {
