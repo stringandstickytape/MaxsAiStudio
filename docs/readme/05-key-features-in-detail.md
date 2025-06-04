@@ -102,6 +102,8 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [GitHubUpdateIssueTool](tools/git-hub-update-issue-tool.md)
 *   [GitHubCreateIssueCommentTool](tools/git-hub-create-issue-comment-tool.md)
 *   [GitHubListIssueCommentsTool](tools/git-hub-list-issue-comments-tool.md)
+*   [GitHubUpdatePullRequestTool](tools/github-update-pull-request-tool.md)
+*   [GitHubListPullRequestsTool](tools/github-list-pull-requests-tool.md)
 
 #### Sentry Tools
 *   [SentryTool](tools/sentry-tool.md)
