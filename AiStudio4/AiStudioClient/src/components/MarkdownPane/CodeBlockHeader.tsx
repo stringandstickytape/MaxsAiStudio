@@ -42,8 +42,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 background: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                 color: 'var(--global-text-color, var(--markdownpane-codeheader-text, #bfc7d5))',
                 borderColor: 'var(--global-border-color, var(--markdownpane-codeheader-border, #283040))',
-                borderStyle: 'solid',
-                borderBottomWidth: '1px',
+                border: '0px',
                 borderTopWidth: 0,
             }}
         >

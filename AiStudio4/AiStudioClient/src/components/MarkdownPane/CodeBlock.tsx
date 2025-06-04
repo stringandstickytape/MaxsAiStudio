@@ -51,14 +51,14 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
     // Diagram block
     if (DiagramComponent) {
         return isRawView ? (
-            <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2">
+            <div className="rounded-xl overflow-hidden  shadow-lg my-2">
                 {header}
                 <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 rounded-b-lg`}>
                     <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
                 </div>
             </div>
         ) : (
-            <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2" key={mermaidKey}>
+            <div className="rounded-xl overflow-hidden  shadow-lg my-2" key={mermaidKey}>
                 {header}
                 <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
                     <DiagramComponent content={content} className="overflow-auto" />
@@ -69,14 +69,14 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
 
     // Regular code block
     return isRawView ? (
-        <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2">
+        <div className="rounded-xl overflow-hidden  shadow-lg my-2">
             {header}
             <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl`}>
                 <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
             </div>
         </div>
     ) : (
-        <div className="rounded-xl overflow-hidden border border-gray-700 shadow-lg my-2">
+        <div className="rounded-xl overflow-hidden  shadow-lg my-2">
             {header}
             <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200`}>
                 <SyntaxHighlighter
