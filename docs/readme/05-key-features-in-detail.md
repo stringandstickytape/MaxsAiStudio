@@ -226,7 +226,35 @@ WebSockets are extensively used for:
 
 ## 5.6 Integrations
 
-### 5.6.1 Google AI Studio Integration
+### 5.6.1 Azure DevOps Wiki Sync
+AiStudio4 provides automatic synchronization between Azure DevOps wiki pages and system prompts, enabling teams to maintain centralized documentation that automatically updates AI behavior.
+
+*   **Purpose:** Allows teams to maintain system prompts in Azure DevOps wikis and automatically sync them to AiStudio4, ensuring consistent AI behavior across team members and keeping prompts up-to-date with centralized documentation.
+*   **How It Works:**
+    1.  Configure the sync settings to point to a specific Azure DevOps wiki page
+    2.  Enable the sync feature in the application menu
+    3.  On each application startup, AiStudio4 automatically fetches the latest content from the specified wiki page
+    4.  If the target system prompt exists, its content is updated; if not, a new system prompt is created
+    5.  Sync only occurs when the wiki content has actually changed
+*   **Configuration Requirements:**
+    *   Azure DevOps Organization name
+    *   Azure DevOps Project name
+    *   Wiki Identifier (typically `ProjectName.wiki`)
+    *   Wiki Page Path (e.g., `/Instructions/MasterSystemPrompt`)
+    *   Target System Prompt selection
+    *   Azure DevOps Personal Access Token (PAT) with wiki read permissions
+*   **Setup Process:**
+    1.  Configure your Azure DevOps PAT: `File > Settings > Set Azure DevOps PAT...`
+    2.  Configure wiki sync: `File > Wiki Sync > Configure Wiki Sync...`
+    3.  Enable the sync: `File > Wiki Sync > Enable Wiki Sync` (checked)
+    4.  Restart the application for changes to take effect
+*   **Use Cases:**
+    *   Centralized team prompt management
+    *   Automatic updates to AI behavior based on project documentation
+    *   Consistent system prompts across development team members
+    *   Integration with existing Azure DevOps workflows
+
+### 5.6.2 Google AI Studio Integration
 AiStudio4 offers integration with Google AI Studio via Google Drive, allowing for a seamless exchange of conversation data.
 
 *   **Purpose:** Facilitates users who work across both AiStudio4 and Google AI Studio or wish to migrate/backup conversations between these platforms.

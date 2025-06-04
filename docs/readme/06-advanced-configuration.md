@@ -18,6 +18,13 @@ Most user preferences and data are stored in JSON files within this directory on
     *   `PackerIncludeFileTypes`, `PackerExcludeFilenames`: Settings for the Project Packager.
     *   `PackerExcludeFolderNames`: (List of strings) A list of folder names (e.g., "bin", "obj", "node_modules") that will be excluded during project source code packaging. Case-insensitive.
     *   `ConversationZipRetentionDays`, `ConversationDeleteZippedRetentionDays`: Settings for conversation archiving.
+    *   **Azure DevOps Wiki Sync Settings:**
+        *   `EnableWikiSystemPromptSync`: Boolean flag to enable/disable automatic wiki sync.
+        *   `WikiSyncAdoOrganization`: Azure DevOps organization name.
+        *   `WikiSyncAdoProject`: Azure DevOps project name.
+        *   `WikiSyncWikiIdentifier`: Wiki identifier (typically `ProjectName.wiki`).
+        *   `WikiSyncPagePath`: Path to the wiki page (e.g., `/Instructions/MasterSystemPrompt`).
+        *   `WikiSyncTargetSystemPromptGuid`: GUID of the system prompt to update with wiki content.
 *   **`systemPrompts/`**: Directory containing your saved System Prompts as `.prompt.json` files.
 *   **`UserPrompts/`**: Directory containing your saved User Prompts as `.prompt.json` files.
 *   **`Tools/toolLibrary.json`**: Your custom tool definitions and categories.
