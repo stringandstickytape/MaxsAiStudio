@@ -1,4 +1,4 @@
-
+﻿
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
@@ -334,9 +334,12 @@ export function UserPromptEditor({ initialPrompt, onClose, onApply }: UserPrompt
               <Button
                 type="button"
                 onClick={onClose}
-                variant="outline"
                 disabled={isProcessing}
-                className="btn-secondary"
+                style={{
+                  backgroundColor: 'var(--global-background-color)',
+                  color: 'var(--global-text-color)'
+                }}
+                className="border-blue-500"
               >
                 Cancel
               </Button>
