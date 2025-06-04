@@ -76,6 +76,7 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
           }),
           ...(window?.theme?.ConvView?.style || {})
         }}>
+        {/* <MessageMetadata message={message} /> Moved to bottom */}
         {editingMessageId === message.id ? (
           <MessageEditor 
             editContent={editContent} 
@@ -96,7 +97,6 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
           <MarkdownPane message={message.content} />
         )}
         
-        <MessageMetadata message={message} />
         <MessageActions 
           message={message} 
           onEdit={() => {
@@ -104,10 +104,9 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
             useConvStore.getState().editMessage(message.id);
           }} 
         />
+        
       </div>
-
-      {/* Display message attachments */}
-      {/* Get attachments from either the message prop or the centralized store */}
+          <MessageMetadata message={message} />
       {((message.attachments && message.attachments.length > 0) || (attachmentsById[message.id] && attachmentsById[message.id].length > 0)) && (
         <div className="ConvView mt-3 pt-3 border-t" style={{
           borderColor: 'var(--convview-border-color, rgba(55, 65, 81, 0.3))'
