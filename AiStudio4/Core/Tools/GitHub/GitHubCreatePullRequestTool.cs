@@ -132,8 +132,10 @@ namespace AiStudio4.Core.Tools.GitHub
                 bool draft = parameters.TryGetValue("draft", out var draftObj) && bool.TryParse(draftObj?.ToString(), out bool draftValue) && draftValue;
                 bool maintainerCanModify = !parameters.TryGetValue("maintainer_can_modify", out var maintainerObj) || !bool.TryParse(maintainerObj?.ToString(), out bool maintainerValue) || maintainerValue;
 
+                string apiKey = _generalSettingsService.GetDecryptedGitHubApiKey();
+
                 // Get GitHub token from extra properties
-                if (!extraProperties.TryGetValue("GitHubToken", out string token) || string.IsNullOrWhiteSpace(token))
+                if (string.IsNullOrWhiteSpace(apiKey))
                 {
                     return CreateResult(false, false, "Error: GitHub Personal Access Token not configured. Please set 'GitHubToken' in the tool's extra properties.");
                 }
@@ -155,7 +157,7 @@ namespace AiStudio4.Core.Tools.GitHub
                 var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
 
                 // Set authorization header
-                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+                _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", apiKey);
 
                 // Make the API request
                 string url = $"https://api.github.com/repos/{owner}/{repo}/pulls";
