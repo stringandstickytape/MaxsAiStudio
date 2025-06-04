@@ -613,9 +613,9 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
                 type="button"
                 onClick={onClose}
                 disabled={isProcessing}
+                className="border-blue-500"
                 style={{
                   backgroundColor: 'var(--global-background-color)',
-                  borderColor: 'var(--global-border-color)',
                   color: 'var(--global-text-color)'
                 }}
               >
