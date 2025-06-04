@@ -116,6 +116,27 @@ export const MessageActions = ({ message, onEdit }: MessageActionsProps) => {
             <ArrowUp size={12} style={{ marginLeft: 1, marginTop: 2 }} />
           </span>
         </button>
+        <button
+          onClick={() => {
+            // Find the element with data-message-id equal to message.id
+            const el = document.querySelector(`[data-message-id='${message.id}']`);
+            if (el) {
+              el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+          }}
+          className="ConvView p-1.5 rounded-full transition-all duration-200"
+          style={{
+            color: 'var(--convview-text-color, #9ca3af)',
+            backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0))',
+            ':hover': {
+              color: 'var(--convview-text-color, #ffffff)',
+              backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0.8))'
+            }
+          }}
+          title="Scroll to top of message"
+        >
+          <ArrowUp size={16} />
+        </button>
       </div>
     </div>
   );
