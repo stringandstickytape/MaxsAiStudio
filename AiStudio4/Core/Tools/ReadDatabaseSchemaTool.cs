@@ -51,7 +51,10 @@ namespace AiStudio4.Core.Tools
                 Categories = new List<string> { "Development" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
-                LastModified = DateTime.UtcNow
+                LastModified = DateTime.UtcNow,
+                ExtraProperties = new Dictionary<string, string> {
+                    { "DatabaseSchema", "SHEFFIELD" }
+                }
             };
         }
 
