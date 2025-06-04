@@ -138,13 +138,45 @@ AiStudio4 can transcribe audio from media files using a local Whisper.net model 
     *   Select `Transcribe > Insert Last Transcription` from the menu.
     *   The transcribed text (in VTT format) will be appended to your current input in the Input Bar.
 
-## 4.7 Google AI Studio Integration
+## 4.7 Azure DevOps Wiki Sync
+AiStudio4 can automatically synchronize system prompts with Azure DevOps wiki pages, enabling teams to maintain centralized documentation that automatically updates AI behavior.
+
+### 4.7.1 Setting Up Wiki Sync
+1.  **Configure Azure DevOps PAT:**
+    *   Go to `File > Settings > Set Azure DevOps PAT...`
+    *   Enter your Azure DevOps Personal Access Token with wiki read permissions
+2.  **Configure Wiki Sync Settings:**
+    *   Go to `File > Wiki Sync > Configure Wiki Sync...`
+    *   **Azure DevOps Organization:** Enter your organization name (e.g., 'mycompany')
+    *   **Azure DevOps Project:** Enter your project name
+    *   **Wiki Identifier:** Usually `ProjectName.wiki`
+    *   **Wiki Page Path:** Path to your wiki page (e.g., `/Instructions/MasterSystemPrompt`)
+    *   **System Prompt to Update:** Select the system prompt that will receive the wiki content
+    *   Click "Save Configuration"
+3.  **Enable Wiki Sync:**
+    *   Go to `File > Wiki Sync > Enable Wiki Sync` and ensure it's checked
+    *   Restart the application for changes to take effect
+
+### 4.7.2 How Wiki Sync Works
+*   **Automatic Sync:** The sync occurs automatically each time you start AiStudio4
+*   **Content Updates:** If the target system prompt exists, its content is updated with the latest wiki content
+*   **New Prompt Creation:** If the target system prompt doesn't exist, a new one is created automatically
+*   **Change Detection:** Sync only occurs when the wiki content has actually changed since the last sync
+*   **Error Handling:** Any sync errors are logged and won't prevent the application from starting
+
+### 4.7.3 Wiki Sync Use Cases
+*   **Team Collaboration:** Maintain consistent system prompts across all team members
+*   **Centralized Documentation:** Keep AI behavior documentation in your existing Azure DevOps wiki
+*   **Automatic Updates:** Ensure AI prompts stay current with project requirements and guidelines
+*   **Version Control:** Leverage Azure DevOps wiki's version control for prompt management
+
+## 4.8 Google AI Studio Integration
 AiStudio4 allows you to import conversations from Google AI Studio and export conversations back to Google Drive for use in Google's ecosystem.
 
-### 4.7.1 Importing Conversations from Google AI Studio
+### 4.8.1 Importing Conversations from Google AI Studio
 1.  **Ensure Setup:** 
-    *   You may need to authorize AiStudio4 to access your Google Drive the first time you use this feature.
     *   A `credentials.json` file (obtained from your Google Cloud Console for an OAuth 2.0 Desktop app) is required in your `%APPDATA%\AiStudio4\Config\` directory.
+    *   You may need to authorize AiStudio4 to access your Google Drive the first time you use this feature.
     **Initiate Import:**
     *   Go to `File > Import/Export > Import from Google AI Studio via Google Drive` in the application menu.
 3.  **Select Files:**
@@ -158,7 +190,7 @@ AiStudio4 allows you to import conversations from Google AI Studio and export co
     *   The selected messages will be converted and saved as a new conversation in AiStudio4.
     *   The new conversation(s) will appear in your Conversation History, and the first successfully imported conversation will be automatically loaded.
 
-### 4.7.2 Exporting Conversations to Google AI Studio
+### 4.8.2 Exporting Conversations to Google AI Studio
 1.  **Ensure Setup:** Similar to importing, ensure Google Drive authorization is complete and the "Google AI Studio" folder exists.
 2.  **Initiate Export:**
     *   Go to `File > Import/Export > Upload current thread to Google AI Studio....`
