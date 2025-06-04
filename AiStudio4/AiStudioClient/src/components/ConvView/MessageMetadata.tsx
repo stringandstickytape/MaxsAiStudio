@@ -129,7 +129,7 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
 
     if (message.costInfo.modelGuid) {
       metadataItems.push(
-        <span key="model" className="ml-1 text-gray-400 text-xs font-medium bg-gray-700 px-2 py-0.5 rounded-full">
+        <span key="model">
           {formatModelDisplay(message.costInfo.modelGuid)}
         </span>
       );

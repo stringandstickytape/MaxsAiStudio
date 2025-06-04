@@ -41,7 +41,7 @@ export function ToolsSection({
                                 style={{
                                     color: 'var(--global-text-color)',
                                     borderColor: 'var(--global-secondary-color, rgba(147, 51, 234, 0.2))',
-                                    border: '1px solid'
+                                    border: '0px solid'
                                 }}
                             >
                                 <Wrench className="h-3 w-3 mr-1" />
@@ -76,7 +76,7 @@ export function ToolsSection({
                                 style={{
                                     color: 'var(--global-text-color)',
                                     borderColor: 'var(--global-secondary-color, rgba(147, 51, 234, 0.2))',
-                                    border: '1px solid'
+                                    border: '0px solid'
                                 }}
                             >
                                 <Server className="h-3 w-3 mr-1"

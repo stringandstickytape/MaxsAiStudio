@@ -117,7 +117,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           fontFamily: 'var(--global-font-family)',
           fontSize: 'var(--global-font-size)',
           borderRadius: 'var(--global-border-radius)',
-          boxShadow: 'var(--global-box-shadow)',
           width: '95%',
           marginLeft: 'auto',
           marginRight: 'auto',
@@ -134,7 +133,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
               fontFamily: 'var(--global-font-family)',
               fontSize: 'var(--global-font-size)',
               borderRadius: 'var(--global-border-radius)',
-              boxShadow: 'var(--global-box-shadow)',
               ...(window?.theme?.NavigationContainer?.style || {})
             }}
           >

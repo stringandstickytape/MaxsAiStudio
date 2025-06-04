@@ -24,7 +24,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatus
               style={{
                 color: 'var(--global-text-color)',
                 borderColor: 'var(--global-primary-color, rgba(37, 99, 235, 0.2))',
-                border: '1px solid'
+                border: '0px solid'
               }}
             >
               <span className="truncate max-w-[160px]">{selectedPrimaryModel !== 'Select Model' ? selectedPrimaryModel : 'Primary Model'}</span>
@@ -46,7 +46,7 @@ export function ModelStatusBar({ onPrimaryClick, onSecondaryClick }: ModelStatus
               style={{
                 color: 'var(--global-text-color)',
                 borderColor: 'var(--global-secondary-color, rgba(147, 51, 234, 0.2))',
-                border: '1px solid'
+                border: '0px solid'
               }}
             >
               <span className="truncate max-w-[160px]">{selectedSecondaryModel !== 'Select Model' ? selectedSecondaryModel : 'Secondary Model'}</span>
