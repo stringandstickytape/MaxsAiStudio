@@ -38,6 +38,14 @@ namespace AiStudio4.InjectedDependencies
         public List<string> PackerExcludeFilenames { get; set; } = new List<string>();
         public List<string> PackerExcludeFolderNames { get; set; } = new List<string>();
 
+        // Wiki System Prompt Sync Settings
+        public bool EnableWikiSystemPromptSync { get; set; } = false;
+        public string WikiSyncAdoOrganization { get; set; } = string.Empty;
+        public string WikiSyncAdoProject { get; set; } = string.Empty;
+        public string WikiSyncWikiIdentifier { get; set; } = string.Empty;
+        public string WikiSyncPagePath { get; set; } = string.Empty;
+        public string WikiSyncTargetSystemPromptGuid { get; set; } = string.Empty;
+
         // Remove obsolete plaintext properties if you are doing a clean break
         // Otherwise, keep them for migration (see GeneralSettingsService.cs)
         [Obsolete("Use EncryptedYouTubeApiKey. This property is for migration only.")]

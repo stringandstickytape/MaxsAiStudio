@@ -30,6 +30,11 @@
                     <Separator/>
                     <MenuItem Header="_Set Conversation Zip Retention (Days)..." Name="SetConversationZipRetentionMenuItem" Click="SetConversationZipRetentionMenuItem_Click"/>
                     <MenuItem Header="_Set Zipped Conversation Delete Retention (Days)..." Name="SetConversationDeleteZippedRetentionMenuItem" Click="SetConversationDeleteZippedRetentionMenuItem_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Wiki System Prompt Sync">
+                        <MenuItem Header="Enable Wiki Sync" Name="EnableWikiSyncMenuItem" IsCheckable="True" Click="EnableWikiSyncMenuItem_Click"/>
+                        <MenuItem Header="Configure Wiki Sync..." Name="ConfigureWikiSyncMenuItem" Click="ConfigureWikiSyncMenuItem_Click"/>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Licenses" Name="LicensesMenuItem" Click="LicensesMenuItem_Click"/>
                 <Separator/>

@@ -1,0 +1,88 @@
+﻿<!-- AiStudio4/Dialogs/ConfigureWikiSyncDialog.xaml -->
+<Window x:Class="AiStudio4.Dialogs.ConfigureWikiSyncDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Configure Azure DevOps Wiki System Prompt Sync" 
+        Height="500" Width="600"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="CanResize">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Header -->
+        <TextBlock Grid.Row="0" 
+                   Text="Configure Azure DevOps Wiki System Prompt Sync" 
+                   FontSize="16" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,20"/>
+        
+        <!-- Configuration Form -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Azure DevOps Organization -->
+                <Label Content="Azure DevOps Organization:" Target="{Binding ElementName=OrganizationTextBox}"/>
+                <TextBox Name="OrganizationTextBox" 
+                         Margin="0,0,0,10"
+                         ToolTip="The name of your Azure DevOps organization (e.g., 'mycompany')"/>
+                
+                <!-- Azure DevOps Project -->
+                <Label Content="Azure DevOps Project:" Target="{Binding ElementName=ProjectTextBox}"/>
+                <TextBox Name="ProjectTextBox" 
+                         Margin="0,0,0,10"
+                         ToolTip="The name of your Azure DevOps project"/>
+                
+                <!-- Wiki Identifier -->
+                <Label Content="Wiki Identifier (Name or ID):" Target="{Binding ElementName=WikiIdentifierTextBox}"/>
+                <TextBox Name="WikiIdentifierTextBox" 
+                         Margin="0,0,0,10"
+                         ToolTip="Usually ProjectName.wiki"/>
+                
+                <!-- Wiki Page Path -->
+                <Label Content="Wiki Page Path:" Target="{Binding ElementName=PagePathTextBox}"/>
+                <TextBox Name="PagePathTextBox" 
+                         Margin="0,0,0,10"
+                         ToolTip="e.g., /Instructions/MasterSystemPrompt"/>
+                
+                <!-- Target System Prompt -->
+                <Label Content="System Prompt to Update:" Target="{Binding ElementName=SystemPromptComboBox}"/>
+                <ComboBox Name="SystemPromptComboBox" 
+                          Margin="0,0,0,10"
+                          DisplayMemberPath="Title"
+                          SelectedValuePath="Guid"
+                          ToolTip="Select the system prompt that will be updated with wiki content"/>
+                
+                <!-- Info Text -->
+                <TextBlock Text="Note: The sync will occur automatically when the application starts. If the target system prompt doesn't exist, a new one will be created."
+                           TextWrapping="Wrap"
+                           Foreground="Gray"
+                           FontStyle="Italic"
+                           Margin="0,10,0,0"/>
+            </StackPanel>
+        </ScrollViewer>
+        
+        <!-- Buttons -->
+        <StackPanel Grid.Row="2" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    Margin="0,20,0,0">
+            <Button Name="SaveButton" 
+                    Content="Save Configuration" 
+                    Width="120" 
+                    Height="30" 
+                    Margin="0,0,10,0" 
+                    Click="SaveButton_Click"/>
+            <Button Name="CancelButton" 
+                    Content="Cancel" 
+                    Width="80" 
+                    Height="30" 
+                    Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
