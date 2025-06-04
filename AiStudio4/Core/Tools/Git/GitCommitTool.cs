@@ -58,6 +58,11 @@ namespace AiStudio4.Core.Tools.Git
             ""type"": ""boolean"",
             ""description"": ""Whether to push changes after committing. Defaults to true."",
             ""default"": true
+          },
+          ""push_new_branch"": {
+            ""type"": ""boolean"",
+            ""description"": ""Whether to push a new branch to remote if it doesn't exist. Only applies when push is true."",
+            ""default"": true
           }
         },
         ""required"": [""message"", ""files""]
@@ -84,6 +89,7 @@ namespace AiStudio4.Core.Tools.Git
             string commitMessage = null;
             JArray filesArray = null;
             bool shouldPush = true; // Default to true
+            bool pushNewBranch = true; // Default to true
             List<string> filesToCommit = new List<string>();
 
             // --- 1. Parse and Validate Input ---
@@ -105,6 +111,12 @@ namespace AiStudio4.Core.Tools.Git
                     if (pushToken != null)
                     {
                         shouldPush = pushToken.Value<bool>();
+                    }
+                    // Parse push_new_branch parameter, default to true if not specified
+                    var pushNewBranchToken = commitObj["push_new_branch"];
+                    if (pushNewBranchToken != null)
+                    {
+                        pushNewBranch = pushNewBranchToken.Value<bool>();
                     }
                     if (string.IsNullOrWhiteSpace(commitMessage))
                     {
@@ -208,7 +220,22 @@ namespace AiStudio4.Core.Tools.Git
                     if (shouldPush)
                     {
                         SendStatusUpdate("Pushing changes to remote repository...");
+                        
+                        // Try regular push first
                         var pushResult = await RunGitCommand("push");
+                        
+                        // If push fails and we should push new branches, try push with upstream
+                        if (!pushResult.Success && pushNewBranch && pushResult.Error.Contains("no upstream branch"))
+                        {
+                            SendStatusUpdate("Setting upstream and pushing new branch...");
+                            var currentBranchResult = await RunGitCommand("branch --show-current");
+                            if (currentBranchResult.Success)
+                            {
+                                string currentBranch = currentBranchResult.Output.Trim();
+                                pushResult = await RunGitCommand($"push --set-upstream origin {currentBranch}");
+                            }
+                        }
+                        
                         if (!pushResult.Success)
                         {
                             errors.Add($"Git push failed: {pushResult.Error}");
@@ -240,6 +267,7 @@ namespace AiStudio4.Core.Tools.Git
                 ["committedFiles"] = new JArray(filesToCommit),
                 ["commitMessage"] = commitMessage,
                 ["pushRequested"] = shouldPush,
+                ["pushNewBranch"] = pushNewBranch,
                 ["errors"] = new JArray(errors),
                 ["summary"] = resultSummary.ToString().Trim()
             };

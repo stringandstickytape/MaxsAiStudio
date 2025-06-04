@@ -1,4 +1,4 @@
-// src/components/diagrams/codeBlockRendererRegistry.ts
+﻿// src/components/diagrams/codeBlockRendererRegistry.ts
 import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { MermaidRenderer } from '@/components/diagrams/mermaid-renderer';
 import { JsonRenderer } from '@/components/diagrams/json-renderer';
@@ -6,6 +6,7 @@ import { HtmlRenderer } from '@/components/diagrams/html-renderer';
 import { DotRenderer } from '@/components/diagrams/dot-renderer'; // Add this line
 import { TxtRenderer } from '@/components/diagrams/txt-renderer'; // Add this line
 import { CodeDiffRenderer } from '@/components/diagrams/codeDiff-renderer'; // Add this line
+import { ModifyFilesRenderer } from '@/components/diagrams/modifyFiles-renderer'; // Add this line
 class CodeBlockRendererRegistry {
     private renderers: Map<string, CodeBlockRenderer> = new Map();
 
@@ -51,4 +52,4 @@ class CodeBlockRendererRegistry {
 }
 
 export const codeBlockRendererRegistry = new CodeBlockRendererRegistry();
-[MermaidRenderer, JsonRenderer, HtmlRenderer, DotRenderer, TxtRenderer, CodeDiffRenderer].forEach((renderer) => codeBlockRendererRegistry.register(renderer)); // Update this line
+[MermaidRenderer, JsonRenderer, HtmlRenderer, DotRenderer, TxtRenderer, CodeDiffRenderer, ModifyFilesRenderer].forEach((renderer) => codeBlockRendererRegistry.register(renderer)); // Update this line

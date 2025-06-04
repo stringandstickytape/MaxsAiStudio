@@ -1,4 +1,4 @@
-
+﻿
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools.CodeDiff;
@@ -107,7 +107,7 @@ namespace AiStudio4.Core.Tools
                   }
                 }",
                 Categories = new List<string> { "MaxCode" },
-                OutputFileType = "json",
+                OutputFileType = "modifyfiles",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
@@ -306,7 +306,10 @@ namespace AiStudio4.Core.Tools
                 if (allSuccessful)
                 {
                     SendStatusUpdate("ModifyFiles completed successfully.");
-                    return CreateResult(true, true, toolParameters, "All files modified successfully.");
+                    
+                    // Create enhanced output for custom renderer
+                    var enhancedOutput = CreateEnhancedOutput(modifications, results, true);
+                    return CreateResult(true, true, enhancedOutput, "All files modified successfully.");
                 }
                 else
                 {
@@ -321,7 +324,10 @@ namespace AiStudio4.Core.Tools
                     string errorSummary = errorMessage.ToString();
                     SendStatusUpdate("ModifyFiles completed with errors. See details.");
                     MessageBox.Show(errorSummary, "ModifyFiles Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return CreateResult(true, false, toolParameters, errorSummary);
+                    
+                    // Create enhanced output even for partial failures
+                    var enhancedOutput = CreateEnhancedOutput(modifications, results, false);
+                    return CreateResult(true, false, enhancedOutput, errorSummary);
                 }
             }
             catch (Exception ex)
@@ -330,8 +336,117 @@ namespace AiStudio4.Core.Tools
                 _logger.LogError(ex, "Unexpected error during ModifyFile execution.");
                 SendStatusUpdate("ModifyFile failed with an unexpected error.");
                 MessageBox.Show(errorMessage, "ModifyFile Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return CreateResult(true, false, toolParameters, errorMessage);
+                
+                // Create basic enhanced output for unexpected errors
+                var enhancedOutput = CreateEnhancedOutputForError(modifications, errorMessage);
+                return CreateResult(true, false, enhancedOutput, errorMessage);
             }
+        }
+
+        private string CreateEnhancedOutput(JArray modifications, List<(string FilePath, bool Success, string Message)> results, bool overallSuccess)
+        {
+            var output = new JObject
+            {
+                ["summary"] = new JObject
+                {
+                    ["totalFiles"] = results.Count,
+                    ["totalChanges"] = modifications.Sum(m => ((JArray)m["changes"]).Count),
+                    ["success"] = overallSuccess,
+                    ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    ["successfulFiles"] = results.Count(r => r.Success),
+                    ["failedFiles"] = results.Count(r => !r.Success)
+                },
+                ["files"] = new JArray()
+            };
+
+            var filesArray = (JArray)output["files"];
+
+            foreach (JObject modification in modifications)
+            {
+                string filePath = modification["path"].ToString();
+                var changesArray = modification["changes"] as JArray;
+                var result = results.FirstOrDefault(r => r.FilePath == filePath);
+                
+                var fileObj = new JObject
+                {
+                    ["path"] = filePath,
+                    ["relativePath"] = GetRelativePath(filePath),
+                    ["fileType"] = GetFileExtension(filePath),
+                    ["status"] = result.Success ? "modified" : "failed",
+                    ["message"] = result.Message,
+                    ["changeCount"] = changesArray.Count,
+                    ["changes"] = new JArray()
+                };
+
+                var changesOutputArray = (JArray)fileObj["changes"];
+                int changeIndex = 1;
+
+                foreach (JObject change in changesArray)
+                {
+                    var changeObj = new JObject
+                    {
+                        ["id"] = $"change-{changeIndex++}",
+                        ["description"] = change["description"]?.ToString() ?? "Code modification",
+                        ["lineNumber"] = change["lineNumber"],
+                        ["changeType"] = DetermineChangeType(change["oldContent"]?.ToString(), change["newContent"]?.ToString()),
+                        ["oldContent"] = change["oldContent"]?.ToString() ?? "",
+                        ["newContent"] = change["newContent"]?.ToString() ?? ""
+                    };
+                    changesOutputArray.Add(changeObj);
+                }
+
+                filesArray.Add(fileObj);
+            }
+
+            return output.ToString(Formatting.Indented);
+        }
+
+        private string CreateEnhancedOutputForError(JArray modifications, string errorMessage)
+        {
+            var output = new JObject
+            {
+                ["summary"] = new JObject
+                {
+                    ["totalFiles"] = modifications?.Count ?? 0,
+                    ["totalChanges"] = modifications?.Sum(m => ((JArray)m["changes"]).Count) ?? 0,
+                    ["success"] = false,
+                    ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                    ["error"] = errorMessage
+                },
+                ["files"] = new JArray()
+            };
+
+            return output.ToString(Formatting.Indented);
+        }
+
+        private string GetRelativePath(string fullPath)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_projectRoot) || !fullPath.StartsWith(_projectRoot))
+                    return Path.GetFileName(fullPath);
+                
+                return Path.GetRelativePath(_projectRoot, fullPath).Replace('\\', '/');
+            }
+            catch
+            {
+                return Path.GetFileName(fullPath);
+            }
+        }
+
+        private string GetFileExtension(string filePath)
+        {
+            var extension = Path.GetExtension(filePath);
+            return string.IsNullOrEmpty(extension) ? "txt" : extension.TrimStart('.');
+        }
+
+        private string DetermineChangeType(string oldContent, string newContent)
+        {
+            if (string.IsNullOrEmpty(oldContent) && !string.IsNullOrEmpty(newContent))
+                return "addition";
+            if (!string.IsNullOrEmpty(oldContent) && string.IsNullOrEmpty(newContent))
+                return "deletion";
+            return "modification";
         }
     }
 }
