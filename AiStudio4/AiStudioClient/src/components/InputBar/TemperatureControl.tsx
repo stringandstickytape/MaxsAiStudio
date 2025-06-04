@@ -21,14 +21,14 @@ export function TemperatureControl() {
     <TooltipProvider delayDuration={300}>
       <Tooltip>
         <TooltipTrigger asChild>
-                  <div className="flex items-center gap-2"
+                  <div className="flex items-center gap-2 min-w-0"
                       style={{
                           color: 'var(--global-text-color)',
                       }}
                   >
             <Label 
               htmlFor="temperature-slider" 
-                          className="text-xs text-gray-400 whitespace-nowrap cursor-pointer"
+                          className="text-xs text-gray-400 cursor-pointer shrink-[2] min-w-0 overflow-hidden text-ellipsis whitespace-nowrap"
                           style={{
                               color: 'var(--global-text-color)',
                           }}
@@ -43,7 +43,7 @@ export function TemperatureControl() {
               step={0.1}
               onValueChange={handleSliderChange}
               onValueCommit={handleSliderCommit}
-              className={cn("w-[100px] md:w-[120px]", isLoading && "opacity-50 cursor-not-allowed")}
+              className={cn("shrink w-[100px] md:w-[120px]", isLoading && "opacity-50 cursor-not-allowed")}
               disabled={isLoading}
                           aria-label="Temperature Slider"
                           style={{

@@ -48,15 +48,15 @@ export function ActionButtons({
     };
     
     return (
-        <div className="flex flex-row gap-2 items-center">
+        <div className="flex flex-row gap-2 items-center self-center">
             <FileAttachment
                 className="h-6"
                 disabled={isLoading || disabled}
                 maxFiles={5}
                 style={{
-                    backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                    borderColor: 'var(--inputbar-border-color, #4a5568)',
-                    color: 'var(--inputbar-text-color, #e2e8f0)',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: 'var(--global-text-color)',
                     opacity: (isLoading || disabled) ? 0.5 : 1,
                     ...(window?.theme?.InputBar?.style || {})
                 }}
@@ -70,9 +70,9 @@ export function ActionButtons({
                 aria-label="User prompts"
                 disabled={isLoading || disabled}
                 style={{
-                    backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                    borderColor: 'var(--inputbar-border-color, #4a5568)',
-                    color: 'var(--inputbar-text-color, #e2e8f0)',
+                    backgroundColor: 'transparent',
+                    border: 'none',
+                    color: 'var(--global-text-color)',
                     opacity: (isLoading || disabled) ? 0.5 : 1,
                     ...(window?.theme?.InputBar?.style || {})
                 }}
@@ -90,15 +90,12 @@ export function ActionButtons({
                 title={isListening ? "Stop Voice Input" : "Start Voice Input"} // Added title for tooltip consistency
                 disabled={isLoading || disabled} // Retain existing disabled logic
                 style={{
-                    backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                    borderColor: 'var(--inputbar-border-color, #4a5568)',
+                    backgroundColor: 'transparent',
+                    border: 'none',
                     opacity: (isLoading || disabled) ? 0.5 : 1,
                     ...(window?.theme?.InputBar?.style || {}), // Spread theme first
-                    // Conditional color: active color when listening, otherwise theme/default.
-                    // This ensures our color logic takes precedence, especially when listening.
-                    color: isListening 
-                           ? 'var(--global-primary-color, #3b82f6)' 
-                           : ((window?.theme?.InputBar?.style || {}).color || 'var(--inputbar-text-color, #e2e8f0)'),
+                    // Use global primary color for all states
+                    color: 'var(--global-text-color)',
                 }}
             >
                 <Mic className="h-5 w-5" />
@@ -115,9 +112,9 @@ export function ActionButtons({
                     disabled={disabled}
                     title={!isConnected ? 'WebSocket disconnected. Click to reconnect.' : ''}
                     style={{
-                        backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                        borderColor: !isConnected ? 'red' : 'var(--inputbar-border-color, #4a5568)',
-                        color: 'var(--inputbar-text-color, #e2e8f0)',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'var(--global-text-color)',
                         opacity: disabled ? 0.5 : 1,
                         ...(window?.theme?.InputBar?.style || {})
                     }}
@@ -136,9 +133,9 @@ export function ActionButtons({
                     aria-label="Cancel"
                     disabled={isCancelling || disabled}
                     style={{
-                        backgroundColor: '#dc2626',
-                        borderColor: 'var(--inputbar-border-color, #4a5568)',
-                        color: 'var(--inputbar-text-color, #e2e8f0)',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'var(--global-primary-color)',
                         opacity: (isCancelling || disabled) ? 0.5 : 1,
                         ...(window?.theme?.InputBar?.style || {})
                     }}
@@ -158,9 +155,9 @@ export function ActionButtons({
                     title="Send interjection during processing"
                     disabled={!inputText.trim() || disabled}
                     style={{
-                        backgroundColor: 'var(--inputbar-button-bg, #2d3748)',
-                        borderColor: 'var(--inputbar-border-color, #4a5568)',
-                        color: 'var(--inputbar-text-color, #e2e8f0)',
+                        backgroundColor: 'transparent',
+                        border: 'none',
+                        color: 'var(--global-primary-color)',
                         opacity: (!inputText.trim() || disabled) ? 0.5 : 1,
                         ...(window?.theme?.InputBar?.style || {})
                     }}

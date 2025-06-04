@@ -25,10 +25,12 @@ import { SystemPromptSection } from './SystemPromptSection';
 import { MessageInputArea, MessageInputAreaRef } from './MessageInputArea';
 import { AttachmentSection } from './AttachmentSection';
 import { ActionButtons } from './ActionButtons';
-import { ToolsSection } from './ToolsSection';
-import { ModelStatusSection } from './ModelStatusSection';
-import { TemperatureControl } from './TemperatureControl'; // Add this
-import { TopPControl } from './TopPControl'; // Added TopPControl
+import { ToolsButton } from './ToolsButton';
+import { MCPServersButton } from './MCPServersButton';
+import { PrimaryModelButton } from './PrimaryModelButton';
+import { SecondaryModelButton } from './SecondaryModelButton';
+import { TemperatureControl } from './TemperatureControl';
+import { TopPControl } from './TopPControl';
 
 /*
  * InputBar.tsx
@@ -341,28 +343,32 @@ export function InputBar({
                 </div>
 
                 {/* Action Buttons Bar with Controls */}
-                <div className="flex-shrink-0 flex justify-between items-start mb-2">
-                    {/* Left side: Model Status, Tools, Temperature Controls */}
-                    <div className="flex items-start gap-x-1 gap-y-1.5 flex-wrap">
-                        {/* Model Status */}
-                        <ModelStatusSection />
-
-                        {/* Tools Section */}
-                        <div ref={toolsContainerRef}>
-                            <ToolsSection
-                                activeTools={activeTools}
-                                removeActiveTool={removeActiveTool}
-                                disabled={disabled}
-                            />
-                        </div>
-
-                        {/* Temperature and Top-P Controls - Stacked Vertically */}
-                        <div className="flex flex-col gap-1">
-                            <TemperatureControl />
-                            <TopPControl />
-                        </div>
+                <div className="flex justify-between items-start mb-2">
+                    {/* Left side: 3x2 grid for controls - can shrink */}
+                    <div
+                        className="grid gap-2 mr-4"
+                        style={{
+                            gridTemplateColumns: 'repeat(3, minmax(0, max-content))',
+                            gridTemplateRows: 'repeat(2, auto)',
+                            alignItems: 'center',
+                            flexShrink: 1,
+                            minWidth: 0,
+                        }}
+                    >
+                        {/* Row 1 */}
+                        <PrimaryModelButton />
+                        <ToolsButton
+                            activeTools={activeTools}
+                            removeActiveTool={removeActiveTool}
+                            disabled={disabled}
+                        />
+                        <TemperatureControl />
+                        {/* Row 2 */}
+                        <SecondaryModelButton />
+                        <MCPServersButton disabled={disabled} />
+                        <TopPControl />
                     </div>
-                    
+
                     {/* Right side: Action Buttons */}
                     <ActionButtons
                         onSend={handleSend}
@@ -384,9 +390,8 @@ export function InputBar({
                                 })();
                             }
                         }}
-
-                        isListening={isVoiceListening} // Added
-                        onToggleListening={handleToggleListening} // Added
+                        isListening={isVoiceListening}
+                        onToggleListening={handleToggleListening}
                         addAttachments={addAttachments}
                         isLoading={isLoading}
                         isCancelling={isCancelling}
