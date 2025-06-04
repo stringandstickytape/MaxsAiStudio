@@ -612,9 +612,12 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
               <Button
                 type="button"
                 onClick={onClose}
-                variant="outline"
                 disabled={isProcessing}
-                className="btn-secondary"
+                style={{
+                  backgroundColor: 'var(--global-background-color)',
+                  borderColor: 'var(--global-border-color)',
+                  color: 'var(--global-text-color)'
+                }}
               >
                 Cancel
               </Button>
