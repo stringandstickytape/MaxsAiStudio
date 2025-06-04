@@ -29,6 +29,7 @@ using static RoslynHelper;
 using System.Collections.Generic; 
 using AiStudio4.Core.Models;
 using Newtonsoft.Json;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AiStudio4;
 
@@ -48,6 +49,8 @@ public partial class WebViewWindow : Window
     private readonly IGoogleDriveService _googleDriveService;
     private readonly IConvStorage _convStorage;
     private readonly IUpdateNotificationService _updateNotificationService;
+    private readonly ISystemPromptService _systemPromptService;
+    private readonly IServiceProvider _serviceProvider;
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
@@ -66,7 +69,9 @@ public partial class WebViewWindow : Window
                          ILogger<WebViewWindow> logger,
                          IConvStorage convStorage,
                          IGoogleDriveService googleDriveService,
-                         IUpdateNotificationService updateNotificationService)
+                         IUpdateNotificationService updateNotificationService,
+                         ISystemPromptService systemPromptService,
+                         IServiceProvider serviceProvider)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
@@ -81,7 +86,9 @@ public partial class WebViewWindow : Window
         _dotNetProjectAnalyzerService = dotNetProjectAnalyzerService;
         _projectFileWatcherService = projectFileWatcherService;
         _googleDriveService = googleDriveService;
-        _updateNotificationService = updateNotificationService; 
+        _updateNotificationService = updateNotificationService;
+        _systemPromptService = systemPromptService;
+        _serviceProvider = serviceProvider;
 
         
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
@@ -95,6 +102,7 @@ public partial class WebViewWindow : Window
         UpdateAllowConnectionsOutsideLocalhostMenuItem(); 
         UpdateUseExperimentalCostTrackingMenuItem();
         UpdateUpdateAvailableMenuItem();
+        UpdateWikiSyncMenuItems();
         webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
         _generalSettingsService.SettingsChanged += OnGeneralSettingsChanged;
     }
@@ -399,7 +407,8 @@ public partial class WebViewWindow : Window
             
             UpdateWindowTitle();
             UpdateAllowConnectionsOutsideLocalhostMenuItem();
-            UpdateUseExperimentalCostTrackingMenuItem(); 
+            UpdateUseExperimentalCostTrackingMenuItem();
+            UpdateWikiSyncMenuItems();
             
         });
     }
@@ -1365,6 +1374,56 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
         catch (Exception ex)
         {
             MessageBox.Show($"Error opening update page: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void EnableWikiSyncMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var enableWikiSyncMenuItem = sender as MenuItem;
+            bool newValue = enableWikiSyncMenuItem?.IsChecked ?? false;
+            _generalSettingsService.CurrentSettings.EnableWikiSystemPromptSync = newValue;
+            _generalSettingsService.SaveSettings();
+            
+            MessageBox.Show(
+                "Wiki sync setting has been changed. Changes will take effect on the next application startup.",
+                "Setting Updated",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error updating wiki sync setting: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void ConfigureWikiSyncMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                var logger = scope.ServiceProvider.GetRequiredService<ILogger<ConfigureWikiSyncDialog>>();
+                var dialog = new ConfigureWikiSyncDialog(_generalSettingsService, _systemPromptService, logger)
+                {
+                    Owner = this
+                };
+                dialog.ShowDialog();
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Error opening wiki sync configuration: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void UpdateWikiSyncMenuItems()
+    {
+        var enableWikiSyncMenuItem = this.FindName("EnableWikiSyncMenuItem") as MenuItem;
+        if (enableWikiSyncMenuItem != null)
+        {
+            enableWikiSyncMenuItem.IsChecked = _generalSettingsService.CurrentSettings.EnableWikiSystemPromptSync;
         }
     }
 }
