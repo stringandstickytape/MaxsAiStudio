@@ -343,14 +343,16 @@ export function InputBar({
                 </div>
 
                 {/* Action Buttons Bar with Controls */}
-                <div className="flex-shrink-0 flex justify-between items-start mb-2">
-                    {/* Left side: 3x2 grid for controls */}
+                <div className="flex justify-between items-start mb-2">
+                    {/* Left side: 3x2 grid for controls - can shrink */}
                     <div
-                        className="grid gap-2"
+                        className="grid gap-2 mr-4"
                         style={{
-                            gridTemplateColumns: 'repeat(3, max-content)',
+                            gridTemplateColumns: 'repeat(3, minmax(0, max-content))',
                             gridTemplateRows: 'repeat(2, auto)',
                             alignItems: 'center',
+                            flexShrink: 1,
+                            minWidth: 0,
                         }}
                     >
                         {/* Row 1 */}
