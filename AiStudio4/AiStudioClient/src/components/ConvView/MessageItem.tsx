@@ -97,6 +97,13 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
         )}
         
         <MessageMetadata message={message} />
+        <MessageActions 
+          message={message} 
+          onEdit={() => {
+            setEditContent(message.content);
+            useConvStore.getState().editMessage(message.id);
+          }} 
+        />
       </div>
 
       {/* Display message attachments */}
@@ -109,13 +116,7 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
         </div>
       )}
 
-      <MessageActions 
-        message={message} 
-        onEdit={() => {
-          setEditContent(message.content);
-          useConvStore.getState().editMessage(message.id);
-        }} 
-      />
+      {/* MessageActions was here, moved inside the message-container div */}
     </div>
   );
 };
