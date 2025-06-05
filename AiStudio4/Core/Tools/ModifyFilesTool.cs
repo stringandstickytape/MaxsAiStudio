@@ -201,8 +201,9 @@ namespace AiStudio4.Core.Tools
                             
                             if (change["description"] == null)
                             {
-                                _validationErrorMessages.AppendLine($"Error: 'description' is missing in a change for file '{filePath}'.");
-                                overallSuccess = false;
+                                change["description"] = "(no description)";
+                                //_validationErrorMessages.AppendLine($"Error: 'description' is missing in a change for file '{filePath}'.");
+                                //overallSuccess = false;
                             }
                         }
                     }
