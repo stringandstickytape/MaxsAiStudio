@@ -1,5 +1,4 @@
-
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -33,35 +32,25 @@ namespace AiStudio4.Core.Tools.Vite
         {
             return new Tool
             {
-                Guid = "v1t3c4e5-f6a7-8901-2345-67890abcdef04",
+                Guid = ToolGuids.START_VITE_DEV_SERVER_TOOL_GUID,
                 Name = "StartViteDevServer",
                 Description = "Starts the Vite development server",
-                Schema = @"{
-  ""name"": ""StartViteDevServer"",
-  ""description"": ""Starts the Vite development server."",
-  ""input_schema"": {
-                ""properties"": {
-""workingDirectory"": {
-                    ""title"": ""Working Directory"",
-                    ""type"": ""string"",
-                    ""description"":""Directory containing the Vite project""
-},
- ""port"": {
-                    ""title"": ""Port"",
-                    ""type"": ""integer"",
-                    ""description"": ""Custom port to run on (defaults to 5173)""
-},
-""host"": {
-                    ""title"": ""Host"",
-                    ""type"": ""string"",
-                    ""description"": ""Host to bind to (defaults to localhost)""
-}
-            },
-           ""required"": [""workingDirectory""],
-            ""title"": ""StartViteDevServerArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "StartViteDevServer",
+  "description": "Starts the Vite development server.",
+  "input_schema": {
+    "properties": {
+      "workingDirectory": { "title": "Working Directory", "type": "string", "description": "Directory containing the Vite project" },
+      "port": { "title": "Port", "type": "integer", "description": "Custom port to run on (defaults to 5173)" },
+      "host": { "title": "Host", "type": "string", "description": "Host to bind to (defaults to localhost)" }
+    },
+    "required": ["workingDirectory"],
+    "title": "StartViteDevServerArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Vite" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -27,18 +27,20 @@ namespace AiStudio4.Core.Tools.Vite
         {
             return new Tool
             {
-                Guid = "v1t3c4e5-f6a7-8901-2345-67890abcdef06",
+                Guid = ToolGuids.CHECK_NODE_VERSION_TOOL_GUID,
                 Name = "CheckNodeVersion",
                 Description = "Checks if Node.js and npm are installed and returns their versions",
-                Schema = @"{
-  ""name"": ""CheckNodeVersion"",
-  ""description"": ""Checks if Node.js and npm are installed and returns their versions."",
-  ""input_schema"": {
-                ""properties"": {},
-            ""title"": ""CheckNodeVersionArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "CheckNodeVersion",
+  "description": "Checks if Node.js and npm are installed and returns their versions.",
+  "input_schema": {
+    "properties": {},
+    "title": "CheckNodeVersionArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Vite" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

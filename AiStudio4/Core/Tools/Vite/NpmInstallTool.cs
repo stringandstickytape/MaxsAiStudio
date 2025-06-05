@@ -1,5 +1,5 @@
 ﻿// AiStudio4/Core/Tools/Vite/NpmInstallTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -32,41 +32,26 @@ namespace AiStudio4.Core.Tools.Vite
         {
             return new Tool
             {
-                Guid = "v1t3c4e5-f6a7-8901-2345-67890abcdef02",
+                Guid = ToolGuids.NPM_INSTALL_TOOL_GUID,
                 Name = "NpmInstall",
                 Description = "Installs npm dependencies",
-                Schema = @"{
-  ""name"": ""NpmInstall"",
-  ""description"": ""Installs npm dependencies in the specified directory."",
-  ""input_schema"": {
-                ""properties"": {
-""workingDirectory"": {
-                    ""title"": ""Working Directory"",
-                    ""type"": ""string"",
-                    ""description"":""Directory containing package.json""
-},
- ""packageName"": {
-                    ""title"": ""Package Name"",
-                    ""type"": ""string"",
-                    ""description"": ""Specific package to install (if not provided, installs all dependencies)""
-},
-""isDev"": {
-                    ""default"": false,
-                    ""title"": ""Is Dev Dependency"",
-                    ""type"": ""boolean"",
-                    ""description"": ""Whether to install as a dev dependency""
-},
-""version"": {
-                    ""title"": ""Version"",
-                    ""type"": ""string"",
-                    ""description"": ""Specific version to install""
-}
-            },
-           ""required"": [""workingDirectory""],
-            ""title"": ""NpmInstallArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "NpmInstall",
+  "description": "Installs npm dependencies in the specified directory.",
+  "input_schema": {
+    "properties": {
+      "workingDirectory": { "title": "Working Directory", "type": "string", "description": "Directory containing package.json" },
+      "packageName": { "title": "Package Name", "type": "string", "description": "Specific package to install (if not provided, installs all dependencies)" },
+      "isDev": { "default": false, "title": "Is Dev Dependency", "type": "boolean", "description": "Whether to install as a dev dependency" },
+      "version": { "title": "Version", "type": "string", "description": "Specific version to install" }
+    },
+    "required": ["workingDirectory"],
+    "title": "NpmInstallArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Vite" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

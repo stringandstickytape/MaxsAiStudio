@@ -1,5 +1,5 @@
 ﻿// AiStudio4/Core/Tools/Vite/NpmCreateViteTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -32,42 +32,44 @@ namespace AiStudio4.Core.Tools.Vite
         {
             return new Tool
             {
-                Guid = "v1t3c4e5-f6a7-8901-2345-67890abcdef01",
+                Guid = ToolGuids.NPM_CREATE_VITE_TOOL_GUID,
                 Name = "NpmCreateVite",
                 Description = "Creates a new Vite project",
-                Schema = @"{
-  ""name"": ""NpmCreateVite"",
-  ""description"": ""Creates a new Vite project with the specified configuration."",
-  ""input_schema"": {
-                ""properties"": {
-""projectName"": {
-                    ""title"": ""Project Name"",
-                    ""type"": ""string"",
-                    ""description"":""Name of the project to create""
-},
- ""template"": {
-                    ""default"": ""react"",
-                    ""title"": ""Template"",
-                    ""type"": ""string"",
-                    ""description"": ""Template to use (e.g., react, vue, vanilla)""
-},
-""typescript"": {
-                    ""default"": false,
-                    ""title"": ""TypeScript"",
-                    ""type"": ""boolean"",
-                    ""description"": ""Whether to use TypeScript""
-},
-""targetDirectory"": {
-                    ""title"": ""Target Directory"",
-                    ""type"": ""string"",
-                    ""description"": ""Directory where the project should be created""
-}
-            },
-           ""required"": [""projectName"", ""targetDirectory""],
-            ""title"": ""NpmCreateViteArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "NpmCreateVite",
+  "description": "Creates a new Vite project with the specified configuration.",
+  "input_schema": {
+    "properties": {
+      "projectName": {
+        "title": "Project Name",
+        "type": "string",
+        "description": "Name of the project to create"
+      },
+      "template": {
+        "default": "react",
+        "title": "Template",
+        "type": "string",
+        "description": "Template to use (e.g., react, vue, vanilla)"
+      },
+      "typescript": {
+        "default": false,
+        "title": "TypeScript",
+        "type": "boolean",
+        "description": "Whether to use TypeScript"
+      },
+      "targetDirectory": {
+        "title": "Target Directory",
+        "type": "string",
+        "description": "Directory where the project should be created"
+      }
+    },
+    "required": ["projectName", "targetDirectory"],
+    "title": "NpmCreateViteArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Vite" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

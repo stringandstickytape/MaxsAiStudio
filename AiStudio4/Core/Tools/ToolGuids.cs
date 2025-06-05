@@ -43,5 +43,16 @@ namespace AiStudio4.Core.Tools
         
         // Sentry Tools
         public const string SENTRY_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef99";
+        
+        // Vite Tools
+        public const string CHECK_NODE_VERSION_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef06";
+        public const string GET_VITE_PROJECT_INFO_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef07";
+        public const string INSTALL_VITE_PLUGIN_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef09";
+        public const string MODIFY_VITE_CONFIG_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef08";
+        public const string NPM_CREATE_VITE_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef01";
+        public const string NPM_INSTALL_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef02";
+        public const string NPM_RUN_SCRIPT_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef03";
+        public const string OPEN_BROWSER_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef05";
+        public const string START_VITE_DEV_SERVER_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef04";
     }
 }
