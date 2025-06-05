@@ -35,47 +35,27 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "4d7e6c5b-9a8f-4e3d-2c1b-7a6b5c4d3e2f",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_WORK_ITEM_COMMENTS_TOOL_GUID,
                 Name = "AzureDevOpsGetWorkItemComments",
                 Description = "Retrieves comments associated with a specific work item in Azure DevOps.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetWorkItemComments"",
-  ""description"": ""Retrieves comments associated with a specific work item in Azure DevOps."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""id"": {
-        ""title"": ""Work Item ID"",
-        ""type"": ""integer"",
-        ""description"": ""The work item ID""
-      },
-      ""top"": {
-        ""title"": ""Top"",
-        ""type"": ""integer"",
-        ""description"": ""Number of comments to return"",
-        ""default"": 100
-      },
-      ""skip"": {
-        ""title"": ""Skip"",
-        ""type"": ""integer"",
-        ""description"": ""Number of comments to skip"",
-        ""default"": 0
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetWorkItemComments",
+  "description": "Retrieves comments associated with a specific work item in Azure DevOps.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "id": { "title": "Work Item ID", "type": "integer", "description": "The work item ID" },
+      "top": { "title": "Top", "type": "integer", "description": "Number of comments to return", "default": 100 },
+      "skip": { "title": "Skip", "type": "integer", "description": "Number of comments to skip", "default": 0 }
     },
-    ""required"": [""organization"", ""project"", ""id""],
-    ""title"": ""AzureDevOpsGetWorkItemCommentsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "id"],
+    "title": "AzureDevOpsGetWorkItemCommentsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

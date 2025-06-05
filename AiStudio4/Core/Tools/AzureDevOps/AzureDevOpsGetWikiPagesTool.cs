@@ -36,59 +36,29 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "f3a4b5c6-d7e8-9f0a-1b2c-3d4e5f6a7b8c", // New unique GUID
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_WIKI_PAGES_TOOL_GUID,
                 Name = "AzureDevOpsGetWikiPages",
                 Description = "Retrieves a list of wiki pages from an Azure DevOps wiki, potentially with their hierarchy and content.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetWikiPages"",
-  ""description"": ""Retrieves a list of wiki pages from an Azure DevOps wiki, potentially with their hierarchy and content."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""wiki_id"": {
-        ""title"": ""Wiki ID or Name"",
-        ""type"": ""string"",
-        ""description"": ""The ID or name of the wiki (wikiIdentifier)""
-      },
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string"",
-        ""description"": ""Path to a specific wiki page or directory (e.g., '/' for root, '/parent/page'). If not specified, root is assumed."",
-        ""default"": """"
-      },
-      ""recursion_level"": {
-        ""title"": ""Recursion Level"",
-        ""type"": ""string"",
-        ""description"": ""How deep to retrieve pages (none, oneLevel, full). 'none' gets the specified page, 'oneLevel' gets its direct children, 'full' gets all descendants."",
-        ""enum"": [""none"", ""oneLevel"", ""full""],
-        ""default"": ""none""
-      },
-      ""version"": {
-        ""title"": ""Version"",
-        ""type"": ""string"",
-        ""description"": ""Wiki version (e.g., branch name like 'wikiMaster')""
-      },
-      ""include_content"": {
-        ""title"": ""Include Content"",
-        ""type"": ""boolean"",
-        ""description"": ""Whether to include page content in the response"",
-        ""default"": false
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetWikiPages",
+  "description": "Retrieves a list of wiki pages from an Azure DevOps wiki, potentially with their hierarchy and content.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "wiki_id": { "title": "Wiki ID or Name", "type": "string", "description": "The ID or name of the wiki (wikiIdentifier)" },
+      "path": { "title": "Path", "type": "string", "description": "Path to a specific wiki page or directory (e.g., '/' for root, '/parent/page'). If not specified, root is assumed.", "default": "" },
+      "recursion_level": { "title": "Recursion Level", "type": "string", "description": "How deep to retrieve pages (none, oneLevel, full). 'none' gets the specified page, 'oneLevel' gets its direct children, 'full' gets all descendants.", "enum": ["none", "oneLevel", "full"], "default": "none" },
+      "version": { "title": "Version", "type": "string", "description": "Wiki version (e.g., branch name like 'wikiMaster')" },
+      "include_content": { "title": "Include Content", "type": "boolean", "description": "Whether to include page content in the response", "default": false }
     },
-    ""required"": [""organization"", ""project"", ""wiki_id""],
-    ""title"": ""AzureDevOpsGetWikiPagesArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "wiki_id"],
+    "title": "AzureDevOpsGetWikiPagesArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
