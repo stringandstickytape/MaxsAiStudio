@@ -1,4 +1,4 @@
-﻿// AiStudio4\Core\Tools\GitHub\GitHubCreateIssueCommentTool.cs
+﻿﻿// AiStudio4\Core\Tools\GitHub\GitHubCreateIssueCommentTool.cs
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -37,23 +37,25 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "e1f2a3b4-c5d6-e7f8-a9b0-e1f2a3b4c5d6",
+                Guid = ToolGuids.GITHUB_CREATE_ISSUE_COMMENT_TOOL_GUID,
                 Name = "GitHubCreateIssueComment",
                 Description = "Adds a new comment to a specified issue.",
-                Schema = @"{
-  ""name"": ""GitHubCreateIssueComment"",
-  ""description"": ""Adds a new comment to a specified issue."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""owner"": { ""type"": ""string"", ""description"": ""Repository owner."" },
-      ""repo"": { ""type"": ""string"", ""description"": ""Repository name."" },
-      ""issue_number"": { ""type"": ""integer"", ""description"": ""The number of the issue to comment on."" },
-      ""body"": { ""type"": ""string"", ""description"": ""The content of the comment (Markdown)."" }
+                Schema = """
+{
+  "name": "GitHubCreateIssueComment",
+  "description": "Adds a new comment to a specified issue.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "owner": { "type": "string", "description": "Repository owner." },
+      "repo": { "type": "string", "description": "Repository name." },
+      "issue_number": { "type": "integer", "description": "The number of the issue to comment on." },
+      "body": { "type": "string", "description": "The content of the comment (Markdown)." }
     },
-    ""required"": [""owner"", ""repo"", ""issue_number"", ""body""]
+    "required": ["owner", "repo", "issue_number", "body"]
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -36,40 +36,26 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "6172c3d4-e5f6-7890-1234-56789abcdef02",
+                Guid = ToolGuids.GITHUB_LIST_CONTENTS_TOOL_GUID,
                 Name = "GitHubListContents",
                 Description = "Lists files and directories within a specified path in a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint.",
-                Schema = @"{
-  ""name"": ""GitHubListContents"",
-  ""description"": ""Lists files and directories within a specified path in a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint."",
-  ""input_schema"": {
-    ""properties"": {
-      ""owner"": {
-        ""title"": ""Owner"",
-        ""type"": ""string"",
-        ""description"": ""The GitHub username or organization that owns the repository""
-      },
-      ""repo"": {
-        ""title"": ""Repository"",
-        ""type"": ""string"",
-        ""description"": ""The name of the repository""
-      },
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string"",
-        ""description"": ""The directory path within the repository to list contents from (defaults to root)""
-      },
-      ""ref"": {
-        ""title"": ""Reference"",
-        ""type"": ""string"",
-        ""description"": ""The name of the commit/branch/tag (defaults to the repository's default branch)""
-      }
+                Schema = """
+{
+  "name": "GitHubListContents",
+  "description": "Lists files and directories within a specified path in a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint.",
+  "input_schema": {
+    "properties": {
+      "owner": { "title": "Owner", "type": "string", "description": "The GitHub username or organization that owns the repository" },
+      "repo": { "title": "Repository", "type": "string", "description": "The name of the repository" },
+      "path": { "title": "Path", "type": "string", "description": "The directory path within the repository to list contents from (defaults to root)" },
+      "ref": { "title": "Reference", "type": "string", "description": "The name of the commit/branch/tag (defaults to the repository's default branch)" }
     },
-    ""required"": [""owner"", ""repo""],
-    ""title"": ""GitHubListContentsArguments"",
-    ""type"": ""object""
+    "required": ["owner", "repo"],
+    "title": "GitHubListContentsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "APITools", "GitHub" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

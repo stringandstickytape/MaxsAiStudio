@@ -23,5 +23,25 @@ namespace AiStudio4.Core.Tools
         public const string AZURE_DEV_OPS_GET_WORK_ITEMS_TOOL_GUID = "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d";
         public const string AZURE_DEV_OPS_GET_WORK_ITEM_UPDATES_TOOL_GUID = "3a7b9c5d-2e4f-8g6h-1i2j-3k4l5m6n7o8p";
         public const string AZURE_DEV_OPS_QUERY_WORK_ITEMS_TOOL_GUID = "2d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
+        
+        // GitHub Tools
+        public const string GITHUB_CREATE_ISSUE_COMMENT_TOOL_GUID = "e1f2a3b4-c5d6-e7f8-a9b0-e1f2a3b4c5d6";
+        public const string GITHUB_CREATE_ISSUE_TOOL_GUID = "c1d2e3f4-a5b6-c7d8-e9f0-c1d2e3f4a5b6";
+        public const string GITHUB_CREATE_PULL_REQUEST_TOOL_GUID = "a7b8c9d0-e1f2-3456-7890-abcdef123456";
+        public const string GITHUB_GET_CONTENT_TOOL_GUID = "6172c3d4-e5f6-7890-1234-56789abcdef03";
+        public const string GITHUB_GET_ISSUE_TOOL_GUID = "b1c2d3e4-f5a6-b7c8-d9e0-b1c2d3e4f5a6";
+        public const string GITHUB_LIST_CONTENTS_TOOL_GUID = "6172c3d4-e5f6-7890-1234-56789abcdef02";
+        public const string GITHUB_LIST_ISSUE_COMMENTS_TOOL_GUID = "f1a2b3c4-d5e6-f7a8-b9c0-f1a2b3c4d5e6";
+        public const string GITHUB_LIST_ISSUES_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-a1b2c3d4e5f6";
+        public const string GITHUB_LIST_PULL_REQUESTS_TOOL_GUID = "c8d9e0f1-a2b3-5678-9012-cdef34567890";
+
+        // Git Tools
+        public const string GIT_BRANCH_TOOL_GUID = "e5f6a7b8-c9d0-1234-5678-90abcdef1234";
+        public const string GIT_COMMIT_TOOL_GUID = "c3d4e5f6-a7b8-9012-3456-7890abcdef12";
+        public const string GIT_LOG_TOOL_GUID = "d4e5f6a7-b8c9-0123-4567-890abcdef123";
+        public const string GIT_STATUS_TOOL_GUID = "f6a7b8c9-d0e1-2345-6789-0abcdef12345";
+        
+        // Sentry Tools
+        public const string SENTRY_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef99";
     }
 }

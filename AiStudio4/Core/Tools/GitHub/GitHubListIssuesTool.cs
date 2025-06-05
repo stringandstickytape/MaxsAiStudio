@@ -1,5 +1,5 @@
 ﻿// AiStudio4\Core\Tools\GitHub\GitHubListIssuesTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -38,32 +38,34 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-a1b2c3d4e5f6",
+                Guid = ToolGuids.GITHUB_LIST_ISSUES_TOOL_GUID,
                 Name = "GitHubListIssues",
                 Description = "Retrieves a list of issues for the specified repository. Supports filtering by state, labels, assignee, milestone, etc.",
-                Schema = @"{
-  ""name"": ""GitHubListIssues"",
-  ""description"": ""Retrieves a list of issues for the specified repository. Supports filtering by state, labels, assignee, milestone, etc."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""owner"": { ""type"": ""string"", ""description"": ""Repository owner (username or organization)."" },
-      ""repo"": { ""type"": ""string"", ""description"": ""Repository name."" },
-      ""milestone"": { ""type"": ""string"", ""description"": ""Milestone number or '*' for any, 'none' for no milestone. (Optional)"" },
-      ""state"": { ""type"": ""string"", ""description"": ""Issue state."", ""enum"": [""open"", ""closed"", ""all""], ""default"": ""open"" },
-      ""assignee"": { ""type"": ""string"", ""description"": ""Login of the assignee or '*' for any, 'none' for no assignee. (Optional)"" },
-      ""creator"": { ""type"": ""string"", ""description"": ""Login of the issue creator. (Optional)"" },
-      ""mentioned"": { ""type"": ""string"", ""description"": ""Login of a user mentioned in an issue. (Optional)"" },
-      ""labels"": { ""type"": ""string"", ""description"": ""Comma-separated list of label names (e.g., bug,enhancement). (Optional)"" },
-      ""sort"": { ""type"": ""string"", ""description"": ""What to sort results by."", ""enum"": [""created"", ""updated"", ""comments""], ""default"": ""created"" },
-      ""direction"": { ""type"": ""string"", ""description"": ""The direction of the sort."", ""enum"": [""asc"", ""desc""], ""default"": ""desc"" },
-      ""since"": { ""type"": ""string"", ""description"": ""Only show issues updated at or after this time (ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ). (Optional)"" },
-      ""per_page"": { ""type"": ""integer"", ""description"": ""Results per page (max 100)."", ""default"": 30 },
-      ""page"": { ""type"": ""integer"", ""description"": ""Page number of the results to fetch."", ""default"": 1 }
+                Schema = """
+{
+  "name": "GitHubListIssues",
+  "description": "Retrieves a list of issues for the specified repository. Supports filtering by state, labels, assignee, milestone, etc.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "owner": { "type": "string", "description": "Repository owner (username or organization)." },
+      "repo": { "type": "string", "description": "Repository name." },
+      "milestone": { "type": "string", "description": "Milestone number or '*' for any, 'none' for no milestone. (Optional)" },
+      "state": { "type": "string", "description": "Issue state.", "enum": ["open", "closed", "all"], "default": "open" },
+      "assignee": { "type": "string", "description": "Login of the assignee or '*' for any, 'none' for no assignee. (Optional)" },
+      "creator": { "type": "string", "description": "Login of the issue creator. (Optional)" },
+      "mentioned": { "type": "string", "description": "Login of a user mentioned in an issue. (Optional)" },
+      "labels": { "type": "string", "description": "Comma-separated list of label names (e.g., bug,enhancement). (Optional)" },
+      "sort": { "type": "string", "description": "What to sort results by.", "enum": ["created", "updated", "comments"], "default": "created" },
+      "direction": { "type": "string", "description": "The direction of the sort.", "enum": ["asc", "desc"], "default": "desc" },
+      "since": { "type": "string", "description": "Only show issues updated at or after this time (ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ). (Optional)" },
+      "per_page": { "type": "integer", "description": "Results per page (max 100).", "default": 30 },
+      "page": { "type": "integer", "description": "Page number of the results to fetch.", "default": 1 }
     },
-    ""required"": [""owner"", ""repo""]
+    "required": ["owner", "repo"]
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

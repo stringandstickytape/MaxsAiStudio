@@ -29,48 +29,32 @@ namespace AiStudio4.Core.Tools.Git
         {
             return new Tool
             {
-                Guid = "c3d4e5f6-a7b8-9012-3456-7890abcdef12",
+                Guid = ToolGuids.GIT_COMMIT_TOOL_GUID,
                 Name = "GitCommit",
                 Description = "Commits a specified set of files to the git repository with a provided commit message and pushes changes by default. Only files within the project root may be committed.",
-                Schema = @"{
-  ""name"": ""GitCommit"",
-  ""description"": ""Commits a specified set of files to the git repository with a provided commit message and pushes changes by default. Only files within the project root may be committed."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""commit"": {
-        ""type"": ""object"",
-        ""description"": ""The commit operation parameters."",
-        ""properties"": {
-          ""message"": {
-            ""type"": ""string"",
-            ""description"": ""The commit message to use. Must be non-empty.""
-          },
-          ""files"": {
-            ""type"": ""array"",
-            ""description"": ""An array of absolute file paths to commit. Each must be within the project root."",
-            ""items"": {
-              ""type"": ""string""
-            },
-            ""minItems"": 1
-          },
-          ""push"": {
-            ""type"": ""boolean"",
-            ""description"": ""Whether to push changes after committing. Defaults to true."",
-            ""default"": true
-          },
-          ""push_new_branch"": {
-            ""type"": ""boolean"",
-            ""description"": ""Whether to push a new branch to remote if it doesn't exist. Only applies when push is true."",
-            ""default"": true
-          }
+                Schema = """
+{
+  "name": "GitCommit",
+  "description": "Commits a specified set of files to the git repository with a provided commit message and pushes changes by default. Only files within the project root may be committed.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "commit": {
+        "type": "object",
+        "description": "The commit operation parameters.",
+        "properties": {
+          "message": { "type": "string", "description": "The commit message to use. Must be non-empty." },
+          "files": { "type": "array", "description": "An array of absolute file paths to commit. Each must be within the project root.", "items": { "type": "string" }, "minItems": 1 },
+          "push": { "type": "boolean", "description": "Whether to push changes after committing. Defaults to true.", "default": true },
+          "push_new_branch": { "type": "boolean", "description": "Whether to push a new branch to remote if it doesn't exist. Only applies when push is true.", "default": true }
         },
-        ""required"": [""message"", ""files""]
+        "required": ["message", "files"]
       }
     },
-    ""required"": [""commit""]
+    "required": ["commit"]
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,
