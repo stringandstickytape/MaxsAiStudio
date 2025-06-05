@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,7 +35,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "7c4d9e6b-2a1f-4d8e-9c7b-5a3e2f1d8c9b",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_COMMITS_TOOL_GUID,
                 Name = "AzureDevOpsGetCommits",
                 Description = "Retrieves commits matching specified criteria from an Azure DevOps repository.",
                 Schema = @"{
