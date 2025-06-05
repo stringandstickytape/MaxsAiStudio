@@ -59,11 +59,11 @@ export function SystemPromptPortal({
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <Button variant="ghost" size="sm" onClick={onToggleEdit} className="h-7 flex items-center gap-1 px-2">
+          <Button variant="ghost" size="sm" onClick={onToggleEdit} className="h-7 flex items-center border-gray-600 gap-1 px-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
             <Edit className="h-4 w-4" />
             <span className="text-xs font-medium">Quick Edit</span>
           </Button>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-7 w-7">
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-7  border-gray-600 w-7" style={{ backgroundColor: 'var(--global-background-color)' }}>
             <ChevronUp className="h-4 w-4" />
           </Button>
         </div>
@@ -78,10 +78,10 @@ export function SystemPromptPortal({
             placeholder="Enter your system prompt here..."
           />
           <div className="flex justify-end gap-2">
-            <Button size="sm" variant="outline" onClick={onCancelEdit} className="text-xs h-8 border-gray-600">
+            <Button size="sm" variant="themed-outline" onClick={onCancelEdit} className="text-xs h-8">
               Cancel
             </Button>
-            <Button size="sm" onClick={onSavePrompt} className="text-xs h-8 text-white">
+            <Button size="sm" variant="themed-primary" onClick={onSavePrompt} className="text-xs h-8">
               Save Changes
             </Button>
           </div>
