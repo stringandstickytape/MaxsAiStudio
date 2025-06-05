@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,52 +35,28 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "6d4e8f2a-9c7b-4d3e-8a5f-1b2c3d4e5f6a",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_PULL_REQUEST_BY_ID_TOOL_GUID,
                 Name = "AzureDevOpsGetPullRequestById",
                 Description = "Retrieves detailed information about a specific pull request in an Azure DevOps repository.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetPullRequestById"",
-  ""description"": ""Retrieves detailed information about a specific pull request in an Azure DevOps repository."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""repository_id"": {
-        ""title"": ""Repository ID"",
-        ""type"": ""string"",
-        ""description"": ""The repository ID or name""
-      },
-      ""pull_request_id"": {
-        ""title"": ""Pull Request ID"",
-        ""type"": ""integer"",
-        ""description"": ""The pull request ID""
-      },
-      ""include_commits"": {
-        ""title"": ""Include Commits"",
-        ""type"": ""boolean"",
-        ""description"": ""Include commits in the response"",
-        ""default"": false
-      },
-      ""include_work_item_refs"": {
-        ""title"": ""Include Work Item References"",
-        ""type"": ""boolean"",
-        ""description"": ""Include work item references in the response"",
-        ""default"": false
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetPullRequestById",
+  "description": "Retrieves detailed information about a specific pull request in an Azure DevOps repository.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "repository_id": { "title": "Repository ID", "type": "string", "description": "The repository ID or name" },
+      "pull_request_id": { "title": "Pull Request ID", "type": "integer", "description": "The pull request ID" },
+      "include_commits": { "title": "Include Commits", "type": "boolean", "description": "Include commits in the response", "default": false },
+      "include_work_item_refs": { "title": "Include Work Item References", "type": "boolean", "description": "Include work item references in the response", "default": false }
     },
-    ""required"": [""organization"", ""project"", ""repository_id"", ""pull_request_id""],
-    ""title"": ""AzureDevOpsGetPullRequestByIdArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "repository_id", "pull_request_id"],
+    "title": "AzureDevOpsGetPullRequestByIdArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -29,42 +29,26 @@ namespace AiStudio4.Core.Tools.Git
         {
             return new Tool
             {
-                Guid = "e5f6a7b8-c9d0-1234-5678-90abcdef1234",
+                Guid = ToolGuids.GIT_BRANCH_TOOL_GUID,
                 Name = "GitBranch",
                 Description = "Manages git branches including creating, switching, listing, and deleting branches within the project repository.",
-                Schema = @"{
-  ""name"": ""GitBranch"",
-  ""description"": ""Manages git branches including creating, switching, listing, and deleting branches within the project repository."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""operation"": {
-        ""type"": ""string"",
-        ""enum"": [""create"", ""switch"", ""list"", ""delete"", ""current""],
-        ""description"": ""The branch operation to perform.""
-      },
-      ""branch_name"": {
-        ""type"": ""string"",
-        ""description"": ""Name of the branch (required for create, switch, delete operations).""
-      },
-      ""create_from"": {
-        ""type"": ""string"",
-        ""description"": ""Reference to create branch from (optional for create operation, defaults to current HEAD).""
-      },
-      ""force"": {
-        ""type"": ""boolean"",
-        ""description"": ""Force the operation (use with caution, for delete operations)."",
-        ""default"": false
-      },
-      ""include_remote"": {
-        ""type"": ""boolean"",
-        ""description"": ""Include remote branches in list operation."",
-        ""default"": false
-      }
+                Schema = """
+{
+  "name": "GitBranch",
+  "description": "Manages git branches including creating, switching, listing, and deleting branches within the project repository.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "operation": { "type": "string", "enum": ["create", "switch", "list", "delete", "current"], "description": "The branch operation to perform." },
+      "branch_name": { "type": "string", "description": "Name of the branch (required for create, switch, delete operations)." },
+      "create_from": { "type": "string", "description": "Reference to create branch from (optional for create operation, defaults to current HEAD)." },
+      "force": { "type": "boolean", "description": "Force the operation (use with caution, for delete operations).", "default": false },
+      "include_remote": { "type": "boolean", "description": "Include remote branches in list operation.", "default": false }
     },
-    ""required"": [""operation""]
+    "required": ["operation"]
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

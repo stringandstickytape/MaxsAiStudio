@@ -1,5 +1,5 @@
 ﻿// AiStudio4/Core/Tools/Vite/NpmRunScriptTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -33,38 +33,25 @@ namespace AiStudio4.Core.Tools.Vite
         {
             return new Tool
             {
-                Guid = "v1t3c4e5-f6a7-8901-2345-67890abcdef03",
+                Guid = ToolGuids.NPM_RUN_SCRIPT_TOOL_GUID,
                 Name = "NpmRunScript",
                 Description = "Runs an npm script from package.json",
-                Schema = @"{
-  ""name"": ""NpmRunScript"",
-  ""description"": ""Runs an npm script from package.json."",
-  ""input_schema"": {
-                ""properties"": {
-""scriptName"": {
-                    ""title"": ""Script Name"",
-                    ""type"": ""string"",
-                    ""description"":""Name of the script to run (e.g., dev, build)""
-},
- ""workingDirectory"": {
-                    ""title"": ""Working Directory"",
-                    ""type"": ""string"",
-                    ""description"": ""Directory containing package.json""
-},
-""args"": {
-                    ""title"": ""Arguments"",
-                    ""type"": ""array"",
-                    ""items"": {
-                        ""type"": ""string""
-                    },
-                    ""description"": ""Additional arguments to pass to the script""
-}
-            },
-           ""required"": [""scriptName"", ""workingDirectory""],
-            ""title"": ""NpmRunScriptArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "NpmRunScript",
+  "description": "Runs an npm script from package.json.",
+  "input_schema": {
+    "properties": {
+      "scriptName": { "title": "Script Name", "type": "string", "description": "Name of the script to run (e.g., dev, build)" },
+      "workingDirectory": { "title": "Working Directory", "type": "string", "description": "Directory containing package.json" },
+      "args": { "title": "Arguments", "type": "array", "items": { "type": "string" }, "description": "Additional arguments to pass to the script" }
+    },
+    "required": ["scriptName", "workingDirectory"],
+    "title": "NpmRunScriptArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Vite" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,42 +35,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "8a4c7e5d-9f2b-4d1e-8c6a-3b7f9e2d5c1a",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_REPOSITORIES_TOOL_GUID,
                 Name = "AzureDevOpsGetRepositories",
                 Description = "Retrieves repositories in the specified Azure DevOps project.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetRepositories"",
-  ""description"": ""Retrieves repositories in the specified Azure DevOps project."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""include_hidden"": {
-        ""title"": ""Include Hidden"",
-        ""type"": ""boolean"",
-        ""description"": ""Include hidden repositories"",
-        ""default"": false
-      },
-      ""include_all_urls"": {
-        ""title"": ""Include All URLs"",
-        ""type"": ""boolean"",
-        ""description"": ""Include all remote URLs"",
-        ""default"": false
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetRepositories",
+  "description": "Retrieves repositories in the specified Azure DevOps project.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "include_hidden": { "title": "Include Hidden", "type": "boolean", "description": "Include hidden repositories", "default": false },
+      "include_all_urls": { "title": "Include All URLs", "type": "boolean", "description": "Include all remote URLs", "default": false }
     },
-    ""required"": [""organization"", ""project""],
-    ""title"": ""AzureDevOpsGetRepositoriesArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project"],
+    "title": "AzureDevOpsGetRepositoriesArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

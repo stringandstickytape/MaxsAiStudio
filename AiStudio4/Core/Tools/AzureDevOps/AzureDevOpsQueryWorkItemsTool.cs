@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,53 +35,28 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "2d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f",
+                Guid = ToolGuids.AZURE_DEV_OPS_QUERY_WORK_ITEMS_TOOL_GUID,
                 Name = "AzureDevOpsQueryWorkItems",
                 Description = "Executes a WIQL (Work Item Query Language) query to find work items matching specific criteria.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsQueryWorkItems"",
-  ""description"": ""Executes a WIQL (Work Item Query Language) query to find work items matching specific criteria."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""query"": {
-        ""title"": ""Query"",
-        ""type"": ""string"",
-        ""description"": ""WIQL query text""
-      },
-      ""top"": {
-        ""title"": ""Top"",
-        ""type"": ""integer"",
-        ""description"": ""Number of work items to return"",
-        ""default"": 100
-      },
-      ""skip"": {
-        ""title"": ""Skip"",
-        ""type"": ""integer"",
-        ""description"": ""Number of work items to skip"",
-        ""default"": 0
-      },
-      ""time_precision"": {
-        ""title"": ""Time Precision"",
-        ""type"": ""boolean"",
-        ""description"": ""Include time precision for date fields"",
-        ""default"": false
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsQueryWorkItems",
+  "description": "Executes a WIQL (Work Item Query Language) query to find work items matching specific criteria.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "query": { "title": "Query", "type": "string", "description": "WIQL query text" },
+      "top": { "title": "Top", "type": "integer", "description": "Number of work items to return", "default": 100 },
+      "skip": { "title": "Skip", "type": "integer", "description": "Number of work items to skip", "default": 0 },
+      "time_precision": { "title": "Time Precision", "type": "boolean", "description": "Include time precision for date fields", "default": false }
     },
-    ""required"": [""organization"", ""project"", ""query""],
-    ""title"": ""AzureDevOpsQueryWorkItemsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "query"],
+    "title": "AzureDevOpsQueryWorkItemsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

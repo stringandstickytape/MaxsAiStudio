@@ -1,4 +1,4 @@
-﻿// AiStudio4.Core\Tools\GitHub\GitHubCreatePullRequestTool.cs
+﻿﻿// AiStudio4.Core\Tools\GitHub\GitHubCreatePullRequestTool.cs
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -34,53 +34,29 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "a7b8c9d0-e1f2-3456-7890-abcdef123456",
+                Guid = ToolGuids.GITHUB_CREATE_PULL_REQUEST_TOOL_GUID,
                 Name = "GitHubCreatePullRequest",
                 Description = "Creates a new pull request in a GitHub repository. Requires GitHub Personal Access Token with repo permissions.",
-                Schema = @"{
-  ""name"": ""GitHubCreatePullRequest"",
-  ""description"": ""Creates a new pull request in a GitHub repository. Requires GitHub Personal Access Token with repo permissions."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""owner"": {
-        ""type"": ""string"",
-        ""description"": ""Repository owner (username or organization).""
-      },
-      ""repo"": {
-        ""type"": ""string"",
-        ""description"": ""Repository name.""
-      },
-      ""title"": {
-        ""type"": ""string"",
-        ""description"": ""The title of the pull request.""
-      },
-      ""head"": {
-        ""type"": ""string"",
-        ""description"": ""The name of the branch where your changes are implemented. For cross-repository pull requests in the same network, namespace head with a user like this: username:branch.""
-      },
-      ""base"": {
-        ""type"": ""string"",
-        ""description"": ""The name of the branch you want the changes pulled into. This should be an existing branch on the current repository.""
-      },
-      ""body"": {
-        ""type"": ""string"",
-        ""description"": ""The contents of the pull request (Markdown). (Optional)""
-      },
-      ""draft"": {
-        ""type"": ""boolean"",
-        ""description"": ""Indicates whether the pull request is a draft. (Optional)"",
-        ""default"": false
-      },
-      ""maintainer_can_modify"": {
-        ""type"": ""boolean"",
-        ""description"": ""Indicates whether maintainers can modify the pull request. (Optional)"",
-        ""default"": true
-      }
+                Schema = """
+{
+  "name": "GitHubCreatePullRequest",
+  "description": "Creates a new pull request in a GitHub repository. Requires GitHub Personal Access Token with repo permissions.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "owner": { "type": "string", "description": "Repository owner (username or organization)." },
+      "repo": { "type": "string", "description": "Repository name." },
+      "title": { "type": "string", "description": "The title of the pull request." },
+      "head": { "type": "string", "description": "The name of the branch where your changes are implemented. For cross-repository pull requests in the same network, namespace head with a user like this: username:branch." },
+      "base": { "type": "string", "description": "The name of the branch you want the changes pulled into. This should be an existing branch on the current repository." },
+      "body": { "type": "string", "description": "The contents of the pull request (Markdown). (Optional)" },
+      "draft": { "type": "boolean", "description": "Indicates whether the pull request is a draft. (Optional)", "default": false },
+      "maintainer_can_modify": { "type": "boolean", "description": "Indicates whether maintainers can modify the pull request. (Optional)", "default": true }
     },
-    ""required"": [""owner"", ""repo"", ""title"", ""head"", ""base""]
+    "required": ["owner", "repo", "title", "head", "base"]
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

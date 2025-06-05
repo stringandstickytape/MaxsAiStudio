@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,67 +35,31 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "7c4d9e6b-2a1f-4d8e-9c7b-5a3e2f1d8c9b",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_COMMITS_TOOL_GUID,
                 Name = "AzureDevOpsGetCommits",
                 Description = "Retrieves commits matching specified criteria from an Azure DevOps repository.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetCommits"",
-  ""description"": ""Retrieves commits matching specified criteria from an Azure DevOps repository."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""repository_id"": {
-        ""title"": ""Repository ID"",
-        ""type"": ""string"",
-        ""description"": ""The repository ID or name""
-      },
-      ""from_date"": {
-        ""title"": ""From Date"",
-        ""type"": ""string"",
-        ""description"": ""Filter commits from this date (ISO 8601 format)""
-      },
-      ""to_date"": {
-        ""title"": ""To Date"",
-        ""type"": ""string"",
-        ""description"": ""Filter commits until this date (ISO 8601 format)""
-      },
-      ""author"": {
-        ""title"": ""Author"",
-        ""type"": ""string"",
-        ""description"": ""Filter by author email or name""
-      },
-      ""item_path"": {
-        ""title"": ""Item Path"",
-        ""type"": ""string"",
-        ""description"": ""Path to filter commits that touch this file or folder""
-      },
-      ""top"": {
-        ""title"": ""Top"",
-        ""type"": ""integer"",
-        ""description"": ""Number of commits to return"",
-        ""default"": 100
-      },
-      ""skip"": {
-        ""title"": ""Skip"",
-        ""type"": ""integer"",
-        ""description"": ""Number of commits to skip"",
-        ""default"": 0
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetCommits",
+  "description": "Retrieves commits matching specified criteria from an Azure DevOps repository.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "repository_id": { "title": "Repository ID", "type": "string", "description": "The repository ID or name" },
+      "from_date": { "title": "From Date", "type": "string", "description": "Filter commits from this date (ISO 8601 format)" },
+      "to_date": { "title": "To Date", "type": "string", "description": "Filter commits until this date (ISO 8601 format)" },
+      "author": { "title": "Author", "type": "string", "description": "Filter by author email or name" },
+      "item_path": { "title": "Item Path", "type": "string", "description": "Path to filter commits that touch this file or folder" },
+      "top": { "title": "Top", "type": "integer", "description": "Number of commits to return", "default": 100 },
+      "skip": { "title": "Skip", "type": "integer", "description": "Number of commits to skip", "default": 0 }
     },
-    ""required"": [""organization"", ""project"", ""repository_id""],
-    ""title"": ""AzureDevOpsGetCommitsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "repository_id"],
+    "title": "AzureDevOpsGetCommitsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

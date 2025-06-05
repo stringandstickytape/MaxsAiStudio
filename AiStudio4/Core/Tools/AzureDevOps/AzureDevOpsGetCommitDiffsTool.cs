@@ -35,57 +35,29 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "c4d8e7f6-5a3b-2c1d-9e8f-7a6b5c4d3e2f",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_COMMIT_DIFFS_TOOL_GUID,
                 Name = "AzureDevOpsGetCommitDiffs",
                 Description = "Retrieves the file changes associated with a specific commit in an Azure DevOps repository.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetCommitDiffs"",
-  ""description"": ""Retrieves the file changes associated with a specific commit in an Azure DevOps repository."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""repository_id"": {
-        ""title"": ""Repository ID"",
-        ""type"": ""string"",
-        ""description"": ""The repository ID or name""
-      },
-      ""commit_id"": {
-        ""title"": ""Commit ID"",
-        ""type"": ""string"",
-        ""description"": ""The commit ID to get changes for""
-      },
-      ""top"": {
-        ""title"": ""Top"",
-        ""type"": ""integer"",
-        ""description"": ""Number of changes to return"",
-        ""default"": 100
-      },
-      ""skip"": {
-        ""title"": ""Skip"",
-        ""type"": ""integer"",
-        ""description"": ""Number of changes to skip"",
-        ""default"": 0
-      },
-      ""base_version"": {
-        ""title"": ""Base Version"",
-        ""type"": ""string"",
-        ""description"": ""Base version to compare against (commit ID)""
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetCommitDiffs",
+  "description": "Retrieves the file changes associated with a specific commit in an Azure DevOps repository.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "repository_id": { "title": "Repository ID", "type": "string", "description": "The repository ID or name" },
+      "commit_id": { "title": "Commit ID", "type": "string", "description": "The commit ID to get changes for" },
+      "top": { "title": "Top", "type": "integer", "description": "Number of changes to return", "default": 100 },
+      "skip": { "title": "Skip", "type": "integer", "description": "Number of changes to skip", "default": 0 },
+      "base_version": { "title": "Base Version", "type": "string", "description": "Base version to compare against (commit ID)" }
     },
-    ""required"": [""organization"", ""project"", ""repository_id"", ""commit_id""],
-    ""title"": ""AzureDevOpsGetCommitDiffsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "repository_id", "commit_id"],
+    "title": "AzureDevOpsGetCommitDiffsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

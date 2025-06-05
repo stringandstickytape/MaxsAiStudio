@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -36,58 +36,28 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_WORK_ITEMS_TOOL_GUID,
                 Name = "AzureDevOpsGetWorkItems",
                 Description = "Retrieves detailed information about specific work items by their IDs from Azure DevOps.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetWorkItems"",
-  ""description"": ""Retrieves detailed information about specific work items by their IDs from Azure DevOps."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""ids"": {
-        ""title"": ""IDs"",
-        ""type"": ""array"",
-        ""items"": {
-          ""type"": ""integer""
-        },
-        ""description"": ""Work item IDs to retrieve""
-      },
-      ""fields"": {
-        ""title"": ""Fields"",
-        ""type"": ""array"",
-        ""items"": {
-          ""type"": ""string""
-        },
-        ""description"": ""Specific fields to return (optional)""
-      },
-      ""as_of"": {
-        ""title"": ""As Of"",
-        ""type"": ""string"",
-        ""description"": ""Date to view work items as of (optional)""
-      },
-      ""expand"": {
-        ""title"": ""Expand"",
-        ""type"": ""string"",
-        ""description"": ""Expand relations (values: 'relations', 'fields', 'none')"",
-        ""enum"": [""relations"", ""fields"", ""none""],
-        ""default"": ""none""
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetWorkItems",
+  "description": "Retrieves detailed information about specific work items by their IDs from Azure DevOps.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "ids": { "title": "IDs", "type": "array", "items": { "type": "integer" }, "description": "Work item IDs to retrieve" },
+      "fields": { "title": "Fields", "type": "array", "items": { "type": "string" }, "description": "Specific fields to return (optional)" },
+      "as_of": { "title": "As Of", "type": "string", "description": "Date to view work items as of (optional)" },
+      "expand": { "title": "Expand", "type": "string", "description": "Expand relations (values: 'relations', 'fields', 'none')", "enum": ["relations", "fields", "none"], "default": "none" }
     },
-    ""required"": [""organization"", ""project"", ""ids""],
-    ""title"": ""AzureDevOpsGetWorkItemsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "ids"],
+    "title": "AzureDevOpsGetWorkItemsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

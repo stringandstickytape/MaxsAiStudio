@@ -1,5 +1,4 @@
-
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -40,35 +39,24 @@ namespace AiStudio4.Core.Tools.YouTube
         {
             return new Tool
             {
-                Guid = "d1e2f3a4-b5c6-7890-1234-567890abcdef10", 
+                Guid = ToolGuids.YOUTUBE_SEARCH_TOOL_GUID,
                 Name = "YouTubeSearch",
                 Description = "Searches YouTube for videos, channels, or playlists based on a query.",
-                Schema = @"{ 
-  ""name"": ""YouTubeSearch"",
-  ""description"": ""Performs a search on YouTube using the specified query. Returns a list of videos, channels, and playlists matching the query."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""query"": {
-        ""type"": ""string"",
-        ""description"": ""The search query term.""
-      },
-      ""maxResults"": {
-        ""type"": ""integer"",
-        ""description"": ""The maximum number of results to return (1-50)."",
-        ""default"": 10,
-        ""minimum"": 1,
-        ""maximum"": 50
-      },
-      ""type"": {
-        ""type"": ""string"",
-        ""description"": ""Comma-separated list of resource types to search (e.g., video,channel,playlist)."",
-        ""default"": ""video,channel,playlist""
-      }
+                Schema = """
+{
+  "name": "YouTubeSearch",
+  "description": "Performs a search on YouTube using the specified query. Returns a list of videos, channels, and playlists matching the query.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "query": { "type": "string", "description": "The search query term." },
+      "maxResults": { "type": "integer", "description": "The maximum number of results to return (1-50).", "default": 10, "minimum": 1, "maximum": 50 },
+      "type": { "type": "string", "description": "Comma-separated list of resource types to search (e.g., video,channel,playlist).", "default": "video,channel,playlist" }
     },
-    ""required"": [""query""]
+    "required": ["query"]
   }
-}",
+}
+""",
                 Categories = new List<string> { "Development" },
                 OutputFileType = "", 
                 Filetype = string.Empty,

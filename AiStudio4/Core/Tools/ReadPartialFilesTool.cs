@@ -1,5 +1,5 @@
 ﻿// AiStudio4\Core\Tools\ReadPartialFilesTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -33,35 +33,37 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "e3f4a5b6-c7d8-9012-3456-78901bcdef12", // New GUID for ReadPartialFiles
+                Guid = ToolGuids.READ_PARTIAL_FILES_TOOL_GUID,
                 Name = "ReadPartialFiles",
                 ExtraProperties = new Dictionary<string, string> {
                     { "excludedFileExtensions (CSV)", "" },
                 },
                 Description = "Read specified line ranges from one or multiple files. Each file request must specify a path, start line (1-based), and line count (max 500).",
-                Schema = @"{
-  ""name"": ""ReadPartialFiles"",
-  ""description"": ""Read specified line ranges from one or multiple files. Each file request must specify a path, start line (1-based), and line count (max 500). Returns the specified lines for each file. Failed reads for individual files won't stop the entire operation. Only works within allowed directories."",
-  ""input_schema"": {
-    ""properties"": {
-      ""requests"": {
-        ""type"": ""array"",
-        ""items"": {
-          ""type"": ""object"",
-          ""properties"": {
-            ""path"": { ""type"": ""string"", ""description"": ""absolute path to the file to read"" },
-            ""start_line"": { ""type"": ""integer"", ""minimum"": 1, ""description"": ""1-based line number to start reading from"" },
-            ""line_count"": { ""type"": ""integer"", ""minimum"": 1, ""maximum"": 500, ""description"": ""number of lines to read (max 500)"" }
+                Schema = """
+{
+  "name": "ReadPartialFiles",
+  "description": "Read specified line ranges from one or multiple files. Each file request must specify a path, start line (1-based), and line count (max 500). Returns the specified lines for each file. Failed reads for individual files won't stop the entire operation. Only works within allowed directories.",
+  "input_schema": {
+    "properties": {
+      "requests": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string", "description": "absolute path to the file to read" },
+            "start_line": { "type": "integer", "minimum": 1, "description": "1-based line number to start reading from" },
+            "line_count": { "type": "integer", "minimum": 1, "maximum": 500, "description": "number of lines to read (max 500)" }
           },
-          ""required"": [""path"", ""start_line"", ""line_count""]
+          "required": ["path", "start_line", "line_count"]
         },
-        ""description"": ""List of file read requests, each with path, start_line, and line_count (max 500)""
+        "description": "List of file read requests, each with path, start_line, and line_count (max 500)"
       }
     },
-    ""required"": [""requests""],
-    ""type"": ""object""
+    "required": ["requests"],
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -29,25 +29,27 @@ namespace AiStudio4.Core.Tools.Vite
         {
             return new Tool
             {
-                Guid = "v1t3c4e5-f6a7-8901-2345-67890abcdef07",
+                Guid = ToolGuids.GET_VITE_PROJECT_INFO_TOOL_GUID,
                 Name = "GetViteProjectInfo",
                 Description = "Returns information about the Vite project",
-                Schema = @"{
-  ""name"": ""GetViteProjectInfo"",
-  ""description"": ""Returns information about the Vite project, such as dependencies, scripts, and configuration."",
-  ""input_schema"": {
-                ""properties"": {
-""projectDirectory"": {
-                    ""title"": ""Project Directory"",
-                    ""type"": ""string"",
-                    ""description"":""Directory containing the Vite project""
-}
-            },
-           ""required"": [""projectDirectory""],
-            ""title"": ""GetViteProjectInfoArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "GetViteProjectInfo",
+  "description": "Returns information about the Vite project, such as dependencies, scripts, and configuration.",
+  "input_schema": {
+    "properties": {
+      "projectDirectory": {
+        "title": "Project Directory",
+        "type": "string",
+        "description": "Directory containing the Vite project"
+      }
+    },
+    "required": ["projectDirectory"],
+    "title": "GetViteProjectInfoArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Vite" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

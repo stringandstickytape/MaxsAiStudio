@@ -36,39 +36,25 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-56789abcdef07",
+                Guid = ToolGuids.FILE_SEARCH_TOOL_GUID,
                 Name = "FileSearch",
                 Description = "Searches for files containing specific terms within a directory tree.",
-                Schema = @"{
-  ""name"": ""FileSearch"",
-  ""description"": ""Recursively searches for files within a specified path that contain any of the provided search terms. Respects .gitignore rules by default."",
-  ""input_schema"": {
-    ""properties"": {
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string"",
-        ""description"": ""The path to the directory to start searching from (relative to project root).""
-      },
-      ""depth"": {
-        ""default"": 0,
-        ""title"": ""Depth"",
-        ""type"": ""integer"",
-        ""description"": ""The maximum depth to search recursively (0 for unlimited).""
-      },
-      ""search_terms"": {
-        ""title"": ""Search Terms"",
-        ""type"": ""array"",
-        ""items"": {
-          ""type"": ""string""
-        },
-        ""description"": ""An array of strings to search for within file content (case-insensitive).""
-      }
+                Schema = """
+{
+  "name": "FileSearch",
+  "description": "Recursively searches for files within a specified path that contain any of the provided search terms. Respects .gitignore rules by default.",
+  "input_schema": {
+    "properties": {
+      "path": { "title": "Path", "type": "string", "description": "The path to the directory to start searching from (relative to project root)." },
+      "depth": { "default": 0, "title": "Depth", "type": "integer", "description": "The maximum depth to search recursively (0 for unlimited)." },
+      "search_terms": { "title": "Search Terms", "type": "array", "items": { "type": "string" }, "description": "An array of strings to search for within file content (case-insensitive)." }
     },
-    ""required"": [""path"", ""search_terms""],
-    ""title"": ""FileSearchArguments"",
-    ""type"": ""object""
+    "required": ["path", "search_terms"],
+    "title": "FileSearchArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty, // Or specify if relevant, e.g., "text"

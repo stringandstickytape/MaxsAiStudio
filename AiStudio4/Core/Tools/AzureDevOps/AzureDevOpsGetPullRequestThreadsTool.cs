@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,52 +35,28 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "7c4d8e9f-2a3b-4c5d-6e7f-8a9b0c1d2e3f",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_PULL_REQUEST_THREADS_TOOL_GUID,
                 Name = "AzureDevOpsGetPullRequestThreads",
                 Description = "Retrieves comment threads associated with a specific pull request in Azure DevOps.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetPullRequestThreads"",
-  ""description"": ""Retrieves comment threads associated with a specific pull request in Azure DevOps."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""repository_id"": {
-        ""title"": ""Repository ID"",
-        ""type"": ""string"",
-        ""description"": ""The repository ID or name""
-      },
-      ""pull_request_id"": {
-        ""title"": ""Pull Request ID"",
-        ""type"": ""integer"",
-        ""description"": ""The pull request ID""
-      },
-      ""top"": {
-        ""title"": ""Top"",
-        ""type"": ""integer"",
-        ""description"": ""Number of threads to return"",
-        ""default"": 100
-      },
-      ""skip"": {
-        ""title"": ""Skip"",
-        ""type"": ""integer"",
-        ""description"": ""Number of threads to skip"",
-        ""default"": 0
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetPullRequestThreads",
+  "description": "Retrieves comment threads associated with a specific pull request in Azure DevOps.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "repository_id": { "title": "Repository ID", "type": "string", "description": "The repository ID or name" },
+      "pull_request_id": { "title": "Pull Request ID", "type": "integer", "description": "The pull request ID" },
+      "top": { "title": "Top", "type": "integer", "description": "Number of threads to return", "default": 100 },
+      "skip": { "title": "Skip", "type": "integer", "description": "Number of threads to skip", "default": 0 }
     },
-    ""required"": [""organization"", ""project"", ""repository_id"", ""pull_request_id""],
-    ""title"": ""AzureDevOpsGetPullRequestThreadsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "repository_id", "pull_request_id"],
+    "title": "AzureDevOpsGetPullRequestThreadsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

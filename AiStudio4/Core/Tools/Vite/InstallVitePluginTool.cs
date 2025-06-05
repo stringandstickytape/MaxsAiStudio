@@ -1,5 +1,4 @@
-
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -34,30 +33,32 @@ namespace AiStudio4.Core.Tools.Vite
         {
             return new Tool
             {
-                Guid = "v1t3c4e5-f6a7-8901-2345-67890abcdef09",
+                Guid = ToolGuids.INSTALL_VITE_PLUGIN_TOOL_GUID,
                 Name = "InstallVitePlugin",
                 Description = "Installs a Vite plugin and updates the configuration to use it",
-                Schema = @"{
-  ""name"": ""InstallVitePlugin"",
-  ""description"": ""Installs a Vite plugin and updates the configuration to use it."",
-  ""input_schema"": {
-                ""properties"": {
-""pluginName"": {
-                    ""title"": ""Plugin Name"",
-                    ""type"": ""string"",
-                    ""description"":""Name of the Vite plugin to install""
-},
- ""projectDirectory"": {
-                    ""title"": ""Project Directory"",
-                    ""type"": ""string"",
-                    ""description"": ""Directory containing the Vite project""
-}
-            },
-           ""required"": [""pluginName"", ""projectDirectory""],
-            ""title"": ""InstallVitePluginArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "InstallVitePlugin",
+  "description": "Installs a Vite plugin and updates the configuration to use it.",
+  "input_schema": {
+    "properties": {
+      "pluginName": {
+        "title": "Plugin Name",
+        "type": "string",
+        "description": "Name of the Vite plugin to install"
+      },
+      "projectDirectory": {
+        "title": "Project Directory",
+        "type": "string",
+        "description": "Directory containing the Vite project"
+      }
+    },
+    "required": ["pluginName", "projectDirectory"],
+    "title": "InstallVitePluginArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Vite" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

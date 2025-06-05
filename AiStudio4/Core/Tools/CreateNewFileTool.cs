@@ -37,35 +37,24 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd01", // Fixed GUID for CreateNewFile
+                Guid = ToolGuids.CREATE_NEW_FILE_TOOL_GUID,
                 Description = "Creates a new file with the specified content.",
                 Name = "CreateNewFile",
-                Schema = @"{
-                  ""name"": ""CreateNewFile"",
-                  ""description"": ""Creates a new file with the specified content. Requires the file path and content to create."",
-                  ""input_schema"": {
-                    ""type"": ""object"",
-                    ""properties"": {
-                      ""path"": {
-                        ""type"": ""string"",
-                        ""description"": ""The absolute path where the new file should be created""
-                      },
-                      ""content"": {
-                        ""type"": ""string"",
-                        ""description"": ""The content for the new file""
-                      },
-                      ""description"": {
-                        ""type"": ""string"",
-                        ""description"": ""A human-readable explanation of this file creation""
-                      }
-                    },
-                    ""required"": [
-                      ""path"",
-                      ""content"",
-                      ""description""
-                    ]
-                  }
-                }",
+                Schema = """
+{
+  "name": "CreateNewFile",
+  "description": "Creates a new file with the specified content. Requires the file path and content to create.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "path": { "type": "string", "description": "The absolute path where the new file should be created" },
+      "content": { "type": "string", "description": "The content for the new file" },
+      "description": { "type": "string", "description": "A human-readable explanation of this file creation" }
+    },
+    "required": ["path", "content", "description"]
+  }
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

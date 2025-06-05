@@ -1,4 +1,4 @@
-﻿
+﻿﻿
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools.CodeDiff;
@@ -43,69 +43,46 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd43", 
+                Guid = ToolGuids.MODIFY_FILES_TOOL_GUID, 
                 Description = "Modifies content within one or more existing files.",
                 Name = "ModifyFiles",
-                Schema = @"{
-                  ""name"": ""ModifyFiles"",
-                  ""description"": ""Modifies content within one or more existing files. Supports multiple changes across multiple files in a single call."",
-                  ""input_schema"": {
-                    ""type"": ""object"",
-                    ""properties"": {
-                      ""modifications"": {
-                        ""type"": ""array"",
-                        ""description"": ""Array of file modifications to perform"",
-                        ""items"": {
-                          ""type"": ""object"",
-                          ""properties"": {
-                            ""path"": {
-                              ""type"": ""string"",
-                              ""description"": ""The absolute path to the file to modify""
-                            },
-                            ""changes"": {
-                              ""type"": ""array"",
-                              ""description"": ""Array of changes to make to this file"",
-                              ""items"": {
-                                ""type"": ""object"",
-                                ""properties"": {
-                                  ""lineNumber"": {
-                                    ""type"": ""integer"",
-                                    ""description"": ""The approximate line number where the modification starts""
-                                  },
-                                  ""oldContent"": {
-                                    ""type"": ""string"",
-                                    ""description"": ""The content to be replaced. Should include significant context (at least 5 lines).""
-                                  },
-                                  ""newContent"": {
-                                    ""type"": ""string"",
-                                    ""description"": ""The content to replace the old content with""
-                                  },
-                                  ""description"": {
-                                    ""type"": ""string"",
-                                    ""description"": ""A human-readable explanation of this specific change""
-                                  }
-                                },
-                                ""required"": [
-                                  ""lineNumber"",
-                                  ""oldContent"",
-                                  ""newContent"",
-                                  ""description""
-                                ]
-                              }
-                            }
-                          },
-                          ""required"": [
-                            ""path"",
-                            ""changes""
-                          ]
-                        }
-                      }
-                    },
-                    ""required"": [
-                      ""modifications""
-                    ]
-                  }
-                }",
+                Schema = """
+{
+  "name": "ModifyFiles",
+  "description": "Modifies content within one or more existing files. Supports multiple changes across multiple files in a single call.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "modifications": {
+        "type": "array",
+        "description": "Array of file modifications to perform",
+        "items": {
+          "type": "object",
+          "properties": {
+            "path": { "type": "string", "description": "The absolute path to the file to modify" },
+            "changes": {
+              "type": "array",
+              "description": "Array of changes to make to this file",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "lineNumber": { "type": "integer", "description": "The approximate line number where the modification starts" },
+                  "oldContent": { "type": "string", "description": "The content to be replaced. Should include significant context (at least 5 lines)." },
+                  "newContent": { "type": "string", "description": "The content to replace the old content with" },
+                  "description": { "type": "string", "description": "A human-readable explanation of this specific change" }
+                },
+                "required": ["lineNumber", "oldContent", "newContent", "description"]
+              }
+            }
+          },
+          "required": ["path", "changes"]
+        }
+      }
+    },
+    "required": ["modifications"]
+  }
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "modifyfiles",
                 Filetype = string.Empty,
@@ -201,8 +178,9 @@ namespace AiStudio4.Core.Tools
                             
                             if (change["description"] == null)
                             {
-                                _validationErrorMessages.AppendLine($"Error: 'description' is missing in a change for file '{filePath}'.");
-                                overallSuccess = false;
+                                change["description"] = "(no description)";
+                                //_validationErrorMessages.AppendLine($"Error: 'description' is missing in a change for file '{filePath}'.");
+                                //overallSuccess = false;
                             }
                         }
                     }

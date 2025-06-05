@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Core\Tools\GitHub\GitHubListPullRequestsTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -33,26 +33,28 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "c8d9e0f1-a2b3-5678-9012-cdef34567890",
+                Guid = ToolGuids.GITHUB_LIST_PULL_REQUESTS_TOOL_GUID,
                 Name = "GitHubListPullRequests",
                 Description = "Lists pull requests for a GitHub repository. Requires GitHub Personal Access Token with repo permissions.",
-                Schema = @"{
-  ""name"": ""GitHubListPullRequests"",
-  ""description"": ""Lists pull requests for a GitHub repository. Requires GitHub Personal Access Token with repo permissions."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""owner"": { ""type"": ""string"", ""description"": ""Repository owner (username or organization)."" },
-      ""repo"": { ""type"": ""string"", ""description"": ""Repository name."" },
-      ""state"": { ""type"": ""string"", ""description"": ""State of the PR: open, closed, or all. (Optional)"" },
-      ""head"": { ""type"": ""string"", ""description"": ""Filter by head user or branch name. (Optional)"" },
-      ""base"": { ""type"": ""string"", ""description"": ""Filter by base branch name. (Optional)"" },
-      ""per_page"": { ""type"": ""integer"", ""description"": ""Number of results per page (max 100). (Optional)"" },
-      ""page"": { ""type"": ""integer"", ""description"": ""Page number of the results to fetch. (Optional)"" }
+                Schema = """
+{
+  "name": "GitHubListPullRequests",
+  "description": "Lists pull requests for a GitHub repository. Requires GitHub Personal Access Token with repo permissions.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "owner": { "type": "string", "description": "Repository owner (username or organization)." },
+      "repo": { "type": "string", "description": "Repository name." },
+      "state": { "type": "string", "description": "State of the PR: open, closed, or all. (Optional)" },
+      "head": { "type": "string", "description": "Filter by head user or branch name. (Optional)" },
+      "base": { "type": "string", "description": "Filter by base branch name. (Optional)" },
+      "per_page": { "type": "integer", "description": "Number of results per page (max 100). (Optional)" },
+      "page": { "type": "integer", "description": "Page number of the results to fetch. (Optional)" }
     },
-    ""required"": [""owner"", ""repo""]
+    "required": ["owner", "repo"]
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

@@ -31,46 +31,26 @@ namespace AiStudio4.Core.Tools.Git
         {
             return new Tool
             {
-                Guid = "d4e5f6a7-b8c9-0123-4567-890abcdef123",
+                Guid = ToolGuids.GIT_LOG_TOOL_GUID,
                 Name = "GitLog",
                 Description = "Retrieves git commit history between two references (tags, branches, commits) without showing diffs. Commit messages are automatically truncated to prevent excessive output. Useful for understanding what changed between versions or getting an overview of recent development.",
-                Schema = @"{
-  ""name"": ""GitLog"",
-  ""description"": ""Retrieves git commit history between two references (tags, branches, commits) without showing diffs. Commit messages are automatically truncated to prevent excessive output. Useful for understanding what changed between versions or getting an overview of recent development."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""from_ref"": {
-        ""type"": ""string"",
-        ""description"": ""Starting git reference (tag, branch, or commit hash). Use format like 'v0.93', 'main', or commit hash.""
-      },
-      ""to_ref"": {
-        ""type"": ""string"", 
-        ""description"": ""Ending git reference (tag, branch, or commit hash). Defaults to 'HEAD' if not specified."",
-        ""default"": ""HEAD""
-      },
-      ""limit"": {
-        ""type"": ""integer"",
-        ""description"": ""Maximum number of commits to return. Defaults to 100 to prevent excessive output."",
-        ""default"": 100,
-        ""minimum"": 1,
-        ""maximum"": 500
-      },
-      ""format"": {
-        ""type"": ""string"",
-        ""enum"": [""oneline"", ""short"", ""full""],
-        ""description"": ""Output format. 'oneline' shows hash and message only, 'short' adds author and date, 'full' includes all metadata."",
-        ""default"": ""short""
-      },
-      ""reverse"": {
-        ""type"": ""boolean"",
-        ""description"": ""Show commits in chronological order (oldest first) instead of reverse chronological order."",
-        ""default"": false
-      }
+                Schema = """
+{
+  "name": "GitLog",
+  "description": "Retrieves git commit history between two references (tags, branches, commits) without showing diffs. Commit messages are automatically truncated to prevent excessive output. Useful for understanding what changed between versions or getting an overview of recent development.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "from_ref": { "type": "string", "description": "Starting git reference (tag, branch, or commit hash). Use format like 'v0.93', 'main', or commit hash." },
+      "to_ref": { "type": "string", "description": "Ending git reference (tag, branch, or commit hash). Defaults to 'HEAD' if not specified.", "default": "HEAD" },
+      "limit": { "type": "integer", "description": "Maximum number of commits to return. Defaults to 100 to prevent excessive output.", "default": 100, "minimum": 1, "maximum": 500 },
+      "format": { "type": "string", "enum": ["oneline", "short", "full"], "description": "Output format. 'oneline' shows hash and message only, 'short' adds author and date, 'full' includes all metadata.", "default": "short" },
+      "reverse": { "type": "boolean", "description": "Show commits in chronological order (oldest first) instead of reverse chronological order.", "default": false }
     },
-    ""required"": [""from_ref""]
+    "required": ["from_ref"]
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

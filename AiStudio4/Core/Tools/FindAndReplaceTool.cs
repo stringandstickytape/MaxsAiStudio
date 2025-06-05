@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -33,67 +33,40 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-56789abcdef08",
+                Guid = ToolGuids.FIND_AND_REPLACE_TOOL_GUID,
                 Name = "FindAndReplace",
                 Description = "Finds and replaces text in files within a directory tree.",
-                Schema = @"{
-  ""name"": ""FindAndReplace"",
-  ""description"": ""Recursively searches for files within a specified path and replaces text matching the provided search terms with replacement text. Respects .gitignore rules by default."",
-  ""input_schema"": {
-    ""properties"": {
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string"",
-        ""description"": ""The path to the directory to start searching from (relative to project root).""
-      },
-      ""depth"": {
-        ""default"": 0,
-        ""title"": ""Depth"",
-        ""type"": ""integer"",
-        ""description"": ""The maximum depth to search recursively (0 for unlimited).""
-      },
-      ""include_filtered"": {
-        ""default"": false,
-        ""title"": ""Include Filtered"",
-        ""type"": ""boolean"",
-        ""description"": ""Include files and directories that are normally filtered by .gitignore.""
-      },
-      ""preview_only"": {
-        ""default"": true,
-        ""title"": ""Preview Only"",
-        ""type"": ""boolean"",
-        ""description"": ""If true, only shows what would be replaced without making actual changes.""
-      },
-      ""replacements"": {
-        ""title"": ""Replacements"",
-        ""type"": ""array"",
-        ""items"": {
-          ""type"": ""object"",
-          ""properties"": {
-            ""search"": {
-              ""type"": ""string"",
-              ""description"": ""The text to search for.""
-            },
-            ""replace"": {
-              ""type"": ""string"",
-              ""description"": ""The text to replace it with.""
-            },
-            ""case_sensitive"": {
-              ""type"": ""boolean"",
-              ""default"": false,
-              ""description"": ""Whether the search should be case-sensitive.""
-            }
+                Schema = """
+{
+  "name": "FindAndReplace",
+  "description": "Recursively searches for files within a specified path and replaces text matching the provided search terms with replacement text. Respects .gitignore rules by default.",
+  "input_schema": {
+    "properties": {
+      "path": { "title": "Path", "type": "string", "description": "The path to the directory to start searching from (relative to project root)." },
+      "depth": { "default": 0, "title": "Depth", "type": "integer", "description": "The maximum depth to search recursively (0 for unlimited)." },
+      "include_filtered": { "default": false, "title": "Include Filtered", "type": "boolean", "description": "Include files and directories that are normally filtered by .gitignore." },
+      "preview_only": { "default": true, "title": "Preview Only", "type": "boolean", "description": "If true, only shows what would be replaced without making actual changes." },
+      "replacements": {
+        "title": "Replacements",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "search": { "type": "string", "description": "The text to search for." },
+            "replace": { "type": "string", "description": "The text to replace it with." },
+            "case_sensitive": { "type": "boolean", "default": false, "description": "Whether the search should be case-sensitive." }
           },
-          ""required"": [""search"", ""replace""]
+          "required": ["search", "replace"]
         },
-        ""description"": ""An array of search and replace pairs.""
+        "description": "An array of search and replace pairs."
       }
     },
-    ""required"": [""path"", ""replacements""],
-    ""title"": ""FindAndReplaceArguments"",
-    ""type"": ""object""
+    "required": ["path", "replacements"],
+    "title": "FindAndReplaceArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

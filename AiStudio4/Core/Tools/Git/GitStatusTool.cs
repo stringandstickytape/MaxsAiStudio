@@ -29,33 +29,23 @@ namespace AiStudio4.Core.Tools.Git
         {
             return new Tool
             {
-                Guid = "f6a7b8c9-d0e1-2345-6789-0abcdef12345",
+                Guid = ToolGuids.GIT_STATUS_TOOL_GUID,
                 Name = "GitStatus",
                 Description = "Shows working directory status, current branch, and repository state information including ahead/behind remote status.",
-                Schema = @"{
-  ""name"": ""GitStatus"",
-  ""description"": ""Shows working directory status, current branch, and repository state information including ahead/behind remote status."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""include_branches"": {
-        ""type"": ""boolean"",
-        ""description"": ""Include list of all branches in the output."",
-        ""default"": false
-      },
-      ""include_remote_status"": {
-        ""type"": ""boolean"",
-        ""description"": ""Include ahead/behind status compared to remote tracking branch."",
-        ""default"": true
-      },
-      ""porcelain"": {
-        ""type"": ""boolean"",
-        ""description"": ""Use porcelain format for machine-readable output."",
-        ""default"": false
-      }
+                Schema = """
+{
+  "name": "GitStatus",
+  "description": "Shows working directory status, current branch, and repository state information including ahead/behind remote status.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "include_branches": { "type": "boolean", "description": "Include list of all branches in the output.", "default": false },
+      "include_remote_status": { "type": "boolean", "description": "Include ahead/behind status compared to remote tracking branch.", "default": true },
+      "porcelain": { "type": "boolean", "description": "Use porcelain format for machine-readable output.", "default": false }
     }
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

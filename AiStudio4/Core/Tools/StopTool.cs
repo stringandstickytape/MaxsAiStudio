@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -25,22 +25,21 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef01", // Fixed GUID for Stop
+                Guid = ToolGuids.STOP_TOOL_GUID,
                 Name = "Stop",
                 Description = "A tool which allows you to indicate that all outstanding tasks are completed, or you cannot proceed any further",
-                Schema = @"{
-  ""name"": ""Stop"",
-  ""description"": ""A tool which allows you to indicate that all outstanding tasks are completed"",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""param"": {
-        ""type"": ""string"",
-        ""description"": ""Information to the user goes here""
-      }
+                Schema = """
+{
+  "name": "Stop",
+  "description": "A tool which allows you to indicate that all outstanding tasks are completed",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "param": { "type": "string", "description": "Information to the user goes here" }
     }
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "",
                 Filetype = string.Empty,

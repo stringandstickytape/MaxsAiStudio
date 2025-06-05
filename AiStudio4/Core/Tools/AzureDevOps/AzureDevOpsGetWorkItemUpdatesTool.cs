@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,47 +35,27 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "3a7b9c5d-2e4f-8g6h-1i2j-3k4l5m6n7o8p",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_WORK_ITEM_UPDATES_TOOL_GUID,
                 Name = "AzureDevOpsGetWorkItemUpdates",
                 Description = "Retrieves the update history for a specific work item in Azure DevOps.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetWorkItemUpdates"",
-  ""description"": ""Retrieves the update history for a specific work item in Azure DevOps."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""id"": {
-        ""title"": ""Work Item ID"",
-        ""type"": ""integer"",
-        ""description"": ""The ID of the work item to retrieve updates for""
-      },
-      ""top"": {
-        ""title"": ""Top"",
-        ""type"": ""integer"",
-        ""description"": ""Number of updates to return"",
-        ""default"": 100
-      },
-      ""skip"": {
-        ""title"": ""Skip"",
-        ""type"": ""integer"",
-        ""description"": ""Number of updates to skip"",
-        ""default"": 0
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetWorkItemUpdates",
+  "description": "Retrieves the update history for a specific work item in Azure DevOps.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "id": { "title": "Work Item ID", "type": "integer", "description": "The ID of the work item to retrieve updates for" },
+      "top": { "title": "Top", "type": "integer", "description": "Number of updates to return", "default": 100 },
+      "skip": { "title": "Skip", "type": "integer", "description": "Number of updates to skip", "default": 0 }
     },
-    ""required"": [""organization"", ""project"", ""id""],
-    ""title"": ""AzureDevOpsGetWorkItemUpdatesArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "id"],
+    "title": "AzureDevOpsGetWorkItemUpdatesArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

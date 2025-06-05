@@ -1,4 +1,4 @@
-﻿// AiStudio4\Core\Tools\GitHub\GitHubGetIssueTool.cs
+﻿﻿// AiStudio4\Core\Tools\GitHub\GitHubGetIssueTool.cs
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -37,22 +37,24 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "b1c2d3e4-f5a6-b7c8-d9e0-b1c2d3e4f5a6",
+                Guid = ToolGuids.GITHUB_GET_ISSUE_TOOL_GUID,
                 Name = "GitHubGetIssue",
                 Description = "Retrieves detailed information for a specific issue by its number.",
-                Schema = @"{
-  ""name"": ""GitHubGetIssue"",
-  ""description"": ""Retrieves detailed information for a specific issue by its number."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""owner"": { ""type"": ""string"", ""description"": ""Repository owner."" },
-      ""repo"": { ""type"": ""string"", ""description"": ""Repository name."" },
-      ""issue_number"": { ""type"": ""integer"", ""description"": ""The number of the issue to retrieve."" }
+                Schema = """
+{
+  "name": "GitHubGetIssue",
+  "description": "Retrieves detailed information for a specific issue by its number.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "owner": { "type": "string", "description": "Repository owner." },
+      "repo": { "type": "string", "description": "Repository name." },
+      "issue_number": { "type": "integer", "description": "The number of the issue to retrieve." }
     },
-    ""required"": [""owner"", ""repo"", ""issue_number""]
+    "required": ["owner", "repo", "issue_number"]
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

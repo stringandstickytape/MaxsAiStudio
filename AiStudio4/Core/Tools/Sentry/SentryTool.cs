@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,36 +35,25 @@ namespace AiStudio4.Core.Tools.Sentry
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-56789abcdef99",
+                Guid = ToolGuids.SENTRY_TOOL_GUID,
                 Name = "Sentry",
                 Description = "Retrieves information from Sentry API including organization, project, and issue details.",
-                Schema = @"{
-  ""name"": ""Sentry"",
-  ""description"": ""Retrieves information from Sentry API including organization, project, and issue details."",
-  ""input_schema"": {
-    ""properties"": {
-      ""operation"": {
-        ""title"": ""Operation"",
-        ""type"": ""string"",
-        ""description"": ""The operation to perform (organization, project, issues)"",
-        ""enum"": [""organization"", ""project"", ""issues""]
-      },
-      ""project_slug"": {
-        ""title"": ""Project Slug"",
-        ""type"": ""string"",
-        ""description"": ""The Sentry project slug (required for project and issues operations)""
-      },
-      ""query"": {
-        ""title"": ""Query"",
-        ""type"": ""string"",
-        ""description"": ""Optional query string for filtering issues (e.g., is:unresolved)""
-      }
+                Schema = """
+{
+  "name": "Sentry",
+  "description": "Retrieves information from Sentry API including organization, project, and issue details.",
+  "input_schema": {
+    "properties": {
+      "operation": { "title": "Operation", "type": "string", "description": "The operation to perform (organization, project, issues)", "enum": ["organization", "project", "issues"] },
+      "project_slug": { "title": "Project Slug", "type": "string", "description": "The Sentry project slug (required for project and issues operations)" },
+      "query": { "title": "Query", "type": "string", "description": "Optional query string for filtering issues (e.g., is:unresolved)" }
     },
-    ""required"": [""operation""],
-    ""title"": ""SentryArguments"",
-    ""type"": ""object""
+    "required": ["operation"],
+    "title": "SentryArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "APITools" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Core\Tools\ReplaceFileTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools.CodeDiff;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
@@ -37,35 +37,24 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd05", // Fixed GUID for ReplaceFile
+                Guid = ToolGuids.REPLACE_FILE_TOOL_GUID,
                 Description = "Replaces an existing file with new content.",
                 Name = "ReplaceFile",
-                Schema = @"{
-                  ""name"": ""ReplaceFile"",
-                  ""description"": ""Replaces an existing file with new content. Requires the file path and new content."",
-                  ""input_schema"": {
-                    ""type"": ""object"",
-                    ""properties"": {
-                      ""path"": {
-                        ""type"": ""string"",
-                        ""description"": ""The absolute path to the file to replace""
-                      },
-                      ""content"": {
-                        ""type"": ""string"",
-                        ""description"": ""The new content to replace the file with""
-                      },
-                      ""description"": {
-                        ""type"": ""string"",
-                        ""description"": ""A human-readable explanation of this file replacement""
-                      }
-                    },
-                    ""required"": [
-                      ""path"",
-                      ""content"",
-                      ""description""
-                    ]
-                  }
-                }",
+                Schema = """
+{
+  "name": "ReplaceFile",
+  "description": "Replaces an existing file with new content. Requires the file path and new content.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "path": { "type": "string", "description": "The absolute path to the file to replace" },
+      "content": { "type": "string", "description": "The new content to replace the file with" },
+      "description": { "type": "string", "description": "A human-readable explanation of this file replacement" }
+    },
+    "required": ["path", "content", "description"]
+  }
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

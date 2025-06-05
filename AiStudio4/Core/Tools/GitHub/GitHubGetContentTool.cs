@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -36,40 +36,26 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "6172c3d4-e5f6-7890-1234-56789abcdef03",
+                Guid = ToolGuids.GITHUB_GET_CONTENT_TOOL_GUID,
                 Name = "GitHubGetContent",
                 Description = "Retrieves the content of a specific file from a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint.",
-                Schema = @"{
-  ""name"": ""GitHubGetContent"",
-  ""description"": ""Retrieves the content of a specific file from a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint."",
-  ""input_schema"": {
-    ""properties"": {
-      ""owner"": {
-        ""title"": ""Owner"",
-        ""type"": ""string"",
-        ""description"": ""The GitHub username or organization that owns the repository""
-      },
-      ""repo"": {
-        ""title"": ""Repository"",
-        ""type"": ""string"",
-        ""description"": ""The name of the repository""
-      },
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string"",
-        ""description"": ""The path to the file within the repository""
-      },
-      ""ref"": {
-        ""title"": ""Reference"",
-        ""type"": ""string"",
-        ""description"": ""The name of the commit/branch/tag (defaults to the repository's default branch)""
-      }
+                Schema = """
+{
+  "name": "GitHubGetContent",
+  "description": "Retrieves the content of a specific file from a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint.",
+  "input_schema": {
+    "properties": {
+      "owner": { "title": "Owner", "type": "string", "description": "The GitHub username or organization that owns the repository" },
+      "repo": { "title": "Repository", "type": "string", "description": "The name of the repository" },
+      "path": { "title": "Path", "type": "string", "description": "The path to the file within the repository" },
+      "ref": { "title": "Reference", "type": "string", "description": "The name of the commit/branch/tag (defaults to the repository's default branch)" }
     },
-    ""required"": [""owner"", ""repo"", ""path""],
-    ""title"": ""GitHubGetContentArguments"",
-    ""type"": ""object""
+    "required": ["owner", "repo", "path"],
+    "title": "GitHubGetContentArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

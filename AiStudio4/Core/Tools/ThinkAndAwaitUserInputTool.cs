@@ -1,5 +1,5 @@
 ﻿// AiStudio4/Core/Tools/ThinkAndAwaitUserInputTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -28,26 +28,23 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "b2c4d4e5-f6a7-8901-2345-67890abcdef04",
+                Guid = ToolGuids.THINK_AND_AWAIT_USER_INPUT_TOOL_GUID,
                 Name = "ThinkAndAwaitUserInput",
                 Description = "Use the tool to think about something and then explicitly await user input. It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed, and you require user feedback or confirmation before proceeding. This tool's operation will stop AI processing to wait for the user.",
-                Schema = @"{
-  ""name"": ""ThinkAndAwaitUserInput"",
-  ""description"": ""Use the tool to think about something and then explicitly await user input.
-
-It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed, and you require user feedback or confirmation before proceeding. This tool's operation will stop AI processing to wait for the user."",
-  ""input_schema"": {
-                ""properties"": {
-                ""thought"": {
-                    ""title"": ""Thought"",
-                    ""type"": ""string""
-                }
-            },
-            ""required"": [""thought""],
-            ""title"": ""thinkAndAwaitUserInputArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "ThinkAndAwaitUserInput",
+  "description": "Use the tool to think about something and then explicitly await user input.\n\nIt will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed, and you require user feedback or confirmation before proceeding. This tool's operation will stop AI processing to wait for the user.",
+  "input_schema": {
+    "properties": {
+      "thought": { "title": "Thought", "type": "string" }
+    },
+    "required": ["thought"],
+    "title": "thinkAndAwaitUserInputArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "",
                 Filetype = string.Empty,

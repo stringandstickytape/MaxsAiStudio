@@ -1,5 +1,5 @@
 ﻿// AiStudio4\Core\Tools\GitHub\GitHubListIssueCommentsTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -38,25 +38,27 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "f1a2b3c4-d5e6-f7a8-b9c0-f1a2b3c4d5e6",
+                Guid = ToolGuids.GITHUB_LIST_ISSUE_COMMENTS_TOOL_GUID,
                 Name = "GitHubListIssueComments",
                 Description = "Retrieves all comments for a specific issue, ordered by creation date.",
-                Schema = @"{
-  ""name"": ""GitHubListIssueComments"",
-  ""description"": ""Retrieves all comments for a specific issue, ordered by creation date."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""owner"": { ""type"": ""string"", ""description"": ""Repository owner."" },
-      ""repo"": { ""type"": ""string"", ""description"": ""Repository name."" },
-      ""issue_number"": { ""type"": ""integer"", ""description"": ""The number of the issue."" },
-      ""since"": { ""type"": ""string"", ""description"": ""Only show comments updated at or after this time (ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ). (Optional)"" },
-      ""per_page"": { ""type"": ""integer"", ""description"": ""Results per page (max 100)."", ""default"": 30 },
-      ""page"": { ""type"": ""integer"", ""description"": ""Page number of the results to fetch."", ""default"": 1 }
+                Schema = """
+{
+  "name": "GitHubListIssueComments",
+  "description": "Retrieves all comments for a specific issue, ordered by creation date.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "owner": { "type": "string", "description": "Repository owner." },
+      "repo": { "type": "string", "description": "Repository name." },
+      "issue_number": { "type": "integer", "description": "The number of the issue." },
+      "since": { "type": "string", "description": "Only show comments updated at or after this time (ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ). (Optional)" },
+      "per_page": { "type": "integer", "description": "Results per page (max 100).", "default": 30 },
+      "page": { "type": "integer", "description": "Page number of the results to fetch.", "default": 1 }
     },
-    ""required"": [""owner"", ""repo"", ""issue_number""]
+    "required": ["owner", "repo", "issue_number"]
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

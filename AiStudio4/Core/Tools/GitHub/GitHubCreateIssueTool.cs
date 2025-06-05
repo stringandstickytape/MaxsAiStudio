@@ -1,4 +1,4 @@
-﻿// AiStudio4\Core\Tools\GitHub\GitHubCreateIssueTool.cs
+﻿﻿// AiStudio4\Core\Tools\GitHub\GitHubCreateIssueTool.cs
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -37,26 +37,28 @@ namespace AiStudio4.Core.Tools.GitHub
         {
             return new Tool
             {
-                Guid = "c1d2e3f4-a5b6-c7d8-e9f0-c1d2e3f4a5b6",
+                Guid = ToolGuids.GITHUB_CREATE_ISSUE_TOOL_GUID,
                 Name = "GitHubCreateIssue",
                 Description = "Creates a new issue in the specified repository.",
-                Schema = @"{
-  ""name"": ""GitHubCreateIssue"",
-  ""description"": ""Creates a new issue in the specified repository."",
-  ""input_schema"": {
-    ""type"": ""object"",
-    ""properties"": {
-      ""owner"": { ""type"": ""string"", ""description"": ""Repository owner."" },
-      ""repo"": { ""type"": ""string"", ""description"": ""Repository name."" },
-      ""title"": { ""type"": ""string"", ""description"": ""The title of the issue."" },
-      ""body"": { ""type"": ""string"", ""description"": ""The contents of the issue (Markdown). (Optional)"" },
-      ""labels"": { ""type"": ""array"", ""description"": ""Array of label names to apply. (Optional)"", ""items"": { ""type"": ""string"" } },
-      ""assignees"": { ""type"": ""array"", ""description"": ""Array of login names to assign. (Optional)"", ""items"": { ""type"": ""string"" } },
-      ""milestone"": { ""type"": ""integer"", ""description"": ""The number of the milestone to associate this issue with. (Optional)"" }
+                Schema = """
+{
+  "name": "GitHubCreateIssue",
+  "description": "Creates a new issue in the specified repository.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "owner": { "type": "string", "description": "Repository owner." },
+      "repo": { "type": "string", "description": "Repository name." },
+      "title": { "type": "string", "description": "The title of the issue." },
+      "body": { "type": "string", "description": "The contents of the issue (Markdown). (Optional)" },
+      "labels": { "type": "array", "description": "Array of label names to apply. (Optional)", "items": { "type": "string" } },
+      "assignees": { "type": "array", "description": "Array of login names to assign. (Optional)", "items": { "type": "string" } },
+      "milestone": { "type": "integer", "description": "The number of the milestone to associate this issue with. (Optional)" }
     },
-    ""required"": [""owner"", ""repo"", ""title""]
+    "required": ["owner", "repo", "title"]
   }
-}",
+}
+""",
                 Categories = new List<string> {"APITools", "GitHub" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

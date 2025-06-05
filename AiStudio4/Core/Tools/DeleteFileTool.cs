@@ -37,30 +37,23 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd02", // Fixed GUID for DeleteFile
+                Guid = ToolGuids.DELETE_FILE_TOOL_GUID,
                 Description = "Deletes an existing file.",
                 Name = "DeleteFile",
-                Schema = @"{
-                  ""name"": ""DeleteFile"",
-                  ""description"": ""Deletes an existing file. Requires the file path."",
-                  ""input_schema"": {
-                    ""type"": ""object"",
-                    ""properties"": {
-                      ""path"": {
-                        ""type"": ""string"",
-                        ""description"": ""The absolute path to the file to delete""
-                      },
-                      ""description"": {
-                        ""type"": ""string"",
-                        ""description"": ""A human-readable explanation of this file deletion""
-                      }
-                    },
-                    ""required"": [
-                      ""path"",
-                      ""description""
-                    ]
-                  }
-                }",
+                Schema = """
+{
+  "name": "DeleteFile",
+  "description": "Deletes an existing file. Requires the file path.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "path": { "type": "string", "description": "The absolute path to the file to delete" },
+      "description": { "type": "string", "description": "A human-readable explanation of this file deletion" }
+    },
+    "required": ["path", "description"]
+  }
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

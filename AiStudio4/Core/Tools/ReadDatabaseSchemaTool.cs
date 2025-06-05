@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Models;
+﻿﻿using AiStudio4.Core.Models;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -27,27 +27,23 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "c3d4e5f6-a7b8-9012-3456-7890abcdef16", // Fixed GUID for ReadSchemaDetails
+                Guid = ToolGuids.READ_DATABASE_SCHEMA_TOOL_GUID,
                 Name = "ReadDatabaseSchema",
                 Description = "Read database schema details from SQL Server.",
-                Schema = @"{
-  ""name"": ""ReadDatabaseSchema"",
-  ""description"": ""Read database schema details from SQL Server. Can query table or column information from the SHEFFIELD database."",
-  ""input_schema"": {
-                ""properties"": {
-                ""detailType"": {
-                    ""type"": ""string"",
-                    ""description"": ""Type of schema details to retrieve: 'table' for table information or 'column' for column information""
-                },
-                ""filter"": {
-                    ""type"": ""string"",
-                    ""description"": ""Optional filter. For tables: filter by table name. For columns: filter by table name to get columns for a specific table.""
-                }
-            },
-            ""required"": [""detailType""],
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "ReadDatabaseSchema",
+  "description": "Read database schema details from SQL Server. Can query table or column information from the SHEFFIELD database.",
+  "input_schema": {
+    "properties": {
+      "detailType": { "type": "string", "description": "Type of schema details to retrieve: 'table' for table information or 'column' for column information" },
+      "filter": { "type": "string", "description": "Optional filter. For tables: filter by table name. For columns: filter by table name to get columns for a specific table." }
+    },
+    "required": ["detailType"],
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Development" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -32,33 +32,24 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef04",
+                Guid = ToolGuids.DIRECTORY_TREE_TOOL_GUID,
                 Name = "DirectoryTree",
                 Description = "Gets a directory tree",
-                Schema = @"{
-  ""name"": ""DirectoryTree"",
-  ""description"": ""Get a recursive tree view of files and directories with customizable depth and filtering.
-
-Returns a structured view of the directory tree with files and subdirectories. Directories are marked with trailing slashes. The output is formatted as an indented list for readability. By default, common development directories like .git, node_modules, and venv are noted but not traversed unless explicitly requested. Only works within allowed directories."",
-  ""input_schema"": {
-                ""properties"": {
-""path"": {
-                    ""title"": ""Path"",
-                    ""type"": ""string"",
-                    ""description"":""The path to the directory to view""
-                },
- ""depth"": {
-                    ""default"": 3,
-                    ""title"": ""Depth"",
-                    ""type"": ""integer"",
-                    ""description"": ""The maximum depth to traverse (0 for unlimited)""
-                },
-            },
-           ""required"": [""path""],
-            ""title"": ""DirectoryTreeArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "DirectoryTree",
+  "description": "Get a recursive tree view of files and directories with customizable depth and filtering.\n\nReturns a structured view of the directory tree with files and subdirectories. Directories are marked with trailing slashes. The output is formatted as an indented list for readability. By default, common development directories like .git, node_modules, and venv are noted but not traversed unless explicitly requested. Only works within allowed directories.",
+  "input_schema": {
+    "properties": {
+      "path": { "title": "Path", "type": "string", "description": "The path to the directory to view" },
+      "depth": { "default": 3, "title": "Depth", "type": "integer", "description": "The maximum depth to traverse (0 for unlimited)" }
+    },
+    "required": ["path"],
+    "title": "DirectoryTreeArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

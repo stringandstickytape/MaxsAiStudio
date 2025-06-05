@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -39,31 +39,23 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "c3d4e5f6-a7b8-9012-3456-7890abcdef08", 
+                Guid = ToolGuids.RETRIEVE_TEXT_FROM_URL_TOOL_GUID, 
                 Name = "RetrieveTextFromUrl",
                 Description = "Fetches text content from URLs by removing HTML tags.",
-                Schema = @"{
-  ""name"": ""RetrieveTextFromUrl"",
-  ""description"": ""Retrieves the text content from one or more URLs by removing HTML tags. Returns only the textual content without markup. Useful for extracting readable content from web pages."",
-  ""input_schema"": {
-                ""properties"": {
-                ""urls"": {
-                    ""anyOf"": [
-                        {""items"": {""type"": ""string""}, ""type"": ""array""},
-                        {""type"": ""string""}
-                    ],
-                    ""description"": ""URL or array of URLs to retrieve text content from""
-                },
-                ""timeout"": {
-                    ""type"": ""integer"",
-                    ""description"": ""Timeout in seconds for each request (default: 30)"",
-                    ""default"": 30
-                }
-            },
-            ""required"": [""urls""],
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "RetrieveTextFromUrl",
+  "description": "Retrieves the text content from one or more URLs by removing HTML tags. Returns only the textual content without markup. Useful for extracting readable content from web pages.",
+  "input_schema": {
+    "properties": {
+      "urls": { "anyOf": [{ "items": { "type": "string" }, "type": "array" }, { "type": "string" }], "description": "URL or array of URLs to retrieve text content from" },
+      "timeout": { "type": "integer", "description": "Timeout in seconds for each request (default: 30)", "default": 30 }
+    },
+    "required": ["urls"],
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Development"},
                 OutputFileType = "txt",
                 Filetype = string.Empty,
