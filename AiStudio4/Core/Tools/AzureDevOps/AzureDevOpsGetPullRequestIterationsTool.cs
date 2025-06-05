@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,40 +35,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "4d7e6c5b-9a8f-4e3d-2c1b-7a6b5c4d3e2f",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_PULL_REQUEST_ITERATIONS_TOOL_GUID,
                 Name = "AzureDevOpsGetPullRequestIterations",
                 Description = "Retrieves the iterations (versions) of a specific pull request in Azure DevOps.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetPullRequestIterations"",
-  ""description"": ""Retrieves the iterations (versions) of a specific pull request in Azure DevOps."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""repository_id"": {
-        ""title"": ""Repository ID"",
-        ""type"": ""string"",
-        ""description"": ""The repository ID or name""
-      },
-      ""pull_request_id"": {
-        ""title"": ""Pull Request ID"",
-        ""type"": ""integer"",
-        ""description"": ""The pull request ID""
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetPullRequestIterations",
+  "description": "Retrieves the iterations (versions) of a specific pull request in Azure DevOps.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "repository_id": { "title": "Repository ID", "type": "string", "description": "The repository ID or name" },
+      "pull_request_id": { "title": "Pull Request ID", "type": "integer", "description": "The pull request ID" }
     },
-    ""required"": [""organization"", ""project"", ""repository_id"", ""pull_request_id""],
-    ""title"": ""AzureDevOpsGetPullRequestIterationsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "repository_id", "pull_request_id"],
+    "title": "AzureDevOpsGetPullRequestIterationsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

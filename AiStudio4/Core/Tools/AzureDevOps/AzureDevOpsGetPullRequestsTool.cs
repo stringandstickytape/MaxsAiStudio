@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -35,74 +35,32 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "5b3e9c2a-7d8f-4e1a-9b6c-8d7f5e3a2c1b",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_PULL_REQUESTS_TOOL_GUID,
                 Name = "AzureDevOpsGetPullRequests",
                 Description = "Retrieves pull requests matching specified criteria from an Azure DevOps repository.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetPullRequests"",
-  ""description"": ""Retrieves pull requests matching specified criteria from an Azure DevOps repository."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""repository_id"": {
-        ""title"": ""Repository ID"",
-        ""type"": ""string"",
-        ""description"": ""The repository ID or name""
-      },
-      ""status"": {
-        ""title"": ""Status"",
-        ""type"": ""string"",
-        ""description"": ""Filter by pull request status (active, abandoned, completed, all)"",
-        ""enum"": [""active"", ""abandoned"", ""completed"", ""all""],
-        ""default"": ""active""
-      },
-      ""creator_id"": {
-        ""title"": ""Creator ID"",
-        ""type"": ""string"",
-        ""description"": ""Filter by creator ID""
-      },
-      ""reviewer_id"": {
-        ""title"": ""Reviewer ID"",
-        ""type"": ""string"",
-        ""description"": ""Filter by reviewer ID""
-      },
-      ""source_reference_name"": {
-        ""title"": ""Source Branch"",
-        ""type"": ""string"",
-        ""description"": ""Filter by source branch name""
-      },
-      ""target_reference_name"": {
-        ""title"": ""Target Branch"",
-        ""type"": ""string"",
-        ""description"": ""Filter by target branch name""
-      },
-      ""top"": {
-        ""title"": ""Top"",
-        ""type"": ""integer"",
-        ""description"": ""Number of pull requests to return"",
-        ""default"": 100
-      },
-      ""skip"": {
-        ""title"": ""Skip"",
-        ""type"": ""integer"",
-        ""description"": ""Number of pull requests to skip"",
-        ""default"": 0
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetPullRequests",
+  "description": "Retrieves pull requests matching specified criteria from an Azure DevOps repository.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "repository_id": { "title": "Repository ID", "type": "string", "description": "The repository ID or name" },
+      "status": { "title": "Status", "type": "string", "description": "Filter by pull request status (active, abandoned, completed, all)", "enum": ["active", "abandoned", "completed", "all"], "default": "active" },
+      "creator_id": { "title": "Creator ID", "type": "string", "description": "Filter by creator ID" },
+      "reviewer_id": { "title": "Reviewer ID", "type": "string", "description": "Filter by reviewer ID" },
+      "source_reference_name": { "title": "Source Branch", "type": "string", "description": "Filter by source branch name" },
+      "target_reference_name": { "title": "Target Branch", "type": "string", "description": "Filter by target branch name" },
+      "top": { "title": "Top", "type": "integer", "description": "Number of pull requests to return", "default": 100 },
+      "skip": { "title": "Skip", "type": "integer", "description": "Number of pull requests to skip", "default": 0 }
     },
-    ""required"": [""organization"", ""project"", ""repository_id""],
-    ""title"": ""AzureDevOpsGetPullRequestsArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "repository_id"],
+    "title": "AzureDevOpsGetPullRequestsArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -36,53 +36,28 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         {
             return new Tool
             {
-                Guid = "3d7c9e5b-8f2a-4d1e-9c6b-7d8f5e3a2c1d",
+                Guid = ToolGuids.AZURE_DEV_OPS_GET_ITEM_CONTENT_TOOL_GUID,
                 Name = "AzureDevOpsGetItemContent",
                 Description = "Retrieves the content of a specific file from an Azure DevOps repository.",
-                Schema = @"{
-  ""name"": ""AzureDevOpsGetItemContent"",
-  ""description"": ""Retrieves the content of a specific file from an Azure DevOps repository."",
-  ""input_schema"": {
-    ""properties"": {
-      ""organization"": {
-        ""title"": ""Organization"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps organization name""
-      },
-      ""project"": {
-        ""title"": ""Project"",
-        ""type"": ""string"",
-        ""description"": ""The Azure DevOps project name""
-      },
-      ""repository_id"": {
-        ""title"": ""Repository ID"",
-        ""type"": ""string"",
-        ""description"": ""The repository ID or name""
-      },
-      ""path"": {
-        ""title"": ""Path"",
-        ""type"": ""string"",
-        ""description"": ""Path to the item in the repository""
-      },
-      ""version_type"": {
-        ""title"": ""Version Type"",
-        ""type"": ""string"",
-        ""description"": ""Type of version identifier (branch, commit, tag)"",
-        ""enum"": [""branch"", ""commit"", ""tag""],
-        ""default"": ""branch""
-      },
-      ""version"": {
-        ""title"": ""Version"",
-        ""type"": ""string"",
-        ""description"": ""Version identifier (branch name, commit ID, or tag name)"",
-        ""default"": ""main""
-      }
+                Schema = """
+{
+  "name": "AzureDevOpsGetItemContent",
+  "description": "Retrieves the content of a specific file from an Azure DevOps repository.",
+  "input_schema": {
+    "properties": {
+      "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
+      "project": { "title": "Project", "type": "string", "description": "The Azure DevOps project name" },
+      "repository_id": { "title": "Repository ID", "type": "string", "description": "The repository ID or name" },
+      "path": { "title": "Path", "type": "string", "description": "Path to the item in the repository" },
+      "version_type": { "title": "Version Type", "type": "string", "description": "Type of version identifier (branch, commit, tag)", "enum": ["branch", "commit", "tag"], "default": "branch" },
+      "version": { "title": "Version", "type": "string", "description": "Version identifier (branch name, commit ID, or tag name)", "default": "main" }
     },
-    ""required"": [""organization"", ""project"", ""repository_id"", ""path""],
-    ""title"": ""AzureDevOpsGetItemContentArguments"",
-    ""type"": ""object""
+    "required": ["organization", "project", "repository_id", "path"],
+    "title": "AzureDevOpsGetItemContentArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "AzureDevOps" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
