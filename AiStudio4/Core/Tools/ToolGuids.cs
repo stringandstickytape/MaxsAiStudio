@@ -54,5 +54,30 @@ namespace AiStudio4.Core.Tools
         public const string NPM_RUN_SCRIPT_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef03";
         public const string OPEN_BROWSER_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef05";
         public const string START_VITE_DEV_SERVER_TOOL_GUID = "v1t3c4e5-f6a7-8901-2345-67890abcdef04";
+        
+        // Core Tools
+        public const string CREATE_NEW_FILE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcd01";
+        public const string DELETE_FILE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcd02";
+        public const string DIRECTORY_TREE_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef04";
+        public const string FILE_SEARCH_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef07";
+        public const string FIND_AND_REPLACE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef08";
+        public const string INFO_REQUEST_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef36";
+        public const string LAUNCH_URL_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef04";
+        public const string MODIFY_FILES_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcd43";
+        public const string PRESENT_RESULTS_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef05";
+        public const string YOUTUBE_SEARCH_TOOL_GUID = "d1e2f3a4-b5c6-7890-1234-567890abcdef10";
+        
+        // Additional Core Tools
+        public const string READ_DATABASE_SCHEMA_TOOL_GUID = "c3d4e5f6-a7b8-9012-3456-7890abcdef16";
+        public const string READ_FILES_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef05";
+        public const string READ_PARTIAL_FILES_TOOL_GUID = "e3f4a5b6-c7d8-9012-3456-78901bcdef12";
+        public const string RECORD_MISTAKE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcdef";
+        public const string RENAME_FILE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcd04";
+        public const string REPLACE_FILE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcd05";
+        public const string RETRIEVE_TEXT_FROM_URL_TOOL_GUID = "c3d4e5f6-a7b8-9012-3456-7890abcdef08";
+        public const string RUN_DUCK_DUCK_GO_SEARCH_TOOL_GUID = "d4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9";
+        public const string STOP_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef01";
+        public const string THINK_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef04";
+        public const string THINK_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef03";
     }
 }

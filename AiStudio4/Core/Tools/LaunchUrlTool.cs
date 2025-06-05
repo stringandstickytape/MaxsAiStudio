@@ -1,5 +1,5 @@
 ﻿// \AiStudio4\Core\Tools\LaunchUrlTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -30,28 +30,23 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-56789abcdef04", // New unique GUID
+                Guid = ToolGuids.LAUNCH_URL_TOOL_GUID,
                 Name = "LaunchUrl",
                 Description = "Launches one or more URLs in the default web browser.",
-                Schema = @"{
-  ""name"": ""LaunchUrl"",
-  ""description"": ""Launches one or more URLs in the default web browser."",
-  ""input_schema"": {
-                ""properties"": {
-                ""urls"": {
-                    ""title"": ""URLs"",
-                    ""description"": ""An array of URLs to launch."",
-                    ""type"": ""array"",
-                    ""items"": {
-                        ""type"": ""string""
-                    }
-                }
-            },
-            ""required"": [""urls""],
-            ""title"": ""launchUrlArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "LaunchUrl",
+  "description": "Launches one or more URLs in the default web browser.",
+  "input_schema": {
+    "properties": {
+      "urls": { "title": "URLs", "description": "An array of URLs to launch.", "type": "array", "items": { "type": "string" } }
+    },
+    "required": ["urls"],
+    "title": "launchUrlArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Development" },
                 OutputFileType = "",
                 Filetype = string.Empty,

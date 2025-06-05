@@ -1,5 +1,5 @@
 ﻿// AiStudio4.Core\Tools\RenameFileTool.cs
-using AiStudio4.Core.Interfaces;
+﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools.CodeDiff;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
@@ -37,35 +37,24 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcd04", // Fixed GUID for RenameFile
+                Guid = ToolGuids.RENAME_FILE_TOOL_GUID,
                 Description = "Renames an existing file to a new path.",
                 Name = "RenameFile",
-                Schema = @"{
-                  ""name"": ""RenameFile"",
-                  ""description"": ""Renames an existing file to a new path. Requires the original file path and the new file path."",
-                  ""input_schema"": {
-                    ""type"": ""object"",
-                    ""properties"": {
-                      ""path"": {
-                        ""type"": ""string"",
-                        ""description"": ""The absolute path to the file to rename""
-                      },
-                      ""newPath"": {
-                        ""type"": ""string"",
-                        ""description"": ""The new absolute path for the file""
-                      },
-                      ""description"": {
-                        ""type"": ""string"",
-                        ""description"": ""A human-readable explanation of this file rename""
-                      }
-                    },
-                    ""required"": [
-                      ""path"",
-                      ""newPath"",
-                      ""description""
-                    ]
-                  }
-                }",
+                Schema = """
+{
+  "name": "RenameFile",
+  "description": "Renames an existing file to a new path. Requires the original file path and the new file path.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "path": { "type": "string", "description": "The absolute path to the file to rename" },
+      "newPath": { "type": "string", "description": "The new absolute path for the file" },
+      "description": { "type": "string", "description": "A human-readable explanation of this file rename" }
+    },
+    "required": ["path", "newPath", "description"]
+  }
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "json",
                 Filetype = string.Empty,

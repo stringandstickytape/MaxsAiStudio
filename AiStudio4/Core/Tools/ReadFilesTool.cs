@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -31,29 +31,31 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef05", // Fixed GUID for ReadFile
+                Guid = ToolGuids.READ_FILES_TOOL_GUID,
                 Name = "ReadFiles",
                 ExtraProperties = new Dictionary<string, string> {
                     { "excludedFileExtensions (CSV)", "" }, //".cs" }
                 },
                 Description = "Read the contents of one or multiple files.",
-                Schema = @"{
-  ""name"": ""ReadFiles"",
-  ""description"": ""Read the contents of one or multiple files.  Can read a single file or multiple files simultaneously. When reading multiple files, each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories.  YOU MUST NEVER fetch the same file twice in succession."",
-  ""input_schema"": {
-                ""properties"": {
-                ""paths"": {
-                    ""anyOf"": [
-                        {""items"": {""type"": ""string""}, ""type"": ""array""},
-                        {""type"": ""string""}
-                    ],
-                    ""description"": ""absolute path to the file or files to read""
-                }
-            },
-            ""required"": [""paths""],
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "ReadFiles",
+  "description": "Read the contents of one or multiple files.  Can read a single file or multiple files simultaneously. When reading multiple files, each file's content is returned with its path as a reference. Failed reads for individual files won't stop the entire operation. Only works within allowed directories.  YOU MUST NEVER fetch the same file twice in succession.",
+  "input_schema": {
+    "properties": {
+      "paths": {
+        "anyOf": [
+          { "items": { "type": "string" }, "type": "array" },
+          { "type": "string" }
+        ],
+        "description": "absolute path to the file or files to read"
+      }
+    },
+    "required": ["paths"],
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -32,40 +32,26 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+                Guid = ToolGuids.RECORD_MISTAKE_TOOL_GUID,
                 Name = "RecordMistake",
                 Description = "Records AI mistakes for future reference",
-                Schema = @"{
-  ""name"": ""RecordMistake"",
-  ""description"": ""Records a mistake made by the AI to help avoid similar issues in the future. The mistake will be logged in CommonAiMistakes.md in the project root."",
-  ""input_schema"": {
-                ""properties"": {
-""mistake_title"": {
-                    ""title"": ""Mistake Title"",
-                    ""type"": ""string"",
-                    ""description"":""A brief title describing the mistake""
-                },
-""mistake_description"": {
-                    ""title"": ""Mistake Description"",
-                    ""type"": ""string"",
-                    ""description"":""Succinct description of what went wrong""
-                },
-""root_cause"": {
-                    ""title"": ""Root Cause"",
-                    ""type"": ""string"",
-                    ""description"":""Succinct analysis of why the mistake occurred""
-                },
-""prevention_strategy"": {
-                    ""title"": ""Prevention Strategy"",
-                    ""type"": ""string"",
-                    ""description"":""How to avoid making this mistake in the future""
-                }
-            },
-           ""required"": [""mistake_title"", ""mistake_description"", ""root_cause"", ""prevention_strategy""],
-            ""title"": ""RecordMistakeArguments"",
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "RecordMistake",
+  "description": "Records a mistake made by the AI to help avoid similar issues in the future. The mistake will be logged in CommonAiMistakes.md in the project root.",
+  "input_schema": {
+    "properties": {
+      "mistake_title": { "title": "Mistake Title", "type": "string", "description": "A brief title describing the mistake" },
+      "mistake_description": { "title": "Mistake Description", "type": "string", "description": "Succinct description of what went wrong" },
+      "root_cause": { "title": "Root Cause", "type": "string", "description": "Succinct analysis of why the mistake occurred" },
+      "prevention_strategy": { "title": "Prevention Strategy", "type": "string", "description": "How to avoid making this mistake in the future" }
+    },
+    "required": ["mistake_title", "mistake_description", "root_cause", "prevention_strategy"],
+    "title": "RecordMistakeArguments",
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,

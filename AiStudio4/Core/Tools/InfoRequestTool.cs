@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -25,23 +25,22 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "b2c3d4e5-f6a7-8901-2345-67890abcdef36", // Fixed GUID for infoRequest
+                Guid = ToolGuids.INFO_REQUEST_TOOL_GUID,
                 Name = "infoRequest",
                 Description = "A tool which allows you to request more information from the user",
-                Schema = @"{
-  ""name"": ""infoRequest"",
-  ""description"": ""A tool which allows you to request more information from the user, be it further file contents or other information"",
-  ""input_schema"": {
-    ""properties"": {
-      ""message"": {
-        ""description"": ""The request for information that you want to send to the user"",
-        ""type"": ""string""
-      }
+                Schema = """
+{
+  "name": "infoRequest",
+  "description": "A tool which allows you to request more information from the user, be it further file contents or other information",
+  "input_schema": {
+    "properties": {
+      "message": { "description": "The request for information that you want to send to the user", "type": "string" }
     },
-    ""required"": [""message""],
-    ""type"": ""object""
+    "required": ["message"],
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Development" },
                 OutputFileType = "",
                 Filetype = string.Empty,

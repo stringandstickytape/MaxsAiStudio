@@ -1,4 +1,4 @@
-using AiStudio4.Core.Interfaces;
+﻿﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Microsoft.Extensions.Logging;
@@ -37,28 +37,23 @@ namespace AiStudio4.Core.Tools
         {
             return new Tool
             {
-                Guid = "d4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9", 
+                Guid = ToolGuids.RUN_DUCK_DUCK_GO_SEARCH_TOOL_GUID, 
                 Name = "RunDuckDuckGoSearch",
                 Description = "Searches DuckDuckGo and returns formatted search results.",
-                Schema = @"{
-  ""name"": ""RunDuckDuckGoSearch"",
-  ""description"": ""Searches DuckDuckGo and returns a formatted list of search results with titles, snippets, and URLs."",
-  ""input_schema"": {
-                ""properties"": {
-                ""query"": {
-                    ""type"": ""string"",
-                    ""description"": ""The search query to send to DuckDuckGo""
-                },
-                ""maxResults"": {
-                    ""type"": ""integer"",
-                    ""description"": ""Maximum number of results to return (default: 10)"",
-                    ""default"": 10
-                }
-            },
-            ""required"": [""query""],
-            ""type"": ""object""
+                Schema = """
+{
+  "name": "RunDuckDuckGoSearch",
+  "description": "Searches DuckDuckGo and returns a formatted list of search results with titles, snippets, and URLs.",
+  "input_schema": {
+    "properties": {
+      "query": { "type": "string", "description": "The search query to send to DuckDuckGo" },
+      "maxResults": { "type": "integer", "description": "Maximum number of results to return (default: 10)", "default": 10 }
+    },
+    "required": ["query"],
+    "type": "object"
   }
-}",
+}
+""",
                 Categories = new List<string> { "Development"},
                 OutputFileType = "txt",
                 Filetype = string.Empty,
