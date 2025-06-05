@@ -150,7 +150,7 @@ namespace AiStudio4.Core.Services
 
                     var lastPathToken = dir.Split("\\").Last();
 
-                    if (_generalSettingsService.CurrentSettings.PackerExcludeFolderNames.Any(x => x.Contains(lastPathToken, StringComparison.InvariantCultureIgnoreCase)))
+                    if (_generalSettingsService.CurrentSettings.PackerExcludeFolderNames.Any(x => dir.Contains(x, StringComparison.InvariantCultureIgnoreCase)))
                         continue;
 
                     directories.Add(dir);
