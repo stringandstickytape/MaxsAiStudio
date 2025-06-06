@@ -49,24 +49,24 @@ namespace AiStudio4.Core.Tools
       },
       "num_results": {
         "type": "integer",
-        "description": "Number of search results to return. Default is 10, maximum is 10 for the free tier, can be higher for paid APIs (check Google's docs).",
+        "description": "Number of search results to return. Default is 10, maximum is 50",
         "default": 10,
         "minimum": 1,
-        "maximum": 10 
+        "maximum": 50 
       },
       "start_index": {
         "type": "integer",
-        "description": "The index of the first result to return (1-based). Used for pagination. Default is 1.",
+        "description": "The index of the first result to return (1-based). Used for pagination. Default is 1",
         "default": 1,
         "minimum": 1
       },
       "language_restrict": {
         "type": "string",
-        "description": "Restricts search results to documents written in a particular language (e.g., 'lang_en', 'lang_fr'). (Optional)"
+        "description": "Restricts search results to documents written in a particular language (e.g., 'lang_en'). (Optional)"
       },
       "country_restrict": {
         "type": "string",
-        "description": "Restricts search results to documents originating in a particular country using boolean operators (e.g., 'countryUS', 'countryCA.countryMX'). (Optional)"
+        "description": "Restricts search results to documents originating in a particular country (e.g., 'countryUS', 'countryCA.countryMX'). (Optional)"
       },
       "site_search": {
         "type": "string",
