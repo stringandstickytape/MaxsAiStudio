@@ -132,7 +132,7 @@ namespace AiStudio4.Core.Tools
                     { "key", apiKey },
                     { "cx", cseId },
                     { "q", query },
-                    { "num", numResults.ToString() },
+                    { "number", numResults.ToString() },
                     { "start", startIndex.ToString() }
                 };
 
