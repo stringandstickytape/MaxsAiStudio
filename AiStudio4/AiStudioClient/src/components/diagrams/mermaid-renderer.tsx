@@ -202,19 +202,6 @@ export const MermaidRenderer: CodeBlockRenderer = {
     initialize: () => {
         configureMermaidTheme(); // Initial theme configuration
     },
-    render: async (content: string, element: HTMLElement) => {
-        // This direct render is less used now with the Component approach,
-        // but kept for compatibility or direct DOM manipulation scenarios.
-        try {
-            const id = 'mermaid-svg-' + Math.random().toString(36).substring(2, 9);
-            const { svg } = await mermaid.render(id, content);
-            element.innerHTML = wrapSvgWithZoomControls(svg);
-            initializeZoomPan(element);
-        } catch (error) {
-            console.error('Failed to render mermaid diagram:', error);
-            element.innerHTML = `<div class="error">Failed to render diagram: ${error instanceof Error ? error.message : String(error)}</div>`;
-        }
-    },
     Component: ({ content, className }) => {
         const containerRef = useRef<HTMLDivElement>(null);
         const [error, setError] = useState<string | null>(null);
@@ -222,38 +209,66 @@ export const MermaidRenderer: CodeBlockRenderer = {
 
         const renderDiagram = useCallback(async () => {
             if (!containerRef.current) return;
+            // Clear previous content and errors
+            containerRef.current.innerHTML = '';
+            setError(null);
+
             try {
-                // Ensure mermaid is configured with the current theme before rendering
+                
+                // 1. Validate the Mermaid syntax first. This will throw an error on invalid syntax.
+                let parsed = await mermaid.parse(content, { suppressErrors: true });
+                if (!parsed) {
+                    console.error('Mermaid rendering failed');
+                    setError('Mermaid rendering failed');
+                    return;
+                }
+
+                // 2. If validation succeeds, proceed to render the diagram.
                 configureMermaidTheme();
                 const { svg } = await mermaid.render(diagramId, content);
                 if (containerRef.current) {
                     containerRef.current.innerHTML = wrapSvgWithZoomControls(svg);
                     initializeZoomPan(containerRef.current);
                 }
-                setError(null);
             } catch (err) {
-                console.error('Failed to render mermaid diagram in component:', err);
-                setError(err instanceof Error ? err.message : String(err));
+                // 3. Catch errors from either mermaid.parse() or mermaid.render().
+                const errorMessage = err instanceof Error ? err.message : String(err);
+                console.error('Mermaid rendering failed:', errorMessage);
+                setError(errorMessage);
             }
         }, [content, diagramId]);
 
         useEffect(() => {
-            renderDiagram(); // Initial render
-
+            try {
+                debugger;
+                renderDiagram(); // Initial render
+            } catch (err) {
+                // 3. Catch errors from either mermaid.parse() or mermaid.render().
+                const errorMessage = err instanceof Error ? err.message : String(err);
+                console.error('Mermaid rendering failed:', errorMessage);
+                setError(errorMessage);
+            }
+             
             const handleThemeChange = () => {
                 renderDiagram(); // Re-render on theme change
             };
 
-            window.addEventListener('themechange', handleThemeChange);
+            window.addEventListener('themechange', handleThemeChange as EventListener);
             return () => {
-                window.removeEventListener('themechange', handleThemeChange);
+                window.removeEventListener('themechange', handleThemeChange as EventListener);
             };
         }, [renderDiagram]); // renderDiagram dependency includes content and diagramId
 
+        // Enhanced JSX for displaying the error or the diagram
         return (
             <div className={`${className || ''}`}>
                 {error ? (
-                    <div className="text-red-500 p-2 border border-red-300 rounded">Failed to render diagram: {error}</div>
+                    <div className="p-3 border border-red-500/50 rounded-md bg-red-900/20 text-red-300 text-xs">
+                        <p className="font-bold mb-2">Mermaid Syntax Error</p>
+                        <pre className="whitespace-pre-wrap font-mono text-sm">
+                            {error}
+                        </pre>
+                    </div>
                 ) : (
                     <div ref={containerRef} className="mermaid-container w-full" />
                 )}
