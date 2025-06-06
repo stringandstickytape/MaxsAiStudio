@@ -2,6 +2,7 @@
 import React, { RefObject } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChevronUp, Edit, MessageSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SystemPrompt } from '@/types/systemPrompt';
@@ -92,35 +93,43 @@ export function SystemPromptPortal({
             {currentPrompt?.content || 'No system prompt content'}
           </pre>
           <div className="flex flex-wrap gap-1 mb-3">
-            {prompts.map(prompt => (
-              <Button
-                key={prompt.guid}
-                variant="outline"
-                size="sm"
-                onClick={() => onSelectPrompt(prompt)}
-                onMouseDown={async e => {
-                  if (e.button === 1 && !isProcessing) {
-                    e.preventDefault();
-                    setIsProcessing(true);
-                    try {
-                      await onMiddleClickPrompt(prompt);
-                    } finally {
-                      setIsProcessing(false);
-                    }
-                  }
-                }}
-                disabled={isProcessing}
-                style={{ backgroundColor: selectedPromptGuid === prompt.guid ? 'var(--systemprompt-accent-color, #3b82f6)33' : 'var(--systemprompt-bg, #2d3748)' }}
-                className={cn(
-                  'h-5 px-2 py-0 text-xs rounded-full border transition-colors flex-shrink-0',
-                  selectedPromptGuid === prompt.guid
-                    ? 'border-blue-700/30 hover:bg-blue-600/40 hover:text-blue-100'
-                    : 'border-gray-700/20 hover:bg-gray-600/30'
-                )}
-              >
-                {prompt.title}
-              </Button>
-            ))}
+            <TooltipProvider delayDuration={300}>
+              {prompts.map(prompt => (
+                <Tooltip key={prompt.guid}>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onSelectPrompt(prompt)}
+                      onMouseDown={async e => {
+                        if (e.button === 1 && !isProcessing) {
+                          e.preventDefault();
+                          setIsProcessing(true);
+                          try {
+                            await onMiddleClickPrompt(prompt);
+                          } finally {
+                            setIsProcessing(false);
+                          }
+                        }
+                      }}
+                      disabled={isProcessing}
+                      style={{ backgroundColor: selectedPromptGuid === prompt.guid ? 'var(--systemprompt-accent-color, #3b82f6)33' : 'var(--systemprompt-bg, #2d3748)' }}
+                      className={cn(
+                        'h-5 px-2 py-0 text-xs rounded-full border transition-colors flex-shrink-0',
+                        selectedPromptGuid === prompt.guid
+                          ? 'border-blue-700/30 hover:bg-blue-600/40 hover:text-blue-100'
+                          : 'border-gray-700/20 hover:bg-gray-600/30'
+                      )}
+                    >
+                      {prompt.title}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" align="center">
+                    <p className="text-xs">Click to select • Middle-click to set as default</p>
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </TooltipProvider>
           </div>
           <div className="flex justify-end">
             <Button
