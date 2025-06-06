@@ -241,7 +241,7 @@ function MessageInputAreaComponent({
 * CTRL+Return to send
 * CTRL+Return to interject (during AI tool loops)
 * Type / for quicklist of user prompts and project files
-* SHIFT+select a file in the slash menu to attach it"
+* SHIFT+select a file in the slash menu to attach it; add CTRL to insert the filename as well"
                 disabled={disabled}
                 showLineCount={true}
                 style={textareaStyle}

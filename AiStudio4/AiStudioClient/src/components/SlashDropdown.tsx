@@ -249,8 +249,12 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
         case 'Enter':
           e.preventDefault();
           if (items[selectedIndex]) {
-            // Check if shift key is pressed for file attachment
-            if (e.shiftKey && onAttachFile) {
+            // Check for Ctrl+Shift combination for both insertion and attachment
+            if (e.ctrlKey && e.shiftKey && onAttachFile) {
+              handleCombinedInsertAndAttach(items[selectedIndex]);
+            }
+            // Check if shift key is pressed for file attachment only
+            else if (e.shiftKey && onAttachFile) {
               handleFileAttachment(items[selectedIndex]);
             } else {
               selectItem(items[selectedIndex]);
@@ -288,6 +292,49 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
       onSelect(text + ' ');
     } catch (error) {
       console.error('Error getting text to insert:', error);
+    }
+  };
+
+  // Handle combined insertion and attachment (when ctrl+shift+selecting an item)
+  const handleCombinedInsertAndAttach = async (item: SlashItem) => {
+    try {
+      if (!onAttachFile) return;
+      
+      // First, insert the filename text
+      const text = await item.getTextToInsert();
+      onSelect(text + ' ');
+      
+      // Then, attach the file
+      const filePath = text;
+      
+      // Call the API to get the file content
+      const fileContentRequest = createApiRequest('/api/getFileContent', 'POST');
+      const response = await fileContentRequest({ filePath });
+      
+      if (response.success && response.attachment) {
+        // Convert base64 to ArrayBuffer for content
+        const arrBuf = base64ToArrayBuffer(response.attachment.content);
+        
+        // Create a File object from the response
+        const file = new File(
+          [arrBuf],
+          response.attachment.name,
+          {
+            type: response.attachment.type,
+            lastModified: response.attachment.lastModified
+          }
+        );
+        
+        // Call the callback to add the file as an attachment
+        onAttachFile(file);
+        
+        // Close the dropdown
+        onCancel();
+      } else {
+        console.error('Failed to get file content:', response.error);
+      }
+    } catch (error) {
+      console.error('Error in combined insert and attach:', error);
     }
   };
 
@@ -370,8 +417,12 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
           key={item.id}
           className={`slash-item ${index === selectedIndex ? 'selected' : ''}`}
           onClick={(e) => {
-            // Handle shift+click for file attachment
-            if (e.shiftKey && onAttachFile) {
+            // Handle Ctrl+Shift+click for both insertion and attachment
+            if (e.ctrlKey && e.shiftKey && onAttachFile) {
+              handleCombinedInsertAndAttach(item);
+            }
+            // Handle shift+click for file attachment only
+            else if (e.shiftKey && onAttachFile) {
               handleFileAttachment(item);
             } else {
               selectItem(item);
@@ -388,7 +439,7 @@ export const SlashDropdown: React.FC<SlashDropdownProps> = ({
             position: 'relative'
           }}
           title={item.category === 'Files' ? 
-            "Click to insert filename; Shift+click to attach" : 
+            "Click to insert filename; Shift+click to attach; Ctrl+Shift+click to insert and attach" : 
             `Click to insert ${item.name}`}
         >
           <div className="slash-item-name" style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}>{item.name}</div>

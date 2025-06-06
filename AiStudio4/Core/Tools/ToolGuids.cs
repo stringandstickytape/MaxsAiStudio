@@ -61,7 +61,6 @@ namespace AiStudio4.Core.Tools
         public const string DIRECTORY_TREE_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef04";
         public const string FILE_SEARCH_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef07";
         public const string FIND_AND_REPLACE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef08";
-        public const string INFO_REQUEST_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef36";
         public const string LAUNCH_URL_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef04";
         public const string MODIFY_FILES_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcd43";
         public const string PRESENT_RESULTS_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef05";
