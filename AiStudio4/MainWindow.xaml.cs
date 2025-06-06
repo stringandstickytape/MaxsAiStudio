@@ -1,5 +1,4 @@
-﻿
-using AiStudio4.Dialogs; 
+﻿using AiStudio4.Dialogs; 
 using AiStudio4.InjectedDependencies; 
 using AiStudio4.Services;
 using AiStudio4.Core.Interfaces;
@@ -30,6 +29,7 @@ using System.Collections.Generic;
 using AiStudio4.Core.Models;
 using Newtonsoft.Json;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Cryptography;
 
 namespace AiStudio4;
 
@@ -1424,6 +1424,35 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
         if (enableWikiSyncMenuItem != null)
         {
             enableWikiSyncMenuItem.IsChecked = _generalSettingsService.CurrentSettings.EnableWikiSystemPromptSync;
+        }
+    }
+
+        public string GetDecryptedAzureDevOpsPAT()
+        {
+            try { return !string.IsNullOrEmpty(_generalSettingsService.CurrentSettings.EncryptedAzureDevOpsPAT) ? GeneralSettingsService.UnprotectData(Convert.FromBase64String(_generalSettingsService.CurrentSettings.EncryptedAzureDevOpsPAT)) : null; }
+            catch (CryptographicException) { _generalSettingsService.CurrentSettings.EncryptedAzureDevOpsPAT = null; _generalSettingsService.SaveSettings(); return null; }
+        }
+
+    private void SetGoogleCustomSearchApiKeyMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        string currentKey = _generalSettingsService.GetDecryptedGoogleCustomSearchApiKey() ?? string.Empty;
+        var dialog = new WpfInputDialog("Set Google Custom Search API Key", "Enter your Google Custom Search API Key:", currentKey) { Owner = this };
+
+        if (dialog.ShowDialog() == true)
+        {
+            string newKey = dialog.ResponseText;
+            if (newKey != currentKey)
+            {
+                try
+                {
+                    _generalSettingsService.UpdateGoogleCustomSearchApiKey(newKey);
+                    MessageBox.Show("Google Custom Search API Key updated successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error saving Google Custom Search API Key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
     }
 }

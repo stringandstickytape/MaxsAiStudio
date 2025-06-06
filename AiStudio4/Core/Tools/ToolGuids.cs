@@ -80,5 +80,6 @@ namespace AiStudio4.Core.Tools
         public const string THINK_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef04";
         public const string THINK_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef03";
         public const string GEMINI_GOOGLE_SEARCH_TOOL_GUID = "g3m1n1s3-a4r5-c6h7-8901-234567890abc";
+        public const string GOOGLE_CUSTOM_SEARCH_API_TOOL_GUID = "g00g1e5e-a7c8-4d1f-9b2e-3c5d7f9a1b3c";
     }
 }

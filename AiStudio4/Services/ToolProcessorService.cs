@@ -225,7 +225,7 @@ namespace AiStudio4.Services
                 {
                     if (toolRequestInfo.Length > 0)
                         toolRequestInfo.AppendLine();
-                    toolRequestInfo.Append($"Tool use requested: {tool.ToolName}");
+                    toolRequestInfo.Append($"Use Tool: {tool.ToolName}");
 
                     // Include parameters hash to ensure we can detect duplicate calls with different parameters
                     // without storing potentially large parameter text
