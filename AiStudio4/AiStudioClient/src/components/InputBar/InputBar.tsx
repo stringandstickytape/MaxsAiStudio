@@ -323,16 +323,18 @@ export function InputBar({
                 {/* Middle Section (Textarea and Attachments) */}
                 <div className="flex-1 flex gap-2 overflow-hidden mb-2">
                     {/* Textarea Column */}
-                    <MessageInputArea
-                        ref={textareaRef}
-                        inputText={inputText}
-                        setInputText={setInputText}
-                        onSend={handleSend}
-                        isLoading={isLoading}
-                        disabled={disabled}
-                        onCursorPositionChange={setCursorPosition}
-                        onAttachFile={addAttachment}
-                    />
+                    <div style={{ minHeight: '140px' }}>
+                        <MessageInputArea
+                            ref={textareaRef}
+                            inputText={inputText}
+                            setInputText={setInputText}
+                            onSend={handleSend}
+                            isLoading={isLoading}
+                            disabled={disabled}
+                            onCursorPositionChange={setCursorPosition}
+                            onAttachFile={addAttachment}
+                        />
+                    </div>
 
                     {/* Attachments Section */}
                     <AttachmentSection
