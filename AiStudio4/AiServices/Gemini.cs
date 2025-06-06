@@ -54,9 +54,29 @@ namespace AiStudio4.AiServices
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
 
             
+            // Add tools to request if not forcing no tools
+            // Special handling for GEMINI_INTERNAL_GOOGLE_SEARCH directive
+            bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
+            
             if (!forceNoTools)
             {
-                await AddToolsToRequestAsync(requestPayload, options.ToolIds);
+                if (hasGoogleSearchDirective)
+                {
+                    // When GEMINI_INTERNAL_GOOGLE_SEARCH is specified, add Google Search tool
+                    
+                    // Add Google Search tool to the request
+                    requestPayload["tools"] = new JArray
+                    {
+                        new JObject
+                        {
+                            ["google_search"] = new JObject()
+                        }
+                    };
+                }
+                else
+                {
+                    await AddToolsToRequestAsync(requestPayload, options.ToolIds);
+                }
             }
 
             

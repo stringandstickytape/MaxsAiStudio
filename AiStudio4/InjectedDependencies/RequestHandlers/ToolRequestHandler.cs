@@ -124,7 +124,9 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 if (tool == null || string.IsNullOrEmpty(tool.Guid)) 
                     return SerializeError("Invalid tool data or missing tool ID");
 
-                _builtInToolExtraPropertiesService.SaveExtraProperties(tool.Name, tool.ExtraProperties);
+                var matchedTool = await _toolService.GetToolByIdAsync(tool.Guid);
+
+                _builtInToolExtraPropertiesService.SaveExtraProperties(matchedTool.Name, tool.ExtraProperties);
 
                 var result = await _toolService.UpdateToolAsync(tool);
                 return JsonConvert.SerializeObject(new { success = true, tool = result });
