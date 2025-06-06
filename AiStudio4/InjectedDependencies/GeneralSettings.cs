@@ -24,6 +24,7 @@ namespace AiStudio4.InjectedDependencies
         public string EncryptedYouTubeApiKey { get; set; }
         public string EncryptedGitHubApiKey { get; set; }
         public string EncryptedAzureDevOpsPAT { get; set; }
+        public string EncryptedGoogleCustomSearchApiKey { get; set; }
         // --- END MODIFIED API KEY PROPERTIES ---
 
         public string CondaPath { get; set; }
@@ -54,6 +55,8 @@ namespace AiStudio4.InjectedDependencies
         public string GitHubApiKey { get; set; }
         [Obsolete("Use EncryptedAzureDevOpsPAT. This property is for migration only.")]
         public string AzureDevOpsPAT { get; set; }
+        [Obsolete("Use EncryptedGoogleCustomSearchApiKey. This property is for migration only.")]
+        public string GoogleCustomSearchApiKey { get; set; }
         
         [Obsolete("Use DefaultModelGuid instead")]
         public string DefaultModel { get; set; } = string.Empty;

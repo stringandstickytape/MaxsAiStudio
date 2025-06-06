@@ -122,6 +122,10 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 #### YouTube Tools
 *   [YouTubeSearchTool](tools/you-tube-search-tool.md)
 
+#### Google Search Tools
+*   [GoogleCustomSearchApiTool](tools/google-custom-search-api-tool.md)
+*   [GeminiGoogleSearchTool](tools/gemini-google-search-tool.md)
+
 ### 5.2.2 Model Context Protocol (MCP)
 AiStudio4 can connect to external tool servers that implement the Model Context Protocol.
 1.  **Manage MCP Servers:**

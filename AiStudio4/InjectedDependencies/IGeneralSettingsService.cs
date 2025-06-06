@@ -33,6 +33,9 @@ namespace AiStudio4.InjectedDependencies
 
         void UpdateAzureDevOpsPAT(string plaintextPat);
         string GetDecryptedAzureDevOpsPAT();
+
+        void UpdateGoogleCustomSearchApiKey(string plaintextApiKey);
+        string GetDecryptedGoogleCustomSearchApiKey();
         // --- END MODIFIED/NEW API KEY METHODS ---
 
         void UpdateCondaPath(string path);

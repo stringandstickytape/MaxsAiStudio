@@ -245,7 +245,7 @@ namespace AiStudio4.Services
                     
                     if (request.ToolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
                     {
-                        var stopTool = (await _toolService.GetToolByToolNameAsync("Think")).Guid;
+                        var stopTool = (await _toolService.GetToolByToolNameAsync("PresentResultsAndAwaitUserInput")).Guid;
                         if (!request.ToolIds.Contains(stopTool))
                             request.ToolIds.Add(stopTool);
 

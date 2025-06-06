@@ -40,7 +40,7 @@ namespace AiStudio4.InjectedDependencies
             return ProtectedData.Protect(dataBytes, s_entropy, DataProtectionScope.CurrentUser);
         }
 
-        private string UnprotectData(byte[] encryptedData)
+        public static string UnprotectData(byte[] encryptedData)
         {    
             if (encryptedData == null || encryptedData.Length == 0) return null;
             
@@ -220,6 +220,12 @@ namespace AiStudio4.InjectedDependencies
                             CurrentSettings.AzureDevOpsPAT = null;
                             settingsModifiedDuringLoad = true;
                         }
+                        if (!string.IsNullOrEmpty(CurrentSettings.GoogleCustomSearchApiKey) && string.IsNullOrEmpty(CurrentSettings.EncryptedGoogleCustomSearchApiKey))
+                        {
+                            CurrentSettings.EncryptedGoogleCustomSearchApiKey = CurrentSettings.GoogleCustomSearchApiKey != null ? Convert.ToBase64String(ProtectData(CurrentSettings.GoogleCustomSearchApiKey)) : null;
+                            CurrentSettings.GoogleCustomSearchApiKey = null;
+                            settingsModifiedDuringLoad = true;
+                        }
 
                         // Initialize PackerExcludeFolderNames if it's null (e.g., from older settings file)
                         if (CurrentSettings.PackerExcludeFolderNames == null)
@@ -326,6 +332,7 @@ namespace AiStudio4.InjectedDependencies
                 settingsToSaveToken.Remove("YouTubeApiKey");
                 settingsToSaveToken.Remove("GitHubApiKey");
                 settingsToSaveToken.Remove("AzureDevOpsPAT");
+                settingsToSaveToken.Remove("GoogleCustomSearchApiKey");
                 
                 settingsToSaveToken.Remove("DefaultModel");
                 settingsToSaveToken.Remove("SecondaryModel");
@@ -443,6 +450,18 @@ namespace AiStudio4.InjectedDependencies
         {
             try { return !string.IsNullOrEmpty(CurrentSettings.EncryptedAzureDevOpsPAT) ? UnprotectData(Convert.FromBase64String(CurrentSettings.EncryptedAzureDevOpsPAT)) : null; }
             catch (CryptographicException) { CurrentSettings.EncryptedAzureDevOpsPAT = null; SaveSettings(); return null; }
+        }
+
+        public void UpdateGoogleCustomSearchApiKey(string plaintextApiKey)
+        {
+            CurrentSettings.EncryptedGoogleCustomSearchApiKey = !string.IsNullOrEmpty(plaintextApiKey) ? Convert.ToBase64String(ProtectData(plaintextApiKey)) : null;
+            SaveSettings();
+        }
+
+        public string GetDecryptedGoogleCustomSearchApiKey()
+        {
+            try { return !string.IsNullOrEmpty(CurrentSettings.EncryptedGoogleCustomSearchApiKey) ? UnprotectData(Convert.FromBase64String(CurrentSettings.EncryptedGoogleCustomSearchApiKey)) : null; }
+            catch (CryptographicException) { CurrentSettings.EncryptedGoogleCustomSearchApiKey = null; SaveSettings(); return null; }
         }
 
         public void UpdateCondaPath(string path) { CurrentSettings.CondaPath = path; SaveSettings(); }
