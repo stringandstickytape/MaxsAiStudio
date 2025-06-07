@@ -39,7 +39,6 @@ public partial class WebViewWindow : Window
     private readonly IMcpService _mcpService;
     private readonly IGeneralSettingsService _generalSettingsService;
     private readonly IAppearanceSettingsService _appearanceSettingsService;
-    private readonly IProjectHistoryService _projectHistoryService;
     private readonly IBuiltinToolService _builtinToolService;
     private readonly IWebSocketNotificationService _notificationService;
     private readonly IProjectPackager _projectPackager;
@@ -61,7 +60,6 @@ public partial class WebViewWindow : Window
                          IMcpService mcpService,
                          IGeneralSettingsService generalSettingsService,
                          IAppearanceSettingsService appearanceSettingsService,
-                         IProjectHistoryService projectHistoryService,
                          IBuiltinToolService builtinToolService,
                          IWebSocketNotificationService notificationService,
                          IProjectPackager projectPackager,
@@ -79,7 +77,6 @@ public partial class WebViewWindow : Window
         _mcpService = mcpService;
         _generalSettingsService = generalSettingsService;
         _appearanceSettingsService = appearanceSettingsService;
-        _projectHistoryService = projectHistoryService;
         _builtinToolService = builtinToolService;
         _notificationService = notificationService;
         _projectPackager = projectPackager;
@@ -437,46 +434,6 @@ public partial class WebViewWindow : Window
     {
         Application.Current.Shutdown();
     }
-    private void SetProjectPathMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        var dialog = new OpenFolderDialog
-        {
-            Title = "Select Project Path",
-            InitialDirectory = _generalSettingsService.CurrentSettings.ProjectPath ?? Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
-        };
-        if (dialog.ShowDialog() == true)
-        {
-            try
-            {
-                string selectedPath = dialog.FolderName;
-                string oldPath = _generalSettingsService.CurrentSettings.ProjectPath;
-                
-                
-                if (selectedPath != oldPath)
-                {
-                    _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
-                    _projectHistoryService.AddProjectPathToHistory(selectedPath);
-                    _generalSettingsService.SaveSettings();
-                    _projectHistoryService.SaveSettings();
-                    
-                    
-                    _builtinToolService.UpdateProjectRoot();
-                    
-                    UpdateWindowTitle(); 
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error setting project path: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-    }
-
-
-
-
-
-
     
     private void ExploreProjectMenuItem_Click(object sender, RoutedEventArgs e)
     {

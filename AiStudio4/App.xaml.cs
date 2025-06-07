@@ -101,7 +101,6 @@ namespace AiStudio4
             services.AddSingleton<IConversationArchivingService, ConversationArchivingService>();
             services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();
             services.AddSingleton<IAppearanceSettingsService, AppearanceSettingsService>();
-            services.AddSingleton<IProjectHistoryService, ProjectHistoryService>();
             services.AddSingleton<IBuiltInToolExtraPropertiesService, BuiltInToolExtraPropertiesService>();
             services.AddSingleton<WebSocketConnectionManager>();
             services.AddSingleton<WebSocketMessageHandler>();
@@ -160,7 +159,6 @@ namespace AiStudio4
             // Get settings manager
             var generalSettingsService = _serviceProvider.GetRequiredService<IGeneralSettingsService>();
             var appearanceSettingsService = _serviceProvider.GetRequiredService<IAppearanceSettingsService>();
-            var projectHistoryService = _serviceProvider.GetRequiredService<IProjectHistoryService>();
 
             var webViewWindow = _serviceProvider.GetRequiredService<WebViewWindow>();
             webViewWindow.Show();
