@@ -69,6 +69,7 @@ namespace AiStudio4.Core.Tools
             try
             {
                 SendStatusUpdate("Starting DirectoryTree tool execution...");
+
                 _extraProperties = extraProperties;
                 var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
