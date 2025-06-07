@@ -834,64 +834,94 @@ public partial class WebViewWindow : Window
         }
     }
     
-    private async void PackProjectSourceCode_Click(object sender, RoutedEventArgs e)
+    private async Task<bool> ExecutePackingOperationAsync(string outputFilePath)
     {
+        // 1. Validate the output path
+        if (string.IsNullOrWhiteSpace(outputFilePath))
+        {
+            MessageBox.Show("An output file path must be specified.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
+        }
+
+        // 2. Get project path from settings
+        string projectPath = _generalSettingsService.CurrentSettings.ProjectPath;
+        if (string.IsNullOrWhiteSpace(projectPath) || !Directory.Exists(projectPath))
+        {
+            MessageBox.Show("Project path is not set or does not exist.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return false;
+        }
+
+        // 3. Show a "working" message
+        MessageBox.Show($"Packing project to:\n{outputFilePath}\n\nThis may take a moment.", "Processing", MessageBoxButton.OK, MessageBoxImage.Information);
+
         try
         {
-            
-            string projectPath = _generalSettingsService.CurrentSettings.ProjectPath;
-            if (string.IsNullOrWhiteSpace(projectPath))
+            // 4. Gather packaging parameters
+            var includeExtensions = _generalSettingsService.CurrentSettings.PackerIncludeFileTypes ?? new List<string>();
+            var binaryFileExtensions = new List<string>
             {
-                MessageBox.Show("Project path is not set.", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            if (!Directory.Exists(projectPath))
-            {
-                MessageBox.Show($"Project directory does not exist: {projectPath}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                return;
-            }
-
-            
-            var saveFileDialog = new SaveFileDialog
-            {
-                Title = "Save Project Source Code Package",
-                Filter = "XML Files|*.xml|All Files|*.*",
-                FilterIndex = 1,
-                DefaultExt = ".xml",
-                FileName = $"{Path.GetFileName(projectPath)}_SourceCode.xml",
-                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+                ".exe", ".dll", ".pdb", ".obj", ".bin", ".dat", ".zip", ".rar", ".7z", ".tar", ".gz",
+                ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".ico", ".tif", ".tiff", ".mp3", ".mp4", ".wav",
+                ".avi", ".mov", ".wmv", ".flv", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
             };
 
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                
-                var includeExtensions = _generalSettingsService.CurrentSettings.PackerIncludeFileTypes ?? new System.Collections.Generic.List<string>();
+            // 5. Call the packager
+            string xmlContent = await _projectPackager.CreatePackageAsync(projectPath, includeExtensions, binaryFileExtensions);
 
-                
-                var binaryFileExtensions = new List<string>
-                {
-                    ".exe", ".dll", ".pdb", ".obj", ".bin", ".dat", ".zip", ".rar", ".7z", ".tar", ".gz",
-                    ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".ico", ".tif", ".tiff", ".mp3", ".mp4", ".wav",
-                    ".avi", ".mov", ".wmv", ".flv", ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx"
-                };
+            // 6. Write the file
+            await File.WriteAllTextAsync(outputFilePath, xmlContent);
 
-                
-                MessageBox.Show("Creating project source code package. This may take a while for large projects.", "Processing", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                
-                string xmlContent = await _projectPackager.CreatePackageAsync(projectPath, includeExtensions, binaryFileExtensions);
-
-                
-                await File.WriteAllTextAsync(saveFileDialog.FileName, xmlContent);
-
-                MessageBox.Show($"Project source code package created successfully at:\n{saveFileDialog.FileName}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
+            // 7. Show success message
+            MessageBox.Show($"Project successfully packed to:\n{outputFilePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            return true;
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Error creating project source code package: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"Error packing project source code: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            return false;
         }
+    }
+
+    private async void PackProjectSourceCode_Click(object sender, RoutedEventArgs e)
+    {
+        var saveFileDialog = new SaveFileDialog
+        {
+            Title = "Save Project Source Code Package",
+            Filter = "XML Files|*.xml|All Files|*.*",
+            FilterIndex = 1,
+            DefaultExt = ".xml",
+            FileName = $"{Path.GetFileName(_generalSettingsService.CurrentSettings.ProjectPath)}_SourceCode.xml",
+            InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+        };
+
+        if (saveFileDialog.ShowDialog() == true)
+        {
+            string selectedPath = saveFileDialog.FileName;
+
+            // Execute the core packing logic
+            bool success = await ExecutePackingOperationAsync(selectedPath);
+
+            // If successful, save the path for future repacking
+            if (success)
+            {
+                _generalSettingsService.CurrentSettings.LastPackerOutputFile = selectedPath;
+                _generalSettingsService.SaveSettings();
+            }
+        }
+    }
+
+    private async void RepackProjectSourceCode_Click(object sender, RoutedEventArgs e)
+    {
+        // 1. Get the last saved path from settings
+        string lastOutputPath = _generalSettingsService.CurrentSettings.LastPackerOutputFile;
+        if (string.IsNullOrWhiteSpace(lastOutputPath))
+        {
+            MessageBox.Show("Please use 'Pack Project Source Code' first to select an initial output file location.", "Repack Path Not Set", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        // 2. Execute the core packing logic using the saved path
+        await ExecutePackingOperationAsync(lastOutputPath);
     }
 
     private async void TestReapplyMergeMenuItem_Click(object sender, RoutedEventArgs e)

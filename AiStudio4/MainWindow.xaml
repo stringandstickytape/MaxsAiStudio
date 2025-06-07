@@ -45,6 +45,7 @@
                 <MenuItem Header="_Set Project Path..." Click="SetProjectPathMenuItem_Click"/>
                 <Separator/>
                 <MenuItem Header="_Pack Project Source Code" Click="PackProjectSourceCode_Click"/>
+                <MenuItem Header="_Repack Project Source Code" Click="RepackProjectSourceCode_Click"/>
                 <MenuItem Header="_Set Packer Include File Types..." Click="SetPackerIncludeTypesMenuItem_Click"/>
                 <MenuItem Header="_Set Packer Exclude Filenames..." Click="SetPackerExcludeFilenamesMenuItem_Click"/>
                 <MenuItem Header="_Set Packer Exclude Folder Names..." Click="SetPackerExcludeFolderNamesMenuItem_Click"/>

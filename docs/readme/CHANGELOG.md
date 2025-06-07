@@ -1,5 +1,25 @@
 ﻿# Changelog
 
+All notable changes to AiStudio4 will be documented in this file.
+
+## [Unreleased]
+
+### Added
+- **Repack Project Source Code**: New menu item `Project > Repack Project Source Code` that allows quick re-packaging of project source code using the previously saved output file path
+- **DRY Refactored Packaging Logic**: Extracted common packaging logic into a reusable `ExecutePackingOperationAsync` helper method for better maintainability
+- **Last Packer Output File Persistence**: The application now remembers the last used output file path for packing operations, stored in `GeneralSettings.LastPackerOutputFile`
+
+### Changed
+- **Improved Pack Project Source Code**: Refactored the existing pack functionality to use the new DRY architecture and automatically save the output path for future repack operations
+- **Enhanced User Experience**: Streamlined workflow for iterative development where users frequently need to update packaged project snapshots
+
+### Technical Details
+- Added `LastPackerOutputFile` property to `GeneralSettings.cs`
+- Created `ExecutePackingOperationAsync` helper method in `MainWindow.xaml.cs`
+- Refactored `PackProjectSourceCode_Click` to use the new helper method and save output path
+- Added new `RepackProjectSourceCode_Click` event handler for the repack functionality
+- Updated documentation in user guide sections 4.8 and 5.4.2 to cover the new repack feature
+
 ## Changes Since Version 0.93
 
 ### New Features

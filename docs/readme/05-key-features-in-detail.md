@@ -214,11 +214,17 @@ In the Input Bar:
 *   This file can then be used as context for AI tasks, for example, by attaching it to a prompt or having the AI read it using the `ReadFiles` tool.
 
 ### 5.4.2 Project Source Code Packaging
-*   From the application menu: `Project > Pack Project Source Code`.
-*   This tool creates a comprehensive XML package containing the source code of your project.
-*   It respects `.gitignore` rules.
-*   You can configure which file types to include (`Project > Set Packer Include File Types...`), specific filenames/patterns to exclude (`Project > Set Packer Exclude Filenames...`), and specific folder names to exclude (`Project > Set Packer Exclude Folder Names...`).
-*   The output XML includes the directory structure and the content of each included file. This is useful for providing a large codebase snapshot to an AI that might have context window limitations or no direct file system access.
+*   **Pack Project Source Code:** From the application menu: `Project > Pack Project Source Code`.
+    *   This tool creates a comprehensive XML package containing the source code of your project.
+    *   It respects `.gitignore` rules.
+    *   You can configure which file types to include (`Project > Set Packer Include File Types...`), specific filenames/patterns to exclude (`Project > Set Packer Exclude Filenames...`), and specific folder names to exclude (`Project > Set Packer Exclude Folder Names...`).
+    *   The output XML includes the directory structure and the content of each included file. This is useful for providing a large codebase snapshot to an AI that might have context window limitations or no direct file system access.
+    *   When you first pack a project, the output file path is saved for future use.
+*   **Repack Project Source Code:** From the application menu: `Project > Repack Project Source Code`.
+    *   This feature allows you to quickly re-run the packaging process using the same output file path as your last pack operation.
+    *   No file dialog is shown - the project is automatically packed to the previously used location.
+    *   This is useful for iterative development workflows where you frequently need to update the packaged project snapshot.
+    *   If you haven't used "Pack Project Source Code" first, you'll be prompted to do so to establish an initial output file location.
 
 ## 5.5 Backend and Core Functionality
 

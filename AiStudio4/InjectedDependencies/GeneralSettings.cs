@@ -38,6 +38,7 @@ namespace AiStudio4.InjectedDependencies
         public List<string> PackerIncludeFileTypes { get; set; } = new List<string>();
         public List<string> PackerExcludeFilenames { get; set; } = new List<string>();
         public List<string> PackerExcludeFolderNames { get; set; } = new List<string>();
+        public string LastPackerOutputFile { get; set; }
 
         // Wiki System Prompt Sync Settings
         public bool EnableWikiSystemPromptSync { get; set; } = false;
