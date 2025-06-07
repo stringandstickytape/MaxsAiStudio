@@ -125,7 +125,7 @@ namespace AiStudio4
             services.AddTransient<IRequestHandler, ModelRequestHandler>();
             services.AddTransient<IRequestHandler, MiscRequestHandler>();
             services.AddTransient<IRequestHandler, ConfigRequestHandler>();
-            services.AddTransient<IUiRequestHandler, ProjectRequestHandler>();
+            services.AddTransient<IRequestHandler, ProjectRequestHandler>();
 
             // Register request router and broker
             services.AddSingleton<UiRequestRouter>();
