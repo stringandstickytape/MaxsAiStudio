@@ -113,7 +113,12 @@ export function SystemPromptPortal({
                         }
                       }}
                       disabled={isProcessing}
-                      style={{ backgroundColor: selectedPromptGuid === prompt.guid ? 'var(--systemprompt-accent-color, #3b82f6)33' : 'var(--systemprompt-bg, #2d3748)' }}
+                    style={{
+                        backgroundColor: 'var(--global-background-color, inherit)',
+                        color: 'var(--global-text-color, inherit)',
+                        borderColor: 'var(--global-primary-color, inherit)',
+                        borderRadius: 'var(--global-border-radius, inherit)',
+                    }}
                       className={cn(
                         'h-5 px-2 py-0 text-xs rounded-full border transition-colors flex-shrink-0',
                         selectedPromptGuid === prompt.guid
