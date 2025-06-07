@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
@@ -13,8 +13,6 @@ import { useToolStore } from '@/stores/useToolStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { usePanelStore } from '@/stores/usePanelStore';
-import { useAppearanceStore } from '@/stores/useAppearanceStore';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 
 // AiStudioClient/src/components/ChatSpace.tsx
 export function ChatSpace() {
@@ -31,41 +29,6 @@ export function ChatSpace() {
   const { selectedPrimaryModel } = useModelManagement();
   const { isCancelling } = useWebSocketStore();
   const { panels } = usePanelStore();
-  const { chatPanelSize, inputBarPanelSize, setPanelSizes, saveAppearanceSettings } = useAppearanceStore();
-
-  // Debounced save function for panel size changes
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  
-  const debouncedSavePanelSizes = useCallback(async () => {
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        await saveAppearanceSettings();
-      } catch (error) {
-        console.error('Failed to save panel sizes:', error);
-      }
-    }, 500); // 500ms debounce
-  }, [saveAppearanceSettings]);
-
-  // Handle panel layout changes
-  const handlePanelLayout = useCallback((sizes: number[]) => {
-    if (sizes.length === 2) {
-      const [chatSize, inputBarSize] = sizes;
-      setPanelSizes(chatSize, inputBarSize);
-      debouncedSavePanelSizes();
-    }
-  }, [setPanelSizes, debouncedSavePanelSizes]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
-    };
-  }, []);
 
   // Removed the effect that was automatically setting input value based on selected message
   // Now we'll only set input value when explicitly requested
@@ -137,40 +100,33 @@ export function ChatSpace() {
   };
 
   return (
-    <>
-            <div className="flex-none w-full">
-            <AppHeader
-                isCommandBarOpen={isCommandBarOpen}
-                setIsCommandBarOpen={setIsCommandBarOpen}
-                CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
-                sidebarOpen={panels.sidebar?.isOpen || false}
-                rightSidebarOpen={(panels.settings?.isOpen) || false}
-                activeConvId={activeConvId}
-            />
-        </div >
-
-      <PanelGroup direction="vertical" className="flex-1 w-full overflow-hidden" onLayout={handlePanelLayout}>
-        <Panel defaultSize={chatPanelSize} minSize={20} className="overflow-auto">
-          <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
-        </Panel>
-        <PanelResizeHandle className="flex h-2 items-center justify-center bg-transparent hover:bg-muted/50 transition-all duration-300 group">
-          <div className="h-1 w-10 rounded-full bg-transparent group-hover:bg-border transition-all duration-300" />
-        </PanelResizeHandle>
-        <Panel defaultSize={inputBarPanelSize} minSize={10} maxSize={50} collapsible={true} collapsedSize={5}>
-          <div className="h-full flex flex-col">
-            <InputBar
-              selectedModel={selectedPrimaryModel}
-              inputValue={inputValue}
-              onInputChange={setInputValue}
-              activeTools={activeTools}
-              onManageTools={openToolLibrary}
-              disabled={isCancelling}
-              onAttachmentChange={handleAttachmentChange}
-            />
-          </div>
-        </Panel>
-      </PanelGroup>
-
-    </>
+    <div className="flex flex-col h-full w-full">
+      <div className="flex-none w-full">
+        <AppHeader
+          isCommandBarOpen={isCommandBarOpen}
+          setIsCommandBarOpen={setIsCommandBarOpen}
+          CommandBarComponent={<CommandBar isOpen={isCommandBarOpen} setIsOpen={setIsCommandBarOpen} />}
+          sidebarOpen={panels.sidebar?.isOpen || false}
+          rightSidebarOpen={(panels.settings?.isOpen) || false}
+          activeConvId={activeConvId}
+        />
+      </div>
+      
+      <div className="flex-1 overflow-auto min-h-0">
+        <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
+      </div>
+      
+      <div className="flex-shrink-0 w-full overflow-auto">
+        <InputBar
+          selectedModel={selectedPrimaryModel}
+          inputValue={inputValue}
+          onInputChange={setInputValue}
+          activeTools={activeTools}
+          onManageTools={openToolLibrary}
+          disabled={isCancelling}
+          onAttachmentChange={handleAttachmentChange}
+        />
+      </div>
+    </div>
   );
 }

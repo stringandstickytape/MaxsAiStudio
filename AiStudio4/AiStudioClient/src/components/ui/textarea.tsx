@@ -1,4 +1,5 @@
-import * as React from "react";
+﻿import * as React from "react";
+import TextareaAutosize from 'react-textarea-autosize';
 
 import { cn } from "@/lib/utils";
 
@@ -59,18 +60,21 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
       }
     }, [showLineCount, debouncedUpdate, updateLineCount]);
     return (
-      <div className="relative h-full">
+      <div className="relative">
         {showLineCount && (
           <div className="absolute right-2 bottom-1 text-xs text-gray-100 pointer-events-none select-none opacity-90">
             {lineCount} {lineCount === 1 ? 'line' : 'lines'}
           </div>
         )}
-        <textarea
+        <TextareaAutosize
           className={cn(
-            "flex min-h-[80px] w-full h-full rounded-md focus:outline-none focus:ring-0 focus:border-transparent bg-gray-800 px-3 py-2 text-sm placeholder:text-gray-400  disabled:cursor-not-allowed disabled:opacity-50",
+            "flex w-full rounded-md focus:outline-none focus:ring-0 focus:border-transparent bg-gray-800 px-2 py-1 text-sm placeholder:text-gray-400  disabled:cursor-not-allowed disabled:opacity-50 resize-none",
             className
           )}
           ref={handleRefs}
+          minRows={2}
+          maxRows={10}
+          style={props.style}
           {...props}
         />
       </div>
@@ -80,4 +84,3 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
 Textarea.displayName = "Textarea";
 
 export { Textarea };
-

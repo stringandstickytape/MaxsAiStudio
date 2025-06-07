@@ -73,6 +73,7 @@
     "react-redux": "^9.2.0",
     "react-resizable-panels": "^2.1.9",
     "react-syntax-highlighter": "^15.6.1",
+    "react-textarea-autosize": "^8.5.9",
     "react-virtual": "^2.10.4",
     "reactflow": "^11.11.4",
     "recharts": "^2.15.3",

@@ -230,18 +230,13 @@ function MessageInputAreaComponent({
         <div className="relative flex-1 flex flex-col">
             <Textarea
                 ref={textareaRef}
-                className="flex-1 w-full p-4 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
+                className="flex-1 w-full p-2 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
                 value={localInputText}
                 onChange={handleTextAreaInput}
                 onClick={handleTextAreaClick}
                 onKeyUp={handleTextAreaKeyUp}
                 onKeyDown={handleKeyDown}
-                placeholder="Type your message here...
-
-* CTRL+Return to send
-* CTRL+Return to interject (during AI tool loops)
-* Type / for quicklist of user prompts and project files
-* SHIFT+select a file in the slash menu to attach it; add CTRL to insert the filename as well"
+                placeholder="Enter prompt here (CTRL-Return to send)"
                 disabled={disabled}
                 showLineCount={true}
                 style={textareaStyle}

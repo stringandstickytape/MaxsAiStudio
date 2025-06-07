@@ -299,7 +299,7 @@ export function InputBar({
     }, [setInputText]);
 
     return (
-        <div className="InputBar h-full bg-gray-900 border-gray-700/50 shadow-2xl p-2 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
+        <div className="InputBar bg-gray-900 border-gray-700/50 shadow-2xl p-2 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
             style={{
                 backgroundColor: "var(--global-background-color, #1f2937)",
                 color: "var(--global-text-color, #e2e8f0)",
@@ -311,7 +311,7 @@ export function InputBar({
             }}
         >
 
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col">
                 {/* Status Message */}
                 <div className="flex-shrink-0 mb-2">
                     <StatusMessage />
@@ -321,7 +321,7 @@ export function InputBar({
                 <SystemPromptSection activeConvId={activeConvId} />
                 
                 {/* Middle Section (Textarea and Attachments) */}
-                <div className="flex-1 flex gap-2 overflow-hidden mb-2">
+                <div className="flex gap-2 mb-2">
                     {/* Textarea Column */}
                     <MessageInputArea
                         ref={textareaRef}
