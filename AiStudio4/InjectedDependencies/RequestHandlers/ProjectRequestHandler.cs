@@ -39,10 +39,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 return requestType switch
                 {
                     "getProjects" => await HandleGetProjectsAsync(),
-                    "getProject" => await HandleGetProjectAsync(requestObject),
-                    "createProject" => await HandleCreateProjectAsync(requestObject),
-                    "updateProject" => await HandleUpdateProjectAsync(requestObject),
-                    "deleteProject" => await HandleDeleteProjectAsync(requestObject),
                     "setActiveProject" => await HandleSetActiveProjectAsync(requestObject),
                     "getActiveProject" => await HandleGetActiveProjectAsync(),
                     _ => SerializeError($"Unknown request type: {requestType}")
@@ -61,50 +57,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             return SerializeSuccess(projects);
         }
 
-        private async Task<string> HandleGetProjectAsync(JObject requestObject)
-        {
-            string projectId = requestObject["projectId"]?.ToString();
-            if (string.IsNullOrEmpty(projectId))
-                return SerializeError("Project ID cannot be empty");
-            
-            var project = await _projectService.GetProjectByIdAsync(projectId);
-            if (project == null)
-            {
-                return SerializeError("Project not found");
-            }
-            
-            return SerializeSuccess(project);
-        }
-
-        private async Task<string> HandleCreateProjectAsync(JObject requestObject)
-        {
-            var project = requestObject.ToObject<Project>();
-            if (project == null)
-                return SerializeError("Invalid project data");
-                
-            var createdProject = await _projectService.CreateProjectAsync(project);
-            return SerializeSuccess(createdProject);
-        }
-
-        private async Task<string> HandleUpdateProjectAsync(JObject requestObject)
-        {
-            var project = requestObject.ToObject<Project>();
-            if (project == null || string.IsNullOrEmpty(project.Guid))
-                return SerializeError("Invalid project data or missing project ID");
-                
-            var updatedProject = await _projectService.UpdateProjectAsync(project);
-            return SerializeSuccess(updatedProject);
-        }
-
-        private async Task<string> HandleDeleteProjectAsync(JObject requestObject)
-        {
-            string projectId = requestObject["projectId"]?.ToString();
-            if (string.IsNullOrEmpty(projectId))
-                return SerializeError("Project ID cannot be empty");
-            
-            var success = await _projectService.DeleteProjectAsync(projectId);
-            return JsonConvert.SerializeObject(new { success = success });
-        }
 
         private async Task<string> HandleSetActiveProjectAsync(JObject requestObject)
         {

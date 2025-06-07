@@ -64,8 +64,11 @@ const useProjectStore = create<ProjectStore>((set, get) => ({
   },
 
   setActiveProject: async (projectId: string) => {
+    console.log('🎯 [ProjectStore] setActiveProject called with projectId:', projectId);
     set({ isLoading: true, error: null });
     try {
+      console.log('📤 [ProjectStore] Making API call to /api/setActiveProject...');
+      
       const response = await fetch('/api/setActiveProject', {
         method: 'POST',
         headers: {
@@ -74,23 +77,30 @@ const useProjectStore = create<ProjectStore>((set, get) => ({
         body: JSON.stringify({ projectId }),
       });
 
+      console.log('📥 [ProjectStore] setActiveProject response status:', response.status);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ [ProjectStore] HTTP error response:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
 
       const result: ProjectApiResponse = await response.json();
+      console.log('📥 [ProjectStore] setActiveProject parsed response:', result);
       
       if (result.success) {
         // Update active project in store
         const { projects } = get();
         const activeProject = projects.find(p => p.guid === projectId) || null;
+        console.log('✅ [ProjectStore] Successfully set active project:', activeProject?.name);
         set({ activeProject, isLoading: false });
         return true;
       } else {
+        console.error('❌ [ProjectStore] API returned error:', result.error);
         throw new Error(result.error || 'Failed to set active project');
       }
     } catch (error) {
-      console.error('Error setting active project:', error);
+      console.error('💥 [ProjectStore] Error setting active project:', error);
       set({ 
         error: error instanceof Error ? error.message : 'Unknown error occurred',
         isLoading: false 
