@@ -51,8 +51,6 @@
                 <MenuItem Header="_Set Packer Exclude Folder Names..." Click="SetPackerExcludeFolderNamesMenuItem_Click"/>
                 <Separator/>
                 <MenuItem Header="_Analyze .NET Projects" Click="AnalyzeDotNetProjects_Click"/>
-                <Separator/>
-                <MenuItem Header="_Recent Projects" Name="RecentProjectsMenuItem"/>
             </MenuItem>
             <MenuItem Header="📂" ToolTip="Opens the project root folder in an Explorer window" Click="ExploreProjectMenuItem_Click"/>
             <MenuItem Header="_Transcribe">
