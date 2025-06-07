@@ -109,6 +109,8 @@ namespace AiStudio4.Services
                     }
                 }
 
+                tool.UpdateProjectRoot();
+
                 return await tool.ProcessAsync(toolParameters, extraProperties ?? new Dictionary<string, string>());
             }
             catch (Exception ex)
