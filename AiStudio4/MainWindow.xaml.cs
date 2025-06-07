@@ -101,7 +101,6 @@ public partial class WebViewWindow : Window
         
         InitializeComponent();
         UpdateWindowTitle(); 
-        UpdateRecentProjectsMenu(); 
         UpdateAllowConnectionsOutsideLocalhostMenuItem(); 
         UpdateUseExperimentalCostTrackingMenuItem();
         UpdateUpdateAvailableMenuItem();
@@ -464,7 +463,6 @@ public partial class WebViewWindow : Window
                     _builtinToolService.UpdateProjectRoot();
                     
                     UpdateWindowTitle(); 
-                    UpdateRecentProjectsMenu(); 
                 }
             }
             catch (Exception ex)
@@ -474,68 +472,11 @@ public partial class WebViewWindow : Window
         }
     }
 
-    private void UpdateRecentProjectsMenu()
-    {
-        RecentProjectsMenuItem.Items.Clear();
-        var history = _projectHistoryService.GetProjectPathHistory();
 
-        if (history == null || !history.Any())
-        {
-            RecentProjectsMenuItem.IsEnabled = false;
-            return;
-        }
 
-        RecentProjectsMenuItem.IsEnabled = true;
-        for (int i = 0; i < history.Count; i++)
-        {
-            var path = history[i];
-            var menuItem = new MenuItem
-            {
-                Header = FormatPathForMenu(path, i + 1),
-                Tag = path 
-            };
-            menuItem.Click += RecentProjectPathMenuItem_Click;
-            RecentProjectsMenuItem.Items.Add(menuItem);
-        }
-    }
 
-    private string FormatPathForMenu(string path, int index)
-    {
-        
-        const int maxLength = 50;
-        string displayPath = path.Length > maxLength ? "..." + path.Substring(path.Length - maxLength) : path;
-        return $"_{index} {displayPath}"; 
-    }
 
-    private void RecentProjectPathMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (sender is MenuItem menuItem && menuItem.Tag is string selectedPath)
-        {
-            try
-            {
-                string oldPath = _generalSettingsService.CurrentSettings.ProjectPath;
-                
-                
-                if (selectedPath != oldPath)
-                {
-                    _generalSettingsService.CurrentSettings.ProjectPath = selectedPath;
-                    _projectHistoryService.AddProjectPathToHistory(selectedPath);
-                    _generalSettingsService.SaveSettings();
-                    _projectHistoryService.SaveSettings();
-                    
-                    
-                    _builtinToolService.UpdateProjectRoot();
-                    
-                    UpdateWindowTitle();
-                    UpdateRecentProjectsMenu();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Error setting project path from history: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-    }
+
     
     private void ExploreProjectMenuItem_Click(object sender, RoutedEventArgs e)
     {
