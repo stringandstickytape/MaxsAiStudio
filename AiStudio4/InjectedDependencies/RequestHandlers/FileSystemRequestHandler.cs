@@ -57,7 +57,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             {
 
                 
-                var openFileDialog = new OpenFileDialog();
+                var openFileDialog = new Microsoft.Win32.OpenFileDialog();
                 {
                     
                     openFileDialog.Title = "Select File(s) to Attach";

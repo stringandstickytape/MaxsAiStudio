@@ -14,6 +14,7 @@ import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useModelStore } from '@/stores/useModelStore';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
+import useProjectStore from '@/stores/useProjectStore';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface SystemPromptEditorProps {
@@ -27,6 +28,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
   const { models } = useModelStore();
   const { createSystemPrompt, updateSystemPrompt } = useSystemPromptManagement();
   const { servers } = useMcpServerStore();
+  const { projects } = useProjectStore();
 
   const [isCreating, setIsCreating] = useState(!initialPrompt);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -50,6 +52,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
           secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
           includeGitDiff: initialPrompt.includeGitDiff || false,
+          projectGuid: initialPrompt.projectGuid || 'none',
         }
       : {
           title: '',
@@ -62,8 +65,8 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
           associatedUserPromptId: 'none',
           primaryModelGuid: 'none',
           secondaryModelGuid: 'none',
-              includeGitDiff: false,
-              includeGitDiff: false,
+          includeGitDiff: false,
+          projectGuid: 'none',
 
         },
   });
@@ -87,6 +90,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         primaryModelGuid: initialPrompt.primaryModelGuid || 'none',
         secondaryModelGuid: initialPrompt.secondaryModelGuid || 'none',
         includeGitDiff: initialPrompt.includeGitDiff || false,
+        projectGuid: initialPrompt.projectGuid || 'none',
       });
       setIsCreating(false);
     } else {
@@ -101,6 +105,7 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
         associatedUserPromptId: 'none',
         primaryModelGuid: 'none',
         secondaryModelGuid: 'none',
+        projectGuid: 'none',
       });
       setIsCreating(true);
     }
@@ -571,6 +576,41 @@ export function SystemPromptEditor({ initialPrompt, onClose, onApply }: SystemPr
               <FormDescription className="form-description">
                 Select one or more MCP servers to associate with this system prompt. These servers will be activated when the prompt is used.
               </FormDescription>
+            </div>
+
+            {/* Project Association */}
+            <div className="mt-4">
+              <FormLabel className="form-label">Associated Project</FormLabel>
+              <FormField
+                control={form.control}
+                name="projectGuid"
+                render={({ field }) => (
+                  <FormItem>
+                    <Select
+                      value={field.value || "none"}
+                      onValueChange={field.onChange}
+                      disabled={isProcessing}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full bg-gray-800 border-gray-700">
+                          <SelectValue placeholder="Select a project" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-gray-800 border-gray-700 text-[var(--global-text-color)]">
+                        <SelectItem value="none">None</SelectItem>
+                        {projects.map((project) => (
+                          <SelectItem key={project.guid} value={project.guid}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription className="form-description">
+                      Select a project to associate with this system prompt. When this system prompt is activated, the associated project will become the active project.
+                    </FormDescription>
+                  </FormItem>
+                )}
+              />  
             </div>
 
             {/* User Prompt Association */}
