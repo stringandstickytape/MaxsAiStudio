@@ -13,6 +13,7 @@
   primaryModelGuid?: string; // Associated primary model GUID
   secondaryModelGuid?: string; // Associated secondary model GUID
   includeGitDiff?: boolean; // Whether to include git diff when this prompt is applied
+  projectGuid?: string; // Associated project GUID
 }
 
 export interface SystemPromptFormValues {
@@ -27,4 +28,5 @@ export interface SystemPromptFormValues {
   primaryModelGuid?: string; // Associated primary model GUID
   secondaryModelGuid?: string; // Associated secondary model GUID
   includeGitDiff?: boolean; // Whether to include git diff when this prompt is applied
+  projectGuid?: string; // Associated project GUID
 }

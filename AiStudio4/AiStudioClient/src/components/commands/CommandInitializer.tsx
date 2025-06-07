@@ -29,6 +29,7 @@ import { useCommandStore } from '@/stores/useCommandStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { useFileSystemStore } from '@/stores/useFileSystemStore';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
+import useProjectStore from '@/stores/useProjectStore';
 import { registerMcpServersAsCommands, initializeMcpServerManagementCommand } from '@/commands/mcpServerCommands';
 
 export function CommandInitializer() {
@@ -49,6 +50,9 @@ export function CommandInitializer() {
   
   // File system management
   const { fetchFileSystem } = useFileSystemManagement();
+  
+  // Project management
+  const { fetchProjects } = useProjectStore();
   
   // MCP server management
   const {
@@ -89,7 +93,8 @@ export function CommandInitializer() {
           fetchToolCategories(),
           fetchUserPrompts(),
           fetchFileSystem(),
-          fetchMcpServers()
+          fetchMcpServers(),
+          fetchProjects()
         ]);
         
         // Register commands that depend on loaded data

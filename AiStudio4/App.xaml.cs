@@ -80,6 +80,7 @@ namespace AiStudio4
             services.AddSingleton<IWebSocketNotificationService, WebSocketNotificationService>();
             services.AddSingleton<IToolService, ToolService>();
             services.AddSingleton<ISystemPromptService, SystemPromptService>();
+            services.AddSingleton<IProjectService, ProjectService>();
             services.AddSingleton<IPinnedCommandService, PinnedCommandService>();
             services.AddSingleton<IUserPromptService, UserPromptService>();
             services.AddSingleton<ClientRequestCancellationService>();
@@ -124,6 +125,7 @@ namespace AiStudio4
             services.AddTransient<IRequestHandler, ModelRequestHandler>();
             services.AddTransient<IRequestHandler, MiscRequestHandler>();
             services.AddTransient<IRequestHandler, ConfigRequestHandler>();
+            services.AddTransient<IUiRequestHandler, ProjectRequestHandler>();
 
             // Register request router and broker
             services.AddSingleton<UiRequestRouter>();
@@ -150,6 +152,10 @@ namespace AiStudio4
             // Initialize user prompt service (not handled by StartupService)
             var userPromptService = _serviceProvider.GetRequiredService<IUserPromptService>();
             await userPromptService.InitializeAsync();
+            
+            // Initialize project service
+            var projectService = _serviceProvider.GetRequiredService<IProjectService>();
+            await projectService.InitializeAsync();
             
             // Get settings manager
             var generalSettingsService = _serviceProvider.GetRequiredService<IGeneralSettingsService>();
