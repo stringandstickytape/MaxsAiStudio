@@ -68,12 +68,12 @@ const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
         )}
         <TextareaAutosize
           className={cn(
-            "flex min-h-[80px] w-full rounded-md focus:outline-none focus:ring-0 focus:border-transparent bg-gray-800 px-3 py-2 text-sm placeholder:text-gray-400  disabled:cursor-not-allowed disabled:opacity-50 resize-none",
+            "flex w-full rounded-md focus:outline-none focus:ring-0 focus:border-transparent bg-gray-800 px-2 py-1 text-sm placeholder:text-gray-400  disabled:cursor-not-allowed disabled:opacity-50 resize-none",
             className
           )}
           ref={handleRefs}
-          minRows={3}
-          maxRows={20}
+          minRows={2}
+          maxRows={10}
           style={props.style}
           {...props}
         />

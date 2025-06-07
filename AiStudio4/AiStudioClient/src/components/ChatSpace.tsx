@@ -116,7 +116,7 @@ export function ChatSpace() {
         <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
       </div>
       
-      <div className="flex-shrink-0 w-full max-h-[400px] overflow-auto">
+      <div className="flex-shrink-0 w-full overflow-auto">
         <InputBar
           selectedModel={selectedPrimaryModel}
           inputValue={inputValue}
