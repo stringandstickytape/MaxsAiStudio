@@ -42,8 +42,9 @@
                 <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="_Project">
-                <MenuItem Header="_Set Project Path..." Click="SetProjectPathMenuItem_Click"/>
+                <MenuItem Header="_Manage Projects..." Click="ManageProjectsMenuItem_Click"/>
                 <Separator/>
+                <MenuItem Header="_Set Project Path..." Click="SetProjectPathMenuItem_Click"/>
                 <MenuItem Header="_Pack Project Source Code" Click="PackProjectSourceCode_Click"/>
                 <MenuItem Header="_Repack Project Source Code" Click="RepackProjectSourceCode_Click"/>
                 <MenuItem Header="_Set Packer Include File Types..." Click="SetPackerIncludeTypesMenuItem_Click"/>

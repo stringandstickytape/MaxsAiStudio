@@ -50,6 +50,7 @@ public partial class WebViewWindow : Window
     private readonly IConvStorage _convStorage;
     private readonly IUpdateNotificationService _updateNotificationService;
     private readonly ISystemPromptService _systemPromptService;
+    private readonly IProjectService _projectService;
     private readonly IServiceProvider _serviceProvider;
     private readonly string _licensesJsonPath;
     private readonly string _nugetLicense1Path;
@@ -71,6 +72,7 @@ public partial class WebViewWindow : Window
                          IGoogleDriveService googleDriveService,
                          IUpdateNotificationService updateNotificationService,
                          ISystemPromptService systemPromptService,
+                         IProjectService projectService,
                          IServiceProvider serviceProvider)
     {
         _windowManager = windowManager;
@@ -88,6 +90,7 @@ public partial class WebViewWindow : Window
         _googleDriveService = googleDriveService;
         _updateNotificationService = updateNotificationService;
         _systemPromptService = systemPromptService;
+        _projectService = projectService;
         _serviceProvider = serviceProvider;
 
         
@@ -1483,6 +1486,23 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
                     MessageBox.Show($"Error saving Google Custom Search API Key: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+    }
+
+    private async void ManageProjectsMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var dialog = new ManageProjectsDialog(_serviceProvider)
+            {
+                Owner = this
+            };
+            dialog.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error opening project management dialog");
+            MessageBox.Show($"Error opening project management: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

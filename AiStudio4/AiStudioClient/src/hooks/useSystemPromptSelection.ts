@@ -5,6 +5,7 @@ import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { useModelStore } from '@/stores/useModelStore';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
+import useProjectStore from '@/stores/useProjectStore';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useSystemPromptManagement } from '@/hooks/useResourceManagement';
 import { SystemPrompt } from '@/types/systemPrompt';
@@ -27,6 +28,7 @@ export function useSystemPromptSelection() {
   const { setActiveTools } = useToolStore.getState();
   const { selectPrimaryModel, selectSecondaryModel } = useModelStore();
   const { setEnabledServers } = useMcpServerStore();
+  const { setActiveProject } = useProjectStore();
   const { prompts: userPrompts, insertUserPrompt } = useUserPromptManagement();
   const { setConvSystemPrompt, setDefaultSystemPrompt } = useSystemPromptManagement();
 
@@ -88,7 +90,17 @@ export function useSystemPromptSelection() {
           await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
         }
 
-        // 8. Attach git diff if the prompt has includeGitDiff set to true
+        // 8. Set active project if one is associated
+        if (prompt.projectGuid && prompt.projectGuid !== 'none') {
+          try {
+            await setActiveProject(prompt.projectGuid);
+          } catch (err) {
+            console.error('Failed to set active project:', err);
+            // Continue even if project activation fails
+          }
+        }
+
+        // 9. Attach git diff if the prompt has includeGitDiff set to true
         if (prompt.includeGitDiff) {
           try {
             const { fetchGitDiffAsFile } = await import('@/utils/attachmentUtils');
@@ -110,7 +122,7 @@ export function useSystemPromptSelection() {
         return false;
       }
     },
-    [activeConvId, setConvSystemPrompt, setConvPrompt, setDefaultSystemPrompt, userPrompts, insertUserPrompt, selectPrimaryModel, selectSecondaryModel, setEnabledServers]
+    [activeConvId, setConvSystemPrompt, setConvPrompt, setDefaultSystemPrompt, userPrompts, insertUserPrompt, selectPrimaryModel, selectSecondaryModel, setEnabledServers, setActiveProject]
   );
 
   return { selectSystemPrompt };
@@ -190,7 +202,17 @@ export async function selectSystemPromptStandalone(prompt: SystemPrompt, options
       await createApiRequest('/api/setSecondaryModel', 'POST')({ modelGuid: prompt.secondaryModelGuid });
     }
 
-    // 8. Attach git diff if the prompt has includeGitDiff set to true
+    // 8. Set active project if one is associated
+    if (prompt.projectGuid && prompt.projectGuid !== 'none') {
+      try {
+        await useProjectStore.getState().setActiveProject(prompt.projectGuid);
+      } catch (err) {
+        console.error('Failed to set active project:', err);
+        // Continue even if project activation fails
+      }
+    }
+
+    // 9. Attach git diff if the prompt has includeGitDiff set to true
     if (prompt.includeGitDiff) {
       try {
         const { fetchGitDiffAsFile } = await import('@/utils/attachmentUtils');

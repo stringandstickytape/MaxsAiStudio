@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 
+
 namespace AiStudio4.Dialogs
 {
     /// <summary>
