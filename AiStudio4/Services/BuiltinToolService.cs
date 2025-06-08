@@ -39,6 +39,7 @@ namespace AiStudio4.Services
             LoadExtraProperties();
         }
 
+        // NOTE: This method now only affects in-memory UI display (GetBuiltinTools), not execution.
         private void LoadExtraProperties()
         {
             foreach (var tool in _builtinTools)
@@ -111,7 +112,11 @@ namespace AiStudio4.Services
 
                 tool.UpdateProjectRoot();
 
-                return await tool.ProcessAsync(toolParameters, extraProperties ?? new Dictionary<string, string>());
+                // JIT fetch the latest extra properties for this tool
+                var lower = $"{toolName.Substring(0, 1).ToLower()}{toolName.Substring(1)}";
+                var latestExtraProps = _builtInToolExtraPropertiesService.GetExtraProperties(lower);
+
+                return await tool.ProcessAsync(toolParameters, latestExtraProps);
             }
             catch (Exception ex)
             {
