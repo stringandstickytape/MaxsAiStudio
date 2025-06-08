@@ -51,7 +51,7 @@ const ModifyFilesRendererComponent: FC<{ content: string; className?: string }> 
     parseError = error instanceof Error ? error.message : 'Failed to parse JSON';
     console.error('ModifyFilesRenderer: Failed to parse JSON', error);
   }
-    debugger;
+
   if (parseError || !data) {
     return (
       <div className={`p-4 border border-red-500 rounded ${className || ''}`}>
@@ -64,7 +64,7 @@ const ModifyFilesRendererComponent: FC<{ content: string; className?: string }> 
       </div>
     );
   }
-    debugger;
+
   return (
     <div className={`p-4 border rounded-md ${className || ''}`} style={{ backgroundColor: 'var(--global-background-color)', color: 'var(--global-text-color)', fontSize: '14px' }}>
       <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--global-accent-color)' }}>File Modifications</h3>

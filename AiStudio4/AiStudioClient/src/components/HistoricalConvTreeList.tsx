@@ -24,7 +24,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
 
     const { clientId } = useWebSocketStore();
     const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
-    const { convs, fetchAllConvs, addOrUpdateConv, deleteConv } = useHistoricalConvsStore();
+    const { convs, fetchAllConvs, addOrUpdateConv, deleteConv, isLoadingList } = useHistoricalConvsStore();
     const { highlightMessage } = useSearchStore();
 
     // Use currentRequest from useWebSocketStore for correct chat request lifecycle
@@ -258,7 +258,11 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                     ...(window?.theme?.HistoricalConvTreeList?.style || {})
                 }}
             >
-                {displayedConvs.length === 0 ? (
+                {isLoadingList ? (
+                    <div className="flex-center h-32">
+                        <div className="loading-spinner h-8 w-8"></div>
+                    </div>
+                ) : displayedConvs.length === 0 ? (
                     <div className="HistoricalConvTreeList p-4 text-center flex flex-col items-center"
                         style={{
                             color: 'var(--global-text-color, #9ca3af)',
