@@ -125,7 +125,6 @@ namespace AiStudio4.InjectedDependencies
                             Guid = "6d21047e-78bd-4adb-a0f7-e3fa6b48ef61",
                             SupportsPrefill = false,
                             Requires1fTemp = false,
-                            ReasoningEffort = "none",
                             IsTtsModel = false,
                             TtsVoiceName = "Kore"
                         },
@@ -143,7 +142,6 @@ namespace AiStudio4.InjectedDependencies
                             Guid = "6c21b1dd-2a91-4b5a-b904-a0ee04147ed1",
                             SupportsPrefill = false,
                             Requires1fTemp = false,
-                            ReasoningEffort = "none",
                             IsTtsModel = false,
                             TtsVoiceName = "Kore"
                         },
@@ -161,7 +159,6 @@ namespace AiStudio4.InjectedDependencies
                             Guid = "60c7c581-8fa2-4efd-b393-31c7019ab1aa",
                             SupportsPrefill = false,
                             Requires1fTemp = false,
-                            ReasoningEffort = "none",
                             IsTtsModel = false,
                             TtsVoiceName = "Kore"
                         },
@@ -179,7 +176,6 @@ namespace AiStudio4.InjectedDependencies
                             Guid = "b77ebaae-aa7d-4354-a584-20d33f184f97",
                             SupportsPrefill = false,
                             Requires1fTemp = false,
-                            ReasoningEffort = "none",
                             IsTtsModel = false,
                             TtsVoiceName = "Kore"
                         }

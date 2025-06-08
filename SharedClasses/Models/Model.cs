@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 
@@ -20,6 +21,14 @@ namespace SharedClasses.Providers
         {
             writer.WriteValue(ColorTranslator.ToHtml(value));
         }
+    }
+
+    public enum ThinkingStrategyType
+    {
+        None,
+        OpenAI,
+        Claude,
+        Gemini
     }
 
     [DebuggerDisplay("ModelName = {ModelName}")]
@@ -107,8 +116,10 @@ namespace SharedClasses.Providers
 
         public bool Requires1fTemp { get; set; }
 
-        // ReasoningEffort: none, low, medium, high
-        public string ReasoningEffort { get; set; } = "none";
+        [JsonConverter(typeof(ThinkingStrategyTypeConverter))]
+        public ThinkingStrategyType ThinkingStrategy { get; set; } = ThinkingStrategyType.None;
+
+        public Dictionary<string, object> ThinkingStrategyOptions { get; set; } = new Dictionary<string, object>();
 
         public bool IsTtsModel { get; set; } = false;
         public string TtsVoiceName { get; set; } = "Kore"; // Default voice

@@ -105,6 +105,8 @@ namespace AiStudio4.Services
                     CancellationToken = new CancellationToken(false),
                     ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                     TopP = _generalSettingsService.CurrentSettings.ToApiSettings().TopP, // Added TopP
+                    ThinkingStrategy = model.ThinkingStrategy,
+                    ThinkingStrategyOptions = model.ThinkingStrategyOptions,
                     MustNotUseEmbedding = true,
 
                 };
@@ -236,6 +238,8 @@ namespace AiStudio4.Services
                         CancellationToken = request.CancellationToken,
                         ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
                         TopP = _generalSettingsService.CurrentSettings.ToApiSettings().TopP, // Added TopP
+                        ThinkingStrategy = model.ThinkingStrategy,
+                        ThinkingStrategyOptions = model.ThinkingStrategyOptions,
                         MustNotUseEmbedding = true,
                         ToolIds = request.ToolIds ?? new List<string>(), 
                         OnStreamingUpdate = request.OnStreamingUpdate,

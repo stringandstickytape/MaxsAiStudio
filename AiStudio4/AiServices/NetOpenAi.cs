@@ -102,12 +102,17 @@ namespace AiStudio4.AiServices
                     chatOptions.TopP = options.TopP.Value;
                 }
 
-                // Set ReasoningEffortLevel if Model.ReasoningEffort is not 'none'
-                if (!string.IsNullOrEmpty(options.Model.ReasoningEffort) && options.Model.ReasoningEffort != "none")
+                // Set ReasoningEffortLevel if using OpenAI thinking strategy
+                if (options.ThinkingStrategy == ThinkingStrategyType.OpenAI &&
+                    options.ThinkingStrategyOptions.TryGetValue("reasoning_effort", out var effortValue) &&
+                    effortValue is string effortStr)
                 {
-                    switch (options.Model.ReasoningEffort)
+                    if (effortStr.ToLower() != "none" && effortStr.ToLower() != "auto")
                     {
-                        case "low":
+                        switch(effortStr)
+                        {
+                            default:
+                            case "low":
                             chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Low;
                             break;
                         case "medium":
@@ -116,9 +121,7 @@ namespace AiStudio4.AiServices
                         case "high":
                             chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.High;
                             break;
-                        default:
-                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
-                            break;
+                        }
                     }
                 }
 

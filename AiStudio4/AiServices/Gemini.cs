@@ -124,6 +124,19 @@ namespace AiStudio4.AiServices
                 {
                     ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
                 }
+                
+                // Add Gemini thinking strategy options if specified
+                if (options.ThinkingStrategy == ThinkingStrategyType.Gemini)
+                {
+                    if (options.ThinkingStrategyOptions.TryGetValue("includeThoughts", out var includeThoughtsValue) && includeThoughtsValue is bool includeThoughts)
+                    {
+                        ((JObject)requestPayload["generationConfig"])["includeThoughts"] = includeThoughts;
+                    }
+                    if (options.ThinkingStrategyOptions.TryGetValue("thinkingBudget", out var thinkingBudgetValue) && int.TryParse(thinkingBudgetValue.ToString(), out int thinkingBudget))
+                    {
+                        ((JObject)requestPayload["generationConfig"])["thinkingBudget"] = thinkingBudget;
+                    }
+                }
             }
 
 

@@ -2,6 +2,8 @@
 
 export type ChargingStrategyType = 'NoCaching' | 'Claude' | 'OpenAI' | 'Gemini';
 
+export type ThinkingStrategyType = 'None' | 'OpenAI' | 'Claude' | 'Gemini';
+
 export interface ServiceProvider {
   guid: string;
   url: string;
@@ -33,7 +35,8 @@ export interface Model {
   friendlyName: string;
   supportsPrefill: boolean;
   requires1fTemp: boolean;
-  reasoningEffort: 'none' | 'low' | 'medium' | 'high';
+  thinkingStrategy: ThinkingStrategyType;
+  thinkingStrategyOptions: Record<string, any>;
   isTtsModel?: boolean;
   ttsVoiceName?: string;
 }

@@ -162,7 +162,26 @@ namespace AiStudio4.AiServices
             if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
                 options.Conv.systemprompt = options.CustomSystemPrompt;
 
+            // Add Claude thinking strategy budget_tokens if specified
+            if (options.ThinkingStrategy == ThinkingStrategyType.Claude &&
+                options.ThinkingStrategyOptions.TryGetValue("budget_tokens", out var budgetTokensValue) &&
+                int.TryParse(budgetTokensValue.ToString(), out int budgetTokens))
+            {
+                options.ApiSettings.Temperature = 1f;
+                if (options.ApiSettings.TopP < 0.95f)
+                    options.ApiSettings.TopP = 0.95f;
+            }
+
             var req = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
+            
+            // Add Claude thinking strategy budget_tokens if specified
+            if (options.ThinkingStrategy == ThinkingStrategyType.Claude &&
+                options.ThinkingStrategyOptions.TryGetValue("budget_tokens", out var budgetTokensValue2) &&
+                int.TryParse(budgetTokensValue2.ToString(), out int budgetTokens2))
+            {
+                req["thinking"] = new JObject { ["type"] = "enabled", ["budget_tokens"] = budgetTokens2 };
+                // req["budget_tokens"] = budgetTokens;
+            }
 
             if (!forceNoTools)
             {

@@ -37,6 +37,10 @@ namespace AiStudio4.DataModels
         // Custom system prompt override
         public string CustomSystemPrompt { get; set; }
 
+        // Thinking strategy properties
+        public ThinkingStrategyType ThinkingStrategy { get; set; }
+        public Dictionary<string, object> ThinkingStrategyOptions { get; set; }
+
         // Callbacks for streaming updates
         public Action<string> OnStreamingUpdate { get; set; }
         public Action OnStreamingComplete { get; set; }
@@ -73,6 +77,8 @@ namespace AiStudio4.DataModels
                 CustomSystemPrompt = customSystemPrompt,
                 Attachments = attachments ?? new List<Attachment>(),
                 TopP = topP, // Set the specific TopP for this request if provided
+                ThinkingStrategy = model.ThinkingStrategy,
+                ThinkingStrategyOptions = model.ThinkingStrategyOptions,
                 // Initialize callbacks to null for backward compatibility
                 OnStreamingUpdate = null,
                 OnStreamingComplete = null

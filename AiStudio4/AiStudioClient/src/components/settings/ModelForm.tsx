@@ -1,9 +1,12 @@
 ﻿
 import React, { useState } from 'react';
-import { Model, ServiceProvider } from '@/types/settings';
+import { Model, ServiceProvider, ThinkingStrategyType } from '@/types/settings';
 import { GenericForm, FormFieldDefinition } from '@/components/common/GenericForm';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Controller, useForm } from 'react-hook-form';
 
 interface ModelFormProps {
   providers: ServiceProvider[];
@@ -15,6 +18,9 @@ interface ModelFormProps {
 export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, onSubmit, isProcessing }) => {
   // State for tiered pricing toggle
   const [showTieredPricing, setShowTieredPricing] = useState(!!initialValues?.priceBoundary);
+  const [thinkingStrategy, setThinkingStrategy] = useState<ThinkingStrategyType>(initialValues?.thinkingStrategy || 'None');
+  
+  const { control } = useForm();
   
   const providerOptions = providers.map((provider) => ({
     value: provider.guid,
@@ -69,21 +75,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
       'This model requires a temperature setting of 1.0 to function properly',
       2,
     ],
-    [
-      'reasoningEffort',
-      'Reasoning Effort',
-      'select',
-      undefined,
-      [
-        { value: 'none', label: 'None' },
-        { value: 'low', label: 'Low' },
-        { value: 'medium', label: 'Medium' },
-        { value: 'high', label: 'High' },
-      ],
-      undefined,
-      'Set the reasoning effort level for this model (if supported by backend)',
-      2,
-    ],
+
     [
       'isTtsModel',
       'Enable Text-to-Speech (TTS)',
@@ -148,14 +140,118 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     starred: false,
     supportsPrefill: false,
     requires1fTemp: false,
-    reasoningEffort: 'none',
+    thinkingStrategy: 'None',
+    thinkingStrategyOptions: {},
     isTtsModel: false,
     ttsVoiceName: 'Kore',
   };
 
+  // New component to render thinking strategy options
+  const ThinkingStrategyOptions = ({ strategy, control, disabled }: { strategy: ThinkingStrategyType, control: any, disabled: boolean }) => {
+    switch (strategy) {
+      case 'OpenAI':
+        return (
+          <div className="space-y-2">
+            <Label>Reasoning Effort</Label>
+            <Controller
+              name="thinkingStrategyOptions.reasoning_effort"
+              control={control}
+              defaultValue={initialValues?.thinkingStrategyOptions?.reasoning_effort || 'auto'}
+              render={({ field }) => (
+                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={disabled}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select effort level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Auto</SelectItem>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
+        );
+      case 'Claude':
+        return (
+          <div className="space-y-2">
+            <Label>Budget Tokens</Label>
+            <Controller
+              name="thinkingStrategyOptions.budget_tokens"
+              control={control}
+              defaultValue={initialValues?.thinkingStrategyOptions?.budget_tokens || 1024}
+              render={({ field }) => (
+                <Input
+                  type="number"
+                  placeholder="e.g., 1024"
+                  disabled={disabled}
+                  {...field}
+                  onChange={e => field.onChange(parseInt(e.target.value, 10))}
+                />
+              )}
+            />
+          </div>
+        );
+      case 'Gemini':
+        return (
+          <div className="space-y-4">
+             <div className="flex items-center space-x-2">
+              <Controller
+                  name="thinkingStrategyOptions.includeThoughts"
+                  control={control}
+                  defaultValue={initialValues?.thinkingStrategyOptions?.includeThoughts || false}
+                  render={({ field }) => (
+                      <Checkbox
+                          id="includeThoughts"
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={disabled}
+                      />
+                  )}
+              />
+              <Label htmlFor="includeThoughts">Include Thoughts</Label>
+            </div>
+            <div className="space-y-2">
+              <Label>Thinking Budget</Label>
+               <Controller
+                  name="thinkingStrategyOptions.thinkingBudget"
+                  control={control}
+                  defaultValue={initialValues?.thinkingStrategyOptions?.thinkingBudget || 1024}
+                  render={({ field }) => (
+                     <Input
+                      type="number"
+                      placeholder="e.g., 1024"
+                      disabled={disabled}
+                      {...field}
+                      onChange={e => field.onChange(parseInt(e.target.value, 10))}
+                     />
+                  )}
+              />
+            </div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   // Handle form submission with tiered pricing logic
   const handleFormSubmit = async (data: any) => {
-    const submissionData = { ...data };
+    const submissionData = { ...data, thinkingStrategy };
+    
+    // Clear options for other strategies
+    submissionData.thinkingStrategyOptions = {
+      ...initialValues?.thinkingStrategyOptions, // keep old values
+      ...submissionData.thinkingStrategyOptions, // apply new values
+    };
+
+    if (thinkingStrategy !== 'OpenAI') delete submissionData.thinkingStrategyOptions.reasoning_effort;
+    if (thinkingStrategy !== 'Claude') delete submissionData.thinkingStrategyOptions.budget_tokens;
+    if (thinkingStrategy !== 'Gemini') {
+      delete submissionData.thinkingStrategyOptions.includeThoughts;
+      delete submissionData.thinkingStrategyOptions.thinkingBudget;
+    }
     
     // If tiered pricing is disabled, set tiered fields to null
     if (!showTieredPricing) {
@@ -179,6 +275,36 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
         <Label htmlFor="tiered-pricing-toggle">Enable Tiered Pricing</Label>
       </div>
       
+      {/* New Thinking Strategy Selector */}
+          <div className="space-y-2" style={{ color: 'var(--global-text-color, inherit)' }}>
+              <Label style={{ color: 'var(--global-text-color, inherit)' }}>Thinking/Reasoning Strategy</Label>
+              <Select onValueChange={(value) => setThinkingStrategy(value as ThinkingStrategyType)} defaultValue={thinkingStrategy} disabled={isProcessing}>
+                  <SelectTrigger style={{
+                      backgroundColor: 'var(--global-background-color)',
+                      borderColor: 'var(--global-border-color)',
+                      color: 'var(--global-text-color)'
+                  }}>
+            <SelectValue placeholder="Select a strategy" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="None">None</SelectItem>
+            <SelectItem value="OpenAI">OpenAI (Reasoning Effort)</SelectItem>
+            <SelectItem value="Claude">Claude (Budget Tokens)</SelectItem>
+            <SelectItem value="Gemini">Gemini (Thinking Budget)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      
+      {/* Conditionally rendered options */}
+      <Controller
+        control={control}
+        name="thinkingStrategyOptions"
+        defaultValue={initialValues?.thinkingStrategyOptions || {}}
+        render={({ field }) => (
+          <ThinkingStrategyOptions strategy={thinkingStrategy} control={control} disabled={isProcessing} />
+        )}
+      />
+
       {/* Form */}
       <GenericForm
         fields={fields}
