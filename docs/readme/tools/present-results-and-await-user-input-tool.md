@@ -31,5 +31,5 @@ After completing a file organization task, the AI might use it to summarize what
 
 -   The `PresentResultsAndAwaitUserInputTool` **always** pauses the AI's execution and waits for the user to respond. This is its primary purpose.
 -   This tool is ideal for delivering completed work, analysis results, summaries, or any final output that requires user review or approval before proceeding.
--   Unlike `ThinkTool` (which continues processing) or `ThinkAndAwaitUserInputTool` (which is for planning/reasoning), this tool is specifically for presenting finished results.
+-   Unlike `ThinkAndContinueTool` (which continues processing) or `ThinkAndAwaitUserInputTool` (which is for planning/reasoning), this tool is specifically for presenting finished results.
 -   The user's subsequent input will then guide the AI's next actions or provide feedback on the presented results.

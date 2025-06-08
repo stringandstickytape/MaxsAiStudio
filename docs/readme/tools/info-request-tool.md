@@ -24,5 +24,5 @@ Your response to this message in the chat will then be used by the AI to continu
 ## Notes
 
 -   This tool primarily serves as a communication mechanism from the AI back to you *during a tool loop*.
--   When this tool is called, the tool processing loop usually **pauses** until you provide a response. This is different from the `ThinkTool`, which logs a thought and generally continues the loop, or the `StopTool`, which terminates the loop.
+-   When this tool is called, the tool processing loop usually **pauses** until you provide a response. This is different from the `ThinkAndContinueTool`, which logs a thought and generally continues the loop, or the `StopTool`, which terminates the loop.
 -   Your reply in the chat becomes the next input for the AI to continue its processing.

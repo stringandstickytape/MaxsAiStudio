@@ -29,6 +29,6 @@ After proposing a file deletion, the AI might use it to ask for confirmation:
 
 ## Notes
 
--   The `ThinkAndAwaitUserInputTool` **always** pauses the AI's execution and waits for the user to respond. This is its primary difference from the `ThinkTool`.
+-   The `ThinkAndAwaitUserInputTool` **always** pauses the AI's execution and waits for the user to respond. This is its primary difference from the `ThinkAndContinueTool`.
 -   This tool is useful when the AI needs to ensure the user agrees with a proposed plan, wants to offer choices, or requires clarification before taking potentially irreversible actions.
 -   The user's subsequent input will then guide the AI's next steps.
