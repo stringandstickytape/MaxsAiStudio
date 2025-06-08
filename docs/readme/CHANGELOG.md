@@ -5,15 +5,42 @@ All notable changes to AiStudio4 will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Tiered Pricing System**: Models now support tiered pricing with different rates above and below a configurable token boundary (e.g., Gemini 1.5 Pro's 128K boundary)
+  - New model properties: `PriceBoundary`, `InputPriceAboveBoundary`, `OutputPriceAboveBoundary`
+  - UI toggle in ModelForm to enable/disable tiered pricing
+  - Backward compatibility maintained with existing pricing properties
+- **Charging Strategy System**: New strategy pattern for calculating token costs based on provider-specific caching models
+  - Four strategies: NoCaching, Claude, OpenAI, and Gemini caching models
+  - Configurable per service provider with dropdown selection in ServiceProviderForm
+  - Strategy factory pattern with dependency injection for extensibility
+  - Charging strategy badges displayed in ServiceProviderManagement UI
+- **Enhanced Token Cost Calculation**: New `ITokenCostStrategy` interface and implementations for accurate cost calculation
+  - Claude: 1.25x cache creation, 0.1x cache read multipliers
+  - OpenAI: 1.0x cache creation, 0.25x cache read multipliers  
+  - Gemini: 0.25x cache read multipliers with tiered pricing support
+  - NoCaching: Standard input/output pricing without caching considerations
+- **Tool Rename**: ThinkTool renamed to ThinkAndContinueTool with updated descriptions and functionality
 - **Repack Project Source Code**: New menu item `Project > Repack Project Source Code` that allows quick re-packaging of project source code using the previously saved output file path
 - **DRY Refactored Packaging Logic**: Extracted common packaging logic into a reusable `ExecutePackingOperationAsync` helper method for better maintainability
 - **Last Packer Output File Persistence**: The application now remembers the last used output file path for packing operations, stored in `GeneralSettings.LastPackerOutputFile`
 
 ### Changed
+- **Model Properties Refactored**: Original pricing properties (`input1MTokenPrice`, `output1MTokenPrice`) renamed to `InputPriceBelowBoundary` and `OutputPriceBelowBoundary` with backward compatibility
+- **TokenCost Constructor**: New constructor accepting `ITokenCostStrategy` for accurate pricing calculations (old constructors marked obsolete)
+- **Service Provider Configuration**: Added `ChargingStrategy` property with JSON converter for proper serialization
+- **Tool Registration**: Updated tool service to use GUID-based tool registration instead of schema name for better uniqueness
 - **Improved Pack Project Source Code**: Refactored the existing pack functionality to use the new DRY architecture and automatically save the output path for future repack operations
 - **Enhanced User Experience**: Streamlined workflow for iterative development where users frequently need to update packaged project snapshots
 
 ### Technical Details
+- **Core Infrastructure**: Added `ITokenCostStrategy` interface and factory pattern in `AiStudio4.Core.Interfaces` and `AiStudio4.Services.CostingStrategies`
+- **Strategy Implementations**: Four concrete strategy classes implementing provider-specific cost calculation logic
+- **Model Schema Updates**: Extended `Model` class with tiered pricing properties and backward compatibility attributes
+- **Service Provider Enhancement**: Added `ChargingStrategyType` enum and converter for JSON serialization
+- **Dependency Injection**: Registered all strategy services and factory in `DependencyInjection.cs`
+- **UI Components**: Enhanced ModelForm with tiered pricing toggle, ServiceProviderForm with strategy dropdown
+- **Tool Updates**: Renamed ThinkTool to ThinkAndContinueTool with updated schema and descriptions
+- **Cost Calculation**: Updated DefaultChatService to use strategy factory for accurate cost calculations
 - Added `LastPackerOutputFile` property to `GeneralSettings.cs`
 - Created `ExecutePackingOperationAsync` helper method in `MainWindow.xaml.cs`
 - Refactored `PackProjectSourceCode_Click` to use the new helper method and save output path

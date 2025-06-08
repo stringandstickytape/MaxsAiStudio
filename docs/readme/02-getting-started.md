@@ -55,6 +55,11 @@ To use AI models, you need to configure their service providers (e.g., OpenAI, A
     *   **Friendly Name:** A name you choose (e.g., "My OpenAI Account").
     *   **Service Name:** Select the AI service type from the dropdown (e.g., `NetOpenAi` for OpenAI, `Claude` for Anthropic, `Gemini` for Google).
     *   **API URL:** The base URL for the API (e.g., `https://api.openai.com/v1`).
+    *   **Charging Strategy:** Select the cost calculation model for this provider:
+        *   **No Caching (Standard):** Basic input/output token pricing without caching considerations
+        *   **Claude Caching Model:** Uses Claude's caching multipliers (1.25x for cache creation, 0.1x for cache reads)
+        *   **OpenAI Caching Model:** Uses OpenAI's caching multipliers (1.0x for cache creation, 0.25x for cache reads)
+        *   **Gemini Caching Model:** Uses Gemini's caching multipliers (0.25x for cache reads) with tiered pricing support
     *   **API Key:** Your personal API key for the service.
     *   **Icon Name (Optional):** Select an icon to represent this provider.
     *   Click "Add Provider" to save.
@@ -67,7 +72,13 @@ Once providers are configured, add specific AI models you want to use.
     *   **Friendly Name:** A display name for the model (e.g., "GPT-4 Turbo").
     *   **Model Name:** The exact model identifier used by the API (e.g., `gpt-4-turbo`).
     *   **Service Provider:** Select one of your configured providers from the dropdown.
-    *   **Input/Output Token Price:** (Optional, for cost tracking) Enter the price per 1 million tokens for input and output.
+    *   **Enable Tiered Pricing:** (Optional) Check this box to enable tiered pricing for models that have different rates above and below a token boundary (e.g., Gemini 1.5 Pro with 128K token boundary).
+    *   **Pricing Configuration:**
+        *   **Input Price/1M (< Boundary):** Price per 1 million input tokens below the boundary (or default price if tiered pricing is disabled).
+        *   **Output Price/1M (< Boundary):** Price per 1 million output tokens below the boundary (or default price if tiered pricing is disabled).
+        *   **Token Boundary:** (Tiered pricing only) The token limit where pricing changes (e.g., 128000 for Gemini 1.5 Pro).
+        *   **Input Price/1M (> Boundary):** (Tiered pricing only) Price per 1 million input tokens above the boundary.
+        *   **Output Price/1M (> Boundary):** (Tiered pricing only) Price per 1 million output tokens above the boundary.
     *   **Color:** (Optional) Choose a color for UI identification.
     *   **Notes:** (Optional) Any personal notes about this model.
     *   **Additional Parameters (JSON):** (Optional, Advanced) JSON string for extra parameters to send with requests to this model.
