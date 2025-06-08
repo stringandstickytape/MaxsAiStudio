@@ -29,6 +29,8 @@ interface HistoricalConvsStore {
   
   convs: HistoricalConv[];
   isLoading: boolean;
+  isLoadingList: boolean;
+  isLoadingConv: boolean;
   error: string | null;
 
   
@@ -58,6 +60,8 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     
     convs: [],
     isLoading: false,
+    isLoadingList: false,
+    isLoadingConv: false,
     error: null,
 
     
@@ -65,7 +69,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
       const clientId = webSocketService.getClientId();
       if (!clientId) return set({ error: 'No client ID available' });
 
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, isLoadingList: true, error: null });
 
       try {
         const { data } = await apiClient.post('/api/getAllHistoricalConvTrees', {});
@@ -81,11 +85,12 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           highlightColour: undefined,
         }));
 
-        set({ convs: newConvs, isLoading: false });
+        set({ convs: newConvs, isLoading: false, isLoadingList: false });
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Failed to fetch convs',
           isLoading: false,
+          isLoadingList: false,
         });
       }
     },
@@ -94,7 +99,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
       const clientId = webSocketService.getClientId();
       if (!clientId) return set({ error: 'No client ID available' }) ?? null;
 
-      set({ isLoading: true, error: null });
+      set({ isLoading: true, isLoadingConv: true, error: null });
 
         try {
           
@@ -139,13 +144,14 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           });
         }
         
-        set({ isLoading: false });
+        set({ isLoading: false, isLoadingConv: false });
         const result = rootNode ?? (flatNodes.length > 0 ? nodeMap.get(flatNodes[0].id) : null);
         return result;
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Failed to fetch conv tree',
           isLoading: false,
+          isLoadingConv: false,
         });
         return null;
       }
