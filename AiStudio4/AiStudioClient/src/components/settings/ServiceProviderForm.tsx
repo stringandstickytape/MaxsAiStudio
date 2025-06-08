@@ -69,6 +69,22 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
       placeholder: 'https://api.example.com/v1/chat/completions',
       colSpan: 2,
     },
+    // Charging Strategy Dropdown
+    {
+      name: 'chargingStrategy',
+      label: 'Charging Strategy',
+      type: 'select',
+      description: 'Select the cost calculation model for this provider.',
+      options: [
+        { value: 'NoCaching', label: 'No Caching (Standard)' },
+        { value: 'Claude', label: 'Claude Caching Model' },
+        { value: 'OpenAI', label: 'OpenAI Caching Model' },
+        { value: 'Gemini', label: 'Gemini Caching Model' },
+      ],
+      placeholder: 'Select a charging strategy',
+      required: true,
+      colSpan: 2,
+    },
     {
       name: 'apiKey',
       label: 'API Key',
@@ -93,6 +109,7 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
     friendlyName: '',
     serviceName: '',
     iconName: '',
+    chargingStrategy: 'Claude', // Default to Claude per backend default
   };
 
   const handleSubmit = async (data: any) => {

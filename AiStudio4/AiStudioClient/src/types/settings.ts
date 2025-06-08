@@ -1,10 +1,15 @@
-﻿export interface ServiceProvider {
+﻿// AiStudio4/AiStudioClient/src/types/settings.ts
+
+export type ChargingStrategyType = 'NoCaching' | 'Claude' | 'OpenAI' | 'Gemini';
+
+export interface ServiceProvider {
   guid: string;
   url: string;
   apiKey: string;
   friendlyName: string;
   serviceName: string;
   iconName?: string;
+  chargingStrategy?: ChargingStrategyType; // Added for charging strategy support
 }
 
 export interface Model {
