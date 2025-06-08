@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
-import { Draggable } from 'react-beautiful-dnd';
 import { getIconForCommand, getCategoryBackgroundColor, getCategoryBorderColor, PinnedCommand } from './pinnedShortcutsUtils';
 
 interface PinnedShortcutButtonProps {
@@ -15,6 +14,12 @@ interface PinnedShortcutButtonProps {
     onRenameCommand: (command: PinnedCommand) => void;
     isButtonRef?: boolean;
     buttonRef?: React.RefObject<HTMLButtonElement>;
+    onDragStart?: (e: React.DragEvent, command: PinnedCommand, index: number) => void;
+    onDragEnd?: () => void;
+    onDragOver?: (e: React.DragEvent) => void;
+    onDrop?: (e: React.DragEvent, index: number) => void;
+    isDragging?: boolean;
+    draggedItem?: string | null;
 }
 
 export function PinnedShortcutButton({
@@ -25,24 +30,36 @@ export function PinnedShortcutButton({
     onPinCommand,
     onRenameCommand,
     isButtonRef = false,
-    buttonRef
+    buttonRef,
+    onDragStart,
+    onDragEnd,
+    onDragOver,
+    onDrop,
+    isDragging = false,
+    draggedItem
 }: PinnedShortcutButtonProps) {
+    const isBeingDragged = draggedItem === command.id;
+    
     return (
-        <Draggable key={command.id} draggableId={command.id} index={index}>
-            {(provided, snapshot) => (
-                <div
-                    ref={provided.innerRef}
-                    {...provided.draggableProps}
-                    className={cn('flex flex-col items-center group', snapshot.isDragging && 'opacity-70 z-50')}
-                >
-                    <div
-                        {...provided.dragHandleProps}
-                        className="cursor-grab h-2 w-[38px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                        <div className="w-12 flex items-center justify-center">
-                            <div className="h-[3px] w-8 bg-current rounded-full"></div>
-                        </div>
-                    </div>
+        <div
+            draggable
+            onDragStart={(e) => onDragStart?.(e, command, index)}
+            onDragEnd={onDragEnd}
+            onDragOver={onDragOver}
+            onDrop={(e) => onDrop?.(e, index)}
+            className={cn(
+                'flex flex-col items-center group',
+                isBeingDragged && 'opacity-70 z-50',
+                isDragging && !isBeingDragged && 'opacity-50'
+            )}
+        >
+            <div
+                className="cursor-grab h-2 w-[38px] text-gray-500 hover:text-gray-300 flex items-center justify-center rounded hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
+            >
+                <div className="w-12 flex items-center justify-center">
+                    <div className="h-[3px] w-8 bg-current rounded-full"></div>
+                </div>
+            </div>
                     <Tooltip key={command.id} delayDuration={300}>
                         <TooltipTrigger asChild>
                             <Button
@@ -93,8 +110,6 @@ export function PinnedShortcutButton({
                             </p>
                         </TooltipContent>
                     </Tooltip>
-                </div>
-            )}
-        </Draggable>
+        </div>
     );
 }

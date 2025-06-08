@@ -1,6 +1,5 @@
 ﻿// AiStudioClient\src\components\PinnedShortcutRow.tsx
 import React from 'react';
-import { Droppable } from 'react-beautiful-dnd';
 import { PinnedShortcutButton } from './PinnedShortcutButton';
 import { PinnedCommand } from './pinnedShortcutsUtils';
 
@@ -13,6 +12,12 @@ interface PinnedShortcutRowProps {
     onPinCommand: (commandId: string, isCurrentlyPinned: boolean) => void;
     onRenameCommand: (command: PinnedCommand) => void;
     buttonRef?: React.RefObject<HTMLButtonElement>;
+    onDragStart?: (e: React.DragEvent, command: PinnedCommand, index: number) => void;
+    onDragEnd?: () => void;
+    onDragOver?: (e: React.DragEvent) => void;
+    onDrop?: (e: React.DragEvent, index: number) => void;
+    isDragging?: boolean;
+    draggedItem?: string | null;
 }
 
 export function PinnedShortcutRow({
@@ -23,43 +28,43 @@ export function PinnedShortcutRow({
     onCommandClick,
     onPinCommand,
     onRenameCommand,
-    buttonRef
+    buttonRef,
+    onDragStart,
+    onDragEnd,
+    onDragOver,
+    onDrop,
+    isDragging,
+    draggedItem
 }: PinnedShortcutRowProps) {
     return (
         <div className="flex flex-row items-center justify-center gap-1 w-full">
-            <Droppable
-                droppableId={`pinned-commands-row-${rowIndex}`}
-                direction="horizontal"
-                isCombineEnabled={false}
-                isDropDisabled={false}
-                ignoreContainerClipping={false}
+            <div
+                className="flex items-center gap-2 flex-row"
+                onDragOver={onDragOver}
             >
-                {(provided) => (
-                    <div
-                        {...provided.droppableProps}
-                        ref={provided.innerRef}
-                        className="flex items-center gap-2 flex-row"
-                    >
-                        {rowCommands.map((command, index) => {
-                            const globalIndex = rowIndex * itemsPerRow + index;
-                            return (
-                                <PinnedShortcutButton
-                                    key={command.id}
-                                    command={command}
-                                    index={globalIndex}
-                                    orientation={orientation}
-                                    onCommandClick={onCommandClick}
-                                    onPinCommand={onPinCommand}
-                                    onRenameCommand={onRenameCommand}
-                                    isButtonRef={command.id === rowCommands[0]?.id && rowIndex === 0}
-                                    buttonRef={buttonRef}
-                                />
-                            );
-                        })}
-                        {provided.placeholder}
-                    </div>
-                )}
-            </Droppable>
+                {rowCommands.map((command, index) => {
+                    const globalIndex = rowIndex * itemsPerRow + index;
+                    return (
+                        <PinnedShortcutButton
+                            key={command.id}
+                            command={command}
+                            index={globalIndex}
+                            orientation={orientation}
+                            onCommandClick={onCommandClick}
+                            onPinCommand={onPinCommand}
+                            onRenameCommand={onRenameCommand}
+                            isButtonRef={command.id === rowCommands[0]?.id && rowIndex === 0}
+                            buttonRef={buttonRef}
+                            onDragStart={onDragStart}
+                            onDragEnd={onDragEnd}
+                            onDragOver={onDragOver}
+                            onDrop={onDrop}
+                            isDragging={isDragging}
+                            draggedItem={draggedItem}
+                        />
+                    );
+                })}
+            </div>
         </div>
     );
 }

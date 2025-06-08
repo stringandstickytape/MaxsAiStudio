@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
-import { DragDropContext, Droppable, DropResult } from 'react-beautiful-dnd';
+import { useDragDrop } from '@/hooks/useDragDrop';
 import { PinnedShortcutButton } from './PinnedShortcutButton';
 import { PinnedShortcutRow } from './PinnedShortcutRow';
 import { PinnedShortcutDropdown } from './PinnedShortcutDropdown';
@@ -157,18 +157,21 @@ function PinnedShortcutsBase({
         };
     }, [autoFit, orientation, pinnedCommands.length, visibleCount, itemsPerRow, rowCount, maxRows]);
 
-    // Handle drag and drop reordering - memoized to prevent recreation on each render
-    const handleDragEnd = useCallback((result: DropResult) => {
-        if (!result.destination) return;
-
-        const items = Array.from(pinnedCommands);
-        const [reorderedItem] = items.splice(result.source.index, 1);
-        items.splice(result.destination.index, 0, reorderedItem);
-
-        const reorderedIds = items.map((cmd) => cmd.id);
+    // Handle drag and drop reordering using native HTML5 API
+    const handleReorder = useCallback((newItems: PinnedCommand[]) => {
+        const reorderedIds = newItems.map((cmd) => cmd.id);
         reorderPinnedCommands(reorderedIds);
         setUserModified(true);
-    }, [pinnedCommands, reorderPinnedCommands, setUserModified]);
+    }, [reorderPinnedCommands, setUserModified]);
+
+    const {
+        isDragging,
+        draggedItem,
+        handleDragStart,
+        handleDragEnd,
+        handleDragOver,
+        handleDrop,
+    } = useDragDrop(pinnedCommands, handleReorder);
 
     // Handle command click - memoized to prevent recreation on each render
     const handleCommandClick = useCallback((commandId: string) => {
@@ -305,21 +308,20 @@ function PinnedShortcutsBase({
 
     return (
         <TooltipProvider>
-            <DragDropContext onDragEnd={handleDragEnd}>
-                <div
-                    ref={containerRef}
-                    className={cn(
-                        'PinnedShortcuts flex justify-center gap-1 overflow-x-auto',
-                        orientation === 'vertical' ? 'flex-col items-center' : 'flex-col w-full',
-                        className,
-                    )}
-                    style={{
-                        fontFamily: 'var(--global-font-family, inherit)',
-                        fontSize: 'var(--global-font-size, inherit)',
-                        color: 'var(--global-text-color, #e5e7eb)',
-                        ...(window?.theme?.PinnedShortcuts?.style || {})
-                    }}
-                >
+            <div
+                ref={containerRef}
+                className={cn(
+                    'PinnedShortcuts flex justify-center gap-1 overflow-x-auto',
+                    orientation === 'vertical' ? 'flex-col items-center' : 'flex-col w-full',
+                    className,
+                )}
+                style={{
+                    fontFamily: 'var(--global-font-family, inherit)',
+                    fontSize: 'var(--global-font-size, inherit)',
+                    color: 'var(--global-text-color, #e5e7eb)',
+                    ...(window?.theme?.PinnedShortcuts?.style || {})
+                }}
+            >
                     {/* Multi-row layout */}
                     {orientation === 'horizontal' && autoFit && rowCount > 1 ? (
                         commandRows.map((rowCommands, rowIndex) => (
@@ -333,40 +335,40 @@ function PinnedShortcutsBase({
                                 onPinCommand={handlePinCommand}
                                 onRenameCommand={handleRenameCommand}
                                 buttonRef={buttonRef}
+                                onDragStart={handleDragStart}
+                                onDragEnd={handleDragEnd}
+                                onDragOver={handleDragOver}
+                                onDrop={handleDrop}
+                                isDragging={isDragging}
+                                draggedItem={draggedItem}
                             />
                         ))
                     ) : (
                         /* Single row/column layout */
-                        <Droppable
-                            droppableId="pinned-commands"
-                            direction={orientation === 'vertical' ? 'vertical' : 'horizontal'}
-                            isCombineEnabled={false}
-                            isDropDisabled={false}
-                            ignoreContainerClipping={false}
+                        <div
+                            className={cn('flex items-center justify-center gap-1', orientation === 'vertical' ? 'flex-col' : 'flex-row w-full')}
+                            onDragOver={handleDragOver}
                         >
-                            {(provided) => (
-                                <div
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
-                                    className={cn('flex items-center justify-center gap-1', orientation === 'vertical' ? 'flex-col' : 'flex-row w-full')}
-                                >
-                                    {visibleCommands.map((command, index) => (
-                                        <PinnedShortcutButton
-                                            key={command.id}
-                                            command={command}
-                                            index={index}
-                                            orientation={orientation}
-                                            onCommandClick={handleCommandClick}
-                                            onPinCommand={handlePinCommand}
-                                            onRenameCommand={handleRenameCommand}
-                                            isButtonRef={command.id === visibleCommands[0]?.id}
-                                            buttonRef={buttonRef}
-                                        />
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
-                        </Droppable>
+                            {visibleCommands.map((command, index) => (
+                                <PinnedShortcutButton
+                                    key={command.id}
+                                    command={command}
+                                    index={index}
+                                    orientation={orientation}
+                                    onCommandClick={handleCommandClick}
+                                    onPinCommand={handlePinCommand}
+                                    onRenameCommand={handleRenameCommand}
+                                    isButtonRef={command.id === visibleCommands[0]?.id}
+                                    buttonRef={buttonRef}
+                                    onDragStart={handleDragStart}
+                                    onDragEnd={handleDragEnd}
+                                    onDragOver={handleDragOver}
+                                    onDrop={handleDrop}
+                                    isDragging={isDragging}
+                                    draggedItem={draggedItem}
+                                />
+                            ))}
+                        </div>
                     )}
 
                     {/* Dropdown for overflow commands */}
@@ -380,22 +382,21 @@ function PinnedShortcutsBase({
                             totalCount={pinnedCommands.length}
                         />
                     )}
-                </div>
+            </div>
                 
-                {/* Rename Dialog */}
-                <RenameShortcutDialog
-                    open={renameDialogOpen}
-                    onOpenChange={setRenameDialogOpen}
-                    commandToRename={commandToRename}
-                    newCommandName={newCommandName}
-                    setNewCommandName={setNewCommandName}
-                    selectedIconName={selectedIconName}
-                    selectedIconSet={selectedIconSet}
-                    onIconSelect={handleIconSelect}
-                    onConfirm={handleRenameConfirm}
-                    onCancel={handleRenameCancel}
-                />
-            </DragDropContext>
+            {/* Rename Dialog */}
+            <RenameShortcutDialog
+                open={renameDialogOpen}
+                onOpenChange={setRenameDialogOpen}
+                commandToRename={commandToRename}
+                newCommandName={newCommandName}
+                setNewCommandName={setNewCommandName}
+                selectedIconName={selectedIconName}
+                selectedIconSet={selectedIconSet}
+                onIconSelect={handleIconSelect}
+                onConfirm={handleRenameConfirm}
+                onCancel={handleRenameCancel}
+            />
         </TooltipProvider>
     );
 }
