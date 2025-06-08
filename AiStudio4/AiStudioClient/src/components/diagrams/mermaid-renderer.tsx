@@ -207,6 +207,26 @@ export const MermaidRenderer: CodeBlockRenderer = {
         const [error, setError] = useState<string | null>(null);
         const [diagramId] = useState('mermaid-diagram-' + Math.random().toString(36).substring(2, 9));
 
+        // Inject a global style to hide Mermaid's temporary div and prevent layout shifts
+        useEffect(() => {
+            const styleId = 'mermaid-temp-fix-style';
+            if (document.getElementById(styleId)) return;
+
+            const styleElement = document.createElement('style');
+            styleElement.id = styleId;
+            styleElement.innerHTML = `
+            div[id^="dmermaid-diagram-"] {
+                position: absolute !important;
+                top: -9999px !important;
+                left: -9999px !important;
+                z-index: -100 !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+            }
+        `;
+            document.head.appendChild(styleElement);
+        }, []);
+
         const renderDiagram = useCallback(async () => {
             if (!containerRef.current) return;
             // Clear previous content and errors
