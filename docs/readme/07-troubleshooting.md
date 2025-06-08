@@ -45,3 +45,8 @@
         *   Ensure the files are in the expected JSON format.
     *   **Conversion Errors During Import/Export:**
         *   The file format from Google AI Studio or AiStudio4 might have changed or might not be fully compatible. Report this issue with details of the error message if possible. This can happen if the structure of the exported/imported JSON is not what AiStudio4 expects.
+
+*   **Project Management Issues:**
+    *   **"Project path not set or does not exist" Error:** The active project path is invalid. Go to `Project > Manage Projects...`, select a valid project, and click "Set Active". Or, edit the project to correct its path.
+    *   **Project Switch Fails:** If selecting a System Prompt doesn't switch the active project, ensure the prompt is correctly associated with a project in the System Prompt editor. Verify the project exists in the `Project > Manage Projects...` dialog.
+    *   **Cannot Add/Edit Project:** Ensure you have write permissions to the `%APPDATA%/AiStudio4/Config/` directory where `projects.json` is stored.

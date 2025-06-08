@@ -12,14 +12,14 @@
     *   **Conversation History:** Lists your past conversations. Click to load one.
     *   **Search Bar:** Search through your conversation history.
     *   **Current Conversation Tree View:** An interactive D3.js visualization of the current conversation's message branches.
-*   **Panels:** Other panels like Settings, Tool Library, etc., can be opened via the Command Bar or menus. Panel sizes are now automatically saved and restored.
+*   **Panels:** Other panels like Settings, Tool Library, etc., can be opened via the Command Bar or menus. 
 
-## 3.2 Project Path: Its Importance
-The **Project Path** is the root directory of your software development project or working folder. Setting this correctly is **critical** because:
-*   It provides context to AI models for tasks like code generation or analysis.
+## 3.2 Active Project Path: Its Importance
+AiStudio4 supports managing multiple projects. The **Active Project Path** is the root directory of the currently selected project. This path is **critical** because:
+*   It provides the primary context to AI models for tasks like code generation or analysis.
 *   File system tools (read, write, search) operate relative to this path (with safety checks).
 *   Git integration tools use this path as the repository root.
-*   .NET Project Analysis scans projects within this path.
+*   The active project can be switched quickly via the `Project > Manage Projects...` menu or automatically by selecting a System Prompt that is associated with a specific project.
 
 ## 3.3 AI Models & Providers
 *   **Service Providers:** These are the AI services you connect to (e.g., OpenAI, Anthropic). You configure them with API keys and URLs.  Presets are provided for Anthropic, OpenAI, Google and OpenRouter - you will need to fill out the relevant API keys.
@@ -38,5 +38,5 @@ Tools are functions that the AI can use to perform actions or retrieve informati
 *   **Message IDs:** Each message has a unique ID and a parent ID, forming the tree structure.
 
 ## 3.6 Prompts
-*   **System Prompts:** These are instructions that define the AI's role, personality, and context for a conversation. You can create a library of system prompts and associate them with specific models, tools, and even user prompts. They can be set as global defaults or on a per-conversation basis.
+*   **System Prompts:** These are instructions that define the AI's role, personality, and context. You can create a library of system prompts and associate them with specific models, tools, user prompts, and **projects**. When a system prompt with an associated project is activated, that project automatically becomes the active one for the application.
 *   **User Prompts:** Reusable text snippets, templates, or instructions you can quickly insert into your chat. They can be accessed via Slash Commands (e.g., `/my-template` or `/MyProjectFile.cs`).

@@ -66,6 +66,7 @@ System prompts guide the AI's behavior for an entire conversation.
     *   **Associated User Prompt:** Select a User Prompt to be automatically inserted into the input bar when this System Prompt is applied.
     *   **Associated Models:** Select a Primary and/or Secondary AI model to be automatically selected when this prompt is applied.
     *   **Associated MCP Servers:** Select MCP servers to be automatically enabled when this prompt is applied.
+    *   **Associated Project:** Select a project from your defined list. When this system prompt is activated, the associated project will automatically become the active project for the application.
 3.  **Applying:**
     *   From the library, click "Apply" on a prompt card.
     *   From the Command Bar, search for the system prompt by title.
@@ -170,10 +171,18 @@ AiStudio4 can automatically synchronize system prompts with Azure DevOps wiki pa
 *   **Automatic Updates:** Ensure AI prompts stay current with project requirements and guidelines
 *   **Version Control:** Leverage Azure DevOps wiki's version control for prompt management
 
-## 4.8 Project Source Code Packaging
+## 4.8 Project Management
+You can define and switch between multiple development projects.
+
+1.  **Open Management Dialog:** Go to `Project > Manage Projects...` to open the project management window.
+2.  **Add a Project:** Click "Add", provide a name and path for your project, and save.
+3.  **Set Active Project:** Select a project from the list and click "Set Active". The main window will update to reflect this new context.
+4.  **Edit/Delete:** You can also edit the details of or delete existing projects from this dialog.
+
+### 4.9 Project Source Code Packaging
 AiStudio4 provides tools to package your project's source code into a comprehensive XML format for AI analysis and sharing.
 
-### 4.8.1 Pack Project Source Code
+### 4.9.1 Pack Project Source Code
 1. **Access the Feature:**
    * Go to `Project > Pack Project Source Code` in the application menu.
 2. **Configure Packaging Options (Optional):**
@@ -187,7 +196,7 @@ AiStudio4 provides tools to package your project's source code into a comprehens
    * The packaging process respects `.gitignore` rules and your configured include/exclude settings.
    * The output file path is automatically saved for future repack operations.
 
-### 4.8.2 Repack Project Source Code
+### 4.9.2 Repack Project Source Code
 1. **Quick Repack:**
    * Go to `Project > Repack Project Source Code` in the application menu.
    * This will automatically re-run the packaging process using the same output file path as your last pack operation.
@@ -200,16 +209,16 @@ AiStudio4 provides tools to package your project's source code into a comprehens
    * You must have used "Pack Project Source Code" at least once to establish an output file location.
    * If no previous pack location exists, you'll be prompted to use "Pack Project Source Code" first.
 
-### 4.8.3 Package Contents and Uses
+### 4.9.3 Package Contents and Uses
 * **XML Structure:** The output includes the complete directory structure and content of each included file.
 * **AI Integration:** Useful for providing large codebase snapshots to AI models that have context window limitations or no direct file system access.
 * **Code Review:** Can be shared with team members or external reviewers for comprehensive code analysis.
 * **Documentation:** Serves as a snapshot of your project at a specific point in time.
 
-## 4.9 Google AI Studio Integration
+## 4.10 Google AI Studio Integration
 AiStudio4 allows you to import conversations from Google AI Studio and export conversations back to Google Drive for use in Google's ecosystem.
 
-### 4.9.1 Importing Conversations from Google AI Studio
+### 4.10.1 Importing Conversations from Google AI Studio
 1.  **Ensure Setup:** 
     *   A `credentials.json` file (obtained from your Google Cloud Console for an OAuth 2.0 Desktop app) is required in your `%APPDATA%\AiStudio4\Config\` directory.
     *   You may need to authorize AiStudio4 to access your Google Drive the first time you use this feature.
@@ -226,7 +235,7 @@ AiStudio4 allows you to import conversations from Google AI Studio and export co
     *   The selected messages will be converted and saved as a new conversation in AiStudio4.
     *   The new conversation(s) will appear in your Conversation History, and the first successfully imported conversation will be automatically loaded.
 
-### 4.9.2 Exporting Conversations to Google AI Studio
+### 4.10.2 Exporting Conversations to Google AI Studio
 1.  **Ensure Setup:** Similar to importing, ensure Google Drive authorization is complete and the "Google AI Studio" folder exists.
 2.  **Initiate Export:**
     *   Go to `File > Import/Export > Upload current thread to Google AI Studio....`
