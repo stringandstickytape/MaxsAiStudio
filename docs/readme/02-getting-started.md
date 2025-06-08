@@ -38,12 +38,21 @@ AI Studio 4 is comprised of a .NET backend (which also acts as the host applicat
 
 ## 2.3 Initial Setup
 
-### 2.3.1 Setting the Project Path
-This is the **most crucial first step**.
-1.  Go to `File > Project > Set Project Path...` in the application menu.
-2.  Select the root directory of your software development project.
-3.  This path is essential for context-aware AI tasks, file operations, Git integration, and .NET project analysis.
-    The window title will update to reflect the current project path.  A shortcut "folder" icon in the menu bar provides quick Explorer access to the project path.
+### 2.3.1 Managing and Setting Projects
+This is the **most crucial first step**. AiStudio4 allows you to manage a list of projects. The "active" project provides the context for all file and development-related tools.
+
+1.  **Open Project Management:** Go to `Project > Manage Projects...` in the application menu.
+2.  **Add Your First Project:**
+    *   Click "Add" to open the Project Editor.
+    *   Give your project a **Name** (e.g., "My Web App").
+    *   Set the **Path** to the root directory of your software development project.
+    *   Click "Save".
+3.  **Set the Active Project:**
+    *   In the "Project Management" window, select your newly created project.
+    *   Click "Set Active".
+    *   The main window title will update to reflect the active project's path. A shortcut "folder" icon in the menu bar also provides quick Explorer access.
+
+You can add multiple projects and switch between them using this dialog. The active project determines the context for all AI tasks, file operations, Git integration, and .NET project analysis.
 
 ### 2.3.2 Configuring AI Service Providers
 To use AI models, you need to configure their service providers (e.g., OpenAI, Anthropic).

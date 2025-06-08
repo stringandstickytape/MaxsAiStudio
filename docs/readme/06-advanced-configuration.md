@@ -32,6 +32,7 @@ Most user preferences and data are stored in JSON files within this directory on
 *   **`themes.json`**: User-imported/created UI themes and the active theme ID.
 *   **`builtinToolExtraProps.json`**: Persisted user-configured `ExtraProperties` for built-in tools.
 *   **`Config/mcpServers.json`**: Definitions for Model Context Protocol (MCP) servers.
+*   **`Config/projects.json`**: Definitions for your managed projects (name, path, description).
 *   **`convs/`**: Directory where individual conversation JSON files are stored.
     *   **`convs/archive/`**: Subdirectory where old conversations are zipped.
 

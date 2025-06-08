@@ -218,13 +218,17 @@ In the Input Bar:
 *   **Panel Size Persistence:** Panel sizes are automatically saved and restored between sessions with debounced saving to prevent performance issues.
 
 ## 5.4 Project Integration
+AiStudio4's project integration allows it to act as a true coding assistant with deep context of your local development environment.
 
-### 5.4.1 .NET Project Analysis
+### 5.4.1 Multi-Project Management
+*   **Define Projects:** Instead of a single project path, you can now define and manage a list of named projects, each with its own root directory, via the `Project > Manage Projects...` dialog.
+*   **Active Project:** At any time, one project is "active". All context-aware tools (file system, Git, .NET analysis) operate within this active project's directory.
+*   **Switching Projects:** You can manually switch the active project from the management dialog or automatically by selecting a System Prompt that has been associated with a specific project.
+
+### 5.4.2 .NET Project Analysis
 *   From the application menu: `Project > Analyze .NET Projects`.
-*   This tool scans your current `ProjectPath` for C# project files (`.csproj`) and source files (`.cs`).
-*   It extracts namespace, class, and member (methods, properties, fields, etc.) information.
-*   The results are saved to a `DotNetProjectAnalysis.txt` file in your project root.
-*   This file can then be used as context for AI tasks, for example, by attaching it to a prompt or having the AI read it using the `ReadFiles` tool.
+*   This tool scans the **active project's path** for C# files.
+*   It extracts namespace, class, and member information, saving the results to `DotNetProjectAnalysis.txt` in the project root for AI consumption.
 
 ### 5.4.2 Project Source Code Packaging
 *   **Pack Project Source Code:** From the application menu: `Project > Pack Project Source Code`.
