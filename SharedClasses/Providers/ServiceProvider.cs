@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 using SharedClasses.Providers;
 
@@ -20,6 +21,7 @@ namespace SharedClasses.Providers
         /// <summary>
         /// Specifies the cost calculation strategy for this provider.
         /// </summary>
+        [JsonConverter(typeof(ChargingStrategyTypeConverter))]
         public ChargingStrategyType ChargingStrategy { get; set; } = ChargingStrategyType.Claude;
 
         public ServiceProvider()

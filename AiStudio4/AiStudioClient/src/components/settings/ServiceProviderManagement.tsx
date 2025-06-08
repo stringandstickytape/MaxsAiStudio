@@ -167,7 +167,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                   {/* Charging Strategy Badge */}
                   <div className="pt-1">
                     <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700 text-gray-200">
-                      Strategy: {provider.chargingStrategy || 'Claude'}
+                      Cache Pricing: {provider.chargingStrategy || 'Claude'}
                     </span>
                   </div>
                 </div>
