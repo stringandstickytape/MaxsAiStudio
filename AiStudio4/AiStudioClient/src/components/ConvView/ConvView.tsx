@@ -4,9 +4,9 @@ import { StickToBottom } from 'use-stick-to-bottom';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
 
 import { MessageItem } from './MessageItem';
-import { StreamingMessage } from './StreamingMessage';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
 // import { ConversationControls } from './ConversationControls';
 
@@ -15,17 +15,11 @@ export const themeableProps = {
 };
 
 interface ConvViewProps {
-    streamTokens: string[];
     isCancelling?: boolean;
-    isStreaming?: boolean;
-    lastStreamedContent?: string;
 }
 
 export const ConvView = ({
-    streamTokens,
-    isCancelling = false,
-    isStreaming = false,
-    lastStreamedContent = ''
+    isCancelling = false
 }: ConvViewProps) => {
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -36,6 +30,16 @@ export const ConvView = ({
 
     // Get search results from search store
     const { searchResults } = useSearchStore();
+    
+    // Import WebSocket store to check streaming status
+    const { hasActiveStreaming, isMessageStreaming } = useWebSocketStore();
+    
+    // Determine which message is the streaming target
+    const lastMessage = useMemo(() => {
+        const conv = activeConvId ? convs[activeConvId] : null;
+        if (!conv || conv.messages.length === 0) return null;
+        return conv.messages[conv.messages.length - 1];
+    }, [activeConvId, convs]);
 
     // Add scroll event listener to detect manual scrolling
     useEffect(() => {
@@ -110,33 +114,18 @@ export const ConvView = ({
             temperature: msg.temperature
         }));
         // Get the starting message ID
-        const startingMessageId = streamTokens.length > 0
-            ? conv.messages[conv.messages.length - 1].id
-            : slctdMsgId || conv.messages[conv.messages.length - 1].id;
+        const startingMessageId = slctdMsgId || conv.messages[conv.messages.length - 1].id;
 
         const graph = new MessageGraph(messages);
         const path = graph.getMessagePath(startingMessageId);
 
         return path;
-    }, [activeConvId, slctdMsgId, convs, streamTokens.length]);
+    }, [activeConvId, slctdMsgId, convs]);
 
     // No need to update visibleCount when conversation changes, always show all messages
 
 
-    // Listen for stream:clear event to reset streamTokens
-    useEffect(() => {
-        const handleClearStream = () => {
-            if (streamTokens.length > 0) {
-                // This will clear the displayed tokens in the parent component
-                streamTokens = [];
-            }
-        };
-
-        window.addEventListener('stream:clear', handleClearStream);
-        return () => {
-            window.removeEventListener('stream:clear', handleClearStream);
-        };
-    }, [streamTokens]);
+    // Removed stream:clear event handling - no longer needed with new streaming system
 
     // No need for handleLoadMore, always show all messages
 
@@ -199,20 +188,18 @@ export const ConvView = ({
                         }
                     }
 
+                    // Determine if this message item is the target for the current stream
+                    const isStreamingTarget = isMessageStreaming(message.id) && (message.source === 'ai' || message.source === 'assistant');
+
                     return (
                         <MessageItem
                             key={message.id}
                             message={enhancedMessage}
                             activeConvId={activeConvId}
+                            isStreamingTarget={isStreamingTarget}
                         />
                     );
                 })}
-
-                <StreamingMessage
-                    streamTokens={streamTokens}
-                    isStreaming={isStreaming}
-                    lastStreamedContent={lastStreamedContent}
-                />
             </StickToBottom.Content>
             
             {/* Add scroll to bottom button */}

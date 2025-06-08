@@ -85,14 +85,15 @@ export function initDebugUtils() {
 
       // For AI messages, simulate streaming tokens before sending the final message
       if (source === 'ai') {
-        // First dispatch stream:token events to simulate typing
-        await simulateStreamingTokens(content, chunkSize, 20);
+        // First dispatch cfrag events to simulate typing
+        await simulateStreamingTokens(content, chunkSize, 20, messageId);
         
         if (!activeMessageGeneration?.isRunning) break;
         
-        // Dispatch a stream:end event to signal the end of streaming
-        dispatchWebSocketEvent('stream:end', {
+        // Dispatch an endstream event to signal the end of streaming
+        dispatchWebSocketEvent('endstream', {
           type: 'end',
+          messageId: messageId,
           content: null
         });
         
@@ -152,9 +153,10 @@ export function initDebugUtils() {
    * @param content The full content to stream
    * @param chunkSize Size of each chunk in characters
    * @param delayBetweenTokens Delay between token events in ms
+   * @param messageId The ID of the message being streamed
    * @returns Promise that resolves when all tokens have been streamed
    */
-  async function simulateStreamingTokens(content: string, chunkSize: number, delayBetweenTokens: number): Promise<void> {
+  async function simulateStreamingTokens(content: string, chunkSize: number, delayBetweenTokens: number, messageId: string): Promise<void> {
     // Split the content into chunks of the specified size
     const chunks: string[] = [];
     
@@ -166,9 +168,10 @@ export function initDebugUtils() {
     for (let i = 0; i < chunks.length; i++) {
       if (!activeMessageGeneration?.isRunning) break;
       
-      // Dispatch a stream:token event for this chunk
-      dispatchWebSocketEvent('stream:token', {
+      // Dispatch a cfrag event for this chunk
+      dispatchWebSocketEvent('cfrag', {
         type: 'fragment',
+        messageId: messageId,
         content: chunks[i]
       });
       

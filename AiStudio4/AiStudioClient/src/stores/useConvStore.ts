@@ -64,23 +64,50 @@ export const useConvStore = create<ConvState>((set, get) => {
                     useAttachmentStore.getState().addAttachmentsForId(content.id, attachments);
                 }
                 console.log('temp = ', content.temperature);
-                // First add the message to the conversation
-                addMessage({
-                    convId: targetConvId,
-                    message: {
-                        id: content.id,
-                        content: content.content,
-                        source: content.source,
-                        parentId,
-                        timestamp: content.timestamp || Date.now(),
-                        durationMs: content.durationMs, // Ensure this is explicitly included
-                        costInfo: content.costInfo || null,
-                        cumulativeCost: content.cumulativeCost,
-                        attachments: attachments || undefined,
-                        temperature: content.temperature
-                    },
-                    slctdMsgId: isAiMessage ? content.id : false,
-                });
+                
+                // Check if message already exists (for updates)
+                const existingMessageIndex = conv?.messages.findIndex(m => m.id === content.id) ?? -1;
+                
+                if (existingMessageIndex !== -1) {
+                    // --- UPDATE EXISTING MESSAGE ---
+                    set(state => {
+                        const updatedMessages = [...conv.messages];
+                        const existingMessage = updatedMessages[existingMessageIndex];
+                        updatedMessages[existingMessageIndex] = { 
+                            ...existingMessage, 
+                            content: content.content,
+                            durationMs: content.durationMs,
+                            costInfo: content.costInfo || existingMessage.costInfo,
+                            cumulativeCost: content.cumulativeCost || existingMessage.cumulativeCost,
+                            temperature: content.temperature || existingMessage.temperature
+                        };
+                        
+                        return {
+                            convs: {
+                                ...state.convs,
+                                [targetConvId]: { ...conv, messages: updatedMessages }
+                            }
+                        };
+                    });
+                } else {
+                    // --- ADD NEW MESSAGE (Placeholder or new message) ---
+                    addMessage({
+                        convId: targetConvId,
+                        message: {
+                            id: content.id,
+                            content: content.content,
+                            source: content.source,
+                            parentId,
+                            timestamp: content.timestamp || Date.now(),
+                            durationMs: content.durationMs, // Ensure this is explicitly included
+                            costInfo: content.costInfo || null,
+                            cumulativeCost: content.cumulativeCost,
+                            attachments: attachments || undefined,
+                            temperature: content.temperature
+                        },
+                        slctdMsgId: isAiMessage ? content.id : false,
+                    });
+                }
                 
                 // Special handling for AI messages: ensure they're selected in the UI
                 //if (isAiMessage) {

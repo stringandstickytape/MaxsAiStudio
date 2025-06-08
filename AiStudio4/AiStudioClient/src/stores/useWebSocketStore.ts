@@ -11,11 +11,16 @@ interface WebSocketStore {
   reconnectAttempts: number;
   isCancelling: boolean;
   currentRequest?: { convId: string; messageId: string };
+  activeStreamingMessageIds: Set<string>; // Track which messages are actively streaming
 
   
 
   setIsCancelling: (isCancelling: boolean) => void;
   setCurrentRequest: (request: { convId: string; messageId: string } | undefined) => void;
+  addStreamingMessage: (messageId: string) => void;
+  removeStreamingMessage: (messageId: string) => void;
+  isMessageStreaming: (messageId: string) => boolean;
+  hasActiveStreaming: () => boolean;
 }
 
 export const useWebSocketStore = create<WebSocketStore>((set, get) => {
@@ -54,10 +59,20 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     
     
     listenToWebSocketEvent('request:cancelled', (detail) => {
-      set({ isCancelling: false, currentRequest: undefined });
+      set({ isCancelling: false, currentRequest: undefined, activeStreamingMessageIds: new Set() });
     });
-    // Reset cancelling state on stream:end, but keep currentRequest for interject button visibility
-    listenToWebSocketEvent('stream:end', () => {
+    
+    // Listen for streaming events to track active streaming messages
+    listenToWebSocketEvent('cfrag', (detail) => {
+      if (detail.messageId) {
+        get().addStreamingMessage(detail.messageId);
+      }
+    });
+    
+    listenToWebSocketEvent('endstream', (detail) => {
+      if (detail.messageId) {
+        get().removeStreamingMessage(detail.messageId);
+      }
       set({ isCancelling: false });
     });
   }
@@ -70,6 +85,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     reconnectAttempts: webSocketService.getReconnectAttempts(),
     isCancelling: false,
     currentRequest: undefined,
+    activeStreamingMessageIds: new Set<string>(),
 
     
 
@@ -79,6 +95,28 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
 
     setCurrentRequest: (request) => {
       set({ currentRequest: request });
+    },
+
+    addStreamingMessage: (messageId) => {
+      set(state => ({
+        activeStreamingMessageIds: new Set([...state.activeStreamingMessageIds, messageId])
+      }));
+    },
+
+    removeStreamingMessage: (messageId) => {
+      set(state => {
+        const newSet = new Set(state.activeStreamingMessageIds);
+        newSet.delete(messageId);
+        return { activeStreamingMessageIds: newSet };
+      });
+    },
+
+    isMessageStreaming: (messageId) => {
+      return get().activeStreamingMessageIds.has(messageId);
+    },
+
+    hasActiveStreaming: () => {
+      return get().activeStreamingMessageIds.size > 0;
     },
   };
 });

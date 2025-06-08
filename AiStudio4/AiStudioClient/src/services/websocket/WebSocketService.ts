@@ -208,13 +208,15 @@ export class WebSocketService {
             });
 
             if (message.messageType === 'cfrag') {
-                dispatchWebSocketEvent('stream:token', {
+                dispatchWebSocketEvent('cfrag', {
                     type: 'fragment',
+                    messageId: message.messageId, // Include messageId
                     content: message.content,
                 });
             } else if (message.messageType === 'endstream') {
-                dispatchWebSocketEvent('stream:end', {
+                dispatchWebSocketEvent('endstream', {
                     type: 'end',
+                    messageId: message.messageId, // Include messageId
                 });
             } else if (message.messageType === 'conv') {
                 

@@ -1,24 +1,20 @@
 ﻿import { ConvView } from './ConvView';
-import { useStreamTokens } from '@/hooks/useStreamTokens';
+import { useWebSocketStore } from '@/stores/useWebSocketStore';
 // StickToBottom removed
 
 interface ChatContainerProps {
-  streamTokens: string[];
   isMobile: boolean;
   isCancelling?: boolean;
 }
 
-export function ChatContainer({ isMobile, streamTokens, isCancelling }: ChatContainerProps) {
+export function ChatContainer({ isMobile, isCancelling }: ChatContainerProps) {
   
-  const { isStreaming, lastStreamedContent } = useStreamTokens();
+  const { isCancelling: wsIsCancelling } = useWebSocketStore();
   
   return (
       <div className="h-full w-full overflow-hidden">
           <ConvView 
-            streamTokens={streamTokens} 
-            isCancelling={isCancelling}
-            isStreaming={isStreaming}
-            lastStreamedContent={lastStreamedContent}
+            isCancelling={isCancelling || wsIsCancelling}
           />
     </div>
   );

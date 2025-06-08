@@ -63,11 +63,12 @@ namespace AiStudio4.Services
                 // Get cancellation token from the service
                 var cancellationToken = _cancellationService.AddTokenSource(clientId);
 
-                // Define callbacks inline, capturing clientId
+                // Define callbacks inline, capturing clientId and messageId (will be set later)
+                string assistantMessageId = null;
                 Action<string> streamingUpdateCallback = (text) =>
-                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "cfrag", Content = text });
+                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "cfrag", Content = text });
                 Action streamingCompleteCallback = () =>
-                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageType = "endstream", Content = "" }); // Send empty content on complete
+                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "endstream", Content = "" }); // Send empty content on complete
                 bool isFirstMessageInConv = false;
                 ChatRequest chatRequest = null;
                 v4BranchedConv? conv = null;
@@ -157,6 +158,15 @@ namespace AiStudio4.Services
                         newUserMessage.Attachments.AddRange(attachments);
                     }
 
+                    // Create placeholder AI message before starting the AI stream
+                    assistantMessageId = $"msg_{Guid.NewGuid()}";
+                    var placeholderMessage = conv.AddNewMessage(
+                        v4BranchedConvMessageRole.Assistant,
+                        assistantMessageId,
+                        "", // Content is initially empty
+                        chatRequest.MessageId // Parent is the user's message
+                    );
+
                     // Save the conv system prompt if provided
                     if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
                     {
@@ -176,6 +186,17 @@ namespace AiStudio4.Services
                         Source = "user", // Explicitly set source as "user"
                         Attachments = newUserMessage.Attachments,
                         DurationMs = 0, // User messages have zero processing duration
+                    });
+
+                    // Notify client to create the placeholder AI MessageItem
+                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
+                    {
+                        ConvId = conv.ConvId,
+                        MessageId = assistantMessageId,
+                        Content = "", // Empty content
+                        ParentId = chatRequest.MessageId,
+                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                        Source = "assistant"
                     });
 
                     // Replace tree builder with direct message processing for conv list notification
