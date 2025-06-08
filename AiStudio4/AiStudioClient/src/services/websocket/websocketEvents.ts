@@ -2,6 +2,8 @@
 export type WebSocketEventType =
   | 'connection:status'
   | 'message:received'
+  | 'cfrag'
+  | 'endstream'
   | 'conv:upd'
   | 'conv:load'
   | 'historical:update'
