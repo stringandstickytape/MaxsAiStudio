@@ -58,6 +58,14 @@ namespace AiStudio4.Core
             // Register project packager service
             services.AddSingleton<IProjectPackager, ProjectPackager>();
 
+            // --- Register Costing Strategies ---
+            services.AddSingleton<AiStudio4.Services.CostingStrategies.NoCachingTokenCostStrategy>();
+            services.AddSingleton<AiStudio4.Services.CostingStrategies.ClaudeCachingTokenCostStrategy>();
+            services.AddSingleton<AiStudio4.Services.CostingStrategies.OpenAICachingTokenCostStrategy>();
+            services.AddSingleton<AiStudio4.Services.CostingStrategies.GeminiCachingTokenCostStrategy>();
+            services.AddSingleton<AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory, AiStudio4.Services.CostingStrategies.TokenCostStrategyFactory>();
+            // --- End register costing strategies ---
+
             // Register the tool service that consumes the collection of tools
             // BuiltinToolService: Manages the available tools and provides a centralized way to access them.
             services.AddTransient<IBuiltinToolService, BuiltinToolService>();

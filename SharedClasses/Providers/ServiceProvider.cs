@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
+using SharedClasses.Providers;
+
 namespace SharedClasses.Providers
 {
     public class ServiceProvider
@@ -14,6 +16,11 @@ namespace SharedClasses.Providers
 
         // create a guid
         public string Guid { get; set; }
+
+        /// <summary>
+        /// Specifies the cost calculation strategy for this provider.
+        /// </summary>
+        public ChargingStrategyType ChargingStrategy { get; set; } = ChargingStrategyType.Claude;
 
         public ServiceProvider()
         {
