@@ -16,14 +16,14 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
     public class ToolRequestHandler : BaseRequestHandler
     {
         private readonly IToolService _toolService;
-        private readonly IBuiltInToolExtraPropertiesService _builtInToolExtraPropertiesService;
+        private readonly IBuiltinToolService _builtinToolService;
 
         public ToolRequestHandler(
             IToolService toolService,
-            IBuiltInToolExtraPropertiesService builtInToolExtraPropertiesService)
+            IBuiltinToolService builtinToolService)
         {
             _toolService = toolService ?? throw new ArgumentNullException(nameof(toolService));
-            _builtInToolExtraPropertiesService = builtInToolExtraPropertiesService ?? throw new ArgumentNullException(nameof(builtInToolExtraPropertiesService));
+            _builtinToolService = builtinToolService ?? throw new ArgumentNullException(nameof(builtinToolService));
         }
 
         protected override IEnumerable<string> SupportedRequestTypes => new[]
@@ -125,11 +125,20 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     return SerializeError("Invalid tool data or missing tool ID");
 
                 var matchedTool = await _toolService.GetToolByIdAsync(tool.Guid);
+                if (matchedTool == null) return SerializeError($"Tool with ID {tool.Guid} not found.");
 
-                _builtInToolExtraPropertiesService.SaveExtraProperties(matchedTool.Name, tool.ExtraProperties);
-
-                var result = await _toolService.UpdateToolAsync(tool);
-                return JsonConvert.SerializeObject(new { success = true, tool = result });
+                if (matchedTool.IsBuiltIn)
+                {
+                    // Save only the extra properties via the BuiltinToolService.
+                    string propertyKey = $"{matchedTool.Name.Substring(0, 1).ToLower()}{matchedTool.Name.Substring(1)}";
+                    _builtinToolService.SaveBuiltInToolExtraProperties(propertyKey, tool.ExtraProperties);
+                    return JsonConvert.SerializeObject(new { success = true, tool });
+                }
+                else
+                {
+                    var result = await _toolService.UpdateToolAsync(tool);
+                    return JsonConvert.SerializeObject(new { success = true, tool = result });
+                }
             }
             catch (Exception ex)
             {
