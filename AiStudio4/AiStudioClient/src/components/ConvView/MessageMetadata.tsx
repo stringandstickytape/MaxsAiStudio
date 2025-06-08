@@ -66,8 +66,6 @@ const formatTimestamp = (timestamp?: number | null) => {
 };
 
 export const MessageMetadata = ({ message }: MessageMetadataProps) => {
-  const { useExperimentalCostTracking } = useGeneralSettingsStore(); // <-- Get the setting
-
   const metadataItems = [];
 
   // Timestamp
@@ -105,13 +103,11 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
       );
     }
 
-    if (useExperimentalCostTracking) {
-      metadataItems.push(
-        <span key="cost" className="flex items-center">
-          Cost: ${message.costInfo.totalCost.toFixed(3)} (Cum: ${message.cumulativeCost?.toFixed(3)})
-        </span>
-      );
-    }
+    metadataItems.push(
+      <span key="cost" className="flex items-center">
+        Cost: ${message.costInfo.totalCost.toFixed(3)} (Cum: ${message.cumulativeCost?.toFixed(3)})
+      </span>
+    );
 
     metadataItems.push(
       <span key="pricing" className="text-gray-500">

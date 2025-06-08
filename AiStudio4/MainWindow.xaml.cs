@@ -99,7 +99,6 @@ public partial class WebViewWindow : Window
         InitializeComponent();
         UpdateWindowTitle(); 
         UpdateAllowConnectionsOutsideLocalhostMenuItem(); 
-        UpdateUseExperimentalCostTrackingMenuItem();
         UpdateUpdateAvailableMenuItem();
         UpdateWikiSyncMenuItems();
         webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
@@ -406,7 +405,6 @@ public partial class WebViewWindow : Window
             
             UpdateWindowTitle();
             UpdateAllowConnectionsOutsideLocalhostMenuItem();
-            UpdateUseExperimentalCostTrackingMenuItem();
             UpdateWikiSyncMenuItems();
             
         });
@@ -695,29 +693,7 @@ public partial class WebViewWindow : Window
         }
     }
 
-    private void UseExperimentalCostTrackingMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        try
-        {
-            
-            
-            bool newValue = UseExperimentalCostTrackingMenuItem.IsChecked;
-            _generalSettingsService.UpdateUseExperimentalCostTracking(newValue);
-            
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"Error updating 'Use experimental cost tracking' setting: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-    }
 
-    private void UpdateUseExperimentalCostTrackingMenuItem()
-    {
-        if (UseExperimentalCostTrackingMenuItem != null)
-        {
-            UseExperimentalCostTrackingMenuItem.IsChecked = _generalSettingsService.CurrentSettings.UseExperimentalCostTracking;
-        }
-    }
 
     private void LicensesMenuItem_Click(object sender, RoutedEventArgs e)
     {

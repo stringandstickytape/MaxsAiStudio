@@ -5,7 +5,7 @@ import { createApiRequest } from '@/utils/apiUtils';
 interface GeneralSettingsState {
   temperature: number;
   topP: number; // Added topP
-  useExperimentalCostTracking: boolean; // <-- Add this
+
   isLoading: boolean;
   error: string | null;
   setTemperatureLocally: (temp: number) => void; // For UI responsiveness
@@ -17,7 +17,7 @@ interface GeneralSettingsState {
 export const useGeneralSettingsStore = create<GeneralSettingsState>((set, get) => ({
   temperature: 0.2, // Default initial value, will be overwritten by fetchSettings
   topP: 0.9, // Default initial value, will be overwritten by fetchSettings
-  useExperimentalCostTracking: false, // <-- Add default
+
   isLoading: false,
   error: null,
 
@@ -33,8 +33,7 @@ export const useGeneralSettingsStore = create<GeneralSettingsState>((set, get) =
         set({ 
           temperature: typeof data.temperature === 'number' ? data.temperature : 0.2, 
           topP: typeof data.topP === 'number' ? data.topP : 0.9, // Added topP
-          // Populate the new setting from the API response
-          useExperimentalCostTracking: typeof data.useExperimentalCostTracking === 'boolean' ? data.useExperimentalCostTracking : false, // <-- Add this
+
           isLoading: false 
         });
       } else {

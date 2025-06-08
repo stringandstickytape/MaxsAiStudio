@@ -29,7 +29,7 @@ namespace AiStudio4.InjectedDependencies
 
         public string CondaPath { get; set; }
         public bool AllowConnectionsOutsideLocalhost { get; set; } = false;
-        public bool UseExperimentalCostTracking { get; set; } = false;
+
         public string DefaultModelGuid { get; set; } = string.Empty;
         public string SecondaryModelGuid { get; set; } = string.Empty;
         public int ConversationZipRetentionDays { get; set; } = 30;
