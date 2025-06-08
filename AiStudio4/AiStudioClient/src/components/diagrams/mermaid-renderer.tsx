@@ -240,7 +240,6 @@ export const MermaidRenderer: CodeBlockRenderer = {
 
         useEffect(() => {
             try {
-                debugger;
                 renderDiagram(); // Initial render
             } catch (err) {
                 // 3. Catch errors from either mermaid.parse() or mermaid.render().
