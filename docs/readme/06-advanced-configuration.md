@@ -7,8 +7,8 @@ Located in the `AiStudio4` project directory (when running from source) or insta
 ## 6.2 User-Specific Settings (`%APPDATA%/AiStudio4/`)
 Most user preferences and data are stored in JSON files within this directory on Windows.
 *   **`settings.json`**: Main user settings.
-    *   `ModelList`: Your configured AI models.
-    *   `ServiceProviders`: Your configured AI service providers (including encrypted API keys).
+    *   `ModelList`: Your configured AI models (now includes tiered pricing properties: `PriceBoundary`, `InputPriceAboveBoundary`, `OutputPriceAboveBoundary`).
+    *   `ServiceProviders`: Your configured AI service providers (including encrypted API keys and `ChargingStrategy` property).
     *   `DefaultModelGuid`, `SecondaryModelGuid`: GUIDs of your default models.
     *   `Temperature`, `UsePromptCaching`, `StreamResponses`, `UseEmbeddings`, `EmbeddingModel`.
     *   `ProjectPath`: The **critical** path to your current project.

@@ -1,5 +1,7 @@
-using SharedClasses.Providers;
+﻿using SharedClasses.Providers;
 using System;
+
+using AiStudio4.Core.Interfaces;
 
 namespace AiStudio4.Core.Models
 {
@@ -23,6 +25,7 @@ namespace AiStudio4.Core.Models
             TokenUsage = new TokenUsage("", "");
         }
 
+        [Obsolete("Use the constructor that accepts an ITokenCostStrategy for accurate pricing.")]
         public TokenCost(TokenUsage tokenUsage, decimal inputCostPer1M = 0, decimal outputCostPer1M = 0)
         {
             TokenUsage = tokenUsage;
@@ -31,6 +34,7 @@ namespace AiStudio4.Core.Models
             CalculateTotalCost();
         }
 
+        [Obsolete("Use the constructor that accepts an ITokenCostStrategy for accurate pricing.")]
         public TokenCost(TokenUsage tokenUsage, Model model)
         {
             TokenUsage = tokenUsage;
@@ -40,8 +44,20 @@ namespace AiStudio4.Core.Models
             CalculateTotalCost();
         }
 
+        // --- NEW CONSTRUCTOR ---
+        public TokenCost(TokenUsage tokenUsage, Model model, ITokenCostStrategy strategy)
+        {
+            TokenUsage = tokenUsage;
+            InputCostPer1M = model?.input1MTokenPrice ?? 0m;
+            OutputCostPer1M = model?.output1MTokenPrice ?? 0m;
+            ModelGuid = model?.Guid ?? string.Empty;
+            TotalCost = strategy.CalculateCost(tokenUsage, model);
+        }
+        // --- END NEW CONSTRUCTOR ---
 
 
+
+        [Obsolete("This method now performs a basic calculation. Use the strategy-based constructor for accuracy.")]
         public void CalculateTotalCost()
         {
             if (TokenUsage == null) return;
@@ -49,10 +65,7 @@ namespace AiStudio4.Core.Models
             // Calculate costs: (tokens / 1M) * cost per 1M tokens
             decimal inputCost = (TokenUsage.InputTokens / 1_000_000m) * InputCostPer1M;
             decimal outputCost = (TokenUsage.OutputTokens / 1_000_000m) * OutputCostPer1M;
-            decimal inCreate = (TokenUsage.CacheCreationInputTokens / 1_000_000m) * InputCostPer1M * 1.25m;
-            decimal inRead = (TokenUsage.CacheReadInputTokens / 1_000_000m) * InputCostPer1M * 0.1m;
-
-            TotalCost = inputCost + outputCost + inCreate + inRead;
+            TotalCost = inputCost + outputCost;
         }
     }
 }

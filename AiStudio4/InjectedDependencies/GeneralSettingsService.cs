@@ -465,7 +465,7 @@ namespace AiStudio4.InjectedDependencies
         }
 
         public void UpdateCondaPath(string path) { CurrentSettings.CondaPath = path; SaveSettings(); }
-        public void UpdateUseExperimentalCostTracking(bool value) { CurrentSettings.UseExperimentalCostTracking = value; SaveSettings(); }
+
         public void UpdateConversationZipRetentionDays(int days) { CurrentSettings.ConversationZipRetentionDays = days; SaveSettings(); }
         public void UpdateConversationDeleteZippedRetentionDays(int days) { CurrentSettings.ConversationDeleteZippedRetentionDays = days; SaveSettings(); }
 

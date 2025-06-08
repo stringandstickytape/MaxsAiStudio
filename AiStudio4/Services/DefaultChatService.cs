@@ -29,12 +29,13 @@ namespace AiStudio4.Services
         private readonly IGeneralSettingsService _generalSettingsService;
         private readonly IStatusMessageService _statusMessageService;
         private readonly IServiceProvider _serviceProvider;
+        private readonly AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory _strategyFactory;
 
         
         
         
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider)
+        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider, AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory strategyFactory)
         {
             _logger = logger;
             _toolService = toolService;
@@ -45,6 +46,7 @@ namespace AiStudio4.Services
             _generalSettingsService = generalSettingsService;
             _statusMessageService = statusMessageService;
             _serviceProvider = serviceProvider;
+            _strategyFactory = strategyFactory;
         }
 
         public async Task<SimpleChatResponse> ProcessSimpleChatRequest(string chatMessage)
@@ -289,7 +291,8 @@ namespace AiStudio4.Services
 
                     continueLoop = continueLoop && currentIteration < MAX_ITERATIONS && !duplicateDetection;
 
-                    var costInfo = new TokenCost(response.TokenUsage, model);
+                    var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
+                    var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
 
                     
                     if (continueLoop)
@@ -311,7 +314,7 @@ namespace AiStudio4.Services
 
                         var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: response.ResponseText, parentMessageId: request.MessageId,
-                            attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+                            attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
@@ -361,7 +364,7 @@ namespace AiStudio4.Services
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
                             userMessage: userMessage, parentMessageId: request.MessageId,
-                            attachments: response.Attachments, costInfo: new TokenCost(response.TokenUsage, model));
+                            attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto

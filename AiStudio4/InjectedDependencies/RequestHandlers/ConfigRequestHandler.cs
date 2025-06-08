@@ -72,7 +72,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 secondaryModelGuid = secondaryModelGuid ?? "",
                 temperature = _generalSettingsService.CurrentSettings.Temperature,
                 topP = _generalSettingsService.CurrentSettings.TopP, // Added TopP
-                useExperimentalCostTracking = _generalSettingsService.CurrentSettings.UseExperimentalCostTracking // <-- Add this line
             });
         }
 

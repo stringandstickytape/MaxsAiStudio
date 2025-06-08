@@ -164,6 +164,12 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                   <div className="text-gray-200 overflow-hidden text-ellipsis">
                     {provider.url}
                   </div>
+                  {/* Charging Strategy Badge */}
+                  <div className="pt-1">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-700 text-gray-200">
+                      Cache Pricing: {provider.chargingStrategy || 'Claude'}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Vertical stacked buttons in the bottom-right corner */}

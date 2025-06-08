@@ -32,8 +32,51 @@ namespace SharedClasses.Providers
 
         public string AdditionalParams { get; set; }
 
-        public decimal input1MTokenPrice { get; set; }
-        public decimal output1MTokenPrice { get; set; }
+        // --- TIERED PRICING PROPERTIES ---
+        
+        /// <summary>
+        /// The token count boundary at which pricing changes.
+        /// e.g., for Gemini 1.5 Pro this is 128,000. Null or 0 means no tiered pricing.
+        /// </summary>
+        public int? PriceBoundary { get; set; }
+        
+        /// <summary>
+        /// The input price per 1M tokens for requests below the boundary (or default price if no tiered pricing).
+        /// </summary>
+        [JsonProperty("input1MTokenPrice")] // Keep old JSON name for compatibility
+        public decimal InputPriceBelowBoundary { get; set; }
+
+        /// <summary>
+        /// The output price per 1M tokens for requests below the boundary (or default price if no tiered pricing).
+        /// </summary>
+        [JsonProperty("output1MTokenPrice")] // Keep old JSON name for compatibility
+        public decimal OutputPriceBelowBoundary { get; set; }
+        
+        /// <summary>
+        /// The input price per 1M tokens for requests above the boundary.
+        /// </summary>
+        public decimal? InputPriceAboveBoundary { get; set; }
+
+        /// <summary>
+        /// The output price per 1M tokens for requests above the boundary.
+        /// </summary>
+        public decimal? OutputPriceAboveBoundary { get; set; }
+        
+        // --- BACKWARD COMPATIBILITY PROPERTIES ---
+        
+        [Obsolete("Use InputPriceBelowBoundary instead.")]
+        [JsonIgnore] // Prevent this from being serialized
+        public decimal input1MTokenPrice { 
+            get => InputPriceBelowBoundary; 
+            set => InputPriceBelowBoundary = value; 
+        }
+
+        [Obsolete("Use OutputPriceBelowBoundary instead.")]
+        [JsonIgnore] // Prevent this from being serialized
+        public decimal output1MTokenPrice { 
+            get => OutputPriceBelowBoundary; 
+            set => OutputPriceBelowBoundary = value; 
+        }
 
         [JsonConverter(typeof(ColorConverter))]
         public Color Color { get; set; }
@@ -77,10 +120,10 @@ namespace SharedClasses.Providers
 
         public string GetCost(TokenUsage tokenUsage)
         {
-            var cost = ((tokenUsage.InputTokens * input1MTokenPrice) +
-                (tokenUsage.CacheCreationInputTokens * input1MTokenPrice * 1.25m) +
-                (tokenUsage.CacheReadInputTokens * input1MTokenPrice * 0.1m) +
-                (tokenUsage.OutputTokens * output1MTokenPrice)) / 1000000m;
+            var cost = ((tokenUsage.InputTokens * InputPriceBelowBoundary) +
+                (tokenUsage.CacheCreationInputTokens * InputPriceBelowBoundary * 1.25m) +
+                (tokenUsage.CacheReadInputTokens * InputPriceBelowBoundary * 0.1m) +
+                (tokenUsage.OutputTokens * OutputPriceBelowBoundary)) / 1000000m;
 
             return cost.ToString("0.00");
         }

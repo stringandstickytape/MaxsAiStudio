@@ -13,11 +13,24 @@ AiStudio4 supports:
 ### 5.1.2 Configuring Service Providers
 (See [Section 2.3.2](02-getting-started.md#232-configuring-ai-service-providers))
 
+#### Charging Strategies
+Each service provider can be configured with a charging strategy that determines how token costs are calculated:
+*   **No Caching (Standard):** Basic input/output token pricing without any caching considerations
+*   **Claude Caching Model:** Applies Claude's caching multipliers (1.25x for cache creation, 0.1x for cache reads)
+*   **OpenAI Caching Model:** Applies OpenAI's caching multipliers (1.0x for cache creation, 0.25x for cache reads)
+*   **Gemini Caching Model:** Applies Gemini's caching multipliers (0.25x for cache reads) and supports tiered pricing based on token boundaries
+
+The charging strategy affects how the system calculates costs for AI requests, taking into account factors like prompt caching and tiered pricing models offered by different providers.
+
 ### 5.1.3 Managing AI Models
 (See [Section 2.3.3](02-getting-started.md#233-adding-ai-models))
 *   **Editing Models:** In Settings > Models, click the pencil icon on a model card.
 *   **Deleting Models:** Click the trash icon.
 *   **Favorite Models:** Click the star icon to mark a model as a favorite.
+*   **Tiered Pricing:** Models can be configured with tiered pricing for providers that charge different rates based on token usage thresholds. This is particularly useful for models like Gemini 1.5 Pro that have different pricing above and below 128K tokens. When tiered pricing is enabled, you can specify:
+    *   A token boundary where pricing changes
+    *   Different input and output prices for requests above and below the boundary
+    *   The system automatically calculates costs based on the total token count and applies the appropriate pricing tier
 
 ### 5.1.4 Model-Specific Features
 When adding or editing a model, you can configure:
@@ -66,7 +79,7 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [RetrieveTextFromUrlTool](tools/retrieve-text-from-url-tool.md)
 *   [RunDuckDuckGoSearchTool](tools/run-duck-duck-go-search-tool.md)
 *   [StopTool](tools/stop-tool.md)
-*   [ThinkTool](tools/think-tool.md)
+*   [ThinkAndContinueTool](tools/think-and-continue-tool.md)
 *   [ThinkAndAwaitUserInputTool](tools/think-and-await-user-input-tool.md)
 *   [PresentResultsAndAwaitUserInputTool](tools/present-results-and-await-user-input-tool.md)
 

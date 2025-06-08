@@ -23,10 +23,7 @@
                     <MenuItem Header="_Set Google Custom Search API Key..." Name="SetGoogleCustomSearchApiKeyMenuItem" Click="SetGoogleCustomSearchApiKeyMenuItem_Click"/>
                     <MenuItem Header="_Set Conda Path..." Name="SetCondaPathMenuItem" Click="SetCondaPathMenuItem_Click"/>
                     <Separator/>
-                    <MenuItem Header="_Use experimental cost tracking"
-                              Name="UseExperimentalCostTrackingMenuItem"
-                              IsCheckable="True"
-                              Click="UseExperimentalCostTrackingMenuItem_Click"/>
+
                     <MenuItem Header="_Allow Connections Outside Localhost" Name="AllowConnectionsOutsideLocalhostMenuItem" IsCheckable="True" Click="AllowConnectionsOutsideLocalhostMenuItem_Click"/>
                     <Separator/>
                     <MenuItem Header="_Set Conversation Zip Retention (Days)..." Name="SetConversationZipRetentionMenuItem" Click="SetConversationZipRetentionMenuItem_Click"/>

@@ -30,5 +30,5 @@ If the AI determines it cannot fulfill a request after several attempts:
 ## Notes
 
 -   When the `StopTool` is called, the tool processing loop in AiStudio4 will terminate for the current user prompt.
--   The AI's response to you will typically include the content of the `param` field (if provided), followed by any accumulated text from its `ThinkTool` calls or other non-actionable tool outputs during the loop.
+-   The AI's response to you will typically include the content of the `param` field (if provided), followed by any accumulated text from its `ThinkAndContinueTool` calls or other non-actionable tool outputs during the loop.
 -   This tool is crucial for preventing infinite loops and for the AI to gracefully conclude its operations.
