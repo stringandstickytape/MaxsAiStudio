@@ -13,8 +13,16 @@ export interface Model {
   userNotes: string;
   providerGuid: string;
   additionalParams: string;
+  
+  // Original properties (now represent below-boundary or default pricing)
   input1MTokenPrice: number;
   output1MTokenPrice: number;
+  
+  // New optional tiered pricing properties
+  priceBoundary?: number | null;
+  inputPriceAboveBoundary?: number | null;
+  outputPriceAboveBoundary?: number | null;
+  
   color: string;
   starred: boolean;
   friendlyName: string;

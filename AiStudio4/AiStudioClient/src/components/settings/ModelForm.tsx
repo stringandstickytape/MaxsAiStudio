@@ -1,7 +1,9 @@
 ﻿
-import React from 'react';
+import React, { useState } from 'react';
 import { Model, ServiceProvider } from '@/types/settings';
 import { GenericForm, FormFieldDefinition } from '@/components/common/GenericForm';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 
 interface ModelFormProps {
   providers: ServiceProvider[];
@@ -11,6 +13,8 @@ interface ModelFormProps {
 }
 
 export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, onSubmit, isProcessing }) => {
+  // State for tiered pricing toggle
+  const [showTieredPricing, setShowTieredPricing] = useState(!!initialValues?.priceBoundary);
   
   const providerOptions = providers.map((provider) => ({
     value: provider.guid,
@@ -21,8 +25,8 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     ['friendlyName', 'Friendly Name', 'text', 'e.g., GPT-4 Turbo', undefined, undefined, undefined, 1],
     ['modelName', 'Model Name', 'text', 'e.g., gpt-4-turbo', undefined, undefined, undefined, 1],
     ['providerGuid', 'Service Provider', 'select', undefined, providerOptions, undefined, undefined, 2],
-    ['input1MTokenPrice', 'Input Token Price (per 1M)', 'number', '0.00', undefined, '0.01', 0, 1],
-    ['output1MTokenPrice', 'Output Token Price (per 1M)', 'number', '0.00', undefined, '0.01', 0, 1],
+    ['input1MTokenPrice', 'Input Price/1M (< Boundary)', 'number', '0.00', undefined, '0.01', 0, 1],
+    ['output1MTokenPrice', 'Output Price/1M (< Boundary)', 'number', '0.00', undefined, '0.01', 0, 1],
     ['userNotes', 'Notes', 'text', 'Any additional notes about this model', undefined, undefined, undefined, 2],
     [
       'additionalParams',
@@ -102,7 +106,19 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     ],
   ];
 
-  const fields: FormFieldDefinition[] = fieldDefinitions.map(
+  // Tiered pricing fields (conditionally rendered)
+  const tieredPricingFields = [
+    ['priceBoundary', 'Token Boundary', 'number', 'e.g., 128000', undefined, '1000', 'The token limit where pricing changes', 2],
+    ['inputPriceAboveBoundary', 'Input Price/1M (> Boundary)', 'number', '0.00', undefined, '0.01', 'Input price for requests above the boundary', 1],
+    ['outputPriceAboveBoundary', 'Output Price/1M (> Boundary)', 'number', '0.00', undefined, '0.01', 'Output price for requests above the boundary', 1],
+  ];
+
+  // Combine base fields with tiered pricing fields if enabled
+  const allFieldDefinitions = showTieredPricing 
+    ? [...fieldDefinitions.slice(0, 5), ...tieredPricingFields, ...fieldDefinitions.slice(5)]
+    : fieldDefinitions;
+
+  const fields: FormFieldDefinition[] = allFieldDefinitions.map(
     ([name, label, type, placeholder, options, step, description, colSpan]) => {
       const field: FormFieldDefinition = { name, label, type, colSpan } as FormFieldDefinition;
 
@@ -125,6 +141,9 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     userNotes: '',
     input1MTokenPrice: 0,
     output1MTokenPrice: 0,
+    priceBoundary: null,
+    inputPriceAboveBoundary: null,
+    outputPriceAboveBoundary: null,
     color: '#4f46e5',
     starred: false,
     supportsPrefill: false,
@@ -134,15 +153,42 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
     ttsVoiceName: 'Kore',
   };
 
+  // Handle form submission with tiered pricing logic
+  const handleFormSubmit = async (data: any) => {
+    const submissionData = { ...data };
+    
+    // If tiered pricing is disabled, set tiered fields to null
+    if (!showTieredPricing) {
+      submissionData.priceBoundary = null;
+      submissionData.inputPriceAboveBoundary = null;
+      submissionData.outputPriceAboveBoundary = null;
+    }
+    
+    await onSubmit(submissionData);
+  };
+
   return (
-    <GenericForm
-      fields={fields}
-      initialValues={defaultValues}
-      onSubmit={onSubmit}
-      isProcessing={isProcessing}
-      submitButtonText={initialValues ? 'Update Model' : 'Add Model'}
-      layout="grid"
-    />
+    <div className="space-y-6">
+      {/* Tiered Pricing Toggle */}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="tiered-pricing-toggle"
+          checked={showTieredPricing}
+          onCheckedChange={(checked) => setShowTieredPricing(Boolean(checked))}
+        />
+        <Label htmlFor="tiered-pricing-toggle">Enable Tiered Pricing</Label>
+      </div>
+      
+      {/* Form */}
+      <GenericForm
+        fields={fields}
+        initialValues={defaultValues}
+        onSubmit={handleFormSubmit}
+        isProcessing={isProcessing}
+        submitButtonText={initialValues ? 'Update Model' : 'Add Model'}
+        layout="grid"
+      />
+    </div>
   );
 };
 
