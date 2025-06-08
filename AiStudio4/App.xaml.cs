@@ -51,11 +51,17 @@ namespace AiStudio4
         private void ConfigureServices(IServiceCollection services)
         {
             // Configure logging first
+            // Add this using statement at the top of the file
+            // using AiStudio4.Services.Logging;
             services.AddLogging(builder =>
             {
                 builder.AddConsole();
                 builder.AddDebug();
-                builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.None);
+                // builder.ClearProviders(); // Optional: Uncomment to disable console/debug logging
+                builder.AddProvider(new AiStudio4.Services.Logging.FileLoggerProvider(new AiStudio4.Services.Logging.FileLoggerConfiguration
+                {
+                    LogLevel = Microsoft.Extensions.Logging.LogLevel.Information // Set minimum log level
+                }));
             });
 
             // Configure configuration
@@ -138,6 +144,8 @@ namespace AiStudio4
             // Register StartupService directly instead of as a hosted service
             services.AddSingleton<StartupService>();
 
+            // Register the new LogService
+            services.AddSingleton<AiStudio4.Services.LogService>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)

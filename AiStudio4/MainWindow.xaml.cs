@@ -55,6 +55,7 @@ public partial class WebViewWindow : Window
     private readonly string _nugetLicense1Path;
     private readonly string _nugetLicense2Path;
     private string _lastTranscriptionResult = null;
+    private readonly AiStudio4.Services.LogService _logService;
 
     public WebViewWindow(WindowManager windowManager,
                          IMcpService mcpService,
@@ -71,7 +72,8 @@ public partial class WebViewWindow : Window
                          IUpdateNotificationService updateNotificationService,
                          ISystemPromptService systemPromptService,
                          IProjectService projectService,
-                         IServiceProvider serviceProvider)
+                         IServiceProvider serviceProvider,
+                         AiStudio4.Services.LogService logService)
     {
         _windowManager = windowManager;
         _mcpService = mcpService;
@@ -89,8 +91,8 @@ public partial class WebViewWindow : Window
         _systemPromptService = systemPromptService;
         _projectService = projectService;
         _serviceProvider = serviceProvider;
+        _logService = logService;
 
-        
         string baseDir = AppDomain.CurrentDomain.BaseDirectory;
         _licensesJsonPath = Path.Combine(baseDir, "AiStudioClient", "dist", "licenses.txt");
         _nugetLicense1Path = Path.Combine(baseDir, "app-nuget-license.txt");
@@ -1377,6 +1379,34 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
         {
             _logger.LogError(ex, "Error opening project management dialog");
             MessageBox.Show($"Error opening project management: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async void ExportLogsMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var saveFileDialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Save Log Package",
+                Filter = "Zip Archive|*.zip",
+                FileName = $"AiStudio4_Logs_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.zip",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                string destinationPath = saveFileDialog.FileName;
+                await _logService.CreateLogPackageAsync(destinationPath);
+                MessageBox.Show($"Log package successfully created at:\n{destinationPath}", 
+                                "Export Successful", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to export logs.");
+            MessageBox.Show($"An error occurred while exporting logs: {ex.Message}", 
+                            "Export Failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

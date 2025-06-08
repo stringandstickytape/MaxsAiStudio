@@ -36,6 +36,9 @@
                 </MenuItem>
                 <MenuItem Header="_Licenses" Name="LicensesMenuItem" Click="LicensesMenuItem_Click"/>
                 <Separator/>
+                <MenuItem Header="_Help">
+                    <MenuItem Header="_Export Logs..." Name="ExportLogsMenuItem" Click="ExportLogsMenuItem_Click"/>
+                </MenuItem>
                 <MenuItem Header="E_xit" Click="ExitMenuItem_Click"/>
             </MenuItem>
             <MenuItem Header="_Project">

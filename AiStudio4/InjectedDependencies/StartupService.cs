@@ -25,6 +25,7 @@ namespace AiStudio4.InjectedDependencies
         private readonly IGitHubReleaseService _gitHubReleaseService; // Added
         private readonly IUpdateNotificationService _updateNotificationService; // Added
         private readonly ISystemPromptService _systemPromptService;
+        private readonly AiStudio4.Services.LogService _logService;
 
         public StartupService(IServiceProvider serviceProvider, ILogger<StartupService> logger,
             IProjectFileWatcherService projectFileWatcherService,
@@ -33,7 +34,8 @@ namespace AiStudio4.InjectedDependencies
             IConversationArchivingService archivingService,
             IGitHubReleaseService gitHubReleaseService, // Added
             IUpdateNotificationService updateNotificationService, // Added
-            ISystemPromptService systemPromptService)
+            ISystemPromptService systemPromptService,
+            AiStudio4.Services.LogService logService)
         {
             _serviceProvider = serviceProvider;
             _logger = logger;
@@ -44,11 +46,22 @@ namespace AiStudio4.InjectedDependencies
             _gitHubReleaseService = gitHubReleaseService ?? throw new ArgumentNullException(nameof(gitHubReleaseService)); // Added
             _updateNotificationService = updateNotificationService ?? throw new ArgumentNullException(nameof(updateNotificationService)); // Added
             _systemPromptService = systemPromptService ?? throw new ArgumentNullException(nameof(systemPromptService));
+            _logService = logService ?? throw new ArgumentNullException(nameof(logService));
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Starting initialization of services");
+
+            // Cleanup old logs at startup
+            try
+            {
+                await _logService.CleanupOldLogsAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Log cleanup failed on startup. This is non-critical.");
+            }
 
             // Wiki System Prompt Sync
             await SyncWikiSystemPromptAsync();
