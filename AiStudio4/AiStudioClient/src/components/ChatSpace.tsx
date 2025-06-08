@@ -6,7 +6,7 @@ import { Attachment } from '@/types/attachment';
 import { InputBar } from './InputBar';
 import { CommandBar } from './CommandBar';
 
-import { useStreamTokens } from '@/hooks/useStreamTokens';
+// Removed useStreamTokens import - streaming is now handled directly in MessageItem
 
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { useToolStore } from '@/stores/useToolStore';
@@ -17,7 +17,7 @@ import { usePanelStore } from '@/stores/usePanelStore';
 // AiStudioClient/src/components/ChatSpace.tsx
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
-  const { streamTokens } = useStreamTokens();
+  // Removed streamTokens - streaming is now handled directly in MessageItem
   const [currentAttachments, setCurrentAttachments] = useState<Attachment[]>([]);
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
@@ -113,7 +113,7 @@ export function ChatSpace() {
       </div>
       
       <div className="flex-1 overflow-auto min-h-0">
-        <ChatContainer streamTokens={streamTokens} isMobile={isMobile} />
+        <ChatContainer isMobile={isMobile} />
       </div>
       
       <div className="flex-shrink-0 w-full overflow-auto">

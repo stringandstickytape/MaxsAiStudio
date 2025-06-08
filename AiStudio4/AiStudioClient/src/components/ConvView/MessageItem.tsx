@@ -8,18 +8,23 @@ import { useState, useRef, useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
+import { useMessageStream } from '@/hooks/useMessageStream';
 
 interface MessageItemProps {
   message: any;
   activeConvId: string;
+  isStreamingTarget?: boolean; // New prop to indicate if this message is actively streaming
 }
 
-export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
+export const MessageItem = ({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
   const attachmentsById = useAttachmentStore(state => state.attachmentsById);
   const [editContent, setEditContent] = useState<string>('');
   const messageRef = useRef<HTMLDivElement>(null);
+  
+  // Use the new streaming hook
+  const { streamedContent } = useMessageStream(message.id, isStreamingTarget);
   
   // Check if this message matches the search
   const isSearchMatch = searchResults?.some(result => 
@@ -94,16 +99,20 @@ export const MessageItem = ({ message, activeConvId }: MessageItemProps) => {
             onCancel={() => cancelEditMessage()}
           />
         ) : (
-          <MarkdownPane message={message.content} />
+          <>
+            <MarkdownPane message={message.content + streamedContent} />
+            {/* Only show actions if not actively streaming */}
+            {!isStreamingTarget && (
+              <MessageActions 
+                message={message} 
+                onEdit={() => {
+                  setEditContent(message.content);
+                  useConvStore.getState().editMessage(message.id);
+                }} 
+              />
+            )}
+          </>
         )}
-        
-        <MessageActions 
-          message={message} 
-          onEdit={() => {
-            setEditContent(message.content);
-            useConvStore.getState().editMessage(message.id);
-          }} 
-        />
         
       </div>
           <MessageMetadata message={message} />

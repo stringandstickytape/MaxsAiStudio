@@ -80,6 +80,7 @@ namespace AiStudio4.Services
                 var message = new
                 {
                     messageType = update.MessageType,
+                    messageId = update.MessageId, // Include messageId
                     content = update.Content
                 };
 
