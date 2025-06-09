@@ -18,7 +18,7 @@ export interface CodeBlockProps {
     launchHtml: (content: string) => void;
 }
 
-export const CodeBlock: React.FC<CodeBlockProps> = ({
+export const CodeBlock = React.memo<CodeBlockProps>(({
     language,
     content,
     diagramRenderer,
@@ -95,4 +95,4 @@ export const CodeBlock: React.FC<CodeBlockProps> = ({
             </div>
         </div>
     );
-};
+});

@@ -1,4 +1,5 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageItem.tsx
+import React from 'react';
 import { MarkdownPane } from '@/components/MarkdownPane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { MessageMetadata } from './MessageMetadata';
@@ -16,7 +17,7 @@ interface MessageItemProps {
   isStreamingTarget?: boolean; // New prop to indicate if this message is actively streaming
 }
 
-export const MessageItem = ({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
+export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
   const attachmentsById = useAttachmentStore(state => state.attachmentsById);
@@ -127,4 +128,4 @@ export const MessageItem = ({ message, activeConvId, isStreamingTarget = false }
       {/* MessageActions was here, moved inside the message-container div */}
     </div>
   );
-};
+});
