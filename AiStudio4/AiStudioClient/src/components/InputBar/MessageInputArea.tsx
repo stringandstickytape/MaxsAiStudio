@@ -25,15 +25,16 @@ function MessageInputAreaComponent({
     onAttachFile
 }: MessageInputAreaProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [localInputText, setLocalInputText] = useState<string>(propInputText);
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [showSlashDropdown, setShowSlashDropdown] = useState(false);
     const [slashQuery, setSlashQuery] = useState('');
     
-    // Update local state when prop changes
+    // Initialize textarea value from prop on mount only
     useEffect(() => {
-        setLocalInputText(propInputText);
-    }, [propInputText]);
+        if (textareaRef.current) {
+            textareaRef.current.value = propInputText;
+        }
+    }, []); // Empty dependency array - only run on mount
 
     // Notify parent of cursor position changes
     useEffect(() => {
@@ -56,18 +57,22 @@ function MessageInputAreaComponent({
         }
     }, []);
     
-    // Handle text input with debounced parent updates
+    // Handle text input - ref-based approach, no state updates on keystroke
     const handleTextAreaInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         const selectionStart = e.target.selectionStart;
         
-        // Update both local and parent state immediately
-        setLocalInputText(value);
-        propSetInputText(value);
-        
-        setCursorPosition(selectionStart);
+        // Don't update any state on keystroke to prevent infinite loops
+        // Only check slash commands, cursor position will be updated on keyUp
         checkSlashCommand(value, selectionStart);
-    }, [propSetInputText, checkSlashCommand]);
+    }, [checkSlashCommand]);
+
+    // Add blur handler to sync with parent when user finishes typing
+    const handleTextAreaBlur = useCallback(() => {
+        if (textareaRef.current) {
+            propSetInputText(textareaRef.current.value);
+        }
+    }, [propSetInputText]);
 
     // Handle click events on textarea
     const handleTextAreaClick = useCallback((e: React.MouseEvent<HTMLTextAreaElement>) => {
@@ -110,8 +115,7 @@ function MessageInputAreaComponent({
                 const text = e.currentTarget.value;
                 const newText = text.substring(0, cursorPos) + ' ' + text.substring(cursorPos);
                 e.currentTarget.value = newText;
-                // Update both local and parent state
-                setLocalInputText(newText);
+                // Only update parent state
                 propSetInputText(newText);
                 // Set cursor position after the space
                 setTimeout(() => {
@@ -128,15 +132,18 @@ function MessageInputAreaComponent({
             e.preventDefault();
             // If tool loop is running (isLoading), send interjection instead of normal send
             if (isLoading) {
-                webSocketService.sendInterjection(localInputText);
-                setLocalInputText('');
+                const currentText = textareaRef.current?.value || '';
+                webSocketService.sendInterjection(currentText);
+                if (textareaRef.current) {
+                    textareaRef.current.value = '';
+                }
                 propSetInputText('');
             } else {
                 onSend();
             }
             return;
         }
-    }, [showSlashDropdown, isLoading, localInputText, onSend, propSetInputText]);
+    }, [showSlashDropdown, isLoading, onSend, propSetInputText]);
 
     // Handle selection from dropdown
     const handleSlashItemSelect = useCallback((text: string) => {
@@ -167,8 +174,8 @@ function MessageInputAreaComponent({
                     ? textBeforeCursor.substring(0, slashStart) + textAfterCursor
                     : textBeforeCursor.substring(0, slashStart) + text + textAfterCursor;
                 
-                // Update both local and parent state
-                setLocalInputText(newValue);
+                // Update textarea value and parent state
+                textareaRef.current.value = newValue;
                 propSetInputText(newValue);
                 
                 // Set cursor position after the inserted text (or at slashStart if removed)
@@ -231,8 +238,9 @@ function MessageInputAreaComponent({
             <Textarea
                 ref={textareaRef}
                 className="flex-1 w-full p-2 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
-                value={localInputText}
+                defaultValue={propInputText}
                 onChange={handleTextAreaInput}
+                onBlur={handleTextAreaBlur}
                 onClick={handleTextAreaClick}
                 onKeyUp={handleTextAreaKeyUp}
                 onKeyDown={handleKeyDown}
