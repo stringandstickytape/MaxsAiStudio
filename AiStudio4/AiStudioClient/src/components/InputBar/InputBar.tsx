@@ -203,6 +203,8 @@ export function InputBar({
         if (!isLoading) {
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
 
+            debugger;
+
             const textAttachments = attachments.filter(att => att.textContent);
             const textFileContent = formatTextAttachments(textAttachments);
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
