@@ -1,14 +1,24 @@
 ﻿// AiStudioClient/src/components/InputBar/SecondaryModelButton.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
-export function SecondaryModelButton() {
+// Custom comparison function for SecondaryModelButton memoization
+const areSecondaryModelButtonPropsEqual = () => {
+  // This component has no props, so it only needs to re-render when the selectedSecondaryModel changes
+  // The useModelManagement hook will handle that internally
+  return true;
+};
+
+export const SecondaryModelButton = React.memo(() => {
     const { selectedSecondaryModel } = useModelManagement();
-    const handleSecondaryModelClick = () =>
+    
+    const handleSecondaryModelClick = useCallback(() => {
         windowEventService.emit(WindowEvents.SELECT_SECONDARY_MODEL);
+    }, []);
+    
     return (
         <TooltipProvider>
             <Tooltip>
@@ -32,4 +42,4 @@ export function SecondaryModelButton() {
             </Tooltip>
         </TooltipProvider>
     );
-}
+}, areSecondaryModelButtonPropsEqual);

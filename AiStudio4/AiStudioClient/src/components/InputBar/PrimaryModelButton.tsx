@@ -1,14 +1,24 @@
 ﻿// AiStudioClient/src/components/InputBar/PrimaryModelButton.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
-export function PrimaryModelButton() {
+// Custom comparison function for PrimaryModelButton memoization
+const arePrimaryModelButtonPropsEqual = () => {
+  // This component has no props, so it only needs to re-render when the selectedPrimaryModel changes
+  // The useModelManagement hook will handle that internally
+  return true;
+};
+
+export const PrimaryModelButton = React.memo(() => {
     const { selectedPrimaryModel } = useModelManagement();
-    const handlePrimaryModelClick = () =>
+    
+    const handlePrimaryModelClick = useCallback(() => {
         windowEventService.emit(WindowEvents.SELECT_PRIMARY_MODEL);
+    }, []);
+    
     return (
         <TooltipProvider>
             <Tooltip>
@@ -32,4 +42,4 @@ export function PrimaryModelButton() {
             </Tooltip>
         </TooltipProvider>
     );
-}
+}, arePrimaryModelButtonPropsEqual);

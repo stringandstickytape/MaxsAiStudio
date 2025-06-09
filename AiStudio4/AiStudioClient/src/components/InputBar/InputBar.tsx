@@ -118,7 +118,7 @@ export function InputBar({
         stopVoiceStoreListening(); // Signal store to stop, effect will handle mic
         // resetTranscript(); // resetTranscript is called by the effect before starting new capture
         textareaRef.current?.focusWithCursor();
-    }, [setInputText, stopVoiceStoreListening, textareaRef]);
+    }, [setInputText, stopVoiceStoreListening]);
 
     const {
         isSupported: voiceIsSupported,
@@ -230,7 +230,6 @@ export function InputBar({
         }
     }, [
         selectedModel,
-        setInputText,
         activeTools,
         convPrompts,
         defaultPromptId,
@@ -240,8 +239,6 @@ export function InputBar({
         slctdMsgId,
         convs,
         createConv,
-        attachments,
-        clearAttachments,
         setCurrentRequest
     ]);
 
@@ -278,17 +275,18 @@ export function InputBar({
         }
     }, [isLoading, isCancelling, setIsCancelling]);
 
+    // Memoize event handlers to prevent unnecessary effect re-runs
+    const handleAppendToPrompt = useCallback((data: { text: string }) => {
+        setInputText(text => text + data.text);
+        textareaRef.current?.focusWithCursor();
+    }, [setInputText]);
+
+    const handleSetPrompt = useCallback((data: { text: string }) => {
+        setInputText(data.text);
+        textareaRef.current?.focusWithCursor();
+    }, [setInputText]);
+
     useEffect(() => {
-        const handleAppendToPrompt = (data: { text: string }) => {
-            setInputText(text => text + data.text);
-            textareaRef.current?.focusWithCursor();
-        };
-
-        const handleSetPrompt = (data: { text: string }) => {
-            setInputText(data.text);
-            textareaRef.current?.focusWithCursor();
-        };
-
         const unsubAppend = windowEventService.on(WindowEvents.APPEND_TO_PROMPT, handleAppendToPrompt);
         const unsubSet = windowEventService.on(WindowEvents.SET_PROMPT, handleSetPrompt);
 
@@ -296,7 +294,7 @@ export function InputBar({
             unsubAppend();
             unsubSet();
         };
-    }, [setInputText]);
+    }, [handleAppendToPrompt, handleSetPrompt]);
 
     return (
         <div className="InputBar bg-gray-900 border-gray-700/50 shadow-2xl p-2 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"

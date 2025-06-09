@@ -1,5 +1,5 @@
 ﻿// AiStudioClient/src/components/InputBar/ToolsButton.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Wrench } from 'lucide-react';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
@@ -11,7 +11,27 @@ interface ToolsButtonProps {
     disabled: boolean;
 }
 
-export function ToolsButton({ activeTools, removeActiveTool, disabled }: ToolsButtonProps) {
+// Custom comparison function for ToolsButton memoization
+const areToolsButtonPropsEqual = (prevProps: ToolsButtonProps, nextProps: ToolsButtonProps) => {
+  return (
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.activeTools.length === nextProps.activeTools.length &&
+    prevProps.activeTools.every((tool, index) => tool === nextProps.activeTools[index])
+    // Note: We don't compare removeActiveTool function as it should be stable
+  );
+};
+
+export const ToolsButton = React.memo(({ activeTools, removeActiveTool, disabled }: ToolsButtonProps) => {
+    const handleOpenToolLibrary = useCallback(() => {
+        windowEventService.emit(WindowEvents.OPEN_TOOL_LIBRARY);
+    }, []);
+    
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        if (e.button === 1) {
+            e.preventDefault();
+            activeTools.forEach(toolId => removeActiveTool(toolId));
+        }
+    }, [activeTools, removeActiveTool]);
     return (
         <TooltipProvider delayDuration={300}>
             <Tooltip>
@@ -19,13 +39,8 @@ export function ToolsButton({ activeTools, removeActiveTool, disabled }: ToolsBu
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => windowEventService.emit(WindowEvents.OPEN_TOOL_LIBRARY)}
-                        onMouseDown={(e) => {
-                            if (e.button === 1) {
-                                e.preventDefault();
-                                activeTools.forEach(toolId => removeActiveTool(toolId));
-                            }
-                        }}
+                        onClick={handleOpenToolLibrary}
+                        onMouseDown={handleMouseDown}
                         className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors relative [&_svg]:shrink [&>*]:shrink min-w-0"
                         disabled={disabled}
                         style={{
@@ -49,4 +64,4 @@ export function ToolsButton({ activeTools, removeActiveTool, disabled }: ToolsBu
             </Tooltip>
         </TooltipProvider>
     );
-}
+}, areToolsButtonPropsEqual);

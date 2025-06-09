@@ -25,8 +25,10 @@ export const ConvView = ({
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [isStickingEnabled, setIsStickingEnabled] = useState(true);
     
-    // Get necessary state from stores
-    const { activeConvId, slctdMsgId, convs } = useConvStore();
+    // Optimize store subscription - only get what we need
+    const activeConvId = useConvStore(state => state.activeConvId);
+    const slctdMsgId = useConvStore(state => state.slctdMsgId);
+    const convs = useConvStore(state => state.convs);
 
     // Get search results from search store
     const { searchResults } = useSearchStore();

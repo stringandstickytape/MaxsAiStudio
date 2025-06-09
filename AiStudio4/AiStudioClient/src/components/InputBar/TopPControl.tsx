@@ -6,7 +6,14 @@ import { useGeneralSettingsStore } from '@/stores/useGeneralSettingsStore';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export function TopPControl() {
+// Custom comparison function for TopPControl memoization
+const areTopPControlPropsEqual = () => {
+  // This component has no props, so it only needs to re-render when the topP/isLoading changes
+  // The useGeneralSettingsStore hook will handle that internally
+  return true;
+};
+
+export const TopPControl = React.memo(() => {
   const { topP, setTopPLocally, updateTopPOnServer, isLoading } = useGeneralSettingsStore();
 
   const handleSliderChange = useCallback((value: number[]) => {
@@ -60,4 +67,4 @@ export function TopPControl() {
       </Tooltip>
     </TooltipProvider>
   );
-}
+}, areTopPControlPropsEqual);

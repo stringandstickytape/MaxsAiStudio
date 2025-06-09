@@ -24,7 +24,21 @@ interface ActionButtonsProps {
     onToggleListening: () => void; // Added
 }
 
-export function ActionButtons({
+// Custom comparison function for ActionButtons memoization
+const areActionButtonsPropsEqual = (prevProps: ActionButtonsProps, nextProps: ActionButtonsProps) => {
+  // Compare all props that affect rendering
+  return (
+    prevProps.isLoading === nextProps.isLoading &&
+    prevProps.isCancelling === nextProps.isCancelling &&
+    prevProps.disabled === nextProps.disabled &&
+    prevProps.isListening === nextProps.isListening &&
+    prevProps.messageSent === nextProps.messageSent &&
+    prevProps.inputText === nextProps.inputText
+    // Note: We don't compare function props as they should be stable references
+  );
+};
+
+export const ActionButtons = React.memo(({
     onSend,
     onCancel,
 
@@ -37,7 +51,7 @@ export function ActionButtons({
     messageSent = false,
     isListening, // Added
     onToggleListening, // Added
-}: ActionButtonsProps) {
+}: ActionButtonsProps) => {
     const isConnected = useWebSocketStore(state => state.isConnected);
     
     const handleInterjection = () => {
@@ -167,4 +181,4 @@ export function ActionButtons({
             )}
         </div>
     );
-}
+}, areActionButtonsPropsEqual);

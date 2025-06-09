@@ -1,5 +1,5 @@
 ﻿// AiStudioClient/src/components/InputBar/MCPServersButton.tsx
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Server } from 'lucide-react';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
@@ -10,8 +10,24 @@ interface MCPServersButtonProps {
     disabled: boolean;
 }
 
-export function MCPServersButton({ disabled }: MCPServersButtonProps) {
+// Custom comparison function for MCPServersButton memoization
+const areMCPServersButtonPropsEqual = (prevProps: MCPServersButtonProps, nextProps: MCPServersButtonProps) => {
+  return prevProps.disabled === nextProps.disabled;
+};
+
+export const MCPServersButton = React.memo(({ disabled }: MCPServersButtonProps) => {
     const { enabledCount } = useMcpServerStore();
+    
+    const handleOpenServerList = useCallback(() => {
+        windowEventService.emit(WindowEvents.OPEN_SERVER_LIST);
+    }, []);
+    
+    const handleMouseDown = useCallback((e: React.MouseEvent) => {
+        if (e.button === 1) {
+            e.preventDefault();
+            useMcpServerStore.getState().setEnabledServers([]);
+        }
+    }, []);
     return (
         <TooltipProvider delayDuration={300}>
             <Tooltip>
@@ -19,13 +35,8 @@ export function MCPServersButton({ disabled }: MCPServersButtonProps) {
                     <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => windowEventService.emit(WindowEvents.OPEN_SERVER_LIST)}
-                        onMouseDown={(e) => {
-                            if (e.button === 1) {
-                                e.preventDefault();
-                                useMcpServerStore.getState().setEnabledServers([]);
-                            }
-                        }}
+                        onClick={handleOpenServerList}
+                        onMouseDown={handleMouseDown}
                         className="h-5 px-2 py-0 text-xs rounded-full bg-gray-600/10 border border-gray-700/20 text-gray-300 hover:bg-gray-600/30 hover:text-gray-100 transition-colors relative [&_svg]:shrink [&>*]:shrink min-w-0"
                         disabled={disabled}
                         style={{
@@ -49,4 +60,4 @@ export function MCPServersButton({ disabled }: MCPServersButtonProps) {
             </Tooltip>
         </TooltipProvider>
     );
-}
+}, areMCPServersButtonPropsEqual);

@@ -1,4 +1,5 @@
-﻿import { ConvView } from './ConvView';
+﻿import React from 'react';
+import { ConvView } from './ConvView';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 // StickToBottom removed
 
@@ -7,7 +8,15 @@ interface ChatContainerProps {
   isCancelling?: boolean;
 }
 
-export function ChatContainer({ isMobile, isCancelling }: ChatContainerProps) {
+// Custom comparison function for ChatContainer memoization
+const areChatContainerPropsEqual = (prevProps: ChatContainerProps, nextProps: ChatContainerProps) => {
+  return (
+    prevProps.isMobile === nextProps.isMobile &&
+    prevProps.isCancelling === nextProps.isCancelling
+  );
+};
+
+export const ChatContainer = React.memo(({ isMobile, isCancelling }: ChatContainerProps) => {
   
   const { isCancelling: wsIsCancelling } = useWebSocketStore();
   
@@ -18,4 +27,4 @@ export function ChatContainer({ isMobile, isCancelling }: ChatContainerProps) {
           />
     </div>
   );
-}
+}, areChatContainerPropsEqual);

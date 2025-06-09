@@ -10,7 +10,12 @@ interface SystemPromptSectionProps {
     activeConvId: string | null;
 }
 
-export function SystemPromptSection({ activeConvId }: SystemPromptSectionProps) {
+// Custom comparison function for SystemPromptSection memoization
+const areSystemPromptSectionPropsEqual = (prevProps: SystemPromptSectionProps, nextProps: SystemPromptSectionProps) => {
+  return prevProps.activeConvId === nextProps.activeConvId;
+};
+
+export const SystemPromptSection = React.memo(({ activeConvId }: SystemPromptSectionProps) => {
     return (
         <div className="mb-2 rounded-lg flex-shrink-0 flex justify-between items-center">
             <SystemPromptComponent
@@ -19,4 +24,4 @@ export function SystemPromptSection({ activeConvId }: SystemPromptSectionProps) 
             />
         </div>
     );
-}
+}, areSystemPromptSectionPropsEqual);
