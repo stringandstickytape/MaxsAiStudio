@@ -18,13 +18,13 @@ using AiStudio4.Core;
 using System;
 using System.Threading.Tasks;
 using AiStudio4.Services.Interfaces;
-using System.Net.Http; // Added for HttpClient
+using System.Net.Http; 
 
 namespace AiStudio4
 {
     public partial class App : Application
     {
-        public const decimal VersionNumber = 0.97m;
+        public const decimal VersionNumber = 0.98m;
 
         private ServiceProvider _serviceProvider;
         public ServiceProvider Services => _serviceProvider;
@@ -36,7 +36,6 @@ namespace AiStudio4
             JsonConvert.DefaultSettings = () => new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                // Other settings like null handling, etc.
             };
 
             // default project path
