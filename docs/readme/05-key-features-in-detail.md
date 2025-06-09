@@ -78,6 +78,7 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [ReplaceFileTool](tools/replace-file-tool.md)
 *   [RetrieveTextFromUrlTool](tools/retrieve-text-from-url-tool.md)
 *   [RunDuckDuckGoSearchTool](tools/run-duck-duck-go-search-tool.md)
+*   [SecondAiOpinionTool](tools/second-ai-opinion-tool.md)
 *   [StopTool](tools/stop-tool.md)
 *   [ThinkAndContinueTool](tools/think-and-continue-tool.md)
 *   [ThinkAndAwaitUserInputTool](tools/think-and-await-user-input-tool.md)
