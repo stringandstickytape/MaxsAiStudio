@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // Removed ToolEditor import as it's now used in ToolEditorModal
 import { Tool } from '@/types/toolTypes';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
+import { useModelManagement } from '@/hooks/useResourceManagement';
 import { useModalStore } from '@/stores/useModalStore';
 import { useConfirmationDialog } from '@/hooks/useConfirmationDialog';
 
@@ -37,6 +38,8 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
 
   
   const { setTools, setCategories, activeTools, addActiveTool, removeActiveTool, setActiveTools } = useToolStore(); // Added setActiveTools here
+  
+  const { models } = useModelManagement();
 
   
   useEffect(() => {
@@ -85,6 +88,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
     openModal('toolEditor', {
       tool: null,
       categories,
+      models,
       onClose: () => {}
     });
   };
@@ -93,6 +97,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
     openModal('toolEditor', {
       tool,
       categories,
+      models,
       onClose: () => {}
     });
   };

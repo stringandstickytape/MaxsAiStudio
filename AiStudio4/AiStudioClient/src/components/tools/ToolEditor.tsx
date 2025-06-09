@@ -5,7 +5,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tool, ToolCategory } from '@/types/toolTypes';
+import { Model } from '@/types/settings';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 
@@ -16,9 +18,10 @@ interface ToolEditorProps {
   tool: Tool | null;
   onClose: () => void;
   categories: ToolCategory[];
+  models: Model[];
 }
 
-export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
+export function ToolEditor({ tool, onClose, categories, models }: ToolEditorProps) {
   
   const { addTool, updateTool, validateToolSchema, isLoading: isApiLoading } = useToolsManagement();
   
@@ -291,20 +294,53 @@ export function ToolEditor({ tool, onClose, categories }: ToolEditorProps) {
             {Object.entries(extraProperties).map(([key, value]) => (
               <div key={key} className="flex items-center gap-2">
                 <Label className="w-48" htmlFor={`extra-${key}`}>{key}</Label>
-                <Input
-                  id={`extra-${key}`}
-                  value={value}
-                  onChange={e => {
-                    setExtraProperties(prev => ({ ...prev, [key]: e.target.value }));
-                  }}
-                  className="input-base flex-1"
-                  disabled={isLoading}
-                  style={{
-                    backgroundColor: 'var(--global-background-color)',
-                    borderColor: 'var(--global-border-color)',
-                    color: 'var(--global-text-color)'
-                  }}
-                />
+                
+                {key === 'model' ? (
+                  // RENDER SELECT DROPDOWN FOR "model" KEY
+                  <Select
+                    value={value}
+                    onValueChange={(newValue) => {
+                      setExtraProperties(prev => ({ ...prev, [key]: newValue }));
+                    }}
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger className="input-base flex-1" style={{
+                      backgroundColor: 'var(--global-background-color)',
+                      borderColor: 'var(--global-border-color)',
+                      color: 'var(--global-text-color)'
+                    }}>
+                      <SelectValue placeholder="Select a model..." />
+                    </SelectTrigger>
+                    <SelectContent style={{
+                      backgroundColor: 'var(--global-background-color)',
+                      borderColor: 'var(--global-border-color)',
+                      color: 'var(--global-text-color)'
+                    }}>
+                      <SelectItem value="none">None</SelectItem>
+                      {models.map(model => (
+                        <SelectItem key={model.guid} value={model.guid}>
+                          {model.friendlyName} ({model.modelName})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  // RENDER TEXT INPUT FOR ALL OTHER KEYS
+                  <Input
+                    id={`extra-${key}`}
+                    value={value}
+                    onChange={e => {
+                      setExtraProperties(prev => ({ ...prev, [key]: e.target.value }));
+                    }}
+                    className="input-base flex-1"
+                    disabled={isLoading}
+                    style={{
+                      backgroundColor: 'var(--global-background-color)',
+                      borderColor: 'var(--global-border-color)',
+                      color: 'var(--global-text-color)'
+                    }}
+                  />
+                )}
               </div>
             ))}
           </div>

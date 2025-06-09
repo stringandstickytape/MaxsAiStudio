@@ -8,6 +8,7 @@ import {
 import { useModalStore, ModalRegistry } from '@/stores/useModalStore';
 import { ToolEditor } from '../tools/ToolEditor';
 import { Tool } from '@/types/toolTypes';
+import { Model } from '@/types/settings';
 
 // Define themeable properties for the component
 export const themeableProps = {};
@@ -15,6 +16,7 @@ export const themeableProps = {};
 type ToolEditorModalProps = {
   tool: Tool | null;
   categories: any[];
+  models: Model[];
   onClose: () => void;
 };
 
@@ -56,7 +58,8 @@ export function ToolEditorModal() {
         <ToolEditor 
           tool={props.tool} 
           onClose={() => closeModal()} 
-          categories={props.categories} 
+          categories={props.categories}
+          models={props.models}
         />
       </UnifiedModalContent>
     </UnifiedModalDialog>
