@@ -43,11 +43,8 @@ export const ConvView = ({
 
     // Add scroll event listener to detect manual scrolling
     useEffect(() => {
-
         // Common handler function
-        const handleScroll = (e: Event) => {
-
-
+        const handleScrollEvent = (e: Event) => {
             const target = e.target as HTMLElement;
             // Check if this is a ConvView-related scroll
             let isConvViewScroll = false;
@@ -68,26 +65,26 @@ export const ConvView = ({
 
         // Add event listeners to all possible elements
         if (scrollContainerRef.current) {
-            scrollContainerRef.current.addEventListener('scroll', handleScroll, { capture: true });
+            scrollContainerRef.current.addEventListener('scroll', handleScrollEvent, { capture: true });
         }
 
         // this doesn't work because race condition
         const convViewElement2 = document.querySelector('.ConvViewMain');
         if (convViewElement2) {
-            convViewElement2.addEventListener('scroll', handleScroll, { capture: true });
+            convViewElement2.addEventListener('scroll', handleScrollEvent, { capture: true });
         }
 
-        document.addEventListener('scroll', handleScroll, { capture: true });
+        document.addEventListener('scroll', handleScrollEvent, { capture: true });
 
         return () => {
             if (scrollContainerRef.current) {
-                scrollContainerRef.current.removeEventListener('scroll', handleScroll, { capture: true });
+                scrollContainerRef.current.removeEventListener('scroll', handleScrollEvent, { capture: true });
             }
             if (convViewElement2) {
-                convViewElement2.removeEventListener('scroll', handleScroll, { capture: true });
+                convViewElement2.removeEventListener('scroll', handleScrollEvent, { capture: true });
             }
-            document.removeEventListener('scroll', handleScroll, { capture: true });
-            window.removeEventListener('scroll', handleScroll, { capture: true });
+            document.removeEventListener('scroll', handleScrollEvent, { capture: true });
+            window.removeEventListener('scroll', handleScrollEvent, { capture: true });
         };
     }, [isStickingEnabled]); // Re-run effect if isStickingEnabled changes
 
@@ -98,25 +95,10 @@ export const ConvView = ({
         const conv = convs[activeConvId];
         if (!conv || !conv.messages.length) return [];
 
-        // Create copies of messages with explicit properties to avoid loss during graph processing
-        const messages = conv.messages.map(msg => ({
-            ...msg,
-            // Explicitly include these properties to ensure they're not lost
-            id: msg.id,
-            content: msg.content,
-            source: msg.source,
-            timestamp: msg.timestamp,
-            parentId: msg.parentId,
-            durationMs: msg.durationMs,
-            costInfo: msg.costInfo,
-            cumulativeCost: msg.cumulativeCost,
-            attachments: msg.attachments,
-            temperature: msg.temperature
-        }));
         // Get the starting message ID
         const startingMessageId = slctdMsgId || conv.messages[conv.messages.length - 1].id;
 
-        const graph = new MessageGraph(messages);
+        const graph = new MessageGraph(conv.messages);
         const path = graph.getMessagePath(startingMessageId);
 
         return path;
@@ -167,34 +149,13 @@ export const ConvView = ({
                     // Skip system messages
                     if (message.source === 'system') return null;
 
-                    // Force add durationMs property to the message if it doesn't exist
-                    const enhancedMessage = message;
-
-                    // If the message comes from the tree data, it might have the property in the raw data
-                    if (enhancedMessage.durationMs === undefined) {
-                        // Check if the message has a matching message in the original conv data
-                        const conv = convs[activeConvId];
-                        if (conv) {
-                            const originalMsg = conv.messages.find(m => m.id === message.id);
-                            if (originalMsg && 'durationMs' in originalMsg) {
-                                // Force the property to exist on our message
-                                Object.defineProperty(enhancedMessage, 'durationMs', {
-                                    value: originalMsg.durationMs,
-                                    enumerable: true,
-                                    configurable: true,
-                                    writable: true
-                                });
-                            }
-                        }
-                    }
-
                     // Determine if this message item is the target for the current stream
                     const isStreamingTarget = isMessageStreaming(message.id) && (message.source === 'ai' || message.source === 'assistant');
 
                     return (
                         <MessageItem
                             key={message.id}
-                            message={enhancedMessage}
+                            message={message}
                             activeConvId={activeConvId}
                             isStreamingTarget={isStreamingTarget}
                         />

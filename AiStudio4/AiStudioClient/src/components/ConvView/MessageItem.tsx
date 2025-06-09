@@ -17,6 +17,36 @@ interface MessageItemProps {
   isStreamingTarget?: boolean; // New prop to indicate if this message is actively streaming
 }
 
+// Custom comparison function for better memoization
+const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps) => {
+  // Compare primitive props
+  if (prevProps.activeConvId !== nextProps.activeConvId) return false;
+  if (prevProps.isStreamingTarget !== nextProps.isStreamingTarget) return false;
+  
+  // Deep compare message properties that affect rendering
+  const prevMsg = prevProps.message;
+  const nextMsg = nextProps.message;
+  
+  if (!prevMsg && !nextMsg) return true;
+  if (!prevMsg || !nextMsg) return false;
+  
+  // Compare key message properties
+  if (prevMsg.id !== nextMsg.id) return false;
+  if (prevMsg.content !== nextMsg.content) return false;
+  if (prevMsg.source !== nextMsg.source) return false;
+  if (prevMsg.timestamp !== nextMsg.timestamp) return false;
+  
+  // Compare attachments array
+  if (prevMsg.attachments?.length !== nextMsg.attachments?.length) return false;
+  if (prevMsg.attachments) {
+    for (let i = 0; i < prevMsg.attachments.length; i++) {
+      if (prevMsg.attachments[i]?.id !== nextMsg.attachments[i]?.id) return false;
+    }
+  }
+  
+  return true;
+};
+
 export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
@@ -128,4 +158,4 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
       {/* MessageActions was here, moved inside the message-container div */}
     </div>
   );
-});
+}, arePropsEqual);

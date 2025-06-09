@@ -7,6 +7,49 @@ interface MessageMetadataProps {
   message: any;
 }
 
+// Custom comparison function for MessageMetadata memoization
+const areMetadataPropsEqual = (prevProps: MessageMetadataProps, nextProps: MessageMetadataProps) => {
+  const prevMsg = prevProps.message;
+  const nextMsg = nextProps.message;
+  
+  if (!prevMsg && !nextMsg) return true;
+  if (!prevMsg || !nextMsg) return false;
+  
+  // Compare properties that affect metadata display
+  if (prevMsg.id !== nextMsg.id) return false;
+  if (prevMsg.timestamp !== nextMsg.timestamp) return false;
+  if (prevMsg.durationMs !== nextMsg.durationMs) return false;
+  if (prevMsg.temperature !== nextMsg.temperature) return false;
+  if (prevMsg.source !== nextMsg.source) return false;
+  if (prevMsg.cumulativeCost !== nextMsg.cumulativeCost) return false;
+  
+  // Deep compare costInfo object
+  const prevCost = prevMsg.costInfo;
+  const nextCost = nextMsg.costInfo;
+  
+  if (!prevCost && !nextCost) return true;
+  if (!prevCost || !nextCost) return false;
+  
+  if (prevCost.totalCost !== nextCost.totalCost) return false;
+  if (prevCost.inputCostPer1M !== nextCost.inputCostPer1M) return false;
+  if (prevCost.outputCostPer1M !== nextCost.outputCostPer1M) return false;
+  if (prevCost.modelGuid !== nextCost.modelGuid) return false;
+  
+  // Compare tokenUsage
+  const prevTokens = prevCost.tokenUsage;
+  const nextTokens = nextCost.tokenUsage;
+  
+  if (!prevTokens && !nextTokens) return true;
+  if (!prevTokens || !nextTokens) return false;
+  
+  if (prevTokens.inputTokens !== nextTokens.inputTokens) return false;
+  if (prevTokens.outputTokens !== nextTokens.outputTokens) return false;
+  if (prevTokens.cacheCreationInputTokens !== nextTokens.cacheCreationInputTokens) return false;
+  if (prevTokens.cacheReadInputTokens !== nextTokens.cacheReadInputTokens) return false;
+  
+  return true;
+};
+
 // Helper function to format duration in a human-readable format
 const formatDuration = (message?: any, propName: string = 'durationMs') => {
   // Safety check for null/undefined message
@@ -65,7 +108,7 @@ const formatTimestamp = (timestamp?: number | null) => {
          date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 };
 
-export const MessageMetadata = ({ message }: MessageMetadataProps) => {
+export const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
   const metadataItems = [];
 
   // Timestamp
@@ -146,4 +189,4 @@ export const MessageMetadata = ({ message }: MessageMetadataProps) => {
       ))}
     </div>
   );
-};
+}, areMetadataPropsEqual);

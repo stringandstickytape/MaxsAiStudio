@@ -1,12 +1,21 @@
 ﻿// AiStudioClient\src\components\ConvView\ScrollToBottomButton.tsx
 import { useStickToBottomContext } from 'use-stick-to-bottom';
 import { ArrowDown } from 'lucide-react';
+import React from 'react';
 
 interface ScrollToBottomButtonProps {
   onActivateSticking: () => void;
 }
 
-export const ScrollToBottomButton = ({ onActivateSticking }: ScrollToBottomButtonProps) => {
+// Custom comparison function for ScrollToBottomButton memoization
+const areScrollButtonPropsEqual = (prevProps: ScrollToBottomButtonProps, nextProps: ScrollToBottomButtonProps) => {
+  // The onActivateSticking callback should be stable, but even if it's not,
+  // the component's behavior doesn't change based on the callback content
+  // We'll assume the callback is functionally equivalent between renders
+  return true;
+};
+
+export const ScrollToBottomButton = React.memo(({ onActivateSticking }: ScrollToBottomButtonProps) => {
   const { isAtBottom, scrollToBottom } = useStickToBottomContext();
 
   const handleScrollToBottom = () => {
@@ -34,4 +43,4 @@ export const ScrollToBottomButton = ({ onActivateSticking }: ScrollToBottomButto
       <ArrowDown className="h-5 w-5" />
     </button>
   );
-};
+}, areScrollButtonPropsEqual);
