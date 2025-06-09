@@ -70,7 +70,7 @@ export function InputBar({
     const [localInputText, setLocalInputText] = useState('');
 
     const {
-        stagedAttachments: attachments,
+		stagedAttachments: attachments,
         addStagedAttachment: addAttachment,
     } = useAttachmentStore();
 
@@ -203,20 +203,46 @@ export function InputBar({
         if (!isLoading) {
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
 
-            debugger;
+            const textAttachments = useAttachmentStore.getState().stagedAttachments.filter(att => att.textContent);
 
-            const textAttachments = attachments.filter(att => att.textContent);
             const textFileContent = formatTextAttachments(textAttachments);
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
 
-            const messageAttachments = useAttachmentStore.getState().getStagedAttachments();
+            const messageAttachments = useAttachmentStore.getState().getStagedAttachments().filter(att => !(att.textContent));
+            
             await handleChatMessage(fullMessage, messageAttachments);
             useAttachmentStore.getState().clearStagedAttachments();
             setInputText('');
         }
     };
 
-    // ... (rest of InputBar component remains the same) ...
+        // Handle cancellation state cleanup
+    useEffect(() => {
+        if (!isLoading && isCancelling) {
+            setIsCancelling(false);
+        }
+    }, [isLoading, isCancelling, setIsCancelling]);
+
+    // Memoize event handlers to prevent unnecessary effect re-runs
+    const handleAppendToPrompt = useCallback((data: { text: string }) => {
+        setInputText(text => text + data.text);
+        textareaRef.current?.focusWithCursor();
+    }, [setInputText]);
+
+    const handleSetPrompt = useCallback((data: { text: string }) => {
+        setInputText(data.text);
+        textareaRef.current?.focusWithCursor();
+    }, [setInputText]);
+
+    useEffect(() => {
+        const unsubAppend = windowEventService.on(WindowEvents.APPEND_TO_PROMPT, handleAppendToPrompt);
+        const unsubSet = windowEventService.on(WindowEvents.SET_PROMPT, handleSetPrompt);
+
+        return () => {
+            unsubAppend();
+            unsubSet();
+        };
+    }, [handleAppendToPrompt, handleSetPrompt]);
 
     return (
         <div className="InputBar bg-gray-900 border-gray-700/50 shadow-2xl p-2 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"

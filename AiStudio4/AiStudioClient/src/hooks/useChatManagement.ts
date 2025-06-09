@@ -61,8 +61,6 @@ export function useChatManagement() {
                 const newMessageId = params.messageId || (params.parentMessageId ? uuidv4() : undefined);
                 let requestParams: Partial<SendMessageParams> = { ...params };
 
-                debugger;
-
                 if (params.attachments && params.attachments.length > 0) {
                     const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
                     requestParams.attachments = prepareAttachmentsForTransmission(binaryAttachments);
