@@ -1,6 +1,6 @@
-import { Command } from 'lucide-react';
+﻿import { Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { Input } from '@/components/ui/input';
 import { PinnedShortcuts } from '@/components/PinnedShortcuts';
 
@@ -14,7 +14,7 @@ interface AppHeaderProps {
     activeConvId?: string | null;
 }
 
-export function AppHeader({
+const AppHeaderComponent = ({
     onExecuteCommand = () => { },
     isCommandBarOpen = false,
     setIsCommandBarOpen = () => { },
@@ -22,17 +22,18 @@ export function AppHeader({
     sidebarOpen = false,
     rightSidebarOpen = false,
     activeConvId = null,
-}: AppHeaderProps) {
+}: AppHeaderProps) => {
     const [commandText, setCommandText] = useState('');
 
-    const handleCommandSubmit = (e: React.FormEvent) => {
+    // Memoize the command submit handler
+    const handleCommandSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
         if (commandText.trim()) {
             onExecuteCommand(commandText);
             setCommandText('');
             setIsCommandBarOpen(false);
         }
-    };
+    }, [commandText, onExecuteCommand, setIsCommandBarOpen]);
 
     useEffect(() => {
         const inputElement = document.getElementById('command-input');
@@ -41,31 +42,43 @@ export function AppHeader({
         }
     }, [isCommandBarOpen]);
 
+    // Memoize the header style object
+    const headerStyle = useMemo(() => ({
+        backgroundColor: 'var(--global-background-color, #1a1f2c)',
+        color: 'var(--global-text-color, #e0e0e0)',
+        borderColor: 'var(--global-border-color, #3a3f4c)',
+        fontFamily: 'var(--global-font-family, inherit)',
+        fontSize: 'var(--global-font-size, 0.875rem)',
+        ...(window?.theme?.AppHeader?.style || {})
+    }), []);
+
+    // Memoize the header className
+    const headerClassName = useMemo(() => cn(
+        'AppHeader header-section relative z-2 backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300'
+    ), []);
+
+    // Memoize the container className based on sidebar states
+    const containerClassName = useMemo(() => cn(
+        "w-full justify-items-center",
+        sidebarOpen || rightSidebarOpen ? "max-w-[calc(100%-40px)]" : "max-w-2xl",
+        sidebarOpen && rightSidebarOpen ? "max-w-full" : ""
+    ), [sidebarOpen, rightSidebarOpen]);
+
+    // Memoize the container style
+    const containerStyle = useMemo(() => ({
+        margin: '0 auto'
+    }), []);
 
     return (
         <div className="app-container">
-            <div className={cn(
-                'AppHeader header-section relative z-2 backdrop-blur-sm p-0 h-full flex flex-col transition-all duration-300',
-            )}
-            style={{
-                backgroundColor: 'var(--global-background-color, #1a1f2c)', // Default dark blue-gray
-                color: 'var(--global-text-color, #e0e0e0)',
-                borderColor: 'var(--global-border-color, #3a3f4c)',
-                fontFamily: 'var(--global-font-family, inherit)',
-                fontSize: 'var(--global-font-size, 0.875rem)',
-                ...(window?.theme?.AppHeader?.style || {})
-            }}
+            <div className={headerClassName}
+                style={headerStyle}
             >
                 
                 <div className="flex flex-1 justify-center justify-items-center ">
                 <div 
-                    className={cn("w-full justify-items-center ", 
-                        sidebarOpen || rightSidebarOpen ? "max-w-[calc(100%-40px)]" : "max-w-2xl",
-                        sidebarOpen && rightSidebarOpen ? "max-w-full" : ""
-                    )} 
-                    style={{
-                        margin: '0 auto'
-                    }}
+                    className={containerClassName}
+                    style={containerStyle}
                 >
                         
                         {CommandBarComponent || (
@@ -104,9 +117,21 @@ export function AppHeader({
             </div>
         </div>
     );
-}
+};
+
+export const AppHeader = memo(AppHeaderComponent, (prevProps, nextProps) => {
+    // Custom comparison function to optimize re-renders
+    return (
+        prevProps.isCommandBarOpen === nextProps.isCommandBarOpen &&
+        prevProps.sidebarOpen === nextProps.sidebarOpen &&
+        prevProps.rightSidebarOpen === nextProps.rightSidebarOpen &&
+        prevProps.activeConvId === nextProps.activeConvId &&
+        prevProps.onExecuteCommand === nextProps.onExecuteCommand &&
+        prevProps.setIsCommandBarOpen === nextProps.setIsCommandBarOpen &&
+        prevProps.CommandBarComponent === nextProps.CommandBarComponent
+    );
+});
 
 // This component now uses global theme properties instead of custom ones
 export const themeableProps = {
 };
-
