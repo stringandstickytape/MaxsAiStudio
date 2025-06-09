@@ -167,7 +167,6 @@ export function InputBar({
                 convId,
                 parentMessageId,
                 message,
-                toolIds: activeTools,
                 systemPromptId,
                 systemPromptContent,
                 messageId,

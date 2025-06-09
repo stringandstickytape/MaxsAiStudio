@@ -8,6 +8,7 @@ import { prepareAttachmentsForTransmission, isTextFile } from '@/utils/attachmen
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { Attachment } from '@/types/attachment';
 import { useModelStore } from '@/stores/useModelStore';
+import { useToolStore } from '@/stores/useToolStore';
 import { createResourceHook } from './useResourceFactory';
 
 // --- FIX: Moved this hook definition to the top of the file, before it is used. ---
@@ -42,7 +43,6 @@ interface SendMessageParams {
     convId: string;
     parentMessageId: string;
     message: string;
-    toolIds: string[];
     systemPromptId?: string;
     systemPromptContent?: string;
     messageId?: string;
@@ -59,7 +59,12 @@ export function useChatManagement() {
         async (params: Omit<SendMessageParams, 'model'>) => {
             return executeApiCall(async () => {
                 const newMessageId = params.messageId || (params.parentMessageId ? uuidv4() : undefined);
-                let requestParams: Partial<SendMessageParams> = { ...params };
+                
+                // Get current active tools from store to ensure they're fresh
+                const { activeTools } = useToolStore.getState();
+                
+                let requestParams: Partial<SendMessageParams> = { ...params, toolIds: activeTools };
+
 
                 if (params.attachments && params.attachments.length > 0) {
                     const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
