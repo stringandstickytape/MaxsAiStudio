@@ -3,14 +3,10 @@ import { Pin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { useCommandStore } from '@/stores/useCommandStore';
-import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
-import { useDragDrop } from '@/hooks/useDragDrop';
-import { PinnedShortcutButton } from './PinnedShortcutButton';
-import { PinnedShortcutRow } from './PinnedShortcutRow';
-import { PinnedShortcutDropdown } from './PinnedShortcutDropdown';
-import { RenameShortcutDialog } from './RenameShortcutDialog';
-import { PinnedCommand } from './pinnedShortcutsUtils';
-import { IconSet } from './IconSelector';
+import { usePinnedCommandsStore, PinnedCommand } from '@/stores/usePinnedCommandsStore';
+import { CategoryPill } from './CategoryPill';
+import { ShortcutPopup } from './ShortcutPopup';
+import { extractCategories, groupCommandsByCategory, sortCategories } from './categoryUtils';
 
 interface PinnedShortcutsProps {
     orientation?: 'horizontal' | 'vertical';
@@ -29,14 +25,15 @@ function PinnedShortcutsBase({
 }: PinnedShortcutsProps) {
     // Use selective selectors from the store to prevent unnecessary re-renders
     const pinnedCommands = usePinnedCommandsStore(state => state.pinnedCommands);
+    const categoryOrder = usePinnedCommandsStore(state => state.categoryOrder);
     const loading = usePinnedCommandsStore(state => state.loading);
     const error = usePinnedCommandsStore(state => state.error);
     const fetchPinnedCommands = usePinnedCommandsStore(state => state.fetchPinnedCommands);
     const addPinnedCommand = usePinnedCommandsStore(state => state.addPinnedCommand);
     const removePinnedCommand = usePinnedCommandsStore(state => state.removePinnedCommand);
-    const reorderPinnedCommands = usePinnedCommandsStore(state => state.reorderPinnedCommands);
+    const reorderCategories = usePinnedCommandsStore(state => state.reorderCategories);
+    const reorderCommandsInCategory = usePinnedCommandsStore(state => state.reorderCommandsInCategory);
     const savePinnedCommands = usePinnedCommandsStore(state => state.savePinnedCommands);
-    const setPinnedCommands = usePinnedCommandsStore(state => state.setPinnedCommands);
     const setIsModified = usePinnedCommandsStore(state => state.setIsModified);
 
     const clientId = localStorage.getItem('clientId');
@@ -47,19 +44,12 @@ function PinnedShortcutsBase({
     const containerRef = useRef<HTMLDivElement>(null);
     const buttonRef = useRef<HTMLButtonElement>(null);
 
-    const [visibleCount, setVisibleCount] = useState(maxShown);
-    const [rowCount, setRowCount] = useState(1);
-    const [itemsPerRow, setItemsPerRow] = useState(maxShown);
-
-    // Dialog state
-    const [renameDialogOpen, setRenameDialogOpen] = useState(false);
-    const [commandToRename, setCommandToRename] = useState<PinnedCommand | null>(null);
-    const [newCommandName, setNewCommandName] = useState('');
-    const [selectedIconName, setSelectedIconName] = useState<string | undefined>();
-    const [selectedIconSet, setSelectedIconSet] = useState<IconSet>('lucide');
+    // Category and popup state
+    const [activeCategory, setActiveCategory] = useState<string | null>(null);
+    const [popupAnchor, setPopupAnchor] = useState<HTMLElement | null>(null);
+    const [draggedCategory, setDraggedCategory] = useState<string | null>(null);
     
     // Track user modifications
-    const [userModified, setUserModified] = useState(false);
     const isModified = usePinnedCommandsStore(state => state.isModified);
 
     // Initial load of pinned commands
@@ -106,82 +96,87 @@ function PinnedShortcutsBase({
         }
 
         const saveTimer = setTimeout(() => {
-            
             savePinnedCommands();
         }, 1000);
 
         return () => clearTimeout(saveTimer);
-    }, [pinnedCommands, savePinnedCommands, loading, initialLoadComplete, isModified]);
+    }, [pinnedCommands, categoryOrder, savePinnedCommands, loading, initialLoadComplete, isModified]);
 
-    // Calculate visible buttons based on container width
-    useEffect(() => {
-        if (!autoFit || orientation === 'vertical' || !containerRef.current || !buttonRef.current) {
+    // No longer needed - removed width calculation logic for old button layout
+
+    // Group commands by category and sort
+    const commandsByCategory = useMemo(() => {
+        return groupCommandsByCategory(pinnedCommands);
+    }, [pinnedCommands]);
+
+    const availableCategories = useMemo(() => {
+        const categories = extractCategories(pinnedCommands);
+        return sortCategories(categories, categoryOrder);
+    }, [pinnedCommands, categoryOrder]);
+
+    // Handle category pill click
+    const handleCategoryClick = useCallback((categoryId: string, anchorElement: HTMLElement) => {
+        if (activeCategory === categoryId) {
+            setActiveCategory(null);
+            setPopupAnchor(null);
+        } else {
+            setActiveCategory(categoryId);
+            setPopupAnchor(anchorElement);
+        }
+    }, [activeCategory]);
+
+    // Handle popup close
+    const handlePopupClose = useCallback(() => {
+        setActiveCategory(null);
+        setPopupAnchor(null);
+    }, []);
+
+    // Handle category drag and drop
+    const handleCategoryDragStart = useCallback((e: React.DragEvent, categoryId: string) => {
+        setDraggedCategory(categoryId);
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', categoryId);
+    }, []);
+
+    const handleCategoryDragEnd = useCallback(() => {
+        setDraggedCategory(null);
+    }, []);
+
+    const handleCategoryDrop = useCallback((e: React.DragEvent, targetCategoryId: string) => {
+        e.preventDefault();
+        
+        if (!draggedCategory || draggedCategory === targetCategoryId) {
             return;
         }
 
-        const calculateVisibleButtons = () => {
-            const containerWidth = containerRef.current?.clientWidth || 0;
-            const buttonWidth = 100 + 8; // Button width + gap
-
-            const availableWidth = containerWidth;
-            const maxButtonsPerRow = Math.floor(availableWidth / buttonWidth);
-
-            const effectiveRows = Math.min(maxRows, Math.ceil(pinnedCommands.length / maxButtonsPerRow));
-            const newItemsPerRow = maxButtonsPerRow;
-            const newRowCount = Math.min(effectiveRows, Math.ceil(pinnedCommands.length / newItemsPerRow));
-            const newVisibleCount = Math.min(newItemsPerRow * newRowCount, pinnedCommands.length);
-
-            if (newItemsPerRow !== itemsPerRow) {
-                setItemsPerRow(newItemsPerRow);
-            }
-
-            if (newRowCount !== rowCount) {
-                setRowCount(newRowCount);
-            }
-
-            if (newVisibleCount !== visibleCount) {
-                setVisibleCount(newVisibleCount);
-            }
-        };
-
-        calculateVisibleButtons();
-
-        const resizeObserver = new ResizeObserver(calculateVisibleButtons);
-        resizeObserver.observe(containerRef.current);
-
-        return () => {
-            if (containerRef.current) {
-                resizeObserver.unobserve(containerRef.current);
-            }
-            resizeObserver.disconnect();
-        };
-    }, [autoFit, orientation, pinnedCommands.length, visibleCount, itemsPerRow, rowCount, maxRows]);
-
-    // Handle drag and drop reordering using native HTML5 API
-    const handleReorder = useCallback((newItems: PinnedCommand[]) => {
-        const reorderedIds = newItems.map((cmd) => cmd.id);
-        reorderPinnedCommands(reorderedIds);
-        setUserModified(true);
-    }, [reorderPinnedCommands, setUserModified]);
-
-    const {
-        isDragging,
-        draggedItem,
-        handleDragStart,
-        handleDragEnd,
-        handleDragOver,
-        handleDrop,
-    } = useDragDrop(pinnedCommands, handleReorder);
+        const newOrder = [...availableCategories];
+        const draggedIndex = newOrder.indexOf(draggedCategory);
+        const targetIndex = newOrder.indexOf(targetCategoryId);
+        
+        if (draggedIndex !== -1 && targetIndex !== -1) {
+            newOrder.splice(draggedIndex, 1);
+            newOrder.splice(targetIndex, 0, draggedCategory);
+            reorderCategories(newOrder);
+        }
+    }, [draggedCategory, availableCategories, reorderCategories]);
 
     // Handle command click - memoized to prevent recreation on each render
     const handleCommandClick = useCallback((commandId: string) => {
         useCommandStore.getState().executeCommand(commandId);
     }, []);
 
+    // Handle command removal
+    const handleRemoveCommand = useCallback((commandId: string) => {
+        removePinnedCommand(commandId);
+    }, [removePinnedCommand]);
+
+    // Handle commands reorder within category
+    const handleCommandsReorder = useCallback((categoryId: string, commandIds: string[]) => {
+        reorderCommandsInCategory(categoryId, commandIds);
+    }, [reorderCommandsInCategory]);
+
     // Handle pin/unpin command - memoized to prevent recreation on each render
     const handlePinCommand = useCallback((commandId: string, isCurrentlyPinned: boolean) => {
-        setUserModified(true);
-
         if (isCurrentlyPinned) {
             removePinnedCommand(commandId);
             savePinnedCommands().catch(err => console.error('Error saving pinned commands after removal:', err));
@@ -205,84 +200,8 @@ function PinnedShortcutsBase({
                 });
             }
         }
-    }, [setUserModified, removePinnedCommand, savePinnedCommands, addPinnedCommand]);
+    }, [removePinnedCommand, savePinnedCommands, addPinnedCommand]);
     
-    // Handle rename command - memoized to prevent recreation on each render
-    const handleRenameCommand = useCallback((command: PinnedCommand) => {
-        setCommandToRename(command);
-        setNewCommandName(command.name);
-        setSelectedIconName(command.iconName);
-        // Ensure we always have a valid icon set, defaulting to 'lucide' if undefined
-        setSelectedIconSet((command.iconSet as IconSet) || 'lucide');
-        setRenameDialogOpen(true);
-    }, [setCommandToRename, setNewCommandName, setSelectedIconName, setSelectedIconSet, setRenameDialogOpen]);
-    
-    // Handle rename confirmation - memoized to prevent recreation on each render
-    const handleRenameConfirm = useCallback(() => {
-        if (!commandToRename || !newCommandName.trim()) {
-            setRenameDialogOpen(false);
-            return;
-        }
-        
-        // Update the command name and icon in the store
-        const updatedCommands = pinnedCommands.map(cmd => {
-            if (cmd.id === commandToRename.id) {
-                return { 
-                    ...cmd, 
-                    name: newCommandName.trim(),
-                    iconName: selectedIconName,
-                    iconSet: selectedIconSet
-                };
-            }
-            return cmd;
-        });
-        
-        // Set the updated commands and mark as modified
-        setPinnedCommands(updatedCommands);
-        setIsModified(true);
-        
-        // Save the changes to the server
-        savePinnedCommands().catch(err => console.error('Error saving renamed command:', err));
-        
-        // Close the dialog
-        setRenameDialogOpen(false);
-    }, [commandToRename, newCommandName, pinnedCommands, selectedIconName, selectedIconSet, setPinnedCommands, setIsModified, savePinnedCommands, setRenameDialogOpen]);
-    
-    // Handle rename cancellation - memoized to prevent recreation on each render
-    const handleRenameCancel = useCallback(() => {
-        setRenameDialogOpen(false);
-    }, [setRenameDialogOpen]);
-    
-    // Handle icon selection - memoized to prevent recreation on each render
-    const handleIconSelect = useCallback((iconName: string, iconSet: IconSet) => {
-        setSelectedIconName(iconName);
-        setSelectedIconSet(iconSet);
-    }, [setSelectedIconName, setSelectedIconSet]);
-
-    // Calculate visible and hidden commands - memoized to prevent recalculation on each render
-    const { effectiveVisibleCount, visibleCommands, hiddenCommands, hasMoreCommands } = useMemo(() => {
-        const effectiveCount = autoFit && orientation === 'horizontal' ? visibleCount : maxShown;
-        const visible = pinnedCommands.slice(0, effectiveCount);
-        const hidden = pinnedCommands.slice(effectiveCount);
-        const hasMore = pinnedCommands.length > effectiveCount;
-        return { effectiveVisibleCount: effectiveCount, visibleCommands: visible, hiddenCommands: hidden, hasMoreCommands: hasMore };
-    }, [autoFit, orientation, visibleCount, maxShown, pinnedCommands]);
-
-    // Create command rows for multi-row layout - memoized to prevent recalculation on each render
-    const commandRows = useMemo(() => {
-        const rows: typeof pinnedCommands[] = [];
-        if (orientation === 'horizontal' && autoFit && rowCount > 1) {
-            for (let i = 0; i < rowCount; i++) {
-                const startIdx = i * itemsPerRow;
-                const endIdx = Math.min(startIdx + itemsPerRow, visibleCommands.length);
-                rows.push(visibleCommands.slice(startIdx, endIdx));
-            }
-        } else {
-            rows.push(visibleCommands);
-        }
-        return rows;
-    }, [orientation, autoFit, rowCount, itemsPerRow, visibleCommands]);
-
     // Empty state
     if (pinnedCommands.length === 0) {
         return (
@@ -311,8 +230,8 @@ function PinnedShortcutsBase({
             <div
                 ref={containerRef}
                 className={cn(
-                    'PinnedShortcuts flex justify-center gap-1 overflow-x-auto',
-                    orientation === 'vertical' ? 'flex-col items-center' : 'flex-col w-full',
+                    'PinnedShortcuts flex justify-center gap-2 overflow-x-auto',
+                    orientation === 'vertical' ? 'flex-col items-center' : 'flex-row w-full',
                     className,
                 )}
                 style={{
@@ -322,81 +241,39 @@ function PinnedShortcutsBase({
                     ...(window?.theme?.PinnedShortcuts?.style || {})
                 }}
             >
-                    {/* Multi-row layout */}
-                    {orientation === 'horizontal' && autoFit && rowCount > 1 ? (
-                        commandRows.map((rowCommands, rowIndex) => (
-                            <PinnedShortcutRow
-                                key={`row-${rowIndex}`}
-                                rowCommands={rowCommands}
-                                rowIndex={rowIndex}
-                                itemsPerRow={itemsPerRow}
-                                orientation={orientation}
-                                onCommandClick={handleCommandClick}
-                                onPinCommand={handlePinCommand}
-                                onRenameCommand={handleRenameCommand}
-                                buttonRef={buttonRef}
-                                onDragStart={handleDragStart}
-                                onDragEnd={handleDragEnd}
-                                onDragOver={handleDragOver}
-                                onDrop={handleDrop}
-                                isDragging={isDragging}
-                                draggedItem={draggedItem}
-                            />
-                        ))
-                    ) : (
-                        /* Single row/column layout */
-                        <div
-                            className={cn('flex items-center justify-center gap-1', orientation === 'vertical' ? 'flex-col' : 'flex-row w-full')}
-                            onDragOver={handleDragOver}
-                        >
-                            {visibleCommands.map((command, index) => (
-                                <PinnedShortcutButton
-                                    key={command.id}
-                                    command={command}
-                                    index={index}
-                                    orientation={orientation}
-                                    onCommandClick={handleCommandClick}
-                                    onPinCommand={handlePinCommand}
-                                    onRenameCommand={handleRenameCommand}
-                                    isButtonRef={command.id === visibleCommands[0]?.id}
-                                    buttonRef={buttonRef}
-                                    onDragStart={handleDragStart}
-                                    onDragEnd={handleDragEnd}
-                                    onDragOver={handleDragOver}
-                                    onDrop={handleDrop}
-                                    isDragging={isDragging}
-                                    draggedItem={draggedItem}
-                                />
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Dropdown for overflow commands */}
-                    {hasMoreCommands && (
-                        <PinnedShortcutDropdown
-                            hiddenCommands={hiddenCommands}
-                            orientation={orientation}
-                            onCommandClick={handleCommandClick}
-                            onPinCommand={handlePinCommand}
-                            visibleCount={effectiveVisibleCount}
-                            totalCount={pinnedCommands.length}
+                {/* Category Pills */}
+                {availableCategories.map((categoryId) => {
+                    const categoryCommands = commandsByCategory[categoryId] || [];
+                    return (
+                        <CategoryPill
+                            key={categoryId}
+                            categoryId={categoryId}
+                            commandCount={categoryCommands.length}
+                            commands={categoryCommands}
+                            isActive={activeCategory === categoryId}
+                            onClick={(e) => handleCategoryClick(categoryId, e.currentTarget)}
+                            onDragStart={handleCategoryDragStart}
+                            onDragEnd={handleCategoryDragEnd}
+                            onDrop={handleCategoryDrop}
+                            isDragging={draggedCategory === categoryId}
                         />
-                    )}
+                    );
+                })}
             </div>
-                
-            {/* Rename Dialog */}
-            <RenameShortcutDialog
-                open={renameDialogOpen}
-                onOpenChange={setRenameDialogOpen}
-                commandToRename={commandToRename}
-                newCommandName={newCommandName}
-                setNewCommandName={setNewCommandName}
-                selectedIconName={selectedIconName}
-                selectedIconSet={selectedIconSet}
-                onIconSelect={handleIconSelect}
-                onConfirm={handleRenameConfirm}
-                onCancel={handleRenameCancel}
-            />
+
+            {/* Shortcut Popup */}
+            {activeCategory && (
+                <ShortcutPopup
+                    isOpen={!!activeCategory}
+                    categoryId={activeCategory}
+                    commands={commandsByCategory[activeCategory] || []}
+                    anchorElement={popupAnchor}
+                    onClose={handlePopupClose}
+                    onCommandClick={handleCommandClick}
+                    onCommandsReorder={handleCommandsReorder}
+                    onRemoveCommand={handleRemoveCommand}
+                />
+            )}
         </TooltipProvider>
     );
 }

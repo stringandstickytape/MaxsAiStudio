@@ -9,11 +9,13 @@ export interface PinnedCommand {
   iconName?: string;
   iconSet?: 'lucide' | 'lobehub';
   section: string;
+  position?: number;
 }
 
 interface PinnedCommandsStore {
   
   pinnedCommands: PinnedCommand[];
+  categoryOrder: string[];
   loading: boolean;
   error: string | null;
   isDragging: boolean;
@@ -21,9 +23,12 @@ interface PinnedCommandsStore {
 
   
   setPinnedCommands: (commands: PinnedCommand[]) => void;
+  setCategoryOrder: (order: string[]) => void;
   addPinnedCommand: (command: PinnedCommand) => void;
   removePinnedCommand: (commandId: string) => void;
   reorderPinnedCommands: (commandIds: string[]) => void;
+  reorderCategories: (categoryIds: string[]) => void;
+  reorderCommandsInCategory: (category: string, commandIds: string[]) => void;
   fetchPinnedCommands: () => Promise<void>;
   savePinnedCommands: () => Promise<void>;
   setLoading: (loading: boolean) => void;
@@ -35,6 +40,7 @@ interface PinnedCommandsStore {
 export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => ({
   
   pinnedCommands: [],
+  categoryOrder: [],
   loading: false,
   error: null,
   isDragging: false,
@@ -43,12 +49,29 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
   
   setPinnedCommands: (commands) => set({ pinnedCommands: commands, isModified: false }),
 
+  setCategoryOrder: (order) => set({ categoryOrder: order, isModified: true }),
+
   addPinnedCommand: (command) =>
     set((state) => {
       if (state.pinnedCommands.some((cmd) => cmd.id === command.id)) {
         return state;
       }
-      return { pinnedCommands: [...state.pinnedCommands, command], isModified: true };
+      
+      // Set position for new command
+      const categoryCommands = state.pinnedCommands.filter(cmd => cmd.section === command.section);
+      const newCommand = { ...command, position: categoryCommands.length };
+      
+      // Add category to order if not present
+      const newCategoryOrder = [...state.categoryOrder];
+      if (!newCategoryOrder.includes(command.section)) {
+        newCategoryOrder.push(command.section);
+      }
+      
+      return { 
+        pinnedCommands: [...state.pinnedCommands, newCommand], 
+        categoryOrder: newCategoryOrder,
+        isModified: true 
+      };
     }),
 
   removePinnedCommand: (commandId) =>
@@ -72,8 +95,24 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
       return { pinnedCommands: orderedCommands, isModified: true };
     }),
 
+  reorderCategories: (categoryIds) =>
+    set({ categoryOrder: categoryIds, isModified: true }),
+
+  reorderCommandsInCategory: (category, commandIds) =>
+    set((state) => {
+      const updatedCommands = state.pinnedCommands.map(cmd => {
+        if (cmd.section === category) {
+          const newPosition = commandIds.indexOf(cmd.id);
+          return { ...cmd, position: newPosition >= 0 ? newPosition : cmd.position || 0 };
+        }
+        return cmd;
+      });
+      
+      return { pinnedCommands: updatedCommands, isModified: true };
+    }),
+
   fetchPinnedCommands: async () => {
-    const { setLoading, setError, setPinnedCommands } = get();
+    const { setLoading, setError, setPinnedCommands, setCategoryOrder } = get();
 
     setLoading(true);
     setError(null);
@@ -91,6 +130,7 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
       }
 
       setPinnedCommands(data.pinnedCommands || []);
+      set({ categoryOrder: data.categoryOrder || [], isModified: false });
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Unknown error');
       console.error('Error fetching pinned commands:', error);
@@ -100,14 +140,17 @@ export const usePinnedCommandsStore = create<PinnedCommandsStore>((set, get) => 
   },
 
   savePinnedCommands: async () => {
-    const { pinnedCommands, setLoading, setError, setIsModified } = get();
+    const { pinnedCommands, categoryOrder, setLoading, setError, setIsModified } = get();
 
     setLoading(true);
     setError(null);
 
     try {
       const pinnedCommandsSave = createApiRequest('/api/pinnedCommands/save', 'POST');
-      const data = await pinnedCommandsSave({ pinnedCommands }, {
+      const data = await pinnedCommandsSave({ 
+        pinnedCommands, 
+        categoryOrder 
+      }, {
         headers: {
           'X-Client-Id': webSocketService.getClientId() || '',
         },

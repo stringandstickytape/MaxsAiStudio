@@ -57,12 +57,15 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     }
                 }
 
-                var pinnedCommands = await _pinnedCommandService.GetPinnedCommandsAsync(clientId);
-                return JsonConvert.SerializeObject(new
+                var (pinnedCommands, categoryOrder) = await _pinnedCommandService.GetPinnedCommandsAsync(clientId);
+                var response = new GetPinnedCommandsResponse
                 {
-                    success = true,
-                    pinnedCommands
-                });
+                    Success = true,
+                    PinnedCommands = pinnedCommands,
+                    CategoryOrder = categoryOrder
+                };
+
+                return SerializeResponse(response);
             }
             catch (Exception ex)
             {
@@ -83,14 +86,16 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     }
                 }
 
-                var pinnedCommands = requestObject["pinnedCommands"]?.ToObject<List<PinnedCommand>>();
-                if (pinnedCommands == null)
-                {
-                    return SerializeError("Pinned commands data is invalid");
-                }
+                var request = requestObject.ToObject<SavePinnedCommandsRequest>();
+                if (request == null) return SerializeError("Invalid request data");
 
-                await _pinnedCommandService.SavePinnedCommandsAsync(clientId, pinnedCommands);
-                return JsonConvert.SerializeObject(new { success = true });
+                await _pinnedCommandService.SavePinnedCommandsAsync(clientId, request.PinnedCommands, request.CategoryOrder);
+                var response = new SavePinnedCommandsResponse
+                {
+                    Success = true
+                };
+
+                return SerializeResponse(response);
             }
             catch (Exception ex)
             {

@@ -13,14 +13,15 @@ namespace AiStudio4.Core.Interfaces
         /// Gets all pinned commands for a client
         /// </summary>
         /// <param name="clientId">The client ID</param>
-        /// <returns>A list of pinned commands</returns>
-        Task<List<PinnedCommand>> GetPinnedCommandsAsync(string clientId);
+        /// <returns>A tuple containing pinned commands and category order</returns>
+        Task<(List<PinnedCommand> commands, List<string> categoryOrder)> GetPinnedCommandsAsync(string clientId);
 
         /// <summary>
-        /// Saves pinned commands for a client
+        /// Saves pinned commands and category order for a client
         /// </summary>
         /// <param name="clientId">The client ID</param>
         /// <param name="pinnedCommands">The pinned commands to save</param>
-        Task SavePinnedCommandsAsync(string clientId, List<PinnedCommand> pinnedCommands);
+        /// <param name="categoryOrder">The order of categories</param>
+        Task SavePinnedCommandsAsync(string clientId, List<PinnedCommand> pinnedCommands, List<string> categoryOrder);
     }
 }

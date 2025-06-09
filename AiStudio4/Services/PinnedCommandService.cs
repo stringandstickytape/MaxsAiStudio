@@ -29,11 +29,12 @@ namespace AiStudio4.Services
         }
 
         /// <inheritdoc />
-        public async Task<List<PinnedCommand>> GetPinnedCommandsAsync(string clientId = null)
+        public async Task<(List<PinnedCommand> commands, List<string> categoryOrder)> GetPinnedCommandsAsync(string clientId = null)
         {
             try
             {
                 var pinnedCommands = new List<PinnedCommand>();
+                var categoryOrder = new List<string>();
 
                 if (!File.Exists(_pinnedCommandsFilePath))
                 {
@@ -47,7 +48,8 @@ namespace AiStudio4.Services
                             Name = "Edit Models",
                             IconName = "Book",
                             IconSet = null,
-                            Section = "settings"
+                            Section = "settings",
+                            Position = 0
                         },
                         new PinnedCommand
                         {
@@ -55,7 +57,8 @@ namespace AiStudio4.Services
                             Name = "New Conversation",
                             IconName = "Plus",
                             IconSet = null,
-                            Section = "conv"
+                            Section = "conv",
+                            Position = 0
                         },
                         new PinnedCommand
                         {
@@ -63,7 +66,8 @@ namespace AiStudio4.Services
                             Name = "Sonnet 4 [Primary]",
                             IconName = "Cpu",
                             IconSet = null,
-                            Section = "model"
+                            Section = "model",
+                            Position = 0
                         },
                         new PinnedCommand
                         {
@@ -71,7 +75,8 @@ namespace AiStudio4.Services
                             Name = "GPT 4.1 Mini [Secondary]",
                             IconName = "Cpu",
                             IconSet = null,
-                            Section = "model"
+                            Section = "model",
+                            Position = 1
                         },
                         new PinnedCommand
                         {
@@ -79,7 +84,8 @@ namespace AiStudio4.Services
                             Name = "OpenRouter qwen3-235b-a22b [Primary]",
                             IconName = "Cpu",
                             IconSet = null,
-                            Section = "model"
+                            Section = "model",
+                            Position = 2
                         },
                         new PinnedCommand
                         {
@@ -87,19 +93,38 @@ namespace AiStudio4.Services
                             Name = "Gemini 2.5 Pro Exp 05 06 [Primary]",
                             IconName = "Cpu",
                             IconSet = null,
-                            Section = "model"
+                            Section = "model",
+                            Position = 3
                         }
                     };
 
-                    return pinnedCommands;
+                    // Default category order
+                    categoryOrder = new List<string> { "conv", "model", "settings" };
+
+                    return (pinnedCommands, categoryOrder);
                 }
 
                 var json = await File.ReadAllTextAsync(_pinnedCommandsFilePath);
-                pinnedCommands = JsonConvert.DeserializeObject<List<PinnedCommand>>(json);
+                var data = JsonConvert.DeserializeObject<SaveData>(json);
 
-                _logger.LogDebug("Retrieved {Count} pinned commands", pinnedCommands?.Count ?? 0);
+                if (data != null)
+                {
+                    pinnedCommands = data.PinnedCommands ?? new List<PinnedCommand>();
+                    categoryOrder = data.CategoryOrder ?? new List<string>();
+                }
+                else
+                {
+                    // Fallback for old format
+                    pinnedCommands = JsonConvert.DeserializeObject<List<PinnedCommand>>(json) ?? new List<PinnedCommand>();
+                    categoryOrder = new List<string>();
+                }
 
-                return pinnedCommands ?? new List<PinnedCommand>();
+                // Migrate old data that doesn't have positions
+                MigrateOldData(pinnedCommands, categoryOrder);
+
+                _logger.LogDebug("Retrieved {Count} pinned commands with {CategoryCount} categories", pinnedCommands?.Count ?? 0, categoryOrder?.Count ?? 0);
+
+                return (pinnedCommands, categoryOrder);
             }
             catch (Exception ex)
             {
@@ -109,7 +134,7 @@ namespace AiStudio4.Services
         }
 
         /// <inheritdoc />
-        public async Task SavePinnedCommandsAsync(string clientId, List<PinnedCommand> pinnedCommands)
+        public async Task SavePinnedCommandsAsync(string clientId, List<PinnedCommand> pinnedCommands, List<string> categoryOrder)
         {
             try
             {
@@ -118,16 +143,54 @@ namespace AiStudio4.Services
                     pinnedCommands = new List<PinnedCommand>();
                 }
 
-                var json = JsonConvert.SerializeObject(pinnedCommands, Formatting.Indented);
+                if (categoryOrder == null)
+                {
+                    categoryOrder = new List<string>();
+                }
+
+                var data = new SaveData
+                {
+                    PinnedCommands = pinnedCommands,
+                    CategoryOrder = categoryOrder
+                };
+
+                var json = JsonConvert.SerializeObject(data, Formatting.Indented);
                 await File.WriteAllTextAsync(_pinnedCommandsFilePath, json);
 
-                _logger.LogDebug("Saved {Count} pinned commands", pinnedCommands.Count);
+                _logger.LogDebug("Saved {Count} pinned commands with {CategoryCount} categories", pinnedCommands.Count, categoryOrder.Count);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving pinned commands");
                 throw;
             }
+        }
+
+        private void MigrateOldData(List<PinnedCommand> pinnedCommands, List<string> categoryOrder)
+        {
+            // Assign positions to commands that don't have them
+            var commandsByCategory = pinnedCommands.GroupBy(c => c.Section).ToList();
+            
+            foreach (var categoryGroup in commandsByCategory)
+            {
+                var commands = categoryGroup.OrderBy(c => c.Position).ToList();
+                for (int i = 0; i < commands.Count; i++)
+                {
+                    commands[i].Position = i;
+                }
+
+                // Add category to order if not present
+                if (!string.IsNullOrEmpty(categoryGroup.Key) && !categoryOrder.Contains(categoryGroup.Key))
+                {
+                    categoryOrder.Add(categoryGroup.Key);
+                }
+            }
+        }
+
+        private class SaveData
+        {
+            public List<PinnedCommand> PinnedCommands { get; set; } = new List<PinnedCommand>();
+            public List<string> CategoryOrder { get; set; } = new List<string>();
         }
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace AiStudio4.Core.Models
 {
@@ -31,6 +31,11 @@ namespace AiStudio4.Core.Models
         
         
         public string Section { get; set; }
+
+        
+        
+        
+        public int Position { get; set; } = 0;
     }
 
     
@@ -48,6 +53,7 @@ namespace AiStudio4.Core.Models
     {
         public bool Success { get; set; }
         public List<PinnedCommand> PinnedCommands { get; set; }
+        public List<string> CategoryOrder { get; set; } = new List<string>();
         public string Error { get; set; }
     }
 
@@ -58,6 +64,7 @@ namespace AiStudio4.Core.Models
     {
         public string ClientId { get; set; }
         public List<PinnedCommand> PinnedCommands { get; set; }
+        public List<string> CategoryOrder { get; set; } = new List<string>();
     }
 
     
