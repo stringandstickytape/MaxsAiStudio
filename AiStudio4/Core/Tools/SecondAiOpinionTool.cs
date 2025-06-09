@@ -58,7 +58,7 @@ namespace AiStudio4.Core.Tools
                   }
                 }
                 """,
-                Categories = new List<string> { "MaxCode" },
+                Categories = new List<string> { "MaxCode-Alt" },
                 OutputFileType = "txt",
                 ExtraProperties = new Dictionary<string, string>
                 {

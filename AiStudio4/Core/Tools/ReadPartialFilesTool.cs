@@ -67,7 +67,7 @@ namespace AiStudio4.Core.Tools
   }
 }
 """,
-                Categories = new List<string> { "MaxCode" },
+                Categories = new List<string> { "MaxCode-Alt" },
                 OutputFileType = "txt",
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
