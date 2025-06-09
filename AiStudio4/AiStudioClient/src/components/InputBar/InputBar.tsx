@@ -256,15 +256,23 @@ export function InputBar({
             // --- Allow stream tokens again on new send ---
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
             
+            // Get current text from textarea ref instead of state for performance
+            const currentInputText = textareaRef.current?.getCurrentValue() || '';
+            console.log('Debug - currentInputText:', currentInputText);
+            console.log('Debug - textareaRef.current:', textareaRef.current);
+            
             const textAttachments = attachments.filter(att => att.textContent);
             const textFileContent = formatTextAttachments(textAttachments);
-            const fullMessage = (inputText ? inputText : "continue") + textFileContent;
+            const fullMessage = (currentInputText ? currentInputText : "continue") + textFileContent;
+            console.log('Debug - fullMessage:', fullMessage);
             
             // Get attachments from store and pass them to handleChatMessage
             const messageAttachments = useAttachmentStore.getState().getStagedAttachments();
             await handleChatMessage(fullMessage, messageAttachments);
             useAttachmentStore.getState().clearStagedAttachments();
-            setInputText('');
+            
+            // Clear the textarea and sync with parent state
+            textareaRef.current?.clearValue();
         }
     };
 

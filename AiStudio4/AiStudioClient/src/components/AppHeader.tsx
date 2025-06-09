@@ -1,6 +1,6 @@
 ﻿import { Command } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useState, useEffect, useCallback, useMemo, memo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, memo } from 'react';
 import { Input } from '@/components/ui/input';
 import { PinnedShortcuts } from '@/components/PinnedShortcuts';
 
@@ -23,25 +23,22 @@ const AppHeaderComponent = ({
     rightSidebarOpen = false,
     activeConvId = null,
 }: AppHeaderProps) => {
-    // Use ref for input value to avoid re-renders on every keystroke
-    const commandInputRef = useRef<HTMLInputElement>(null);
+    const [commandText, setCommandText] = useState('');
 
-    // Memoize the command submit handler - now uses ref instead of state
+    // Memoize the command submit handler
     const handleCommandSubmit = useCallback((e: React.FormEvent) => {
         e.preventDefault();
-        const commandText = commandInputRef.current?.value?.trim();
-        if (commandText) {
+        if (commandText.trim()) {
             onExecuteCommand(commandText);
-            if (commandInputRef.current) {
-                commandInputRef.current.value = '';
-            }
+            setCommandText('');
             setIsCommandBarOpen(false);
         }
-    }, [onExecuteCommand, setIsCommandBarOpen]);
+    }, [commandText, onExecuteCommand, setIsCommandBarOpen]);
 
     useEffect(() => {
-        if (isCommandBarOpen && commandInputRef.current) {
-            commandInputRef.current.focus();
+        const inputElement = document.getElementById('command-input');
+        if (isCommandBarOpen && inputElement) {
+            inputElement.focus();
         }
     }, [isCommandBarOpen]);
 
@@ -90,9 +87,11 @@ const AppHeaderComponent = ({
                                     <Command className="h-4 w-4" />
                                 </div>
                                 <Input
-                                    ref={commandInputRef}
+                                    id="command-input"
                                     type="text"
                                     placeholder="Type a command (/ for suggestions)..."
+                                    value={commandText}
+                                    onChange={(e) => setCommandText(e.target.value)}
                                     className="w-full shadow-inner transition-all duration-200 input-ghost input-with-icon"
                                     onBlur={() => setIsCommandBarOpen(false)}
                                 />
