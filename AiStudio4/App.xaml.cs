@@ -1,4 +1,4 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -24,7 +24,7 @@ namespace AiStudio4
 {
     public partial class App : Application
     {
-        public const decimal VersionNumber = 0.98m;
+public const decimal VersionNumber = 0.99m;
 
         private ServiceProvider _serviceProvider;
         public ServiceProvider Services => _serviceProvider;

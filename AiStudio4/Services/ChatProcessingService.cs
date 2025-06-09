@@ -144,8 +144,8 @@ namespace AiStudio4.Services
                         BranchedConv = conv
                     };
 
-                    System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}");
-                    
+                    System.Diagnostics.Debug.WriteLine($"--> Message: {chatRequest.Message}, MessageId: {chatRequest.MessageId}, ParentMessageId: {chatRequest.ParentMessageId}, model: {chatRequest.Model}, toolct {chatRequest.ToolIds.Count}, attachments {attachments?.Count}");
+
                     // Check if this is the first non-system message in the conversation
                     isFirstMessageInConv = conv.Messages.Count <= 1 ||
                         (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));

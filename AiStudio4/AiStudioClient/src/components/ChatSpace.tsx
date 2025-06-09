@@ -97,7 +97,7 @@ export function ChatSpace() {
   }, []);
 
   
-  const handleAttachmentChange = (attachments: Attachment[]) => {
+    const handleAttachmentChange = (attachments: Attachment[]) => {
     setCurrentAttachments(attachments);
   };
   

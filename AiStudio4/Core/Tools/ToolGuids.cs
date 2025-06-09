@@ -24,6 +24,9 @@ namespace AiStudio4.Core.Tools
         public const string AZURE_DEV_OPS_GET_WORK_ITEM_UPDATES_TOOL_GUID = "3a7b9c5d-2e4f-8g6h-1i2j-3k4l5m6n7o8p";
         public const string AZURE_DEV_OPS_QUERY_WORK_ITEMS_TOOL_GUID = "2d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
         
+        // ... existing GUIDs
+        public const string SECOND_AI_OPINION_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-abcdef987654";
+
         // GitHub Tools
         public const string GITHUB_CREATE_ISSUE_COMMENT_TOOL_GUID = "e1f2a3b4-c5d6-e7f8-a9b0-e1f2a3b4c5d6";
         public const string GITHUB_CREATE_ISSUE_TOOL_GUID = "c1d2e3f4-a5b6-c7d8-e9f0-c1d2e3f4a5b6";
