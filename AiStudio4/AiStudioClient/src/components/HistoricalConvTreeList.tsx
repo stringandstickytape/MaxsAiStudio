@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+﻿import { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import { processAttachments } from '@/utils/attachmentUtils';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { useConvStore } from '@/stores/useConvStore';
@@ -7,6 +7,56 @@ import { useSearchStore } from '@/stores/useSearchStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { Search, X, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+
+// Memoized individual conversation item component
+const ConversationItem = memo(({ 
+    conv, 
+    searchResult, 
+    onMiddleClick, 
+    onClick 
+}: {
+    conv: any;
+    searchResult?: { matchingMessageIds: string[] } | undefined;
+    onMiddleClick: (e: React.MouseEvent, convId: string) => void;
+    onClick: () => void;
+}) => {
+    return (
+        <div
+            key={conv.convGuid}
+            className="HistoricalConvTreeList text-sm cursor-pointer px-2 py-0.5 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1"
+            title="Middle-click to delete conversation"
+            style={{ 
+                display: 'block', 
+                wordBreak: 'break-word',
+                color: 'var(--global-text-color, #e5e7eb)',
+                backgroundColor: 'var(--global-background-color, transparent)',
+                border: 'none',
+                ':hover': {
+                    backgroundColor: 'var(--global-primary-color, rgba(31, 41, 55, 0.4))',
+                    opacity: 0.7
+                },
+                ...(window?.theme?.HistoricalConvTreeList?.style || {})
+            }}
+            onMouseDown={(e) => onMiddleClick(e, conv.convGuid)}
+            onClick={onClick}
+        >
+            {conv.summary}
+            {searchResult && (
+                <div className="text-xs text-blue-400 mt-1">
+                    {searchResult.matchingMessageIds.length} matching message{searchResult.matchingMessageIds.length !== 1 ? 's' : ''}
+                </div>
+            )}
+        </div>
+    );
+}, (prevProps, nextProps) => {
+    // Custom comparison for conversation items
+    return (
+        prevProps.conv.convGuid === nextProps.conv.convGuid &&
+        prevProps.conv.summary === nextProps.conv.summary &&
+        prevProps.conv.lastModified === nextProps.conv.lastModified &&
+        JSON.stringify(prevProps.searchResult) === JSON.stringify(nextProps.searchResult)
+    );
+});
 
 
 interface HistoricalConvTreeListProps {
@@ -18,63 +68,59 @@ interface HistoricalConvTreeListProps {
     }[] | null;
 }
 
-export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeListProps) => {
+const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeListProps) => {
     const [searchTerm, setSearchTerm] = useState<string>('');
 
 
-    const { clientId } = useWebSocketStore();
+    // Optimize store subscriptions to reduce re-renders during livestream events
+    const clientId = useWebSocketStore(state => state.clientId);
+    const currentRequest = useWebSocketStore(state => state.currentRequest);
     const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
     const { convs, fetchAllConvs, addOrUpdateConv, deleteConv, isLoadingList } = useHistoricalConvsStore();
     const { highlightMessage } = useSearchStore();
 
-    // Use currentRequest from useWebSocketStore for correct chat request lifecycle
-    const { currentRequest } = useWebSocketStore();
     const isChatRequestOngoing = !!currentRequest;
 
     useEffect(() => {
         fetchAllConvs();
     }, [fetchAllConvs]);
 
+    // Memoize the historical conversation handler to prevent recreation
+    const handleHistoricalConv = useCallback((content: any) => {
+        if (content) {
+            addOrUpdateConv({
+                convGuid: content.convId || content.convGuid,
+                summary: content.summary || content.content || 'Untitled Conv',
+                fileName: `conv_${content.convId || content.convGuid}.json`,
+                lastModified: content.lastModified || new Date().toISOString(),
+                highlightColour: content.highlightColour,
+            });
+        }
+    }, [addOrUpdateConv]);
+
+    // Memoize the historical event handler
+    const handleHistoricalEvent = useCallback((e: any) => {
+        if (e.detail?.type === 'historicalConvTree') {
+            handleHistoricalConv(e.detail.content);
+        }
+    }, [handleHistoricalConv]);
 
     useEffect(() => {
-
-        const handleHistoricalConv = (content: any) => {
-            if (content) {
-                addOrUpdateConv({
-                    convGuid: content.convId || content.convGuid,
-                    summary: content.summary || content.content || 'Untitled Conv',
-                    fileName: `conv_${content.convId || content.convGuid}.json`,
-                    lastModified: content.lastModified || new Date().toISOString(),
-                    highlightColour: content.highlightColour,
-                });
-            }
-        };
-
-
         const unsubscribe = useWebSocketStore.subscribe(
             (state) => state.lastMessageTime,
             async () => {
-
                 const event = new CustomEvent('check-historical-convs');
                 window.dispatchEvent(event);
             },
         );
 
-
-        const handleHistoricalEvent = (e: any) => {
-            if (e.detail?.type === 'historicalConvTree') {
-                handleHistoricalConv(e.detail.content);
-            }
-        };
-
         window.addEventListener('historical-conv', handleHistoricalEvent);
-
 
         return () => {
             unsubscribe();
             window.removeEventListener('historical-conv', handleHistoricalEvent);
         };
-    }, [addOrUpdateConv]);
+    }, [handleHistoricalEvent]);
 
 
 
@@ -82,7 +128,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
 
     const { getConv } = useChatManagement();
 
-    const handleNodeClick = async (nodeId: string, convId: string) => {
+    const handleNodeClick = useCallback(async (nodeId: string, convId: string) => {
         if (!clientId) return;
         
         // Dispatch an event to notify that a conversation was selected
@@ -206,18 +252,20 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
         } catch (error) {
             
         }
-    };
+    }, [clientId, searchResults, highlightMessage, currentConvs, setActiveConv, getConv, createConv, addMessage]);
 
-    // Filter conversations based on search results if available
-    const displayedConvs = searchResults
-        ? convs.filter(conv => 
-            searchResults.some(result => result.conversationId === conv.convGuid))
-        : convs.filter(conv =>
-            searchTerm ? conv.summary.toLowerCase().includes(searchTerm.toLowerCase()) : true
-        );
+    // Filter conversations based on search results if available - memoized for performance
+    const displayedConvs = useMemo(() => {
+        return searchResults
+            ? convs.filter(conv => 
+                searchResults.some(result => result.conversationId === conv.convGuid))
+            : convs.filter(conv =>
+                searchTerm ? conv.summary.toLowerCase().includes(searchTerm.toLowerCase()) : true
+            );
+    }, [searchResults, convs, searchTerm]);
 
     // Handle middle-click to delete conversation
-    const handleMiddleClick = async (event: React.MouseEvent, convId: string) => {
+    const handleMiddleClick = useCallback(async (event: React.MouseEvent, convId: string) => {
         // Middle mouse button is button 1
         if (event.button === 1) {
             event.preventDefault();
@@ -233,9 +281,44 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                 }
             }
         }
-    };
+    }, [deleteConv]);
 
-    // Removed formatDate function as it's no longer needed
+    // Memoize the conversation click handler to avoid recreating it for each item
+    const handleConversationClick = useCallback(async (conv: any) => {
+        if (conv.convGuid) {
+            const convData = await getConv(conv.convGuid);
+            if (convData && convData.messages && convData.messages.length > 0) {
+                const sortedMessages = [...convData.messages].sort((a, b) => b.timestamp - a.timestamp);
+                
+                const lastUserMessage = sortedMessages.find(msg => msg.source === 'user');
+                const lastAiMessage = sortedMessages.find(msg => msg.source === 'ai');
+                
+                const nodeToClick = lastAiMessage ? lastAiMessage.id : 
+                                    lastUserMessage ? lastUserMessage.id : 
+                                    sortedMessages[0].id;
+                
+                handleNodeClick(nodeToClick, conv.convGuid);
+            }
+        }
+    }, [getConv, handleNodeClick]);
+
+    // Memoize the entire conversation list rendering to prevent recreation during livestream events
+    const conversationItems = useMemo(() => {
+        return displayedConvs.map((conv) => {
+            // Find if this conv has search results
+            const searchResult = searchResults?.find(r => r.conversationId === conv.convGuid);
+            
+            return (
+                <ConversationItem
+                    key={conv.convGuid}
+                    conv={conv}
+                    searchResult={searchResult}
+                    onMiddleClick={handleMiddleClick}
+                    onClick={() => handleConversationClick(conv)}
+                />
+            );
+        });
+    }, [displayedConvs, searchResults, handleMiddleClick, handleConversationClick]);
 
     return (
         <div className="HistoricalConvTreeList flex flex-col h-full" 
@@ -294,55 +377,7 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
                 ) : (
                     <ScrollArea className="HistoricalConvTreeList h-full pr-1">
                         <div className="HistoricalConvTreeList px-1" style={{ display: 'block', minWidth: '100%' }}>
-                            {displayedConvs.map((conv) => {
-                                    // Find if this conv has search results
-                                    const searchResult = searchResults?.find(r => r.conversationId === conv.convGuid);
-                                    
-                                    return (
-                                <div
-                                    key={conv.convGuid}
-                                    className="HistoricalConvTreeList text-sm cursor-pointer px-2 py-0.5 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1"
-                                    title="Middle-click to delete conversation"
-                                    style={{ 
-                                        display: 'block', 
-                                        wordBreak: 'break-word',
-                                        color: 'var(--global-text-color, #e5e7eb)',
-                                        backgroundColor: 'var(--global-background-color, transparent)',
-                                        border: 'none',
-                                        ':hover': {
-                                            backgroundColor: 'var(--global-primary-color, rgba(31, 41, 55, 0.4))',
-                                            opacity: 0.7
-                                        },
-                                        ...(window?.theme?.HistoricalConvTreeList?.style || {})
-                                    }}
-                                    onMouseDown={(e) => handleMiddleClick(e, conv.convGuid)}
-                                    onClick={async () => {
-                                        if (conv.convGuid) {
-                                            const convData = await getConv(conv.convGuid);
-                                            if (convData && convData.messages && convData.messages.length > 0) {
-                                                const sortedMessages = [...convData.messages].sort((a, b) => b.timestamp - a.timestamp);
-                                                
-                                                const lastUserMessage = sortedMessages.find(msg => msg.source === 'user');
-                                                const lastAiMessage = sortedMessages.find(msg => msg.source === 'ai');
-                                                
-                                                const nodeToClick = lastAiMessage ? lastAiMessage.id : 
-                                                                    lastUserMessage ? lastUserMessage.id : 
-                                                                    sortedMessages[0].id;
-                                                
-                                                handleNodeClick(nodeToClick, conv.convGuid);
-                                            }
-                                        }
-                                    }}
-                                >
-                                    {conv.summary}
-                                    {searchResult && (
-                                        <div className="text-xs text-blue-400 mt-1">
-                                            {searchResult.matchingMessageIds.length} matching message{searchResult.matchingMessageIds.length !== 1 ? 's' : ''}
-                                        </div>
-                                    )}
-                                </div>
-                                );
-                            })}
+                            {conversationItems}
                         </div>
                     </ScrollArea>
                 )}
@@ -350,6 +385,52 @@ export const HistoricalConvTreeList = ({ searchResults }: HistoricalConvTreeList
         </div>
     );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export const HistoricalConvTreeList = memo(HistoricalConvTreeListComponent, (prevProps, nextProps) => {
+    // Custom comparison function to optimize re-renders
+    // Only re-render if searchResults actually changed (deep comparison for the array)
+    if (prevProps.searchResults === nextProps.searchResults) {
+        return true; // props are equal, don't re-render
+    }
+    
+    // If one is null/undefined and the other isn't, they're different
+    if (!prevProps.searchResults !== !nextProps.searchResults) {
+        return false; // props are different, re-render
+    }
+    
+    // If both are null/undefined, they're equal
+    if (!prevProps.searchResults && !nextProps.searchResults) {
+        return true; // props are equal, don't re-render
+    }
+    
+    // Both are arrays, do a shallow comparison
+    if (prevProps.searchResults!.length !== nextProps.searchResults!.length) {
+        return false; // different lengths, re-render
+    }
+    
+    // Check if each search result is the same
+    for (let i = 0; i < prevProps.searchResults!.length; i++) {
+        const prev = prevProps.searchResults![i];
+        const next = nextProps.searchResults![i];
+        
+        if (prev.conversationId !== next.conversationId ||
+            prev.summary !== next.summary ||
+            prev.lastModified !== next.lastModified ||
+            prev.matchingMessageIds.length !== next.matchingMessageIds.length) {
+            return false; // different, re-render
+        }
+        
+        // Check matching message IDs
+        for (let j = 0; j < prev.matchingMessageIds.length; j++) {
+            if (prev.matchingMessageIds[j] !== next.matchingMessageIds[j]) {
+                return false; // different, re-render
+            }
+        }
+    }
+    
+    return true; // all equal, don't re-render
+});
 
 // Export themeable properties for ThemeManager
 export const themeableProps = {
