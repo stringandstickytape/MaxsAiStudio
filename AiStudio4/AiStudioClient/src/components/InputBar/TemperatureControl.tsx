@@ -6,7 +6,14 @@ import { useGeneralSettingsStore } from '@/stores/useGeneralSettingsStore';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-export function TemperatureControl() {
+// Custom comparison function for TemperatureControl memoization
+const areTemperatureControlPropsEqual = () => {
+  // This component has no props, so it only needs to re-render when the temperature/isLoading changes
+  // The useGeneralSettingsStore hook will handle that internally
+  return true;
+};
+
+export const TemperatureControl = React.memo(() => {
   const { temperature, setTemperatureLocally, updateTemperatureOnServer, isLoading } = useGeneralSettingsStore();
 
   const handleSliderChange = useCallback((value: number[]) => {
@@ -59,4 +66,4 @@ export function TemperatureControl() {
       </Tooltip>
     </TooltipProvider>
   );
-}
+}, areTemperatureControlPropsEqual);

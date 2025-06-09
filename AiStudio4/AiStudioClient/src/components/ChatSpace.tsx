@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef, useMemo } from 'react';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
@@ -24,11 +24,17 @@ export function ChatSpace() {
   const promptOverrideRef = useRef(false);
 
   const { activeTools } = useToolStore();
-  const { activeConvId, convs, slctdMsgId } = useConvStore();
+  // Only subscribe to activeConvId for header, not the full convs object
+  const activeConvId = useConvStore(state => state.activeConvId);
 
   const { selectedPrimaryModel } = useModelManagement();
   const { isCancelling } = useWebSocketStore();
   const { panels } = usePanelStore();
+  
+  // Memoize the ChatContainer to prevent unnecessary re-renders
+  const memoizedChatContainer = useMemo(() => (
+    <ChatContainer isMobile={isMobile} />
+  ), [isMobile]);
 
   // Removed the effect that was automatically setting input value based on selected message
   // Now we'll only set input value when explicitly requested
@@ -113,7 +119,7 @@ export function ChatSpace() {
       </div>
       
       <div className="flex-1 overflow-auto min-h-0">
-        <ChatContainer isMobile={isMobile} />
+        {memoizedChatContainer}
       </div>
       
       <div className="flex-shrink-0 w-full overflow-auto">

@@ -9,11 +9,26 @@ interface AttachmentSectionProps {
     clearAttachments?: () => void; // Make optional since we'll use store functions
 }
 
-export function AttachmentSection({
+// Custom comparison function for AttachmentSection memoization
+const areAttachmentSectionPropsEqual = (prevProps: AttachmentSectionProps, nextProps: AttachmentSectionProps) => {
+  // Compare attachments array length and IDs
+  const prevAttachments = prevProps.attachments || [];
+  const nextAttachments = nextProps.attachments || [];
+  
+  if (prevAttachments.length !== nextAttachments.length) return false;
+  
+  for (let i = 0; i < prevAttachments.length; i++) {
+    if (prevAttachments[i]?.id !== nextAttachments[i]?.id) return false;
+  }
+  
+  return true;
+};
+
+export const AttachmentSection = React.memo(({
     attachments: propAttachments,
     removeAttachment: propRemoveAttachment,
     clearAttachments: propClearAttachments
-}: AttachmentSectionProps) {
+}: AttachmentSectionProps) => {
     // Get values from the store
     const stagedAttachments = useAttachmentStore(state => state.stagedAttachments);
     const removeStagedAttachment = useAttachmentStore(state => state.removeStagedAttachment);
@@ -38,4 +53,4 @@ export function AttachmentSection({
             />
         </div>
     );
-}
+}, areAttachmentSectionPropsEqual);

@@ -9,7 +9,25 @@ interface MessageActionsProps {
   onEdit: () => void;
 }
 
-export const MessageActions = ({ message, onEdit }: MessageActionsProps) => {
+// Custom comparison function for MessageActions memoization
+const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: MessageActionsProps) => {
+  const prevMsg = prevProps.message;
+  const nextMsg = nextProps.message;
+  
+  if (!prevMsg && !nextMsg) return true;
+  if (!prevMsg || !nextMsg) return false;
+  
+  // Compare properties that affect actions
+  if (prevMsg.id !== nextMsg.id) return false;
+  if (prevMsg.content !== nextMsg.content) return false;
+  
+  // Note: We don't compare onEdit callback as it's expected to be stable
+  // If the parent doesn't memoize it properly, this optimization is still beneficial
+  
+  return true;
+};
+
+export const MessageActions = React.memo(({ message, onEdit }: MessageActionsProps) => {
   return (
     <div 
       className="ConvView flex items-center gap-2 pt-2" // Removed mt-2, added pt-2 for padding above actions
@@ -140,4 +158,4 @@ export const MessageActions = ({ message, onEdit }: MessageActionsProps) => {
       </div>
     </div>
   );
-};
+}, areActionsPropsEqual);

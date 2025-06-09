@@ -1,6 +1,7 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageEditor.tsx
 import { Textarea } from '@/components/ui/textarea';
 import { Check, X } from 'lucide-react';
+import React from 'react';
 
 interface MessageEditorProps {
   editContent: string;
@@ -9,7 +10,18 @@ interface MessageEditorProps {
   onCancel: () => void;
 }
 
-export const MessageEditor = ({ 
+// Custom comparison function for MessageEditor memoization
+const areEditorPropsEqual = (prevProps: MessageEditorProps, nextProps: MessageEditorProps) => {
+  // Compare the editContent string - this is the main prop that changes
+  if (prevProps.editContent !== nextProps.editContent) return false;
+  
+  // Note: We don't compare callback functions as they're expected to be stable
+  // If the parent doesn't memoize them properly, this optimization is still beneficial
+  
+  return true;
+};
+
+export const MessageEditor = React.memo(({ 
   editContent, 
   setEditContent, 
   onSave, 
@@ -57,4 +69,4 @@ export const MessageEditor = ({
       </div>
     </div>
   );
-};
+}, areEditorPropsEqual);
