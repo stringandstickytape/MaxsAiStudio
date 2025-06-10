@@ -1,4 +1,5 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ModelForm } from './ModelForm';
@@ -34,8 +35,10 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   const { models, isLoading, error: storeError, addModel, updateModel, deleteModel, clearError } = useModelManagement();
 
   
-  const [internalEditingModel, setInternalEditingModel] = useState<Model | null>(null);
-  const [internalEditOpen, setInternalEditOpen] = useState(false);
+  const [internalEditingModel, setInternalEditingModel] = useState<Model | null>(null);  const [internalEditOpen, setInternalEditOpen] = useState(false);
+
+  // Search query for filtering models
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   
   const editingModel = externalModelToEdit !== undefined ? externalModelToEdit : internalEditingModel;
@@ -47,10 +50,18 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   const [modelToDelete, setModelToDelete] = useState<Model | null>(null);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [error, setLocalError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);  const displayError = error || storeError;
 
-  
-  const displayError = error || storeError;
+  // Filter models based on search query (friendly name, model name, or provider name)
+  const filteredModels = models.filter((m) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      m.friendlyName.toLowerCase().includes(query) ||
+      m.modelName.toLowerCase().includes(query) ||
+      getProviderName(m.providerGuid).toLowerCase().includes(query)
+    );
+  });
 
   
   useEffect(() => {
@@ -127,9 +138,18 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
 
   return (
     <>
-      <div className="flex-between mb-4">
-        <h2 className="text-title">AI Models</h2>
-        <Button onClick={() => setAddOpen(true)} className="flex items-center gap-2 btn-primary">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4 gap-2">
+        <div className="flex items-center gap-2 flex-1">
+          <h2 className="text-title whitespace-nowrap">AI Models</h2>
+          <Input
+            type="text"
+            placeholder="Search models…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full md:w-72 lg:w-80 bg-gray-800 text-gray-100 border-gray-600 placeholder-gray-400"
+          />
+        </div>
+        <Button onClick={() => setAddOpen(true)} className="flex items-center gap-2 btn-primary self-start md:self-auto">
           <PlusCircle className="h-4 w-4" /> Add Model
         </Button>
       </div>
@@ -154,10 +174,18 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
               </Button>
             </div>
           </CardContent>
+        </Card>      ) : filteredModels.length === 0 ? (
+        <Card className="card-base">
+          <CardContent className="pt-6 text-center text-gray-400">
+            <div className="flex flex-col flex-center py-8">
+              <AlertCircle className="h-12 w-12 mb-4 opacity-50" />
+              <p>No models match your search.</p>
+            </div>
+          </CardContent>
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {[...models]
+          {[...filteredModels]
             .sort((a, b) => {
               // First sort by starred status (starred models first)
               if (a.starred && !b.starred) return -1;
