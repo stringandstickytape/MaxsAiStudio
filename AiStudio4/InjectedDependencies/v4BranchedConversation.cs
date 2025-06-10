@@ -77,7 +77,6 @@ namespace AiStudio4.InjectedDependencies
                         cumulativeCost += parent.CostInfo.TotalCost;
 
                     parent = Messages.FirstOrDefault(m => m.Id == parent.ParentId);
-                    Debug.WriteLine("parent = " + parent?.Id);
                 }
 
                 msg.CumulativeCost = cumulativeCost;
