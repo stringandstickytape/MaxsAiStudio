@@ -5,6 +5,7 @@ import { Message } from '@/types/conv';
 import { useConvStore } from '@/stores/useConvStore';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { useSearchStore } from '@/stores/useSearchStore';
+import { useMessageSelection } from '@/hooks/useMessageSelection';
 import { TreeViewProps } from './types';
 import { useMessageTree } from './useMessageTree';
 import { useTreeVisualization } from './useTreeVisualization';
@@ -16,7 +17,8 @@ import { useWebSocketStore } from '@/stores/useWebSocketStore';
 
 const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const [updateKey, setUpdateKey] = useState(0);
-    const { setActiveConv, convs, slctdMsgId } = useConvStore();
+    const { convs, slctdMsgId } = useConvStore();
+    const { selectMessage } = useMessageSelection();
     const { searchResults, highlightedMessageId, cycleToNextMatch } = useSearchStore();
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -63,10 +65,7 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                 
                 // If it has a parent, select the parent (AI message)
                 if (message.parentId) {
-                    setActiveConv({
-                        convId: convId,
-                        slctdMsgId: message.parentId,
-                    });
+                    selectMessage(message.parentId, convId);
                     // Scroll to the last message after a brief delay
                     setTimeout(() => scrollToMessage(), 100);
                     return;
@@ -74,12 +73,10 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
             }
         }
         
-        setActiveConv({
-            convId: convId, slctdMsgId: nodeId,
-        });
+        selectMessage(nodeId, convId);
         // Scroll to the last message after a brief delay
         setTimeout(() => scrollToMessage(), 100);
-    }, [convId, convs, setActiveConv]);
+    }, [convId, convs, selectMessage]);
 
     // Handle middle-click to delete a message and its descendants
     const handleNodeMiddleClick = useCallback((event: any, nodeId: string) => {
