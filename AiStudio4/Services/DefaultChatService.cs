@@ -131,7 +131,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<ChatResponse> ProcessChatRequest(ChatRequest request)
+        public async Task<ChatResponse> ProcessChatRequest(ChatRequest request, string assistantMessageId)
         {
             try
             {
@@ -265,8 +265,6 @@ namespace AiStudio4.Services
                         finalAttachments.AddRange(response.Attachments); 
                     }
 
-                    var newAssistantMessageId = $"msg_{Guid.NewGuid()}";
-
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
 
                     bool duplicateDetection = false;
@@ -312,7 +310,7 @@ namespace AiStudio4.Services
                             }
                         }
 
-                        var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                        var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             userMessage: response.ResponseText, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
@@ -320,7 +318,7 @@ namespace AiStudio4.Services
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
-                            MessageId = newAssistantMessageId,
+                            MessageId = assistantMessageId,
                             Content = toolResult.RequestedToolsSummary,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
@@ -336,7 +334,7 @@ namespace AiStudio4.Services
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
                         request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
-                            userMessage: collatedResponse.ToString(), parentMessageId: newAssistantMessageId, attachments: response.Attachments);
+                            userMessage: collatedResponse.ToString(), parentMessageId: assistantMessageId, attachments: response.Attachments);
                         request.MessageId = newUserMessageId;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
@@ -344,7 +342,7 @@ namespace AiStudio4.Services
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
                             Content = collatedResponse.ToString(),
-                            ParentId = newAssistantMessageId,
+                            ParentId = assistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
                             Attachments = response.Attachments,
@@ -362,7 +360,7 @@ namespace AiStudio4.Services
 
                         string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
 
-                        v4BranchedConvMessage msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: newAssistantMessageId,
+                        v4BranchedConvMessage msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             userMessage: userMessage, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
@@ -370,7 +368,7 @@ namespace AiStudio4.Services
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
-                            MessageId = newAssistantMessageId,
+                            MessageId = assistantMessageId,
                             Content = userMessage,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
@@ -385,7 +383,11 @@ namespace AiStudio4.Services
 
                    }
 
-                } 
+                    assistantMessageId = $"msg_{Guid.NewGuid()}";
+
+                }
+
+                _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
 
                 return new ChatResponse
                 {
@@ -393,7 +395,6 @@ namespace AiStudio4.Services
                     ResponseText = collatedResponse.ToString()
                 };
 
-                _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
 
             }
             catch (Exception ex)
