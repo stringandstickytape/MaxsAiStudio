@@ -100,7 +100,7 @@ namespace AiStudio4.AiServices
                 };
                 // Add TopP from options.TopP (which was populated from ApiSettings)
                 // The value in options.TopP should be pre-validated (0.0 to 1.0).
-                if (options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
+                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
                 {
                     ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
                 }
@@ -120,7 +120,7 @@ namespace AiStudio4.AiServices
                 };
                 // Add TopP from options.TopP (which was populated from ApiSettings)
                 // The value in options.TopP should be pre-validated (0.0 to 1.0).
-                if (options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
+                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
                 {
                     ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
                 }

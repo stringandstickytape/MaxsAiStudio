@@ -33,6 +33,7 @@ export interface Model {
   friendlyName: string;
   supportsPrefill: boolean;
   requires1fTemp: boolean;
+  allowsTopP: boolean;
   reasoningEffort: 'none' | 'low' | 'medium' | 'high';
   isTtsModel?: boolean;
   ttsVoiceName?: string;
