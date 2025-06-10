@@ -124,7 +124,6 @@ namespace AiStudio4.Core.Tools
                     // Search within the file
                     try
                     {
-                        Debug.WriteLine("Searchtool checking " + filePath);
                         // Avoid reading huge files entirely into memory
                         using (var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
                         {

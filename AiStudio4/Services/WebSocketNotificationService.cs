@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace AiStudio4.Services
@@ -27,6 +28,10 @@ namespace AiStudio4.Services
         {
             try
             {
+                {
+                    Debug.WriteLine($"{update.Source}: {update.ParentId} -> {update.MessageId}");
+                }
+
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
                 if (update == null) throw new ArgumentNullException(nameof(update));
 

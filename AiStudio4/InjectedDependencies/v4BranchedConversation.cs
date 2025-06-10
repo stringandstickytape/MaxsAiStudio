@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -53,12 +54,14 @@ namespace AiStudio4.InjectedDependencies
             {
                 msg = new v4BranchedConvMessage { Id = newMessageId };
                 Messages.Add(msg);
-            }
 
+                msg.ParentId = parentMessageId;
+                msg.Role = role;
+            }
+            
             // 3. (Re-)populate / overwrite the fields
-            msg.Role = role;
             msg.UserMessage = userMessage ?? string.Empty;
-            msg.ParentId = parentMessageId;
+            
             msg.Attachments = attachments ?? new List<DataModels.Attachment>();
             msg.CostInfo = costInfo;
 
@@ -74,6 +77,7 @@ namespace AiStudio4.InjectedDependencies
                         cumulativeCost += parent.CostInfo.TotalCost;
 
                     parent = Messages.FirstOrDefault(m => m.Id == parent.ParentId);
+                    Debug.WriteLine("parent = " + parent?.Id);
                 }
 
                 msg.CumulativeCost = cumulativeCost;
