@@ -310,7 +310,7 @@ namespace AiStudio4.Services
                             }
                         }
 
-                        var msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
+                        var msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             userMessage: response.ResponseText, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
@@ -333,7 +333,7 @@ namespace AiStudio4.Services
 
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
-                        request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
+                        request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
                             userMessage: collatedResponse.ToString(), parentMessageId: assistantMessageId, attachments: response.Attachments);
                         request.MessageId = newUserMessageId;
 
@@ -360,9 +360,10 @@ namespace AiStudio4.Services
 
                         string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
 
-                        v4BranchedConvMessage msg = request.BranchedConv.AddNewMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
+                        v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             userMessage: userMessage, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
+
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto

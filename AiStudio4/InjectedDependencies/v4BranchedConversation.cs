@@ -28,62 +28,58 @@ namespace AiStudio4.InjectedDependencies
             File.WriteAllText(path, JsonConvert.SerializeObject(this));
         }
 
-        internal v4BranchedConvMessage AddNewMessage(v4BranchedConvMessageRole role, string newMessageId, string userMessage, string parentMessageId, List<DataModels.Attachment> attachments = null, TokenCost costInfo = null)
+        internal v4BranchedConvMessage AddOrUpdateMessage(
+            v4BranchedConvMessageRole role,
+            string newMessageId,
+            string userMessage,
+            string parentMessageId,
+            List<DataModels.Attachment> attachments = null,
+            TokenCost costInfo = null)
         {
-            var newMessage = new v4BranchedConvMessage
-            {
-                Role = role,
-                UserMessage = userMessage ?? string.Empty,
-                Id = newMessageId,
-                ParentId = parentMessageId,
-                Attachments = attachments ?? new List<DataModels.Attachment>(),
-                CostInfo = costInfo
-            };
-
-            // If no messages exist, create a system message as the root
+            // 1. Make sure there is always a root system‐message
             if (!Messages.Any())
             {
-                var systemRoot = new v4BranchedConvMessage
+                Messages.Add(new v4BranchedConvMessage
                 {
                     Role = v4BranchedConvMessageRole.System,
                     UserMessage = "Conversation Root",
-                    Id = newMessage.ParentId
-                };
-                
-                // Add system root to messages
-                Messages.Add(systemRoot);
+                    Id = parentMessageId       // parent of the very first real message
+                });
             }
-            
-            // Calculate cumulative cost for assistant messages
+
+            // 2. Get existing message or create a brand-new one
+            var msg = Messages.FirstOrDefault(m => m.Id == newMessageId);
+            if (msg == null)
+            {
+                msg = new v4BranchedConvMessage { Id = newMessageId };
+                Messages.Add(msg);
+            }
+
+            // 3. (Re-)populate / overwrite the fields
+            msg.Role = role;
+            msg.UserMessage = userMessage ?? string.Empty;
+            msg.ParentId = parentMessageId;
+            msg.Attachments = attachments ?? new List<DataModels.Attachment>();
+            msg.CostInfo = costInfo;
+
+            // 4. Calculate cumulative cost if the message is from the assistant
             if (role == v4BranchedConvMessageRole.Assistant && costInfo != null)
             {
-                // Start with the current message cost
                 decimal cumulativeCost = costInfo.TotalCost;
-                
-                // Find parent message
-                var parentMessage = Messages.FirstOrDefault(m => m.Id == parentMessageId);
-                
-                // Traverse up the message tree to accumulate costs
-                while (parentMessage != null)
+                var parent = Messages.FirstOrDefault(m => m.Id == parentMessageId);
+
+                while (parent != null)
                 {
-                    // Add cost of parent assistant messages
-                    if (parentMessage.Role == v4BranchedConvMessageRole.Assistant && parentMessage.CostInfo != null)
-                    {
-                        cumulativeCost += parentMessage.CostInfo.TotalCost;
-                    }
-                    
-                    // Move to next parent
-                    parentMessage = Messages.FirstOrDefault(m => m.Id == parentMessage.ParentId);
+                    if (parent.Role == v4BranchedConvMessageRole.Assistant && parent.CostInfo != null)
+                        cumulativeCost += parent.CostInfo.TotalCost;
+
+                    parent = Messages.FirstOrDefault(m => m.Id == parent.ParentId);
                 }
-                
-                // Set the cumulative cost
-                newMessage.CumulativeCost = cumulativeCost;
+
+                msg.CumulativeCost = cumulativeCost;
             }
-            
-            // Add the new message to our flat list
-            Messages.Add(newMessage);
-            
-            return newMessage;
+
+            return msg;
         }
 
         public List<v4BranchedConvMessage> GetAllMessages()

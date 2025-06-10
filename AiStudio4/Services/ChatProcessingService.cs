@@ -64,7 +64,7 @@ namespace AiStudio4.Services
                 var cancellationToken = _cancellationService.AddTokenSource(clientId);
 
                 // Define callbacks inline, capturing clientId and messageId (will be set later)
-                string assistantMessageId = null;
+                string assistantMessageId = $"msg_{Guid.NewGuid()}";
                 Action<string> streamingUpdateCallback = (text) =>
                     _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "cfrag", Content = text });
                 Action streamingCompleteCallback = () =>
@@ -150,7 +150,8 @@ namespace AiStudio4.Services
                     isFirstMessageInConv = conv.Messages.Count <= 1 ||
                         (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));
 
-                    var newUserMessage = conv.AddNewMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
+
+                    var newUserMessage = conv.AddOrUpdateMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
                     
                     // Add attachments to the message
                     if (attachments != null && attachments.Any())
@@ -159,8 +160,8 @@ namespace AiStudio4.Services
                     }
 
                     // Create placeholder AI message before starting the AI stream
-                    assistantMessageId = $"msg_{Guid.NewGuid()}";
-                    var placeholderMessage = conv.AddNewMessage(
+                    
+                    var placeholderMessage = conv.AddOrUpdateMessage(
                         v4BranchedConvMessageRole.Assistant,
                         assistantMessageId,
                         "", // Content is initially empty
