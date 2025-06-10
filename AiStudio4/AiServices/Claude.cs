@@ -580,7 +580,7 @@ namespace AiStudio4.AiServices
                     case "content_block_delta":
                         var text = eventData["delta"]["text"]?.ToString() ?? eventData["delta"]["partial_json"]?.ToString();
                         
-                        Debug.WriteLine(text);
+                        //Debug.WriteLine(text);
 
                         StreamingTextReceived?.Invoke(this, text);
 

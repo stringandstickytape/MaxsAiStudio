@@ -297,8 +297,7 @@ namespace AiStudio4.Services
 
                     if (continueLoop)
                     {
-                        assistantMessageId = $"msg_{Guid.NewGuid()}";
-
+                        
                         var interjectionService = _serviceProvider.GetService<IInterjectionService>();
                         if (interjectionService != null && await interjectionService.HasInterjectionAsync(request.ClientId))
                         {
@@ -353,6 +352,25 @@ namespace AiStudio4.Services
                             Attachments = response.Attachments,
                             DurationMs = 0 
                         });
+                        assistantMessageId = $"msg_{Guid.NewGuid()}";
+
+                        var placeholderMessage = request.BranchedConv.AddOrUpdateMessage(
+                            v4BranchedConvMessageRole.Assistant,
+                            assistantMessageId,
+                            "", // Content is initially empty
+                            newUserMessageId // Parent is the user's message
+                        );
+
+                        // Notify client to create the placeholder AI MessageItem
+                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                        {
+                            ConvId = request.BranchedConv.ConvId,
+                            MessageId = assistantMessageId,
+                            Content = "", // Empty content
+                            ParentId = newUserMessageId,
+                            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+                            Source = "assistant"
+                        });
 
                     }
                     else 
@@ -362,7 +380,7 @@ namespace AiStudio4.Services
                         {
                             duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
                         }
-
+                        //assistantMessageId = $"msg_{Guid.NewGuid()}";
                         string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
