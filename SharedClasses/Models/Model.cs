@@ -107,6 +107,8 @@ namespace SharedClasses.Providers
 
         public bool Requires1fTemp { get; set; }
 
+        public bool AllowsTopP { get; set; }
+
         // ReasoningEffort: none, low, medium, high
         public string ReasoningEffort { get; set; } = "none";
 
