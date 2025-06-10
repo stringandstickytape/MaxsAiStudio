@@ -8,8 +8,8 @@ import { CommandBar } from './CommandBar';
 
 // Removed useStreamTokens import - streaming is now handled directly in MessageItem
 
-import { useModelManagement } from '@/hooks/useResourceManagement';
-import { useToolStore } from '@/stores/useToolStore';
+
+
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { usePanelStore } from '@/stores/usePanelStore';
@@ -22,12 +22,8 @@ export function ChatSpace() {
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const promptOverrideRef = useRef(false);
-
-  const { activeTools } = useToolStore();
   // Only subscribe to activeConvId for header, not the full convs object
   const activeConvId = useConvStore(state => state.activeConvId);
-
-  const { selectedPrimaryModel } = useModelManagement();
   const { isCancelling } = useWebSocketStore();
   const { panels } = usePanelStore();
   
@@ -122,12 +118,9 @@ export function ChatSpace() {
         {memoizedChatContainer}
       </div>
       
-      <div className="flex-shrink-0 w-full overflow-auto">
-        <InputBar
-          selectedModel={selectedPrimaryModel}
+      <div className="flex-shrink-0 w-full overflow-auto">        <InputBar
           inputValue={inputValue}
           onInputChange={setInputValue}
-          activeTools={activeTools}
           onManageTools={openToolLibrary}
           disabled={isCancelling}
           onAttachmentChange={handleAttachmentChange}

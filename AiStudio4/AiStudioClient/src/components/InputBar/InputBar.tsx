@@ -33,12 +33,8 @@ import { TemperatureControl } from './TemperatureControl';
 import { TopPControl } from './TopPControl';
 
 interface InputBarProps {
-    // --- MODIFIED: selectedModel is no longer needed ---
-    // selectedModel: string; 
 
-    inputValue?: string;
     onInputChange?: (value: string) => void;
-    activeTools?: string[];
     onManageTools?: () => void;
     onAttachmentChange?: (attachments: Attachment[]) => void;
     disabled?: boolean;
@@ -55,12 +51,9 @@ declare global {
 }
 
 export function InputBar({
-    // --- MODIFIED: selectedModel is destructured but not used, can be removed ---
-    // selectedModel, 
 
     inputValue,
     onInputChange,
-    activeTools: activeToolsFromProps,
     onManageTools,
     onAttachmentChange,
     disabled = false,
@@ -76,8 +69,7 @@ export function InputBar({
 
     const inputText = inputValue ?? localInputText;
     const setInputText = onInputChange || setLocalInputText;
-    const { activeTools: activeToolsFromStore, removeActiveTool } = useToolStore();
-    const activeTools = activeToolsFromProps || activeToolsFromStore;
+    const { activeTools, removeActiveTool } = useToolStore();
 
     const { fetchServers } = useMcpServerStore();
     const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore();
