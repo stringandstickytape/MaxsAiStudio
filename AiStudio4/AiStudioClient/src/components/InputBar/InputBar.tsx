@@ -80,8 +80,7 @@ export function InputBar({
     const activeTools = activeToolsFromProps || activeToolsFromStore;
 
     const { fetchServers } = useMcpServerStore();
-    const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore();
-    const { activeConvId, slctdMsgId, convs, createConv } = useConvStore();
+    const { activeConvId } = useConvStore();
     const { sendMessage, cancelMessage, isLoading } = useChatManagement();
     const { isCancelling, currentRequest, setIsCancelling, setCurrentRequest } = useWebSocketStore();
     const { isListening: isVoiceListening, error: voiceError, startListening: startVoiceStoreListening, stopListening: stopVoiceStoreListening } = useVoiceInputStore();
@@ -136,40 +135,13 @@ export function InputBar({
 
     const handleChatMessage = useCallback(async (message: string, messageAttachments?: Attachment[]) => {
         try {
-            let convId = activeConvId;
-            let parentMessageId = null;
-            let systemPromptId = null;
-            let systemPromptContent = null;
-
-            if (!convId) {
-                convId = `conv_${uuidv4()}`;
-                const messageId = `msg_${uuidv4()}`;
-                createConv({
-                    id: convId,
-                    rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
-                });
-                parentMessageId = messageId;
-            } else {
-                parentMessageId = slctdMsgId || (convs[convId]?.messages.length > 0 ? convs[convId].messages[convs[convId].messages.length - 1].id : null);
-            }
-
-            if (convId) {
-                systemPromptId = convPrompts[convId] || defaultPromptId;
-                const prompt = prompts.find(p => p.guid === systemPromptId);
-                systemPromptContent = prompt?.content;
-            }
-
+            // Generate a message ID for tracking the request
             const messageId = `msg_${uuidv4()}`;
-            setCurrentRequest({ convId, messageId });
+            setCurrentRequest({ convId: activeConvId || 'pending', messageId });
 
-            // --- MODIFIED: `model` property is no longer passed here ---
+            // Simply call the refactored sendMessage with just message and attachments
             await sendMessage({
-                convId,
-                parentMessageId,
                 message,
-                systemPromptId,
-                systemPromptContent,
-                messageId,
                 attachments: messageAttachments && messageAttachments.length > 0 ? messageAttachments : undefined
             });
 
@@ -179,15 +151,8 @@ export function InputBar({
             setCurrentRequest(undefined);
         }
     }, [
-        activeTools,
-        convPrompts,
-        defaultPromptId,
-        prompts,
         sendMessage,
         activeConvId,
-        slctdMsgId,
-        convs,
-        createConv,
         setCurrentRequest
     ]);
 
@@ -207,7 +172,7 @@ export function InputBar({
             const textFileContent = formatTextAttachments(textAttachments);
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
 
-            const messageAttachments = useAttachmentStore.getState().getStagedAttachments().filter(att => !(att.textContent));
+            const messageAttachments = useAttachmentStore.getState().stagedAttachments.filter(att => !(att.textContent));
             
             await handleChatMessage(fullMessage, messageAttachments);
             useAttachmentStore.getState().clearStagedAttachments();

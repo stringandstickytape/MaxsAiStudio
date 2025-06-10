@@ -40,12 +40,7 @@ const useChatConfigResource = createResourceHook<{
 
 
 interface SendMessageParams {
-    convId: string;
-    parentMessageId: string;
     message: string;
-    systemPromptId?: string;
-    systemPromptContent?: string;
-    messageId?: string;
     attachments?: Attachment[];
 }
 
@@ -56,43 +51,70 @@ export function useChatManagement() {
     const { fetchItems: getConfig } = useChatConfigResource();
 
     const sendMessage = useCallback(
-        async (params: Omit<SendMessageParams, 'model'>) => {
+        async ({ message, attachments: directAttachments }: SendMessageParams) => {
             return executeApiCall(async () => {
-                const newMessageId = params.messageId || (params.parentMessageId ? uuidv4() : undefined);
-                
-                // Get current active tools from store to ensure they're fresh
+                // --- 1. Gather all state from Zustand stores at the moment of execution ---
+                const { activeConvId, selectedMessageId, getConv, createConv } = useConvStore.getState();
+                const { prompts, convPrompts, defaultPromptId } = useSystemPromptStore.getState();
+                const { models, selectedPrimaryModelGuid } = useModelStore.getState();
                 const { activeTools } = useToolStore.getState();
+                const { stagedAttachments, clearStagedAttachments } = useAttachmentStore.getState();
                 
-                let requestParams: Partial<SendMessageParams> = { ...params, toolIds: activeTools };
-
-
-                if (params.attachments && params.attachments.length > 0) {
-                    const binaryAttachments = params.attachments.filter(att => !att.textContent && !isTextFile(att.type));
-                    requestParams.attachments = prepareAttachmentsForTransmission(binaryAttachments);
-                    if (newMessageId) {
-                        useAttachmentStore.getState().addAttachmentsForId(newMessageId, params.attachments);
-                    }
+                // --- 2. Determine Conversation and Parent Message ---
+                let convId = activeConvId;
+                let parentMessageId: string | null = null;
+                
+                if (!convId) {
+                    const newConvId = `conv_${uuidv4()}`;
+                    const rootMessageId = `msg_${uuidv4()}`;
+                    createConv({
+                        id: newConvId,
+                        rootMessage: { id: rootMessageId, content: 'Conversation Start', source: 'system', timestamp: Date.now() },
+                    });
+                    convId = newConvId;
+                    parentMessageId = rootMessageId;
+                } else {
+                    const conv = getConv(convId);
+                    parentMessageId = selectedMessageId || conv?.messages[conv.messages.length - 1]?.id || null;
                 }
 
-                const { models, selectedPrimaryModelGuid } = useModelStore.getState();
-                const modelToUse = models.find(m => m.guid === selectedPrimaryModelGuid);
+                if (!convId || parentMessageId === null) {
+                    throw new Error("Could not determine a valid conversation or parent message ID.");
+                }
 
+                // --- 3. Determine System Prompt & Model ---
+                const systemPromptId = convPrompts[convId] || defaultPromptId;
+                const systemPrompt = prompts.find(p => p.guid === systemPromptId);
+                const modelToUse = models.find(m => m.guid === selectedPrimaryModelGuid);
                 if (!modelToUse) {
                     throw new Error("No primary model selected or found.");
                 }
-                
 
+                // --- 4. Prepare Attachments ---
+                const finalAttachments = directAttachments ?? stagedAttachments;
+                const attachmentsForApi = finalAttachments.length > 0 ? prepareAttachmentsForTransmission(finalAttachments) : undefined;
+                
+                // --- 5. Assemble and Send Request ---
+                const newMessageId = uuidv4();
+                
                 const sendMessageRequest = createApiRequest('/api/chat', 'POST');
                 const data = await sendMessageRequest({
-                    ...requestParams,
-                    newMessageId,
+                    convId,
+                    parentMessageId,
+                    message,
+                    systemPromptId: systemPrompt?.guid,
+                    systemPromptContent: systemPrompt?.content,
+                    messageId: newMessageId,
+                    attachments: attachmentsForApi,
+                    toolIds: activeTools,
                     model: modelToUse.friendlyName,
                 });
 
-                return {
-                    messageId: data.messageId,
-                    success: true,
-                };
+                if (finalAttachments.length > 0) {
+                    clearStagedAttachments();
+                }
+
+                return { messageId: data.messageId, success: true };
             });
         },
         [executeApiCall],

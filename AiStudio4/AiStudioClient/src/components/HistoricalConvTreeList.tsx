@@ -162,14 +162,16 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
 
                     setActiveConv({
                         convId,
-                        slctdMsgId: selectedMessage.parentId,
                     });
+                    // Set the selected message separately
+                    useConvStore.getState().setSelectedMessage({ convId, messageId: selectedMessage.parentId });
                 } else {
 
                     setActiveConv({
                         convId,
-                        slctdMsgId: nodeId,
                     });
+                    // Set the selected message separately
+                    useConvStore.getState().setSelectedMessage({ convId, messageId: nodeId });
                 }
                 return;
             }
@@ -234,8 +236,9 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
 
                     setActiveConv({
                         convId,
-                        slctdMsgId: selectedMessage.parentId,
                     });
+                    // Set the selected message separately
+                    useConvStore.getState().setSelectedMessage({ convId, messageId: selectedMessage.parentId });
                 } else {
 
                     window.history.pushState({}, '', `?messageId=${nodeId}`);
@@ -243,8 +246,9 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
 
                     setActiveConv({
                         convId,
-                        slctdMsgId: nodeId,
                     });
+                    // Set the selected message separately
+                    useConvStore.getState().setSelectedMessage({ convId, messageId: nodeId });
                 }
             } else {
                 

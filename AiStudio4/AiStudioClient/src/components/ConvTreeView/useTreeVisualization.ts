@@ -3,11 +3,13 @@ import { useEffect, useLayoutEffect, useRef, RefObject, useCallback, useState } 
 import * as d3 from 'd3';
 import { TreeNode } from './types';
 import { getModelFriendlyName } from '@/utils/modelUtils';
+import { useConvStore } from '@/stores/useConvStore';
 
 interface UseTreeVisualizationParams {
   svgRef: RefObject<SVGSVGElement>;
   containerRef: RefObject<HTMLDivElement>;
   hierarchicalData: TreeNode | null;
+  convId: string;
   onNodeClick: (nodeId: string, nodeSource: string, nodeContent: string) => void;
   onNodeMiddleClick: (event: any, nodeId: string) => void;
   updateKey: number;
@@ -17,11 +19,10 @@ interface UseTreeVisualizationParams {
 }
 
 export const useTreeVisualization = ({
-
-
   svgRef,
   containerRef,
   hierarchicalData,
+  convId,
   onNodeClick,
   onNodeMiddleClick,
   updateKey,
@@ -34,6 +35,9 @@ export const useTreeVisualization = ({
   
   // Ref to track previous highlighted message ID to avoid unnecessary updates
   const previousHighlightRef = useRef<string | null>(null);
+  
+  // Get the setSelectedMessage action from the store
+  const { setSelectedMessage } = useConvStore();
 
   // Setup zoom and pan handlers
   const handleZoomIn = () => {
@@ -292,7 +296,13 @@ export const useTreeVisualization = ({
       .attr('class', 'node ConvTreeView')
       .attr('transform', (d) => `translate(${d.x},${d.y})`)
       .attr('cursor', 'pointer')
-      .on('click', (e, d) => onNodeClick(d.data.id, d.data.source, d.data.content))
+      .on('click', (e, d) => {
+        // Call the store action to update the selected message
+        setSelectedMessage({ convId, messageId: d.data.id });
+        
+        // Also call the original handler for any additional logic (like setting prompt text)
+        onNodeClick(d.data.id, d.data.source, d.data.content);
+      })
       .on('mousedown', (e, d) => onNodeMiddleClick(e, d.data.id));
       
     // Add scale-invariant indicators for search matches

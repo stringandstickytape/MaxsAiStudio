@@ -27,7 +27,7 @@ export const ConvView = ({
     
     // Optimize store subscription - only get what we need
     const activeConvId = useConvStore(state => state.activeConvId);
-    const slctdMsgId = useConvStore(state => state.slctdMsgId);
+    const selectedMessageId = useConvStore(state => state.selectedMessageId);
     const convs = useConvStore(state => state.convs);
 
     // Get search results from search store
@@ -98,13 +98,13 @@ export const ConvView = ({
         if (!conv || !conv.messages.length) return [];
 
         // Get the starting message ID
-        const startingMessageId = slctdMsgId || conv.messages[conv.messages.length - 1].id;
+        const startingMessageId = selectedMessageId || conv.messages[conv.messages.length - 1].id;
 
         const graph = new MessageGraph(conv.messages);
         const path = graph.getMessagePath(startingMessageId);
 
         return path;
-    }, [activeConvId, slctdMsgId, convs]);
+    }, [activeConvId, selectedMessageId, convs]);
 
     // No need to update visibleCount when conversation changes, always show all messages
 

@@ -16,7 +16,7 @@ import { useWebSocketStore } from '@/stores/useWebSocketStore';
 
 const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) => {
     const [updateKey, setUpdateKey] = useState(0);
-    const { setActiveConv, convs, slctdMsgId } = useConvStore();
+    const { setActiveConv, convs, selectedMessageId } = useConvStore();
     const { searchResults, highlightedMessageId, cycleToNextMatch } = useSearchStore();
     const svgRef = useRef<SVGSVGElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -65,8 +65,9 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
                 if (message.parentId) {
                     setActiveConv({
                         convId: convId,
-                        slctdMsgId: message.parentId,
                     });
+                    // Set the selected message separately
+                    useConvStore.getState().setSelectedMessage({ convId, messageId: message.parentId });
                     // Scroll to the last message after a brief delay
                     setTimeout(() => scrollToMessage(), 100);
                     return;
@@ -75,8 +76,10 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
         }
         
         setActiveConv({
-            convId: convId, slctdMsgId: nodeId,
+            convId: convId,
         });
+        // Set the selected message separately
+        useConvStore.getState().setSelectedMessage({ convId, messageId: nodeId });
         // Scroll to the last message after a brief delay
         setTimeout(() => scrollToMessage(), 100);
     }, [convId, convs, setActiveConv]);
@@ -116,17 +119,17 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
         onNodeClick: handleNodeClick,
         onNodeMiddleClick: handleNodeMiddleClick,
         updateKey,
-        selectedMessageId: slctdMsgId,
+        selectedMessageId: selectedMessageId,
         searchResults,
         highlightedMessageId
     });
     
-    // Update selected node when slctdMsgId changes without full re-initialization
+    // Update selected node when selectedMessageId changes without full re-initialization
     useEffect(() => {
-        if (svgRef.current && slctdMsgId) {
-            updateSelectedNode(slctdMsgId);
+        if (svgRef.current && selectedMessageId) {
+            updateSelectedNode(selectedMessageId);
         }
-    }, [slctdMsgId, updateSelectedNode]);
+    }, [selectedMessageId, updateSelectedNode]);
 
     // Create a memoized version of handleFocusOnLatest that uses the current messages
     const focusOnLatest = useCallback(() => {
