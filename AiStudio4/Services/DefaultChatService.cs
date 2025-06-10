@@ -292,7 +292,9 @@ namespace AiStudio4.Services
                     var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
                     var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
 
-                    
+
+                    assistantMessageId = $"msg_{Guid.NewGuid()}";
+
                     if (continueLoop)
                     {
                         
@@ -310,7 +312,7 @@ namespace AiStudio4.Services
                             }
                         }
 
-                        assistantMessageId = $"msg_{Guid.NewGuid()}";
+                        
 
                         var msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             userMessage: response.ResponseText, parentMessageId: request.MessageId,
