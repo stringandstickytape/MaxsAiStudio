@@ -29,7 +29,7 @@ namespace AiStudio4.Services
             try
             {
                 {
-                    Debug.WriteLine($"{update.Source}: {update.ParentId} -> {update.MessageId}");
+                    Debug.WriteLine($"{update.ConvId} {update.Source}: {update.ParentId} -> {update.MessageId}");
                 }
 
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
