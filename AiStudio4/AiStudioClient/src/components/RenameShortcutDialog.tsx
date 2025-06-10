@@ -15,6 +15,9 @@ import IconSelector from './IconSelector';
 import { PinnedCommand } from './pinnedShortcutsUtils';
 import { IconSet } from './IconSelector';
 
+// Define themeable properties for the component (currently none)
+export const themeableProps = {};
+
 interface RenameShortcutDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
@@ -42,7 +45,14 @@ export function RenameShortcutDialog({
 }: RenameShortcutDialogProps) {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent
+                className="sm:max-w-[500px]"
+                style={{
+                    backgroundColor: 'var(--global-background-color)',
+                    color: 'var(--global-text-color)',
+                    fontFamily: 'var(--global-font-family)',
+                    fontSize: 'var(--global-font-size)'
+                }}>
                 <DialogHeader>
                     <DialogTitle>Edit Shortcut</DialogTitle>
                     <DialogDescription>
@@ -59,6 +69,11 @@ export function RenameShortcutDialog({
                             placeholder="Shortcut name"
                             className="col-span-3"
                             autoFocus
+                            style={{
+                                backgroundColor: 'var(--global-background-color)',
+                                borderColor: 'var(--global-border-color)',
+                                color: 'var(--global-text-color)'
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                     onConfirm();
@@ -69,7 +84,7 @@ export function RenameShortcutDialog({
                         />
                     </div>
                     
-                    <Separator className="my-2" />
+                    <Separator className="my-2" style={{ backgroundColor: 'var(--global-border-color)' }} />
                     
                     <div className="space-y-2">
                         <label className="text-sm font-medium">Icon</label>
@@ -81,7 +96,17 @@ export function RenameShortcutDialog({
                     </div>
                 </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={onCancel}>Cancel</Button>
+                    <Button 
+                        variant="outline" 
+                        onClick={onCancel}
+                        style={{
+                            backgroundColor: 'var(--global-background-color)',
+                            borderColor: 'var(--global-border-color)',
+                            color: 'var(--global-text-color)'
+                        }}
+                    >
+                        Cancel
+                    </Button>
                     <Button onClick={onConfirm}>Save</Button>
                 </DialogFooter>
             </DialogContent>
