@@ -129,12 +129,10 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     } finally {
       setIsProcessing(false);
     }
-  };
-
-  const getProviderName = (providerGuid: string): string => {
+  };  function getProviderName(providerGuid: string): string {
     const provider = providers.find((p) => p.guid === providerGuid);
     return provider ? provider.friendlyName : 'Unknown Provider';
-  };
+  }
 
   return (
     <>
