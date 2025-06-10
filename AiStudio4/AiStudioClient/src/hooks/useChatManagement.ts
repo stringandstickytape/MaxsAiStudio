@@ -41,7 +41,6 @@ const useChatConfigResource = createResourceHook<{
 
 interface SendMessageParams {
     convId: string;
-    parentMessageId: string;
     message: string;
     systemPromptId?: string;
     systemPromptContent?: string;
@@ -58,12 +57,15 @@ export function useChatManagement() {
     const sendMessage = useCallback(
         async (params: Omit<SendMessageParams, 'model'>) => {
             return executeApiCall(async () => {
-                const newMessageId = params.messageId || (params.parentMessageId ? uuidv4() : undefined);
+                const { slctdMsgId } = useConvStore.getState(); // Get it from the store
+                const parentMessageId = slctdMsgId; // Use the current selected message ID
+                
+                const newMessageId = params.messageId || (parentMessageId ? uuidv4() : undefined);
                 
                 // Get current active tools from store to ensure they're fresh
                 const { activeTools } = useToolStore.getState();
                 
-                let requestParams: Partial<SendMessageParams> = { ...params, toolIds: activeTools };
+                let requestParams: any = { ...params, parentMessageId, toolIds: activeTools };
 
 
                 if (params.attachments && params.attachments.length > 0) {

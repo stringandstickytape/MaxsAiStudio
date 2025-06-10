@@ -12,8 +12,9 @@ interface ConvState {
     slctdMsgId: string | null;
     editingMessageId: string | null;
     createConv: (p: { id?: string; rootMessage: Message; slctdMsgId?: string }) => void;
-    addMessage: (p: { convId: string; message: Message; slctdMsgId?: string | null }) => void;
-    setActiveConv: (p: { convId: string; slctdMsgId?: string | null }) => void;
+    addMessage: (p: { convId: string; message: Message }) => void;
+    setActiveConv: (convId: string) => void;
+    selectMessage: (convId: string, messageId: string) => void;
     getConv: (convId: string) => Conv | undefined;
     getActiveConv: () => Conv | undefined;
     updateMessage: (p: { convId: string; messageId: string; content: string }) => void;
@@ -105,7 +106,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                             attachments: attachments || undefined,
                             temperature: content.temperature
                         },
-                        slctdMsgId: isAiMessage ? content.id : false,
                     });
                 }
                 
@@ -145,8 +145,9 @@ export const useConvStore = create<ConvState>((set, get) => {
                         costInfo: content.costInfo || null,
                         cumulativeCost: content.cumulativeCost,
                     },
+                    slctdMsgId: content.id,
                 });
-                setActiveConv({ convId, slctdMsgId: content.id });
+                setActiveConv(convId);
             }
         });
 
@@ -205,10 +206,14 @@ export const useConvStore = create<ConvState>((set, get) => {
                     });
                 });
 
-            setActiveConv({
-                convId,
-                slctdMsgId: slctdMsgId || messages[messages.length - 1].id,
-            });
+            setActiveConv(convId);
+            
+            // Select the specific message if provided, otherwise select the latest
+            const targetMessageId = slctdMsgId || messages[messages.length - 1].id;
+            // Use setTimeout to avoid infinite loop by deferring the selectMessage call
+            setTimeout(() => {
+                get().selectMessage(convId, targetMessageId);
+            }, 0);
         });
     }
 
@@ -225,7 +230,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 slctdMsgId: slctdMsgId || rootMessage.id,
             })),
 
-        addMessage: ({ convId, message, slctdMsgId }) =>
+        addMessage: ({ convId, message }) =>
             set(s => {
                 const conv = s.convs[convId];
                 if (!conv) {
@@ -247,7 +252,9 @@ export const useConvStore = create<ConvState>((set, get) => {
                     temperature: message.temperature
                 };
                 
-                const newSelectedMsgId = slctdMsgId ?? s.slctdMsgId;
+                // Automatically select AI messages when they are added
+                const isAiMessage = message.source === 'ai' || message.source === 'assistant';
+                const newSelectedMsgId = isAiMessage ? message.id : s.slctdMsgId;
                 
                 return {
                     convs: { ...s.convs, [convId]: { ...conv, messages: [...conv.messages, updMsg] } },
@@ -255,18 +262,34 @@ export const useConvStore = create<ConvState>((set, get) => {
                 };
             }),
 
-        setActiveConv: ({ convId, slctdMsgId }) => {
+        setActiveConv: (convId: string) => {
             return set(s => {
-                if (!s.convs[convId]) {
-                    return s;
-                }
-                const newSelectedMsgId = slctdMsgId ?? s.slctdMsgId;
+                const conv = s.convs[convId];
+                if (!conv) return s;
+                
+                // Automatically select the latest message when switching conversations
+                const latestMessage = conv.messages.reduce((latest, current) => 
+                    current.timestamp > latest.timestamp ? current : latest
+                );
+                
                 return {
+                    ...s,
                     activeConvId: convId,
-                    slctdMsgId: newSelectedMsgId,
+                    slctdMsgId: latestMessage.id,
                 };
             });
         },
+
+        selectMessage: (convId: string, messageId: string) =>
+            set(state => {
+                if (!state.convs[convId]) return state; // Ensure conv exists
+
+                return {
+                    ...state,
+                    activeConvId: convId, // Also ensures the conv is active
+                    slctdMsgId: messageId
+                };
+            }),
 
         getConv: convId => get().convs[convId],
 

@@ -5,6 +5,7 @@ import { useConvStore } from '@/stores/useConvStore';
 import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
+import { useMessageSelection } from '@/hooks/useMessageSelection';
 import { Search, X, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
@@ -75,7 +76,8 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
     // Optimize store subscriptions to reduce re-renders during livestream events
     const clientId = useWebSocketStore(state => state.clientId);
     const currentRequest = useWebSocketStore(state => state.currentRequest);
-    const { createConv, addMessage, setActiveConv, convs: currentConvs } = useConvStore();
+    const { createConv, addMessage, convs: currentConvs } = useConvStore();
+    const { selectMessage } = useMessageSelection();
     const { convs, fetchAllConvs, addOrUpdateConv, deleteConv, isLoadingList } = useHistoricalConvsStore();
     const { highlightMessage } = useSearchStore();
 
@@ -158,18 +160,11 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
 
 
                 if (selectedMessage && selectedMessage.source === 'user' && selectedMessage.parentId) {
-
-
-                    setActiveConv({
-                        convId,
-                        slctdMsgId: selectedMessage.parentId,
-                    });
+                    
+                    selectMessage(selectedMessage.parentId, convId);
                 } else {
-
-                    setActiveConv({
-                        convId,
-                        slctdMsgId: nodeId,
-                    });
+                    
+                    selectMessage(nodeId, convId);
                 }
                 return;
             }
@@ -228,23 +223,11 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
 
 
                 if (selectedMessage && selectedMessage.source === 'user' && selectedMessage.parentId) {
-
-                    window.history.pushState({}, '', `?messageId=${selectedMessage.parentId}`);
-
-
-                    setActiveConv({
-                        convId,
-                        slctdMsgId: selectedMessage.parentId,
-                    });
+                    
+                    selectMessage(selectedMessage.parentId, convId);
                 } else {
-
-                    window.history.pushState({}, '', `?messageId=${nodeId}`);
-
-
-                    setActiveConv({
-                        convId,
-                        slctdMsgId: nodeId,
-                    });
+                    
+                    selectMessage(nodeId, convId);
                 }
             } else {
                 
@@ -252,7 +235,7 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
         } catch (error) {
             
         }
-    }, [clientId, searchResults, highlightMessage, currentConvs, setActiveConv, getConv, createConv, addMessage]);
+    }, [clientId, searchResults, highlightMessage, currentConvs, selectMessage, getConv, createConv, addMessage]);
 
     // Filter conversations based on search results if available - memoized for performance
     const displayedConvs = useMemo(() => {

@@ -137,7 +137,6 @@ export function InputBar({
     const handleChatMessage = useCallback(async (message: string, messageAttachments?: Attachment[]) => {
         try {
             let convId = activeConvId;
-            let parentMessageId = null;
             let systemPromptId = null;
             let systemPromptContent = null;
 
@@ -148,9 +147,6 @@ export function InputBar({
                     id: convId,
                     rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
                 });
-                parentMessageId = messageId;
-            } else {
-                parentMessageId = slctdMsgId || (convs[convId]?.messages.length > 0 ? convs[convId].messages[convs[convId].messages.length - 1].id : null);
             }
 
             if (convId) {
@@ -162,10 +158,9 @@ export function InputBar({
             const messageId = `msg_${uuidv4()}`;
             setCurrentRequest({ convId, messageId });
 
-            // --- MODIFIED: `model` property is no longer passed here ---
+            // parentMessageId is now handled internally by sendMessage via store state
             await sendMessage({
                 convId,
-                parentMessageId,
                 message,
                 systemPromptId,
                 systemPromptContent,
