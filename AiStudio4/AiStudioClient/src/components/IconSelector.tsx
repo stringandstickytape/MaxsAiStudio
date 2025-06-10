@@ -6,6 +6,9 @@ import { Command as CommandUI, CommandEmpty, CommandGroup, CommandInput, Command
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 
+// Define themeable properties for the component (currently none)
+export const themeableProps = {};
+
 // Define icon set types
 export type IconSet = 'lucide' | 'lobehub';
 
@@ -64,8 +67,21 @@ const IconSelector: React.FC<IconSelectorProps> = ({
 
   return (
     <div className="w-full">
-      <CommandUI className="rounded-lg border shadow-md">
+      <CommandUI
+        className="rounded-lg border shadow-md"
+        style={{
+          backgroundColor: 'var(--global-background-color)',
+          color: 'var(--global-text-color)',
+          borderColor: 'var(--global-border-color)',
+          fontFamily: 'var(--global-font-family)',
+          fontSize: 'var(--global-font-size)'
+        }}>
         <CommandInput 
+          style={{
+            backgroundColor: 'var(--global-background-color)',
+            color: 'var(--global-text-color)',
+            borderColor: 'var(--global-border-color)'
+          }} 
           placeholder="Search icons..." 
           value={searchTerm}
           onValueChange={setSearchTerm}
@@ -98,10 +114,18 @@ const IconSelector: React.FC<IconSelectorProps> = ({
                           key={name}
                           value={name}
                           onSelect={() => handleSelectIcon(name, 'lucide')}
-                          className={`flex flex-col items-center justify-center p-2 cursor-pointer ${isSelected ? 'bg-accent text-accent-foreground' : ''}`}
+                          className="flex flex-col items-center justify-center p-2 cursor-pointer transition-colors hover:bg-white/10"
+                          style={{
+                            color: isSelected ? 'var(--global-primary-color)' : 'var(--global-text-color)',
+                            border: isSelected ? '2px solid var(--global-primary-color)' : '2px solid transparent',
+                            borderRadius: 'var(--global-border-radius)'
+                          }}
                         >
                           <div className="flex items-center justify-center w-8 h-8 mb-1">
-                            <Icon className="h-6 w-6" />
+                            <Icon 
+                              className="h-6 w-6"
+                              style={{ color: isSelected ? 'var(--global-primary-color)' : 'var(--global-text-color)' }}
+                            />
                           </div>
                           <span className="text-xs text-center truncate w-full">{displayName}</span>
                         </CommandItem>
@@ -135,10 +159,15 @@ const IconSelector: React.FC<IconSelectorProps> = ({
                           key={name}
                           value={name}
                           onSelect={() => handleSelectIcon(name, 'lobehub')}
-                          className={`flex flex-col items-center justify-center p-2 cursor-pointer ${isSelected ? 'bg-accent text-accent-foreground' : ''}`}
+                          className="flex flex-col items-center justify-center p-2 cursor-pointer transition-colors hover:bg-white/10"
+                          style={{
+                            color: isSelected ? 'var(--global-primary-color)' : 'var(--global-text-color)',
+                            border: isSelected ? '2px solid var(--global-primary-color)' : '2px solid transparent',
+                            borderRadius: 'var(--global-border-radius)'
+                          }}
                         >
                           <div className="flex items-center justify-center w-8 h-8 mb-1">
-                            {React.createElement(icon.Avatar, { size: 24 })}
+                            {React.createElement(icon.Avatar, { size: 24, style: { color: isSelected ? 'var(--global-primary-color)' : 'var(--global-text-color)' } })}
                           </div>
                           <span className="text-xs text-center truncate w-full">{name}</span>
                         </CommandItem>
@@ -157,8 +186,28 @@ const IconSelector: React.FC<IconSelectorProps> = ({
       
       {onClose && (
         <div className="flex justify-end mt-4">
-          <Button variant="outline" onClick={onClose} className="mr-2">Cancel</Button>
-          <Button onClick={() => onClose()}>Done</Button>
+          <Button 
+            variant="outline" 
+            onClick={onClose} 
+            className="mr-2"
+            style={{
+              backgroundColor: 'var(--global-background-color)',
+              borderColor: 'var(--global-border-color)',
+              color: 'var(--global-text-color)'
+            }}
+          >
+            Cancel
+          </Button>
+          <Button 
+            onClick={() => onClose()}
+            style={{
+              backgroundColor: 'var(--global-background-color)',
+              borderColor: 'var(--global-border-color)',
+              color: 'var(--global-text-color)'
+            }}
+          >
+            Done
+          </Button>
         </div>
       )}
     </div>
