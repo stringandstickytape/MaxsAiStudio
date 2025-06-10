@@ -11,12 +11,13 @@ namespace AiStudio4.Services.CostingStrategies
         {
             if (usage == null || model == null) return 0m;
 
-            decimal inputCost = (usage.InputTokens / 1_000_000m) * model.InputPriceBelowBoundary;
+            var fullPriceInputTokens = usage.InputTokens - usage.CacheReadInputTokens;
+
+            decimal inputCost = (fullPriceInputTokens / 1_000_000m) * model.InputPriceBelowBoundary;
             decimal outputCost = (usage.OutputTokens / 1_000_000m) * model.OutputPriceBelowBoundary;
-            decimal cacheCreationCost = (usage.CacheCreationInputTokens / 1_000_000m) * model.InputPriceBelowBoundary * 1.0m;
             decimal cacheReadCost = (usage.CacheReadInputTokens / 1_000_000m) * model.InputPriceBelowBoundary * 0.25m;
             
-            return inputCost + outputCost + cacheCreationCost + cacheReadCost;
+            return inputCost + outputCost + cacheReadCost;
         }
     }
 }
