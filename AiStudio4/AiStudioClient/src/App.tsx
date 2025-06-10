@@ -21,6 +21,8 @@ import { useModalStore } from '@/stores/useModalStore';
 import { slashItemRegistry } from './services/slashItemRegistry';
 import { UserPromptProvider } from './services/providers/userPromptProvider';
 import { FileNameProvider } from './services/providers/fileNameProvider';
+import { useAppInitializer } from '@/hooks/useAppInitializer';
+import { Compass } from 'lucide-react';
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -31,6 +33,7 @@ const PANEL_EVENTS = {
 import { webSocketService } from '@/services/websocket/WebSocketService';
 
 function App() {
+  const { isInitialized, error } = useAppInitializer();
   const { createConv, activeConvId } = useConvStore();
   
   
@@ -204,6 +207,29 @@ function App() {
       window.removeEventListener('load-associated-user-prompt', handleLoadUserPrompt as EventListener);
     };
   }, [userPrompts]);
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-red-900/20 text-red-300">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Application Error</h1>
+          <p>Could not initialize the application.</p>
+          <p className="mt-4 text-xs font-mono bg-red-900/30 p-4 rounded">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isInitialized) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <Compass className="h-12 w-12 mx-auto animate-spin text-blue-400" />
+          <p className="mt-4 text-lg">Initializing AiStudio...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <FontSizeProvider>

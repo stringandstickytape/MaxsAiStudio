@@ -8,7 +8,7 @@ import { ModelType } from '@/types/modelTypes';
 import { createResourceHook } from './useResourceFactory';
 
 const createResourceConfig = <T extends { guid: string }>(
-    endpoints: { fetch: string, create: string, update: string, delete: string },
+    endpoints: { fetch?: string, create?: string, update?: string, delete?: string },
     setItems: (items: T[]) => void,
     transformOptions?: {
         transformFetchResponse?: (data: any) => T[],
@@ -26,7 +26,6 @@ const createResourceConfig = <T extends { guid: string }>(
 
 const useModelResource = createResourceConfig<Model>(
     {
-        fetch: '/api/getModels',
         create: '/api/addModel',
         update: '/api/updateModel',
         delete: '/api/deleteModel'
@@ -40,7 +39,6 @@ const useModelResource = createResourceConfig<Model>(
 
 const useProviderResource = createResourceConfig<ServiceProvider>(
     {
-        fetch: '/api/getServiceProviders',
         create: '/api/addServiceProvider',
         update: '/api/updateServiceProvider',
         delete: '/api/deleteServiceProvider'
@@ -54,7 +52,6 @@ const useProviderResource = createResourceConfig<ServiceProvider>(
 
 const useSystemPromptResource = createResourceConfig<SystemPrompt>(
     {
-        fetch: '/api/getSystemPrompts',
         create: '/api/createSystemPrompt',
         update: '/api/updateSystemPrompt',
         delete: '/api/deleteSystemPrompt'
@@ -68,12 +65,12 @@ const useSystemPromptResource = createResourceConfig<SystemPrompt>(
 
 export function useModelManagement() {
     const {
-        isLoading: modelsLoading, error: modelsError, fetchItems: fetchModels,
+        isLoading: modelsLoading, error: modelsError,
         createItem: addModel, updateItem: updateModel, deleteItem: deleteModel, clearError: clearModelsError
     } = useModelResource();
 
     const {
-        isLoading: providersLoading, error: providersError, fetchItems: fetchProviders,
+        isLoading: providersLoading, error: providersError,
         createItem: addProvider, updateItem: updateProvider, deleteItem: deleteProvider, clearError: clearProvidersError
     } = useProviderResource();
 
@@ -158,7 +155,7 @@ export function useModelManagement() {
     return {
         models, providers, selectedPrimaryModel, selectedSecondaryModel,
         isLoading: modelsLoading || providersLoading, error: modelsError || providersError,
-        fetchConfig, fetchModels, fetchProviders, handleModelSelect,
+        fetchConfig, handleModelSelect,
         addModel, updateModel, deleteModel, addProvider, updateProvider,
         deleteProvider, getProviderName, clearError
     };
@@ -166,7 +163,7 @@ export function useModelManagement() {
 
 export function useSystemPromptManagement() {
     const {
-        isLoading, error, fetchItems: fetchSystemPrompts,
+        isLoading, error,
         createItem: createPrompt, updateItem: updatePrompt,
         deleteItem: deletePrompt, clearError
     } = useSystemPromptResource();
@@ -213,9 +210,9 @@ export function useSystemPromptManagement() {
     const importSystemPrompts = useCallback(
         jsonData => executeApiCall(async () => {
             await createApiRequest('/api/importSystemPrompts', 'POST')({ jsonData });
-            await fetchSystemPrompts();
+            // Data will be re-fetched on next app initialization
             return true;
-        }), [fetchSystemPrompts, executeApiCall]);
+        }), [executeApiCall]);
 
     const exportSystemPrompts = useCallback(
         () => executeApiCall(() =>
@@ -240,7 +237,7 @@ export function useSystemPromptManagement() {
 
     return {
         prompts, defaultPromptId, currentPrompt, isLoading, error,
-        fetchSystemPrompts, setConvSystemPrompt, createSystemPrompt,
+        setConvSystemPrompt, createSystemPrompt,
         updateSystemPrompt, deleteSystemPrompt: deletePrompt,
         setDefaultSystemPrompt, getSystemPromptById,
         importSystemPrompts, exportSystemPrompts, clearError,

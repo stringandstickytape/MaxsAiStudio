@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+﻿import { useCallback } from 'react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useToolStore } from '@/stores/useToolStore';
 import { Tool, ToolCategory } from '@/types/toolTypes';
@@ -7,7 +7,6 @@ import { createResourceHook } from './useResourceFactory';
 
 const useToolResource = createResourceHook<Tool>({
   endpoints: {
-    fetch: '/api/getTools',
     create: '/api/addTool',
     update: '/api/updateTool',
     delete: '/api/deleteTool',
@@ -28,7 +27,7 @@ const useToolResource = createResourceHook<Tool>({
 
 
 const useToolCategoryResource = createResourceHook<ToolCategory>({
-  endpoints: {fetch: '/api/getToolCategories'},
+  endpoints: {},
   storeActions: {
     setItems: categories => useToolStore.getState().setCategories(categories),
   },
@@ -42,7 +41,6 @@ export function useToolsManagement() {
   const {
     isLoading: toolsLoading,
     error: toolsError,
-    fetchItems: fetchTools,
     createItem: addTool,
     updateItem: updateTool,
     deleteItem: deleteTool,
@@ -52,7 +50,6 @@ export function useToolsManagement() {
   const {
     isLoading: categoriesLoading,
     error: categoriesError,
-    fetchItems: fetchToolCategories,
     clearError: clearCategoriesError,
   } = useToolCategoryResource();
 
@@ -88,7 +85,7 @@ export function useToolsManagement() {
 
   return {
     tools, categories, activeTools, isLoading, error,
-    fetchTools, fetchToolCategories, addTool, updateTool, deleteTool,
+    addTool, updateTool, deleteTool,
     validateToolSchema, exportTools, toggleTool, addActiveTool,
     removeActiveTool, clearActiveTools, clearError,
   };

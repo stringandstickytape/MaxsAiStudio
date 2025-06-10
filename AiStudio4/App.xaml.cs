@@ -1,4 +1,4 @@
-// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
+﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -122,6 +122,7 @@ public const decimal VersionNumber = 1.02m;
             services.AddTransient<IRequestHandler, FileSystemRequestHandler>();
             services.AddTransient<IRequestHandler, ModelRequestHandler>();
             services.AddTransient<IRequestHandler, MiscRequestHandler>();
+            services.AddTransient<IRequestHandler, InitialDataRequestHandler>();
             services.AddTransient<IRequestHandler, ConfigRequestHandler>();
             services.AddTransient<IRequestHandler, ProjectRequestHandler>();
 

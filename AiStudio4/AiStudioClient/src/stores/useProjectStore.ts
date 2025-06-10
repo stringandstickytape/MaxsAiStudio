@@ -11,6 +11,7 @@ interface ProjectStore {
   
   // Actions
   fetchProjects: () => Promise<void>;
+  setProjects: (projects: Project[]) => void;
   setActiveProject: (projectId: string) => Promise<boolean>;
   getActiveProject: () => Promise<void>;
   createProject: (project: Omit<Project, 'guid' | 'createdDate' | 'modifiedDate'>) => Promise<boolean>;
@@ -24,6 +25,10 @@ const useProjectStore = create<ProjectStore>((set, get) => ({
   activeProject: null,
   isLoading: false,
   error: null,
+
+  setProjects: (projects) => {
+    set({ projects });
+  },
 
   fetchProjects: async () => {
     set({ isLoading: true, error: null });

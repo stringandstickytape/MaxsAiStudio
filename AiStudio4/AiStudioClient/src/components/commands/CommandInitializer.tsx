@@ -24,10 +24,8 @@ import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { useModalStore } from '@/stores/useModalStore';
-import { useFileSystemManagement } from '@/hooks/useFileSystemManagement';
 import { useCommandStore } from '@/stores/useCommandStore';
 import { useToolStore } from '@/stores/useToolStore';
-import { useFileSystemStore } from '@/stores/useFileSystemStore';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import useProjectStore from '@/stores/useProjectStore';
 import { registerMcpServersAsCommands, initializeMcpServerManagementCommand } from '@/commands/mcpServerCommands';
@@ -39,26 +37,10 @@ export function CommandInitializer() {
   // Model management
   const { models, handleModelSelect } = useModelManagement();
   
-  // Command and pinned commands management
-  const { fetchPinnedCommands } = usePinnedCommandsStore();
-  
-  // Tools management
-  const { fetchTools, fetchToolCategories } = useToolsManagement();
-  
-  // User prompts management
-  const { fetchUserPrompts } = useUserPromptManagement();
-  
-  // File system management
-  const { fetchFileSystem } = useFileSystemManagement();
-  
-  // Project management
-  const { fetchProjects } = useProjectStore();
-  
   // MCP server management
   const {
     servers: mcpServers,
     setServerEnabled: toggleMcpServerEnabled,
-    fetchServers: fetchMcpServers,
   } = useMcpServerStore();
 
   // UI event handlers
@@ -83,31 +65,12 @@ export function CommandInitializer() {
     },
   });
 
-  // Initial data loading
+  // Data is now pre-loaded by useAppInitializer, so we just register commands
   useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        await Promise.all([
-          fetchPinnedCommands(),
-          fetchTools(),
-          fetchToolCategories(),
-          fetchUserPrompts(),
-          fetchFileSystem(),
-          fetchMcpServers(),
-          fetchProjects()
-        ]);
-        
-        // Register commands that depend on loaded data
-        registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
-        registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
-        
-      } catch (error) {
-        console.error('Error loading initial data:', error);
-      }
-    };
-    
-    loadInitialData();
-  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, fetchFileSystem, fetchMcpServers, togglePanel]);
+    // Register commands that depend on loaded data
+    registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
+    registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
+  }, [togglePanel]);
 
   // Register MCP server commands when servers change
   useEffect(() => {

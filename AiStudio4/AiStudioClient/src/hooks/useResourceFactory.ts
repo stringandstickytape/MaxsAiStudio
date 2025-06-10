@@ -1,4 +1,4 @@
-
+﻿
 import { useCallback, useState } from 'react';
 import { useInitializeIfEmpty } from '@/utils/hookUtils';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
@@ -51,10 +51,13 @@ export function createResourceHook<
     const idField = config.options?.idField || 'guid';
 
     
+    // Initialize data on first use (only if fetch endpoint exists)
     const isInitialized = useInitializeIfEmpty(async () => {
-      await fetchItems();
+      if (config.endpoints.fetch) {
+        await fetchItems();
+      }
 
-      
+      // Run additional initialization if provided
       if (config.options?.additionalInit) {
         await config.options.additionalInit();
       }

@@ -8,7 +8,6 @@ export function useUserPromptManagement() {
   
   const userPromptResource = createResourceHook<UserPrompt>({
     endpoints: {
-      fetch: '/api/getUserPrompts',
       create: '/api/createUserPrompt',
       update: '/api/updateUserPrompt',
       delete: '/api/deleteUserPrompt',
@@ -65,9 +64,9 @@ export function useUserPromptManagement() {
   const importUserPrompts = useCallback(
     jsonData => executeApiCall(async () => {
       await createApiRequest('/api/importUserPrompts', 'POST')({ jsonData });
-      await userPromptResource.fetchItems();
+      // Data will be re-fetched on next app initialization
       return true;
-    }), [userPromptResource.fetchItems, executeApiCall]);
+    }), [executeApiCall]);
 
   const exportUserPrompts = useCallback(
     () => executeApiCall(() =>
@@ -90,7 +89,7 @@ export function useUserPromptManagement() {
     currentPrompt, 
     isLoading: userPromptResource.isLoading, 
     error: userPromptResource.error,
-    fetchUserPrompts: userPromptResource.fetchItems, 
+ 
     createUserPrompt, 
     updateUserPrompt, 
     deleteUserPrompt: userPromptResource.deleteItem, 

@@ -28,6 +28,7 @@ interface McpServerStoreState {
   serverTools: McpTool[];
   isLoadingTools: boolean;
   fetchServers: () => Promise<void>;
+  setServers: (servers: McpServerDefinition[]) => void;
   setServerEnabled: (id: string, enabled: boolean) => Promise<void>;
   setEnabledServers: (serverIds: string[]) => Promise<void>;
   addServer: (server: McpServerDefinition) => Promise<McpServerDefinition | null>;
@@ -43,6 +44,13 @@ export const useMcpServerStore = create<McpServerStoreState>((set, get) => ({
   selectedServer: null,
   serverTools: [],
   isLoadingTools: false,
+
+  setServers: (servers) => {
+    set({
+      servers,
+      enabledCount: servers.filter((s) => s.isEnabled).length,
+    });
+  },
 
   async fetchServers() {
     try {
