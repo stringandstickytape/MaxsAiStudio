@@ -135,6 +135,7 @@ namespace AiStudio4.Services
         {
             try
             {
+
                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Processing request...");
 
                 
@@ -170,7 +171,15 @@ namespace AiStudio4.Services
                 string previousToolRequested = null; 
                 while (continueLoop && currentIteration < MAX_ITERATIONS)
                 {
-                    if(currentIteration != 0)
+
+                    request.OnStreamingUpdate =
+                        (text) =>
+                        _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "cfrag", Content = text });
+                    request.OnStreamingComplete = () =>
+                        _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "endstream", Content = "" }); 
+
+
+                    if (currentIteration != 0)
                         await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Looping...");
                         
 

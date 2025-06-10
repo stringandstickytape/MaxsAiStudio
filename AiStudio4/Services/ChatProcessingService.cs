@@ -65,10 +65,9 @@ namespace AiStudio4.Services
 
                 // Define callbacks inline, capturing clientId and messageId (will be set later)
                 string assistantMessageId = $"msg_{Guid.NewGuid()}";
-                Action<string> streamingUpdateCallback = (text) =>
-                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "cfrag", Content = text });
-                Action streamingCompleteCallback = () =>
-                    _notificationService.NotifyStreamingUpdate(clientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "endstream", Content = "" }); // Send empty content on complete
+
+
+
                 bool isFirstMessageInConv = false;
                 ChatRequest chatRequest = null;
                 v4BranchedConv? conv = null;
@@ -139,8 +138,6 @@ namespace AiStudio4.Services
                         SystemPromptId = (string)requestObject["systemPromptId"],
                         SystemPromptContent = (string)requestObject["systemPromptContent"],
                         CancellationToken = cancellationToken,
-                        OnStreamingUpdate = streamingUpdateCallback, // Pass the callback
-                        OnStreamingComplete = streamingCompleteCallback, // Pass the callback
                         BranchedConv = conv
                     };
 
