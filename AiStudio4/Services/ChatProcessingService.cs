@@ -219,7 +219,7 @@ namespace AiStudio4.Services
 
                     
 
-                    var response = await _chatService.ProcessChatRequest(chatRequest);
+                    var response = await _chatService.ProcessChatRequest(chatRequest, assistantMessageId);
 
 
 
