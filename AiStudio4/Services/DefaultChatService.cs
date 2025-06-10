@@ -293,11 +293,12 @@ namespace AiStudio4.Services
                     var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
 
 
-                    assistantMessageId = $"msg_{Guid.NewGuid()}";
+                    
 
                     if (continueLoop)
                     {
-                        
+                        assistantMessageId = $"msg_{Guid.NewGuid()}";
+
                         var interjectionService = _serviceProvider.GetService<IInterjectionService>();
                         if (interjectionService != null && await interjectionService.HasInterjectionAsync(request.ClientId))
                         {
