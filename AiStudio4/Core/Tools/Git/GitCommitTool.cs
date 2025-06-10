@@ -56,7 +56,7 @@ namespace AiStudio4.Core.Tools.Git
 }
 """,
                 Categories = new List<string> { "MaxCode" },
-                OutputFileType = "gitcommit",
+                OutputFileType = "gitcommit", 
                 Filetype = string.Empty,
                 LastModified = DateTime.UtcNow
             };
