@@ -391,3 +391,31 @@ export const useConvStore = create<ConvState>((set, get) => {
         cancelEditMessage: () => set(() => ({ editingMessageId: null })),
     };
 });
+
+/* ────────────────────────────────
+Debug helper for the Conv store
+──────────────────────────────── */
+export const debugConvStore = () => {
+    const state = useConvStore.getState();
+
+    console.groupCollapsed('🪲  Conv Store Debug');
+    console.log('Active Conv ID  :', state.activeConvId);
+    console.log('Selected Msg ID :', state.slctdMsgId);
+    console.log('Editing Msg ID  :', state.editingMessageId);
+    console.log('Convs           :', state.convs);            // full object
+    console.log(
+        'Conv summary    :',
+        Object.entries(state.convs).map(([id, c]) => ({
+            id,
+            messages: c.messages.length,
+        }))
+    );
+    console.groupEnd();
+
+    return state; // handy if you want to inspect it further in the console
+};
+
+/* Expose globally only when we’re in a browser */
+if (typeof window !== 'undefined') {
+    (window as any).debugConvStore = debugConvStore;
+}
