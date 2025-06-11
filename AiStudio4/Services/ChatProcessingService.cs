@@ -199,12 +199,33 @@ namespace AiStudio4.Services
 
                     // Replace tree builder with direct message processing for conv list notification
                     var messagesForClient = BuildFlatMessageStructure(conv);
+
+                    var summaryText = conv.Summary;
+                    if(summaryText == null)
+                    {
+                        var userMessage = conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.UserMessage;
+
+                        if(userMessage == null)
+                        {
+                            summaryText = "New Conversation";
+                        } else
+                        {
+                            if(userMessage.Length > 100)
+                            {
+                                summaryText = userMessage.Substring(0, 100) + "...";
+
+                            }
+                            else
+                            {
+                                summaryText = userMessage;
+                            }
+                        }
+                    }
+
                     await _notificationService.NotifyConvList(new ConvListDto
                     {
                         ConvId = conv.ConvId,
-                        Summary = conv.Summary ?? (conv.Messages.Count > 1
-                            ? conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.UserMessage ?? "New Conv"
-                            : "New Conv"),
+                        Summary = summaryText,
                         LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
                         FlatMessageStructure = messagesForClient
                     });
