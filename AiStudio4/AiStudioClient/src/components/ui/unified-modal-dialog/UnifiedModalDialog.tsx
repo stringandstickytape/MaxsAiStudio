@@ -159,6 +159,7 @@ export const UnifiedModalDialog: React.FC<UnifiedModalDialogProps> = ({
                   'disabled:pointer-events-none'
                 )}
                 onClick={() => handleOpenChange(false)}
+                aria-label="Close modal"
                 style={{
                   color: 'var(--unifiedmodaldialog-close-button-color, var(--foreground))',
                   '--hover-color': 'var(--unifiedmodaldialog-close-button-hover-color, var(--foreground))',

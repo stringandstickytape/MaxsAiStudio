@@ -88,6 +88,6 @@ describe('Service Provider Management', () => {
     cy.get('.grid').should('not.contain', providerName);
 
     // 14. Close the providers modal (UnifiedModalDialog close button)
-    cy.get('[role="dialog"]').contains('h2', 'Service Providers').parent().parent().find('button[aria-label*="Close"]').click();
+    cy.get('button[aria-label="Close modal"]').click();
   });
 });
