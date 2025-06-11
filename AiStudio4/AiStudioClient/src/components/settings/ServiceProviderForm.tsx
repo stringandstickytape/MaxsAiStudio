@@ -118,12 +118,13 @@ export const ServiceProviderForm: React.FC<ServiceProviderFormProps> = ({ initia
 
   return (
     <GenericForm
-      fields={fields}
-      initialValues={defaultValues}
-      onSubmit={handleSubmit}
-      isProcessing={isProcessing}
-      submitButtonText={initialValues ? 'Update Provider' : 'Add Provider'}
-      layout="grid"
+          fields={fields}
+          initialValues={defaultValues}
+          onSubmit={handleSubmit}
+          isProcessing={isProcessing}
+          submitButtonText={initialValues ? 'Update Provider' : 'Add Provider'}
+          layout="grid"
+          submitButtonId="service-provider-management-add-provider-button"
     />
   );
 };

@@ -97,7 +97,13 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
         private async Task<string> DeleteByGuid(Action<string> deleteAction, JObject requestObject, string guidName)
         {
             string guid = requestObject[guidName]?.ToString();
-            if (string.IsNullOrEmpty(guid)) return SerializeError($"{guidName.Replace("Guid", " ID")} cannot be empty");
+            if (string.IsNullOrEmpty(guid))
+            {
+                guid = requestObject["promptId"]?.ToString();
+                if (string.IsNullOrEmpty(guid)) return SerializeError($"{guidName.Replace("Guid", " ID")} cannot be empty");
+            }
+                
+                
             deleteAction(guid);
             return JsonConvert.SerializeObject(new { success = true });
         }

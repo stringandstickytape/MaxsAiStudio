@@ -202,7 +202,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 animate-hover h-6 w-6 p-0"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-900/20 animate-hover h-6 w-6 p-0 service-provider-delete-button"
                           onClick={() => {
                             setDeleteConfirmProvider(provider);
                             setIsDeleteDialogOpen(true);

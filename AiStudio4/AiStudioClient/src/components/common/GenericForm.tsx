@@ -32,7 +32,8 @@ interface GenericFormProps {
   onSubmit: (data: any) => Promise<void>;
   isProcessing: boolean;
   submitButtonText?: string;
-  cancelButtonText?: string;
+    cancelButtonText?: string;
+    submitButtonId?: string;
   onCancel?: () => void;
   generateUuid?: boolean;
   uuidField?: string;
@@ -81,7 +82,8 @@ export function GenericForm({
   onSubmit,
   isProcessing,
   submitButtonText = 'Submit',
-  cancelButtonText = 'Cancel',
+    cancelButtonText = 'Cancel',
+  submitButtonId,
   onCancel,
   generateUuid = true,
   uuidField = 'guid',
@@ -615,15 +617,16 @@ export function GenericForm({
             <Button 
               type="submit" 
               disabled={isProcessing} 
-              className="btn-primary"
+                          className="btn-primary"
+                          id={submitButtonId}
             >
               {isProcessing ? (
                 <span className="flex items-center gap-2">
                   <div className="animate-spin h-4 w-4 border-2 border-t-transparent border-white rounded-full" />
                   Processing...
                 </span>
-              ) : (
-                <span className="flex items-center gap-2">
+                          ) : (
+                              <span className="flex items-center gap-2" >
                   <Save className="h-4 w-4" />
                   {submitButtonText}
                 </span>
