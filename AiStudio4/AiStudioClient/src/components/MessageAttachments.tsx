@@ -122,8 +122,7 @@ export const MessageAttachments: React.FC<MessageAttachmentsProps> = ({ attachme
         !att.type.startsWith('audio/') && 
         att.type !== 'application/pdf');
 
-    return (
-        <div className={cn('space-y-2', className)}>
+    return (        <div className={cn('space-y-2 ', className)}>
             {previews.length > 0 && (
                 <div className="flex flex-wrap gap-2">
                     {previews.map(attachment => (

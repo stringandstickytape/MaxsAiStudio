@@ -189,7 +189,7 @@ return formattedContent;
  */
 export const DEFAULT_ATTACHMENT_OPTIONS = {
   maxSize: 10 * 1024 * 1024, 
-  maxCount: 5,
+  maxCount: 250,
   allowedTypes: [
     'image/jpeg',
     'image/png',

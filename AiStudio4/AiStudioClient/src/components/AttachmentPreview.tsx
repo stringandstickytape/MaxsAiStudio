@@ -252,7 +252,7 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
                     </Button>
                 )}
             </div>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto">
                 {attachments.map((attachment) => (
                     <AttachmentPreview
                         key={attachment.id}
