@@ -457,7 +457,21 @@ public partial class WebViewWindow : Window
         {
             MessageBox.Show($"Error opening project folder: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }    private void ViewLogMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var logViewerWindow = _serviceProvider.GetRequiredService<LogViewerWindow>();
+            logViewerWindow.Owner = this;
+            logViewerWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to open Log Viewer window.");
+            MessageBox.Show($"Could not open the Log Viewer window: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
+
     private void SetCondaPathMenuItem_Click(object sender, RoutedEventArgs e)
     {
         string currentKey = _generalSettingsService.CurrentSettings.CondaPath ?? string.Empty;

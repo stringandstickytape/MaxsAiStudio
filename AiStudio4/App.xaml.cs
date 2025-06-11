@@ -1,10 +1,13 @@
-// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
+﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.Services;
+using AiStudio4.Services.Interfaces;
+using AiStudio4.Services.Logging;
+using AiStudio4.Dialogs;
 using AiStudio4.InjectedDependencies.WebSocketManagement;
 using AiStudio4.InjectedDependencies.WebSocket;
 using Microsoft.Extensions.Hosting;
@@ -53,8 +56,9 @@ public const decimal VersionNumber = 1.03m;
             services.AddLogging(builder =>
             {
                 builder.AddConsole();
-                builder.AddDebug();
-                builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.None);
+                builder.AddDebug();                // Capture all log messages; UI will filter as needed
+                builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);                // Register in-memory logger provider so logs are routed to the in-app viewer
+                builder.Services.AddSingleton<ILoggerProvider, InMemoryLoggerProvider>();
             });
 
             // Configure configuration
@@ -130,8 +134,14 @@ public const decimal VersionNumber = 1.03m;
             services.AddSingleton<UiRequestBroker>();
             
             services.AddSingleton<FileServer>();
-            services.AddSingleton<WebServer>();
-            services.AddSingleton<WindowManager>();
+            services.AddSingleton<WebServer>();            services.AddSingleton<WindowManager>();
+
+            // ----------------------------------------------------------
+            //  Log Viewer registrations
+            // ----------------------------------------------------------
+            services.AddSingleton<ILogViewerService, LogViewerService>();
+            services.AddTransient<LogViewerViewModel>();
+            services.AddTransient<LogViewerWindow>();
             services.AddTransient<WebViewWindow>();
 
             // Register StartupService directly instead of as a hosted service

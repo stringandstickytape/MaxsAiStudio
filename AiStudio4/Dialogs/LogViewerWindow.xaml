@@ -1,0 +1,42 @@
+﻿<!-- C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Dialogs\LogViewerWindow.xaml -->
+<Window x:Class="AiStudio4.Dialogs.LogViewerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Application Log Viewer" Height="600" Width="900"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Filter controls -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+            <Label Content="Filter by Text:" VerticalAlignment="Center"/>
+            <TextBox Width="200" Margin="5,0" VerticalAlignment="Center"
+                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+
+            <Label Content="Minimum Level:" VerticalAlignment="Center" Margin="20,0,0,0"/>
+            <ComboBox Width="120" Margin="5,0" VerticalAlignment="Center"
+                      ItemsSource="{Binding LogLevels}"
+                      SelectedItem="{Binding SelectedLogLevel}"/>
+
+            <Button Content="Clear" Width="80" Margin="20,0,0,0" Click="ClearButton_Click"/>
+        </StackPanel>
+
+        <!-- Log entries table -->
+        <DataGrid Grid.Row="1" ItemsSource="{Binding LogEntriesView}"
+                  AutoGenerateColumns="False" IsReadOnly="True" GridLinesVisibility="Horizontal"
+                  CanUserSortColumns="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Timestamp" Binding="{Binding Timestamp, StringFormat='HH:mm:ss.fff'}" Width="Auto"/>
+                <DataGridTextColumn Header="Level" Binding="{Binding LevelString}" Width="Auto"/>
+                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="*"/>
+                <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="3*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</Window>
