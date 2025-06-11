@@ -1,4 +1,4 @@
-
+﻿
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using Microsoft.Extensions.Configuration;
@@ -21,12 +21,18 @@ namespace AiStudio4.Services
         private readonly string _settingsFilePath;
         private readonly object _lock = new object();
         private List<Theme> _userThemes = new List<Theme>();
+        // Cache of the default themes so we only deserialize once per service instance
+        private readonly List<Theme> _defaultThemes;
         private string _activeThemeId = "";
 
         public ThemeService(IConfiguration configuration)
         {
             _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "themes.json");
             Directory.CreateDirectory(Path.GetDirectoryName(_settingsFilePath));
+
+            // Deserialize the built-in themes once – we will use them when loading/merging the user settings
+            _defaultThemes = DeserializeDefaultThemes();
+
             LoadSettings();
         }
 
@@ -60,6 +66,14 @@ namespace AiStudio4.Services
                     
                     _userThemes = JsonConvert.DeserializeObject<List<Theme>>(themesSection.ToString(), settings) 
                         ?? new List<Theme>();
+
+                    // Merge missing default themes (System provided) without overwriting the existing ones
+                    var addedDefaults = MergeMissingDefaultThemes();
+                    if (addedDefaults)
+                    {
+                        // Persist the merge so that the json file is up to date
+                        SaveSettings();
+                    }
                 }
                 else
                 {
@@ -93,7 +107,229 @@ namespace AiStudio4.Services
 
         private void CreateDefaultTheme2()
         {
-            var json2 = JObject.Parse(@"{
+            var json2 = JObject.Parse(DefaultThemesJson);
+
+            var themesSection2 = json2["themes"];
+
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.None,
+                NullValueHandling = NullValueHandling.Ignore,
+                Converters = { new StringEnumConverter() }
+            };
+
+            _userThemes = JsonConvert.DeserializeObject<List<Theme>>(themesSection2.ToString(), settings)
+                ?? new List<Theme>();
+
+            _activeThemeId = "42bcc320-b10f-4412-ae72-86bbdb550024";
+        }
+
+        
+        
+        
+        private void SaveSettings()
+        {
+            lock (_lock)
+            {
+                
+                var settings = new JsonSerializerSettings
+                {
+                    TypeNameHandling = TypeNameHandling.None,
+                    NullValueHandling = NullValueHandling.Ignore,
+                    Formatting = Formatting.Indented,
+                    Converters = { new StringEnumConverter() }
+                };
+                
+                var themesJson = JsonConvert.SerializeObject(_userThemes, settings);
+                var activeThemeJson = JsonConvert.SerializeObject(_activeThemeId, settings);
+                
+                var json = new JObject
+                {
+                    ["themes"] = JToken.Parse(themesJson),
+                    ["activeTheme"] = JToken.Parse(activeThemeJson)
+                };
+
+                File.WriteAllText(_settingsFilePath, json.ToString(Formatting.Indented));
+            }
+        }
+        
+
+        
+        
+        
+        public List<Theme> GetAllThemes()
+        {
+            lock (_lock)
+            {
+
+                return _userThemes;
+            }
+        }
+
+        
+        
+        
+        public Theme GetThemeById(string themeId)
+        {
+            lock (_lock)
+            {
+                var theme = _userThemes.FirstOrDefault(t => t.Guid == themeId);
+                return theme;
+            }
+        }
+
+        
+        
+        
+        public Theme AddTheme(Theme theme)
+        {
+            lock (_lock)
+            {
+                
+                if (string.IsNullOrEmpty(theme.Guid))
+                {
+                    theme.Guid = Guid.NewGuid().ToString();
+                }
+
+                
+                var now = DateTime.UtcNow.ToString("o");
+                if (string.IsNullOrEmpty(theme.Created))
+                {
+                    theme.Created = now;
+                }
+                if (string.IsNullOrEmpty(theme.LastModified))
+                {
+                    theme.LastModified = now;
+                }
+
+                
+                theme.PreviewColors ??= new List<string>();
+                theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
+
+                _userThemes.Add(theme);
+                SaveSettings();
+
+                return theme;
+            }
+        }
+
+        
+        
+        
+        public Theme UpdateTheme(Theme theme)
+        {
+            lock (_lock)
+            {
+                var existingThemeIndex = _userThemes.FindIndex(t => t.Guid == theme.Guid);
+                if (existingThemeIndex == -1)
+                {
+                    throw new KeyNotFoundException($"Theme with ID {theme.Guid} not found");
+                }
+
+                
+                theme.LastModified = DateTime.UtcNow.ToString("o");
+                
+                
+                if (string.IsNullOrEmpty(theme.Created))
+                {
+                    theme.Created = _userThemes[existingThemeIndex].Created;
+                }
+
+                
+                theme.PreviewColors ??= new List<string>();
+                theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
+
+                _userThemes[existingThemeIndex] = theme;
+                SaveSettings();
+
+                return theme;
+            }
+        }
+
+        
+        
+        
+        public bool DeleteTheme(string themeId)
+        {
+            lock (_lock)
+            {
+                var removed = _userThemes.RemoveAll(t => t.Guid == themeId) > 0;
+
+                SaveSettings();
+
+                return removed;
+            }
+        }
+
+        
+        
+        
+        public bool SetActiveTheme(string themeId)
+        {
+            lock (_lock)
+            {
+                _activeThemeId = themeId;
+                SaveSettings();
+
+                return true;
+            }
+        }
+
+        
+        
+        
+        public string GetActiveThemeId()
+        {
+            lock (_lock)
+            {
+                return _activeThemeId;
+            }
+        }
+
+        /// <summary>
+        /// Returns the list of default themes bundled with the application.
+        /// </summary>
+        private List<Theme> DeserializeDefaultThemes()
+        {
+            var json = JObject.Parse(DefaultThemesJson);
+            var themesSection = json["themes"];
+
+            var settings = new JsonSerializerSettings
+            {
+                TypeNameHandling = TypeNameHandling.None,
+                NullValueHandling = NullValueHandling.Ignore,
+                Converters = { new StringEnumConverter() }
+            };
+
+            var defaults = JsonConvert.DeserializeObject<List<Theme>>(themesSection!.ToString(), settings) ?? new List<Theme>();
+            return defaults;
+        }
+
+        /// <summary>
+        /// Ensures that any of the default themes that are not yet present in <see cref="_userThemes"/>
+        /// are added. Returns true if at least one theme was added.
+        /// </summary>
+        private bool MergeMissingDefaultThemes()
+        {
+            var added = false;
+            foreach (var def in _defaultThemes)
+            {
+                if (!_userThemes.Any(t => string.Equals(t.Guid, def.Guid, StringComparison.OrdinalIgnoreCase)))
+                {
+                    // Clone to avoid accidental reference sharing
+                    var themeClone = JsonConvert.DeserializeObject<Theme>(JsonConvert.SerializeObject(def));
+                    _userThemes.Add(themeClone);
+                    added = true;
+                }
+            }
+            return added;
+        }
+
+        /// <summary>
+        /// A single string containing the JSON definition of the built-in themes.  Keeping it in one
+        /// place allows us to reuse it for both creating the default settings file and merging.
+        /// </summary>
+        private const string DefaultThemesJson = @"{
   ""themes"": [
     {
       ""guid"": ""42bcc320-b10f-4412-ae72-86bbdb550024"",
@@ -488,183 +724,6 @@ namespace AiStudio4.Services
       ""lastModified"": ""2025-05-31T18:26:00.0000000Z""
     }
   ]
-}");
-
-            var themesSection2 = json2["themes"];
-
-            var settings = new JsonSerializerSettings
-            {
-                TypeNameHandling = TypeNameHandling.None,
-                NullValueHandling = NullValueHandling.Ignore,
-                Converters = { new StringEnumConverter() }
-            };
-
-            _userThemes = JsonConvert.DeserializeObject<List<Theme>>(themesSection2.ToString(), settings)
-                ?? new List<Theme>();
-
-            _activeThemeId = "42bcc320-b10f-4412-ae72-86bbdb550024";
-        }
-
-        
-        
-        
-        private void SaveSettings()
-        {
-            lock (_lock)
-            {
-                
-                var settings = new JsonSerializerSettings
-                {
-                    TypeNameHandling = TypeNameHandling.None,
-                    NullValueHandling = NullValueHandling.Ignore,
-                    Formatting = Formatting.Indented,
-                    Converters = { new StringEnumConverter() }
-                };
-                
-                var themesJson = JsonConvert.SerializeObject(_userThemes, settings);
-                var activeThemeJson = JsonConvert.SerializeObject(_activeThemeId, settings);
-                
-                var json = new JObject
-                {
-                    ["themes"] = JToken.Parse(themesJson),
-                    ["activeTheme"] = JToken.Parse(activeThemeJson)
-                };
-
-                File.WriteAllText(_settingsFilePath, json.ToString(Formatting.Indented));
-            }
-        }
-        
-
-        
-        
-        
-        public List<Theme> GetAllThemes()
-        {
-            lock (_lock)
-            {
-
-                return _userThemes;
-            }
-        }
-
-        
-        
-        
-        public Theme GetThemeById(string themeId)
-        {
-            lock (_lock)
-            {
-                var theme = _userThemes.FirstOrDefault(t => t.Guid == themeId);
-                return theme;
-            }
-        }
-
-        
-        
-        
-        public Theme AddTheme(Theme theme)
-        {
-            lock (_lock)
-            {
-                
-                if (string.IsNullOrEmpty(theme.Guid))
-                {
-                    theme.Guid = Guid.NewGuid().ToString();
-                }
-
-                
-                var now = DateTime.UtcNow.ToString("o");
-                if (string.IsNullOrEmpty(theme.Created))
-                {
-                    theme.Created = now;
-                }
-                if (string.IsNullOrEmpty(theme.LastModified))
-                {
-                    theme.LastModified = now;
-                }
-
-                
-                theme.PreviewColors ??= new List<string>();
-                theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
-
-                _userThemes.Add(theme);
-                SaveSettings();
-
-                return theme;
-            }
-        }
-
-        
-        
-        
-        public Theme UpdateTheme(Theme theme)
-        {
-            lock (_lock)
-            {
-                var existingThemeIndex = _userThemes.FindIndex(t => t.Guid == theme.Guid);
-                if (existingThemeIndex == -1)
-                {
-                    throw new KeyNotFoundException($"Theme with ID {theme.Guid} not found");
-                }
-
-                
-                theme.LastModified = DateTime.UtcNow.ToString("o");
-                
-                
-                if (string.IsNullOrEmpty(theme.Created))
-                {
-                    theme.Created = _userThemes[existingThemeIndex].Created;
-                }
-
-                
-                theme.PreviewColors ??= new List<string>();
-                theme.ThemeJson ??= new Dictionary<string, Dictionary<string, string>>();
-
-                _userThemes[existingThemeIndex] = theme;
-                SaveSettings();
-
-                return theme;
-            }
-        }
-
-        
-        
-        
-        public bool DeleteTheme(string themeId)
-        {
-            lock (_lock)
-            {
-                var removed = _userThemes.RemoveAll(t => t.Guid == themeId) > 0;
-
-                SaveSettings();
-
-                return removed;
-            }
-        }
-
-        
-        
-        
-        public bool SetActiveTheme(string themeId)
-        {
-            lock (_lock)
-            {
-                _activeThemeId = themeId;
-                SaveSettings();
-
-                return true;
-            }
-        }
-
-        
-        
-        
-        public string GetActiveThemeId()
-        {
-            lock (_lock)
-            {
-                return _activeThemeId;
-            }
-        }
+}";
     }
 }
