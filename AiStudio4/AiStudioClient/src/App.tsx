@@ -178,12 +178,6 @@ function App() {
 
   // Set up event listeners
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'k' && (e.metaKey || e.ctrlKey)) {
-        e.preventDefault();
-        setCommandBarOpen(true);
-      }
-    };
     
     // Add listener for the load-associated-user-prompt event
     const handleLoadUserPrompt = (e: CustomEvent) => {
@@ -196,11 +190,9 @@ function App() {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('load-associated-user-prompt', handleLoadUserPrompt as EventListener);
     
     return () => {
-      window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('load-associated-user-prompt', handleLoadUserPrompt as EventListener);
     };
   }, [userPrompts]);

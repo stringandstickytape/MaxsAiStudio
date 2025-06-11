@@ -46,7 +46,7 @@ namespace AiStudio4.Core.Tools
                 {
                     var obj = new JObject();
                     // Use the server ID as a prefix to ensure tool name uniqueness across different MCP servers
-                    obj["name"] = $"{serverDefinition.Id}_{tool.Name.Replace(" ", "")}";
+                    obj["name"] = $"{tool.Name.Replace(" ", "")}";
                     obj["description"] = tool.Description?.ToString() ?? "No description provided."; // Handle null description
                     
                     // Ensure InputSchema is not null before trying to parse
