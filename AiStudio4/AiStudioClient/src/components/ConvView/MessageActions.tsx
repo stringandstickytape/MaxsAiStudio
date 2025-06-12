@@ -7,7 +7,6 @@ import { saveCodeBlockAsFile } from '@/services/api/apiClient';
 interface MessageActionsProps {
   // The message object carries contentBlocks (preferred) and a legacy content string
   message: any;
-  message: any;
   onEdit: () => void;
 }
 
@@ -22,6 +21,14 @@ const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: Message
   // Compare properties that affect actions
   if (prevMsg.id !== nextMsg.id) return false;
   if (prevMsg.content !== nextMsg.content) return false;
+  
+  // Compare contentBlocks array
+  if (prevMsg.contentBlocks?.length !== nextMsg.contentBlocks?.length) return false;
+  if (prevMsg.contentBlocks) {
+    for (let i = 0; i < prevMsg.contentBlocks.length; i++) {
+      if (prevMsg.contentBlocks[i]?.content !== nextMsg.contentBlocks[i]?.content) return false;
+    }
+  }
   
   // Note: We don't compare onEdit callback as it's expected to be stable
   // If the parent doesn't memoize it properly, this optimization is still beneficial

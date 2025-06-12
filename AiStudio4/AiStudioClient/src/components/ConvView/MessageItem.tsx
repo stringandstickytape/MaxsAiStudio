@@ -36,6 +36,14 @@ const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps)
   if (prevMsg.source !== nextMsg.source) return false;
   if (prevMsg.timestamp !== nextMsg.timestamp) return false;
   
+  // Compare contentBlocks array
+  if (prevMsg.contentBlocks?.length !== nextMsg.contentBlocks?.length) return false;
+  if (prevMsg.contentBlocks) {
+    for (let i = 0; i < prevMsg.contentBlocks.length; i++) {
+      if (prevMsg.contentBlocks[i]?.content !== nextMsg.contentBlocks[i]?.content) return false;
+    }
+  }
+  
   // Compare attachments array
   if (prevMsg.attachments?.length !== nextMsg.attachments?.length) return false;
   if (prevMsg.attachments) {
