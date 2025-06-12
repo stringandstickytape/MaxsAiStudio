@@ -32,7 +32,6 @@ const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps)
   
   // Compare key message properties
   if (prevMsg.id !== nextMsg.id) return false;
-  if (prevMsg.content !== nextMsg.content) return false;
   if (prevMsg.source !== nextMsg.source) return false;
   if (prevMsg.timestamp !== nextMsg.timestamp) return false;
   
@@ -59,11 +58,9 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
   const attachmentsById = useAttachmentStore(state => state.attachmentsById);  const [editContent, setEditContent] = useState<string>('');
-
+    debugger;
   // Helper: flattened text for rendering
-  const flattenedContent = message.contentBlocks && message.contentBlocks.length
-    ? (message.contentBlocks as any[]).map((cb: any) => cb.content).join('\n\n')
-    : message.content;
+  const flattenedContent = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
   const messageRef = useRef<HTMLDivElement>(null);
   
   // Use the new streaming hook

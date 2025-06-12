@@ -57,7 +57,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 }
 
                 
-                const contentBlocks: ContentBlock[] = content.contentBlocks ?? (content.content ? [{ content: content.content, contentType: 'text' }] : []);
+                const contentBlocks: ContentBlock[] = content.contentBlocks ?? [];
                 const flattened = contentBlocks.map(cb => cb.content).join('\n\n');
 
                 const attachments = content.attachments && Array.isArray(content.attachments) 
@@ -144,7 +144,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     id: convId,
                     rootMessage: {
                         id: content.id,
-                        content: content.content,
+                        content: content.contentBlocks?.map((cb:any)=>cb.content).join('\n\n') ?? '',
                         source: content.source,
                         parentId: null,
                         timestamp: content.timestamp || Date.now(),
@@ -171,8 +171,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                 id: convId,
                 rootMessage: {
                     id: rootMsg.id,
-                    content: rootMsg.content ?? rootMsg.contentBlocks?.map((cb:any)=>cb.content).join('\n\n'),
-                    contentBlocks: (rootMsg.contentBlocks ?? (rootMsg.content ? [{ content: rootMsg.content, contentType: 'text' }] : [])) as any,
+                    content: rootMsg.contentBlocks?.map((cb:any)=>cb.content).join('\n\n') ?? '',
+                    contentBlocks: rootMsg.contentBlocks ?? [] as any,
                     source: rootMsg.source as 'user' | 'ai' | 'system',
                     parentId: null,
                     timestamp: rootMsg.timestamp || Date.now(),
@@ -196,7 +196,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         useAttachmentStore.getState().addAttachmentsForId(m.id, attachments);
                     }
 
-                    const mBlocks: ContentBlock[] = m.contentBlocks ?? (m.content ? [{ content: m.content, contentType: 'text' }] : []);
+                    const mBlocks: ContentBlock[] = m.contentBlocks ?? [];
                     const mFlat = mBlocks.map(cb=>cb.content).join('\n\n');
 
                     addMessage({
@@ -253,7 +253,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     ...message, 
                     id: message.id,
                     content: message.content,
-                    contentBlocks: message.contentBlocks ?? (message.content ? [{ content: message.content, contentType: 'text' }] : []),
+                    contentBlocks: message.contentBlocks ?? [],
                     source: message.source,
                     timestamp: message.timestamp,
                     durationMs: message.durationMs, // Explicitly include durationMs

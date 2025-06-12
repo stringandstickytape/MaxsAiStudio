@@ -20,7 +20,6 @@ const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: Message
   
   // Compare properties that affect actions
   if (prevMsg.id !== nextMsg.id) return false;
-  if (prevMsg.content !== nextMsg.content) return false;
   
   // Compare contentBlocks array
   if (prevMsg.contentBlocks?.length !== nextMsg.contentBlocks?.length) return false;
@@ -48,9 +47,7 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
       >
         <button        // Copy concatenated text of all blocks (fallback to legacy string)
         onClick={() => {
-          const flat = message.contentBlocks && message.contentBlocks.length
-            ? message.contentBlocks.map((cb: any) => cb.content).join('\n\n')
-            : message.content;
+          const flat = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
           navigator.clipboard.writeText(flat);
         }}
           className="ConvView p-1.5 rounded-full transition-all duration-200"
@@ -87,9 +84,7 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
             try {
               // const { saveCodeBlockAsFile } = await import('@/services/api/apiClient'); 
                 // Already imported at top              
-                const flat = message.contentBlocks && message.contentBlocks.length
-                ? message.contentBlocks.map((cb: any) => cb.content).join('\n\n')
-                : message.content;
+                const flat = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
               await saveCodeBlockAsFile({ content: flat, suggestedFilename });
             } catch (e) {
               console.error('Save As failed:', e);

@@ -7,9 +7,8 @@ export interface ContentBlock {
 }
 
 export interface Message {
-  id: string;  contentBlocks: ContentBlock[];
-  /** @deprecated use contentBlocks */
-  content?: string;
+  id: string;
+  contentBlocks: ContentBlock[];
   source: 'user' | 'ai' | 'system';
   timestamp: number;
   parentId?: string | null;
