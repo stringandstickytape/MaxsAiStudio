@@ -164,7 +164,11 @@ export function useChatManagement() {
                     }
                     return {
                         id: node.id,
-                        content: node.text,
+                        content: node.contentBlocks && node.contentBlocks.length 
+                            ? node.contentBlocks.map((cb: any) => cb.content).join('\n\n')
+                            : node.text,
+                        contentBlocks: node.contentBlocks ?? 
+                            (node.text ? [{ content: node.text, contentType: 'text' }] : []),
                         source: node.source || (node.id.includes('user') ? 'user' : 'ai'),
                         parentId: node.parentId,
                         timestamp: typeof node.timestamp === 'number' ? node.timestamp : Date.now(),
