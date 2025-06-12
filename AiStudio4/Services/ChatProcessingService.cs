@@ -351,7 +351,8 @@ namespace AiStudio4.Services
             var allMessages = conv.GetAllMessages();
 
             return allMessages.Select(msg => new {
-                id = msg.Id,                text = (msg.ContentBlocks != null && msg.ContentBlocks.Count > 0) ? string.Join(" ", msg.ContentBlocks.Select(cb => cb.Content)) : (msg.UserMessage ?? "[Empty Message]"),
+                id = msg.Id,
+                text = (msg.ContentBlocks != null && msg.ContentBlocks.Count > 0) ? string.Join(" ", msg.ContentBlocks.Select(cb => cb.Content)) : (msg.UserMessage ?? "[Empty Message]"),
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                         msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",

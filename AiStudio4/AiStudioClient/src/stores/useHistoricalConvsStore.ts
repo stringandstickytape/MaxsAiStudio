@@ -13,7 +13,7 @@ export interface HistoricalConv {
 
 interface ContentBlock {
   content: string;
-  contentType: 'text';
+  contentType: 'text'|'system';
 }
 
 interface TreeNode {

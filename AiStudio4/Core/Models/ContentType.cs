@@ -7,6 +7,7 @@ namespace AiStudio4.Core.Models
     /// </summary>
     public enum ContentType
     {
-        Text = 0
+        Text = 0,
+        System = 1
     }
 }

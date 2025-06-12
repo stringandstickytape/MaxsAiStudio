@@ -200,10 +200,12 @@ namespace AiStudio4.Services
                         messages = new List<LinearConvMessage>()
                     };
 
+                    // This is where we select the content blocks to send to AI, into combined text message
+
                     var messageHistory = request.BranchedConv.GetMessageHistory(request.MessageId)
                         .Select(msg => new MessageHistoryItem
                         {                            Role = msg.Role.ToString().ToLower(),
-                            Content = string.Join("\n\n", (msg.ContentBlocks ?? new List<ContentBlock>()).Select(cb => cb.Content)),
+                            Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text) ?? new List<ContentBlock>()).Select(cb => cb.Content)),
                             Attachments = msg.Attachments
                         }).ToList();
 
@@ -261,7 +263,11 @@ namespace AiStudio4.Services
                             request.ToolIds.Add(stopTool);
                     }
 
+                    ////// FETCH RESPONSE
+
                     response = await aiService.FetchResponse(requestOptions);
+
+                    ////// PROCESS RESPONSE
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Response received...");
 
@@ -383,6 +389,8 @@ namespace AiStudio4.Services
                     }
                     else 
                     {
+                        // We aren't looping.  So we need to send the final response back to the user and update the UI.
+
                         string duplicateDetectionText = "";
                         if(duplicateDetection)
                         {
@@ -391,8 +399,14 @@ namespace AiStudio4.Services
                         //assistantMessageId = $"msg_{Guid.NewGuid()}";
                         string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
 
+                        var contentBlocks = new List<ContentBlock>
+                        {
+                            //new ContentBlock { Content = "important: to the AI: please let me know if you can see this text", ContentType = ContentType.System },
+                            new ContentBlock { Content = userMessage, ContentType = ContentType.Text }
+                        };
+
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            contentBlocks: new List<ContentBlock>{ new ContentBlock{ Content = userMessage, ContentType = ContentType.Text } }, parentMessageId: request.MessageId,
+                            contentBlocks: contentBlocks, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
 
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
@@ -401,7 +415,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
-                            ContentBlocks = new List<ContentBlock>{ new ContentBlock{ Content = userMessage, ContentType = ContentType.Text } },
+                            ContentBlocks = contentBlocks,
                             //Content = userMessage,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
