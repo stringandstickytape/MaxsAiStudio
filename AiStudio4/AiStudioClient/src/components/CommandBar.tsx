@@ -416,7 +416,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                   isPinned ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300',
                                 )}
                               >
-                                <Pin className="h-3 w-3" fill={isPinned ? 'currentColor' : 'none'} />
+                                <Pin className="h-3 w-3" fill={isPinned ? 'currentColor' : 'none'}  data-testid={`pin-button-${command.id}`}/>
                               </div>
                             </TooltipTrigger>
                             <TooltipContent side="top">
