@@ -107,7 +107,7 @@ namespace AiStudio4.Services
                 return new SecondaryAiResponse
                 {
                     Success = response.Success,
-                    Response = response.ResponseText,
+                    Response = string.Join("\n\n", response.ContentBlocks.Where(x => x.ContentType == Core.Models.ContentType.Text).Select(x => x.Content)),
                     Error = response.Success ? string.Empty : "Failed to process request"
                 };
             }

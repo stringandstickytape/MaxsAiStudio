@@ -259,13 +259,11 @@ namespace AiStudio4.AiServices
             {
                 try
                 {
-                    var response = await HandleResponse(options, content); // Pass options
                     if (oneOffPreFill != null)
                     {
-                        response.ResponseText = $"{oneOffPreFill}{response.ResponseText}";
                         oneOffPreFill = null;
                     }
-                    return response;
+                    return await HandleResponse(options, content);
                 }
                 catch (NotEnoughTokensForCachingException)
                 {
@@ -301,7 +299,7 @@ namespace AiStudio4.AiServices
                 onStreamingComplete?.Invoke(); // Use callback
                 return new AiResponse
                 {
-                    ResponseText = result.ResponseText,
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = result.ResponseText, ContentType = ContentType.Text } },
                     Success = true,
                     TokenUsage = new TokenUsage(
                         result.InputTokens?.ToString(),
@@ -321,7 +319,7 @@ namespace AiStudio4.AiServices
                 result = streamProcessor.GetPartialResult(); // Need to add this method to StreamProcessor
                 return new AiResponse
                 {
-                    ResponseText = result.ResponseText,
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = result.ResponseText, ContentType = ContentType.Text } },
                     Success = true, // Indicate successful handling of cancellation
                     TokenUsage = new TokenUsage(
                         result.InputTokens?.ToString() ?? "0",
@@ -371,8 +369,9 @@ namespace AiStudio4.AiServices
             {
                 errorMessage += $" Additional info: {additionalInfo}";
             }
-            return new AiResponse { Success = false, ResponseText = errorMessage };
+            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = ContentType.Text } } };
         }
+        
         private string ExtractResponseTextFromCompletion(JObject completion)
         {
             if (completion["content"] != null)

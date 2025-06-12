@@ -62,7 +62,7 @@ namespace AiStudio4.AiServices
             }
 
             string fullText = string.Join(" ", responseWords);
-            response.ResponseText = fullText;
+            response.ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = fullText, ContentType = ContentType.Text } };
 
             // Simulate streaming if callbacks are provided
             if (options.OnStreamingUpdate != null)
@@ -112,7 +112,7 @@ namespace AiStudio4.AiServices
             });
 
             response.ToolResponseSet = toolResponse;
-            response.ResponseText = string.Empty;
+            response.ContentBlocks = new List<ContentBlock>();
             response.ChosenTool = selectedToolId;
         }
 

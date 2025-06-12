@@ -114,7 +114,8 @@ namespace AiStudio4.Services
                 return new SimpleChatResponse
                 {
                     Success = response.Success,
-                    ResponseText = response.ResponseText,
+
+                    ResponseText = string.Join("\n\n",response.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)),
                     Error = response.Success ? null : "Failed to process chat request",
                     ProcessingTime = DateTime.UtcNow - startTime
                 };
@@ -303,9 +304,6 @@ namespace AiStudio4.Services
                     var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
                     var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
 
-
-                    
-
                     if (continueLoop)
                     {
                         
@@ -323,10 +321,8 @@ namespace AiStudio4.Services
                             }
                         }
 
-                        
-
                         var msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            contentBlocks: new List<ContentBlock>{ new ContentBlock{ Content = response.ResponseText, ContentType = ContentType.Text } }, parentMessageId: request.MessageId,
+                            contentBlocks: response.ContentBlocks, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
 
@@ -396,16 +392,12 @@ namespace AiStudio4.Services
                         {
                             duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
                         }
-                        //assistantMessageId = $"msg_{Guid.NewGuid()}";
-                        string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
 
-                        var contentBlocks = new List<ContentBlock>
-                        {
-                            new ContentBlock { Content = userMessage, ContentType = ContentType.Text }
-                        };
+                        List<ContentBlock> contentBlocks = response.ContentBlocks.Prepend(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text }).ToList();
+                        contentBlocks.Append(new ContentBlock { Content = toolResult.AggregatedToolOutput, ContentType = ContentType.Text });
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            contentBlocks: contentBlocks, parentMessageId: request.MessageId,
+                            contentBlocks: contentBlocks.ToList(), parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
 
                         msg.Temperature = requestOptions.ApiSettings.Temperature;

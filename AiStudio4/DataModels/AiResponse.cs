@@ -5,7 +5,8 @@ namespace AiStudio4.DataModels
 {
     public class AiResponse
     {
-        public string ResponseText { get; set; }
+
+        public List<ContentBlock> ContentBlocks { get; set; } = new() ;
         public bool Success { get; set; }
 
         public TokenUsage TokenUsage { get; set; }

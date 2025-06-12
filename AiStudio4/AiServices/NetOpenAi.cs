@@ -300,7 +300,7 @@ namespace AiStudio4.AiServices
                                             lastToolResponse.ResponseText = lastToolResponse.ResponseText.Trim();
                                             return new AiResponse
                                             {
-                                                ResponseText = responseBuilder.ToString().TrimEnd(),
+                                                ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                                                 Success = true,
                                                 TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
                                                 ChosenTool = chosenTool,
@@ -345,7 +345,7 @@ namespace AiStudio4.AiServices
 
                 return new AiResponse
                 {
-                    ResponseText = responseBuilder.ToString(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                     Success = true,
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                     ChosenTool = chosenTool,
@@ -371,7 +371,7 @@ namespace AiStudio4.AiServices
 
                 return new AiResponse
                 {
-                    ResponseText = responseBuilder.ToString().TrimEnd(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                     Success = true, // Still consider it a success, just partial
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                     ChosenTool = chosenTool,
@@ -397,7 +397,7 @@ namespace AiStudio4.AiServices
 
                 return new AiResponse
                 {
-                    ResponseText = responseBuilder.ToString().TrimEnd() + "\n" + ex.ToString(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd() + "\n" + ex.ToString(), ContentType = Core.Models.ContentType.Text } },
                     Success = true, // Still consider it a success, just partial
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
                     ChosenTool = chosenTool,
@@ -508,7 +508,7 @@ namespace AiStudio4.AiServices
             {
                 errorMessage += $" Additional info: {additionalInfo}";
             }
-            return new AiResponse { Success = false, ResponseText = errorMessage };
+            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = Core.Models.ContentType.Text } }};
         }
 
     }

@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 
 namespace AiStudio4.Core.Tools
 {
@@ -217,12 +218,12 @@ namespace AiStudio4.Core.Tools
 
             if (!geminiApiResponse.Success)
             {
-                return CreateResult(false, false, $"Gemini search execution failed: {geminiApiResponse.ResponseText}");
+                return CreateResult(false, false, $"Gemini search execution failed: {string.Join("\n\n", geminiApiResponse.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content))}");
             }
 
             // --- 4. Format and return the result ---
             SendStatusUpdate("Gemini search completed. Returning results.");
-            return CreateResult(true, true, geminiApiResponse.ResponseText);
+            return CreateResult(true, true, string.Join("\n\n", geminiApiResponse.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)));
         }
     }
 }

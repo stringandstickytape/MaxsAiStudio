@@ -128,13 +128,13 @@ namespace AiStudio4.Core.Tools
             if (!response.Success)
             {
                 SendStatusUpdate($"Error response from {modelGuid}.");
-                return CreateResult(true, true, $"Error from {modelGuid}: {response.ResponseText}");
+                return CreateResult(true, true, $"Error from {modelGuid}: {string.Join("\n\n", response.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content))}");
             }
 
             var resultBuilder = new StringBuilder();
             resultBuilder.AppendLine($"### Response from [{modelToUse.FriendlyName}]");
             resultBuilder.AppendLine("---");
-            resultBuilder.AppendLine(response.ResponseText);
+            resultBuilder.AppendLine(string.Join("\n\n", response.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)));
 
             SendStatusUpdate($"Received response from {modelGuid}.");
             return CreateResult(true, true, resultBuilder.ToString());

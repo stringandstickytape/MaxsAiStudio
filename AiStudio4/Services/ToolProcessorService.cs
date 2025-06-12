@@ -146,7 +146,8 @@ namespace AiStudio4.Services
 
                             if (builtinToolResult.WasProcessed)
                             {
-                                response.ResponseText += $"\n\n{toolResponse.ToolName}\n\n";
+                                response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n", ContentType = ContentType.Text });
+
                                 // tool already retrieved above
 
                                 var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);
@@ -252,7 +253,8 @@ namespace AiStudio4.Services
 
         private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName)
         {
-            response.ResponseText += $"\n\n{actualToolName}\n\n";
+            response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{actualToolName}\n\n", ContentType = ContentType.Text });
+
             var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
                 ? new List<Dictionary<string, object>>()
                 : ExtractMultipleJsonObjects(toolResponse.ResponseText)

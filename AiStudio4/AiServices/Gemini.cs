@@ -389,7 +389,7 @@ namespace AiStudio4.AiServices
 
                         return new AiResponse
                         {
-                            ResponseText = toolArgs,
+                            ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = toolArgs, ContentType = Core.Models.ContentType.Text } },
                             Success = true,
                             TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
                             ChosenTool = toolName,
@@ -422,7 +422,7 @@ namespace AiStudio4.AiServices
                 Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set: {string.Join(",", ToolResponseSet.Tools.Select(x => x.ToolName))}... (2)");
                 return new AiResponse
                 {
-                    ResponseText = fullResponse.ToString(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = fullResponse.ToString(), ContentType = Core.Models.ContentType.Text } },
                     Success = true,
                     TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount ?? "0"),
                     ChosenTool = null,
@@ -454,7 +454,7 @@ namespace AiStudio4.AiServices
                 
                 return new AiResponse
                 {
-                    ResponseText = fullResponse.ToString(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = fullResponse.ToString(), ContentType = Core.Models.ContentType.Text } },
                     Success = true, 
                     TokenUsage = new TokenUsage(inputTokenCount ?? "0", outputTokenCount ?? "0", "0", cachedTokenCount ?? "0"),
                     ChosenTool = chosenTool, 
@@ -477,7 +477,7 @@ namespace AiStudio4.AiServices
             {
                 errorMessage += $" Additional info: {additionalInfo}";
             }
-            return new AiResponse { Success = false, ResponseText = errorMessage };
+            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = Core.Models.ContentType.Text } } };
         }
         public static string ExtractTrailingJsonObject(string input)
         {
@@ -749,7 +749,7 @@ namespace AiStudio4.AiServices
             string textToSynthesize = options.Conv?.messages?.LastOrDefault(m => m.role == "user")?.content;
             if (string.IsNullOrEmpty(textToSynthesize))
             {
-                return new AiResponse { Success = false, ResponseText = "No text provided for speech synthesis in the last user message." };
+                return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = "No text provided for speech synthesis in the last user message.", ContentType = Core.Models.ContentType.Text } } };
             }
 
             string voiceName = !string.IsNullOrEmpty(options.Model.TtsVoiceName) ? options.Model.TtsVoiceName : "Kore"; 
@@ -862,14 +862,18 @@ namespace AiStudio4.AiServices
                     return new AiResponse
                     {
                         Success = true,
-                        ResponseText = $"Audio generated for: \"{textToSynthesize.Substring(0, Math.Min(textToSynthesize.Length, 50))}...\"",
+                        ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = $"Audio generated for: \"{textToSynthesize.Substring(0, Math.Min(textToSynthesize.Length, 50))}...\"", ContentType = Core.Models.ContentType.Text } },
                         Attachments = new List<Attachment> { attachment },
                         TokenUsage = new TokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), 
                     };
                 }
                 catch (Exception ex)
                 {
-                    return new AiResponse { Success = false, ResponseText = $"TTS Error: {ex.Message}" };
+                    return new AiResponse
+                    {
+                        Success = false,
+                        ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = $"TTS Error: {ex.Message}", ContentType = Core.Models.ContentType.Text } }
+                    };
                 }
             }
         }
