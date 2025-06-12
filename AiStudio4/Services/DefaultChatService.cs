@@ -401,7 +401,6 @@ namespace AiStudio4.Services
 
                         var contentBlocks = new List<ContentBlock>
                         {
-                            //new ContentBlock { Content = "important: to the AI: please let me know if you can see this text", ContentType = ContentType.System },
                             new ContentBlock { Content = userMessage, ContentType = ContentType.Text }
                         };
 
