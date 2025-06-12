@@ -1,4 +1,4 @@
-
+﻿
 import { Message } from '@/types/conv';
 
 export class MessageGraph {
@@ -74,8 +74,7 @@ export class MessageGraph {
       const message: Message = {
         ...originalMessage,
         // Explicitly include critical properties to ensure they're not lost
-        id: originalMessage.id,
-        content: originalMessage.content,
+        id: originalMessage.id,        content: originalMessage.content ?? (originalMessage.contentBlocks ? originalMessage.contentBlocks.map((cb:any)=>cb.content).join('\n\n') : undefined),
         source: originalMessage.source,
         timestamp: originalMessage.timestamp,
         parentId: originalMessage.parentId,

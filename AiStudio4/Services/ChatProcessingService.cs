@@ -1,5 +1,6 @@
 ﻿using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
+using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -145,10 +146,12 @@ namespace AiStudio4.Services
 
                     // Check if this is the first non-system message in the conversation
                     isFirstMessageInConv = conv.Messages.Count <= 1 ||
-                        (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));
-
-
-                    var newUserMessage = conv.AddOrUpdateMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
+                        (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));                    // Build new content block list for rich message model
+                    var userContentBlocks = new List<ContentBlock>
+                    {
+                        new ContentBlock { Content = chatRequest.Message, ContentType = ContentType.Text }
+                    };
+                    var newUserMessage = conv.AddOrUpdateMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, userContentBlocks, chatRequest.ParentMessageId);
                     
                     // Add attachments to the message
                     if (attachments != null && attachments.Any())
@@ -178,7 +181,8 @@ namespace AiStudio4.Services
                     {
                         ConvId = conv.ConvId,
                         MessageId = newUserMessage.Id,
-                        Content = newUserMessage.UserMessage,
+                        ContentBlocks = newUserMessage.ContentBlocks,
+                        Content = string.Join("\n\n", newUserMessage.ContentBlocks.Select(cb => cb.Content)),
                         ParentId = chatRequest.ParentMessageId,
                         Timestamp = new DateTimeOffset(newUserMessage.Timestamp).ToUnixTimeMilliseconds(),
                         Source = "user", // Explicitly set source as "user"
@@ -191,7 +195,8 @@ namespace AiStudio4.Services
                     {
                         ConvId = conv.ConvId,
                         MessageId = assistantMessageId,
-                        Content = "", // Empty content
+                        ContentBlocks = new List<ContentBlock>(), // Empty list for placeholder
+                        Content = "",
                         ParentId = chatRequest.MessageId,
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Source = "assistant"
@@ -348,8 +353,7 @@ namespace AiStudio4.Services
             var allMessages = conv.GetAllMessages();
 
             return allMessages.Select(msg => new {
-                id = msg.Id,
-                text = msg.UserMessage ?? "[Empty Message]",
+                id = msg.Id,                text = (msg.ContentBlocks != null && msg.ContentBlocks.Count > 0) ? string.Join(" ", msg.ContentBlocks.Select(cb => cb.Content)) : (msg.UserMessage ?? "[Empty Message]"),
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                         msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",

@@ -1,9 +1,15 @@
 ﻿
 import { Attachment } from './attachment';
 
-export interface Message {
-  id: string;
+export interface ContentBlock {
   content: string;
+  contentType: 'text';
+}
+
+export interface Message {
+  id: string;  contentBlocks: ContentBlock[];
+  /** @deprecated use contentBlocks */
+  content?: string;
   source: 'user' | 'ai' | 'system';
   timestamp: number;
   parentId?: string | null;

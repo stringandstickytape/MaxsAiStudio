@@ -4,6 +4,7 @@ import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { processAttachments } from '@/utils/attachmentUtils';
+import type { ContentBlock } from '@/types/conv';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 
 interface ConvState {
@@ -56,6 +57,9 @@ export const useConvStore = create<ConvState>((set, get) => {
                 }
 
                 
+                const contentBlocks: ContentBlock[] = content.contentBlocks ?? (content.content ? [{ content: content.content, contentType: 'text' }] : []);
+                const flattened = contentBlocks.map(cb => cb.content).join('\n\n');
+
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
                     : undefined;
@@ -76,7 +80,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                         const existingMessage = updatedMessages[existingMessageIndex];
                         updatedMessages[existingMessageIndex] = { 
                             ...existingMessage, 
-                            content: content.content,
+                            content: flattened,
+                            contentBlocks: contentBlocks,
                             durationMs: content.durationMs,
                             costInfo: content.costInfo || existingMessage.costInfo,
                             cumulativeCost: content.cumulativeCost || existingMessage.cumulativeCost,
@@ -96,7 +101,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                         convId: targetConvId,
                         message: {
                             id: content.id,
-                            content: content.content,
+                            content: flattened,
+                            contentBlocks: contentBlocks,
                             source: content.source,
                             parentId,
                             timestamp: content.timestamp || Date.now(),
@@ -153,7 +159,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
         listenToWebSocketEvent('conv:load', ({ content }) => {
             if (!content?.messages?.length) return;
-            const { convId, messages } = content;
+            const { convId, messages } = content as any;
 
             const slctdMsgId = new URLSearchParams(window.location.search).get('messageId');
             const { createConv, addMessage, setActiveConv } = get();
@@ -165,7 +171,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                 id: convId,
                 rootMessage: {
                     id: rootMsg.id,
-                    content: rootMsg.content,
+                    content: rootMsg.content ?? rootMsg.contentBlocks?.map((cb:any)=>cb.content).join('\n\n'),
+                    contentBlocks: (rootMsg.contentBlocks ?? (rootMsg.content ? [{ content: rootMsg.content, contentType: 'text' }] : [])) as any,
                     source: rootMsg.source as 'user' | 'ai' | 'system',
                     parentId: null,
                     timestamp: rootMsg.timestamp || Date.now(),
@@ -189,11 +196,15 @@ export const useConvStore = create<ConvState>((set, get) => {
                         useAttachmentStore.getState().addAttachmentsForId(m.id, attachments);
                     }
 
+                    const mBlocks: ContentBlock[] = m.contentBlocks ?? (m.content ? [{ content: m.content, contentType: 'text' }] : []);
+                    const mFlat = mBlocks.map(cb=>cb.content).join('\n\n');
+
                     addMessage({
                         convId,
                         message: {
                             id: m.id,
-                            content: m.content,
+                            content: mFlat,
+                            contentBlocks: mBlocks,
                             source: m.source as 'user' | 'ai' | 'system',
                             parentId: m.parentId,
                             timestamp: m.timestamp || Date.now(),
@@ -242,6 +253,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     ...message, 
                     id: message.id,
                     content: message.content,
+                    contentBlocks: message.contentBlocks ?? (message.content ? [{ content: message.content, contentType: 'text' }] : []),
                     source: message.source,
                     timestamp: message.timestamp,
                     durationMs: message.durationMs, // Explicitly include durationMs
@@ -305,7 +317,11 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const idx = conv.messages.findIndex(m => m.id === messageId);
                 if (idx === -1) return s;
                 const msgs = [...conv.messages];
-                msgs[idx] = { ...msgs[idx], content };
+                msgs[idx] = { 
+                    ...msgs[idx], 
+                    content,
+                    contentBlocks: msgs[idx].contentBlocks ? msgs[idx].contentBlocks.map((cb,i)=> i===0 ? { ...cb, content } : cb ) : [{ content, contentType: 'text' }]
+                };
 
                 import('../services/api/apiClient').then(({ updateMessage }) =>
                     updateMessage({ convId, messageId, content })

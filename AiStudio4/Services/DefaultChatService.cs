@@ -202,9 +202,8 @@ namespace AiStudio4.Services
 
                     var messageHistory = request.BranchedConv.GetMessageHistory(request.MessageId)
                         .Select(msg => new MessageHistoryItem
-                        {
-                            Role = msg.Role.ToString().ToLower(),
-                            Content = msg.UserMessage,
+                        {                            Role = msg.Role.ToString().ToLower(),
+                            Content = string.Join("\n\n", (msg.ContentBlocks ?? new List<ContentBlock>()).Select(cb => cb.Content)),
                             Attachments = msg.Attachments
                         }).ToList();
 
@@ -214,8 +213,7 @@ namespace AiStudio4.Services
                     {
                         var message = new LinearConvMessage
                         {
-                            role = historyItem.Role,
-                            content = historyItem.Content,
+                            role = historyItem.Role,                            content = historyItem.Content,
                             attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
                             
                             
@@ -224,9 +222,7 @@ namespace AiStudio4.Services
                     }
 
                     
-                    var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");
-                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content)) 
-                    {
+                    var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content))                    {
                         linearConversation.messages.Add(new LinearConvMessage
                         {
                             role = "user",
@@ -324,7 +320,7 @@ namespace AiStudio4.Services
                         
 
                         var msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            userMessage: response.ResponseText, parentMessageId: request.MessageId,
+                            contentBlocks: new List<ContentBlock>{ new ContentBlock{ Content = response.ResponseText, ContentType = ContentType.Text } }, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
 
@@ -332,7 +328,8 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
-                            Content = toolResult.RequestedToolsSummary,
+                            ContentBlocks = msg.ContentBlocks,
+                            Content = string.Join("\n\n", msg.ContentBlocks.Select(cb => cb.Content)),
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",
@@ -347,14 +344,14 @@ namespace AiStudio4.Services
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
                         request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
-                            userMessage: collatedResponse.ToString(), parentMessageId: assistantMessageId, attachments: response.Attachments);
+                            contentBlocks: new List<ContentBlock>{ new ContentBlock{ Content = collatedResponse.ToString(), ContentType = ContentType.Text } }, parentMessageId: assistantMessageId, attachments: response.Attachments);
                         request.MessageId = newUserMessageId;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            Content = collatedResponse.ToString(),
+                            ContentBlocks = new List<ContentBlock>{ new ContentBlock{ Content = collatedResponse.ToString(), ContentType = ContentType.Text } },
                             ParentId = assistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
@@ -381,6 +378,8 @@ namespace AiStudio4.Services
                             Source = "assistant"
                         });
 
+                        request.BranchedConv.Save();
+
                     }
                     else 
                     {
@@ -393,7 +392,7 @@ namespace AiStudio4.Services
                         string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            userMessage: userMessage, parentMessageId: request.MessageId,
+                            contentBlocks: new List<ContentBlock>{ new ContentBlock{ Content = userMessage, ContentType = ContentType.Text } }, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
 
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
@@ -402,6 +401,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
+                            ContentBlocks = new List<ContentBlock>{ new ContentBlock{ Content = userMessage, ContentType = ContentType.Text } },
                             Content = userMessage,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),

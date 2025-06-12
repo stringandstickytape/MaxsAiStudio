@@ -5,6 +5,8 @@ import { useConvStore } from '@/stores/useConvStore';
 import { saveCodeBlockAsFile } from '@/services/api/apiClient';
 
 interface MessageActionsProps {
+  // The message object carries contentBlocks (preferred) and a legacy content string
+  message: any;
   message: any;
   onEdit: () => void;
 }
@@ -37,8 +39,13 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
         className="flex gap-2" // Changed: Removed overflow, whitespace, transition, etc.
         // Removed inline styles for maxWidth and opacity, making it always visible
       >
-        <button
-          onClick={() => navigator.clipboard.writeText(message.content)}
+        <button        // Copy concatenated text of all blocks (fallback to legacy string)
+        onClick={() => {
+          const flat = message.contentBlocks && message.contentBlocks.length
+            ? message.contentBlocks.map((cb: any) => cb.content).join('\n\n')
+            : message.content;
+          navigator.clipboard.writeText(flat);
+        }}
           className="ConvView p-1.5 rounded-full transition-all duration-200"
           style={{
             color: 'var(--convview-text-color, #9ca3af)',
@@ -71,8 +78,12 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
           onClick={async () => {
             let suggestedFilename = `message.txt`;
             try {
-              // const { saveCodeBlockAsFile } = await import('@/services/api/apiClient'); // Already imported at top
-              await saveCodeBlockAsFile({ content: message.content, suggestedFilename });
+              // const { saveCodeBlockAsFile } = await import('@/services/api/apiClient'); 
+                // Already imported at top              
+                const flat = message.contentBlocks && message.contentBlocks.length
+                ? message.contentBlocks.map((cb: any) => cb.content).join('\n\n')
+                : message.content;
+              await saveCodeBlockAsFile({ content: flat, suggestedFilename });
             } catch (e) {
               console.error('Save As failed:', e);
             }

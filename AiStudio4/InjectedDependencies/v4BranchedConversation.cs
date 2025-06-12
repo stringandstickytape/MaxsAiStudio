@@ -20,13 +20,34 @@ namespace AiStudio4.InjectedDependencies
         public v4BranchedConv(string convId)
         {
             ConvId = string.IsNullOrWhiteSpace(convId) ? throw new ArgumentNullException(nameof(convId)) : convId;
-        }
-
-        public void Save()
+        }        public void Save()
         {
             string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "convs", $"{ConvId}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, JsonConvert.SerializeObject(this));
+        }
+
+        /// <summary>
+        /// New overload accepting rich <see cref="ContentBlock"/> lists instead of a plain string.
+        /// Internally this flattens the blocks for legacy compatibility and then sets the full list on the message.
+        /// </summary>
+        internal v4BranchedConvMessage AddOrUpdateMessage(
+            v4BranchedConvMessageRole role,
+            string newMessageId,
+            List<ContentBlock> contentBlocks,
+            string parentMessageId,
+            List<DataModels.Attachment> attachments = null,
+            TokenCost costInfo = null)
+        {
+            // Flatten text blocks so existing logic continues to work for summarisation etc.
+            string flattened = contentBlocks == null ? null : string.Join("\n\n", contentBlocks.Select(cb => cb.Content));
+
+            // Re-use legacy string-based overload
+            var msg = AddOrUpdateMessage(role, newMessageId, flattened, parentMessageId, attachments, costInfo);
+
+            // Persist the full structured blocks
+            msg.ContentBlocks = contentBlocks ?? new List<ContentBlock>();
+            return msg;
         }
 
         internal v4BranchedConvMessage AddOrUpdateMessage(

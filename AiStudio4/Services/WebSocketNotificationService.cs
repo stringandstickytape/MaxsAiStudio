@@ -22,9 +22,7 @@ namespace AiStudio4.Services
         {
             _webSocketServer = webSocketServer;
             _logger = logger;
-        }
-
-        public async Task NotifyConvUpdate(string clientId, ConvUpdateDto update)
+        }        public async Task NotifyConvUpdate(string clientId, ConvUpdateDto update)
         {
             try
             {
@@ -33,10 +31,11 @@ namespace AiStudio4.Services
                 }
 
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
-                if (update == null) throw new ArgumentNullException(nameof(update));
+                if (update == null) throw new ArgumentNullException(nameof(update));                // Determine update type
+                bool hasContentBlocks = update.ContentBlocks != null && update.ContentBlocks.Count > 0;
+                bool hasPlainContent = update.Content is string;
 
-                // If Content is a regular conv update
-                if (update.Content is string)
+                if (hasContentBlocks)
                 {
                     var message = new
                     {
@@ -44,12 +43,11 @@ namespace AiStudio4.Services
                         content = new
                         {
                             convId = update.ConvId,
-                            id = update.MessageId,
-                            content = update.Content,
-                            source = update.Source ?? "ai", // Use provided source or default to "ai"
+                            id = update.MessageId,                            contentBlocks = update.ContentBlocks,
+                            content = string.Join("\n\n", update.ContentBlocks.Select(cb => cb.Content)),
+                            source = update.Source ?? "ai",
                             parentId = update.ParentId,
                             timestamp = update.Timestamp,
-                            // Note: We're no longer sending children arrays to the client
                             tokenUsage = update.TokenUsage,
                             costInfo = update.CostInfo,
                             cumulativeCost = update.CumulativeCost,
@@ -60,9 +58,32 @@ namespace AiStudio4.Services
                     };
                     await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
                 }
-                // If Content is a conv load message
+                else if (hasPlainContent)
+                {
+                    var message = new
+                    {
+                        messageType = "conv",
+                        content = new
+                        {
+                            convId = update.ConvId,
+                            id = update.MessageId,
+                            content = update.Content,
+                            source = update.Source ?? "ai",
+                            parentId = update.ParentId,
+                            timestamp = update.Timestamp,
+                            tokenUsage = update.TokenUsage,
+                            costInfo = update.CostInfo,
+                            cumulativeCost = update.CumulativeCost,
+                            attachments = update.Attachments,
+                            durationMs = update.DurationMs,
+                            temperature = update.Temperature
+                        }
+                    };
+                    await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
+                }
                 else
                 {
+                    // Fallback: send raw content object to specific client
                     await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(update.Content));
                 }
 

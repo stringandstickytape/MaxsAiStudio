@@ -59,8 +59,11 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
             const message = conv.messages.find(msg => msg.id === nodeId);
             if (message) {
                 // Set the prompt to the user message content
-                if (window.setPrompt) {
-                    window.setPrompt(message.content);
+                if (window.setPrompt) {                    // Prefer rich contentBlocks, fallback to legacy string
+                    const flat = message.contentBlocks && message.contentBlocks.length
+                      ? message.contentBlocks.map((cb: any) => cb.content).join('\n\n')
+                      : message.content;
+                    window.setPrompt(flat);
                 }
                 
                 // If it has a parent, select the parent (AI message)

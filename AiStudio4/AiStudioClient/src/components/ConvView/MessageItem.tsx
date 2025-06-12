@@ -50,8 +50,12 @@ const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps)
 export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
-  const attachmentsById = useAttachmentStore(state => state.attachmentsById);
-  const [editContent, setEditContent] = useState<string>('');
+  const attachmentsById = useAttachmentStore(state => state.attachmentsById);  const [editContent, setEditContent] = useState<string>('');
+
+  // Helper: flattened text for rendering
+  const flattenedContent = message.contentBlocks && message.contentBlocks.length
+    ? (message.contentBlocks as any[]).map((cb: any) => cb.content).join('\n\n')
+    : message.content;
   const messageRef = useRef<HTMLDivElement>(null);
   
   // Use the new streaming hook
@@ -130,14 +134,12 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
             onCancel={() => cancelEditMessage()}
           />
         ) : (
-          <>
-            <MarkdownPane message={message.content + streamedContent} />
+          <>            <MarkdownPane message={(flattenedContent ?? '') + streamedContent} />
             {/* Only show actions if not actively streaming */}
             {!isStreamingTarget && (
               <MessageActions 
                 message={message} 
-                onEdit={() => {
-                  setEditContent(message.content);
+                onEdit={() => {                  setEditContent(flattenedContent);
                   useConvStore.getState().editMessage(message.id);
                 }} 
               />
