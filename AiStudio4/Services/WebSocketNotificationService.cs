@@ -22,7 +22,9 @@ namespace AiStudio4.Services
         {
             _webSocketServer = webSocketServer;
             _logger = logger;
-        }        public async Task NotifyConvUpdate(string clientId, ConvUpdateDto update)
+        }        
+        
+        public async Task NotifyConvUpdate(string clientId, ConvUpdateDto update)
         {
             try
             {
@@ -33,7 +35,7 @@ namespace AiStudio4.Services
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
                 if (update == null) throw new ArgumentNullException(nameof(update));                // Determine update type
                 bool hasContentBlocks = update.ContentBlocks != null && update.ContentBlocks.Count > 0;
-                bool hasPlainContent = update.Content is string;
+                bool hasPlainContent = update.ContentBlocks.Any(x => x.ContentType == 0);
 
                 if (hasContentBlocks)
                 {
@@ -43,8 +45,8 @@ namespace AiStudio4.Services
                         content = new
                         {
                             convId = update.ConvId,
-                            id = update.MessageId,                            contentBlocks = update.ContentBlocks,
-                            content = string.Join("\n\n", update.ContentBlocks.Select(cb => cb.Content)),
+                            id = update.MessageId,
+                            contentBlocks = update.ContentBlocks,
                             source = update.Source ?? "ai",
                             parentId = update.ParentId,
                             timestamp = update.Timestamp,
@@ -67,7 +69,7 @@ namespace AiStudio4.Services
                         {
                             convId = update.ConvId,
                             id = update.MessageId,
-                            content = update.Content,
+                            contentBlocks = update.ContentBlocks,
                             source = update.Source ?? "ai",
                             parentId = update.ParentId,
                             timestamp = update.Timestamp,
@@ -83,8 +85,7 @@ namespace AiStudio4.Services
                 }
                 else
                 {
-                    // Fallback: send raw content object to specific client
-                    await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(update.Content));
+                    _logger.LogDebug("Conversation update error for {ClientId}", clientId);
                 }
 
                 _logger.LogDebug("Sent conv update to client {ClientId}", clientId);

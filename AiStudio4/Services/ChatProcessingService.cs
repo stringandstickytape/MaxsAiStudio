@@ -182,7 +182,6 @@ namespace AiStudio4.Services
                         ConvId = conv.ConvId,
                         MessageId = newUserMessage.Id,
                         ContentBlocks = newUserMessage.ContentBlocks,
-                        Content = string.Join("\n\n", newUserMessage.ContentBlocks.Select(cb => cb.Content)),
                         ParentId = chatRequest.ParentMessageId,
                         Timestamp = new DateTimeOffset(newUserMessage.Timestamp).ToUnixTimeMilliseconds(),
                         Source = "user", // Explicitly set source as "user"
@@ -196,7 +195,6 @@ namespace AiStudio4.Services
                         ConvId = conv.ConvId,
                         MessageId = assistantMessageId,
                         ContentBlocks = new List<ContentBlock>(), // Empty list for placeholder
-                        Content = "",
                         ParentId = chatRequest.MessageId,
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Source = "assistant"

@@ -347,7 +347,7 @@ public partial class WebViewWindow : Window
                     {
                         ConvId = firstConvToLoad.ConvId, 
                         MessageId = null, 
-                        Content = loadConvPayload, 
+                        //Content = loadConvPayload, 
                         Source = "system_import", 
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     });

@@ -121,7 +121,7 @@ namespace AiStudio4.Services
                 {
                     ConvId = conv.ConvId,
                     MessageId = messageId,
-                    Content = new { type = "messageDeleted", messageId, descendantCount = toDelete.Count - 1 }
+                    //Content = new { type = "messageDeleted", messageId, descendantCount = toDelete.Count - 1 }
                 });
                 
                 return JsonConvert.SerializeObject(new { success = true, deletedCount = toDelete.Count });
@@ -152,7 +152,7 @@ namespace AiStudio4.Services
                     {
                         ConvId = convId,
                         MessageId = null,
-                        Content = new { type = "conversationDeleted", convId }
+                        //Content = new { type = "conversationDeleted", convId }
                     });
                     
                     return JsonConvert.SerializeObject(new { success = true });

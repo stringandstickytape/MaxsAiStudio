@@ -329,7 +329,6 @@ namespace AiStudio4.Services
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
                             ContentBlocks = msg.ContentBlocks,
-                            Content = string.Join("\n\n", msg.ContentBlocks.Select(cb => cb.Content)),
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",
@@ -372,7 +371,8 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
-                            Content = "", // Empty content
+                            ContentBlocks = new List<ContentBlock> { },
+                            //Content = "", // Empty content
                             ParentId = newUserMessageId,
                             Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                             Source = "assistant"
@@ -402,7 +402,7 @@ namespace AiStudio4.Services
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
                             ContentBlocks = new List<ContentBlock>{ new ContentBlock{ Content = userMessage, ContentType = ContentType.Text } },
-                            Content = userMessage,
+                            //Content = userMessage,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",

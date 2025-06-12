@@ -9,18 +9,15 @@ namespace AiStudio4.InjectedDependencies
     {
         private readonly ConvService _convService;
         private readonly ChatProcessingService _chatProcessingService;
-        private readonly MessageHistoryService _messageHistoryService;
         private readonly ILogger<ChatManager> _logger;
 
         public ChatManager(
             ConvService convService,
             ChatProcessingService chatProcessingService,
-            MessageHistoryService messageHistoryService,
             ILogger<ChatManager> logger)
         {
             _convService = convService;
             _chatProcessingService = chatProcessingService;
-            _messageHistoryService = messageHistoryService;
             _logger = logger;
         }
 
@@ -37,18 +34,6 @@ namespace AiStudio4.InjectedDependencies
             }
         }
 
-        internal async Task<string> HandleConvMessagesRequest(string clientId, JObject? requestObject)
-        {
-            try
-            {
-                return await _messageHistoryService.HandleConvMessagesRequest(clientId, requestObject);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in HandleConvMessagesRequest");
-                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
-            }
-        }
 
         internal async Task<string> HandleHistoricalConvTreeRequest(string clientId, JObject? requestObject)
         {

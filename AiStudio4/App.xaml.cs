@@ -110,7 +110,6 @@ public const decimal VersionNumber = 1.03m;
             services.AddSingleton<WebSocketServer>();
             services.AddSingleton<ConvService>();
             services.AddSingleton<ChatProcessingService>();
-            services.AddSingleton<MessageHistoryService>();
             services.AddSingleton<ChatManager>();
             
             // Register request handlers

@@ -9,8 +9,7 @@ namespace AiStudio4.Core.Models
     {
         public string ConvId { get; set; }
         public string MessageId { get; set; }
-        public string ParentId { get; set; }        [Obsolete("Use ContentBlocks instead.")]
-        public object Content { get; set; } // sometimes this is a c# string, sometimes another type...
+        public string ParentId { get; set; }        
 
         /// <summary>
         /// The new rich content representation for a message.

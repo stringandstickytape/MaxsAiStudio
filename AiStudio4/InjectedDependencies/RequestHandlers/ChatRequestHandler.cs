@@ -65,7 +65,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     "getModels" => JsonConvert.SerializeObject(new { success = true, models = _generalSettingsService.CurrentSettings.ModelList }),
                     "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _generalSettingsService.CurrentSettings.ServiceProviders }),
                     "getAvailableServiceProviders" => JsonConvert.SerializeObject(new { success = true, serviceProviders = AiServiceResolver.GetAvailableServiceNames() }),
-                    "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
                     "getConv" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "historicalConvTree" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "deleteMessageWithDescendants" => await _chatManager.HandleDeleteMessageWithDescendantsRequest(clientId, requestObject),
