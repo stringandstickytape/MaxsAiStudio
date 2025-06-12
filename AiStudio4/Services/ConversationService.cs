@@ -46,9 +46,6 @@ namespace AiStudio4.Services
                 // Convert to the format expected by the client
                 var messagesForClient = allMessages.Select(msg => new {
                     id = msg.Id,
-                    text = msg.ContentBlocks != null && msg.ContentBlocks.Any() 
-                        ? string.Join("\n\n", msg.ContentBlocks.Select(cb => cb.Content))
-                        : msg.UserMessage ?? "[Empty Message]",
                     contentBlocks = msg.ContentBlocks ?? 
                         (string.IsNullOrEmpty(msg.UserMessage) ? new List<ContentBlock>() : 
                          new List<ContentBlock> { new ContentBlock { Content = msg.UserMessage, ContentType = ContentType.Text } }),

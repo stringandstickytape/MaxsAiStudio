@@ -25,7 +25,8 @@ export const useMessageTree = (messages: Message[]) => {
       // Recursive function to build the tree
       const buildTree = (message: Message, depth: number = 0): TreeNode => {
         const node: TreeNode = {
-          id: message.id,          content: message.contentBlocks?.map((cb: any)=>cb.content).join('\n\n') ?? '',
+          id: message.id,
+          contentBlocks: message.contentBlocks || [],
           source: message.source,
           children: [],
           parentId: message.parentId,
