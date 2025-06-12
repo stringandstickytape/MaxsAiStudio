@@ -133,7 +133,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  <div className="grid server-modal-grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {[...providers]
             .sort((a, b) => a.friendlyName.localeCompare(b.friendlyName))
             .map((provider) => (

@@ -155,7 +155,7 @@ export function ServerModal() {
           </div>
         </UnifiedModalHeader>
         <UnifiedModalContent style={{ backgroundColor: 'var(--global-background-color)' }}>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
+          <div className="grid server-modal-grid grid-cols-1 md:grid-cols-4 gap-4 mb-4" style={{ backgroundColor: 'var(--global-background-color)' }}>
             {/* Left sidebar for categories - for future use */}
             <div className="md:col-span-1" style={{ backgroundColor: 'var(--global-background-color)' }}>
               <div className="text-sm text-gray-400 mb-2" style={{ color: 'var(--global-secondary-color)' }}>

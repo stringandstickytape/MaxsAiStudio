@@ -182,7 +182,7 @@ export function GenericForm({
           }
         }
       });
-
+       
       
       if (currentRow.length > 0) {
         rows.push(currentRow);
@@ -192,7 +192,7 @@ export function GenericForm({
       return rows.map((rowFields, rowIndex) => (
         <div
           key={`row-${rowIndex}`}
-          className={`grid grid-cols-${rowFields.length === 1 && rowFields[0].colSpan === 2 ? '1' : '2'} gap-4`}
+          className={`grid generic-form-grid grid-cols-${rowFields.length === 1 && rowFields[0].colSpan === 2 ? '1' : '2'} gap-4`}
         >
           {rowFields.map((field) => renderField(field))}
         </div>
@@ -387,7 +387,8 @@ export function GenericForm({
                     defaultValue={formField.value}
                     disabled={isProcessing}
                   >
-                    <SelectTrigger 
+                            <SelectTrigger 
+                                id={ 'trigger-'+formField.name }
                       className="input-base"
                       style={{
                         backgroundColor: 'var(--global-background-color, inherit)',

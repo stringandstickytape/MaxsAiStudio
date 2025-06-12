@@ -198,6 +198,7 @@ export const ModelForm: React.FC<ModelFormProps> = ({ providers, initialValues, 
         isProcessing={isProcessing}
         submitButtonText={initialValues ? 'Update Model' : 'Add Model'}
         layout="grid"
+        submitButtonId="model-management-add-model-button"
       />
     </div>
   );
