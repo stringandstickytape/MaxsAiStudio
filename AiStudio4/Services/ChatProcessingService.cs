@@ -187,10 +187,23 @@ namespace AiStudio4.Services
 
 
                     // Create a placeholder for the live stream to follow
-                    var placeholderMessage = conv.CreatePlaceholder(assistantMessageId, chatRequest.MessageId);
+                    var placeholderMessage = conv.AddOrUpdateMessage(
+                        v4BranchedConvMessageRole.Assistant,
+                        assistantMessageId,
+                        "", // Content is initially empty
+                        chatRequest.MessageId // Parent is the user's message
+                    );
 
                     // Notify client to create the placeholder AI MessageItem
-                    await _notificationService.NotifyConvPlaceholderUpdate(clientId, conv, placeholderMessage);
+                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
+                    {
+                        ConvId = conv.ConvId,
+                        MessageId = placeholderMessage.Id,
+                        ContentBlocks = placeholderMessage.ContentBlocks,
+                        ParentId = placeholderMessage.ParentId,
+                        Timestamp = new DateTimeOffset(placeholderMessage.Timestamp).ToUnixTimeMilliseconds(),
+                        Source = "assistant"
+                    });
 
 
 

@@ -1,4 +1,4 @@
-﻿// AiStudioClient/src/components/InputBar/InputBar.tsx
+﻿// AiStudio4/AiStudioClient/src/components/InputBar/InputBar.tsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusMessage } from '@/components/StatusMessage';
@@ -63,7 +63,7 @@ export function InputBar({
     const [localInputText, setLocalInputText] = useState('');
 
     const {
-		stagedAttachments: attachments,
+        stagedAttachments: attachments,
         addStagedAttachment: addAttachment,
     } = useAttachmentStore();
 
@@ -128,14 +128,18 @@ export function InputBar({
 
     const handleChatMessage = useCallback(async (message: string, messageAttachments?: Attachment[]) => {
         try {
-            let convId = activeConvId;
+            // Get latest state directly from stores AT EXECUTION TIME
+            let { activeConvId: currentConvId, createConv: createConvAction } = useConvStore.getState();
+            const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore.getState();
+
+            let convId = currentConvId;
             let systemPromptId = null;
             let systemPromptContent = null;
 
             if (!convId) {
                 convId = `conv_${uuidv4()}`;
                 const messageId = `msg_${uuidv4()}`;
-                createConv({
+                createConvAction({
                     id: convId,
                     rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
                 });
@@ -150,7 +154,6 @@ export function InputBar({
             const messageId = `msg_${uuidv4()}`;
             setCurrentRequest({ convId, messageId });
 
-            // parentMessageId is now handled internally by sendMessage via store state
             await sendMessage({
                 convId,
                 message,
@@ -165,18 +168,7 @@ export function InputBar({
         } finally {
             setCurrentRequest(undefined);
         }
-    }, [
-        activeTools,
-        convPrompts,
-        defaultPromptId,
-        prompts,
-        sendMessage,
-        activeConvId,
-        slctdMsgId,
-        convs,
-        createConv,
-        setCurrentRequest
-    ]);
+    }, [sendMessage, setCurrentRequest]);
 
     const handleSend = async () => {
         if (isCancelling) return;
@@ -195,14 +187,14 @@ export function InputBar({
             const fullMessage = (inputText ? inputText : "continue") + textFileContent;
 
             const messageAttachments = useAttachmentStore.getState().getStagedAttachments().filter(att => !(att.textContent));
-            
+
             await handleChatMessage(fullMessage, messageAttachments);
             useAttachmentStore.getState().clearStagedAttachments();
             setInputText('');
         }
     };
 
-        // Handle cancellation state cleanup
+    // Handle cancellation state cleanup
     useEffect(() => {
         if (!isLoading && isCancelling) {
             setIsCancelling(false);

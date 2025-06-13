@@ -373,24 +373,13 @@ namespace AiStudio4.Services
                         });
                         assistantMessageId = $"msg_{Guid.NewGuid()}";
 
-                        var placeholderMessage = request.BranchedConv.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.Assistant,
-                            assistantMessageId,
-                            "", // Content is initially empty
-                            newUserMessageId // Parent is the user's message
-                        );
+
+
+
+                        var placeholderMessage = request.BranchedConv.CreatePlaceholder(assistantMessageId, assistantMessageId);
 
                         // Notify client to create the placeholder AI MessageItem
-                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                        {
-                            ConvId = request.BranchedConv.ConvId,
-                            MessageId = assistantMessageId,
-                            ContentBlocks = new List<ContentBlock> { },
-                            //Content = "", // Empty content
-                            ParentId = newUserMessageId,
-                            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                            Source = "assistant"
-                        });
+                        await _notificationService.NotifyConvPlaceholderUpdate(request.ClientId, request.BranchedConv, placeholderMessage);
 
                         request.BranchedConv.Save();
 
