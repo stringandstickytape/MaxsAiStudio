@@ -376,7 +376,7 @@ namespace AiStudio4.Services
 
 
 
-                        var placeholderMessage = request.BranchedConv.CreatePlaceholder(assistantMessageId, assistantMessageId);
+                        var placeholderMessage = request.BranchedConv.CreatePlaceholder(assistantMessageId, newUserMessageId);
 
                         // Notify client to create the placeholder AI MessageItem
                         await _notificationService.NotifyConvPlaceholderUpdate(request.ClientId, request.BranchedConv, placeholderMessage);

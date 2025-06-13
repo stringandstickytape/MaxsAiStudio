@@ -184,27 +184,10 @@ namespace AiStudio4.Services
                         DurationMs = 0, // User messages have zero processing duration
                     });
 
-
-
-                    // Create a placeholder for the live stream to follow
-                    var placeholderMessage = conv.AddOrUpdateMessage(
-                        v4BranchedConvMessageRole.Assistant,
-                        assistantMessageId,
-                        "", // Content is initially empty
-                        chatRequest.MessageId // Parent is the user's message
-                    );
+                    var placeholderMessage = conv.CreatePlaceholder(assistantMessageId, newUserMessage.Id);
 
                     // Notify client to create the placeholder AI MessageItem
-                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
-                    {
-                        ConvId = conv.ConvId,
-                        MessageId = placeholderMessage.Id,
-                        ContentBlocks = placeholderMessage.ContentBlocks,
-                        ParentId = placeholderMessage.ParentId,
-                        Timestamp = new DateTimeOffset(placeholderMessage.Timestamp).ToUnixTimeMilliseconds(),
-                        Source = "assistant"
-                    });
-
+                    await _notificationService.NotifyConvPlaceholderUpdate(clientId, conv, placeholderMessage);
 
 
                     var messagesForClient = BuildFlatMessageStructure(conv);

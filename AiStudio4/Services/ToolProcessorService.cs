@@ -153,8 +153,6 @@ namespace AiStudio4.Services
                                 var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
 
                                 toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName, resultContentBlocks, cleanedToolResponseText);
-
-                                resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = toolResultMessageContent });
                             }
                             else
                             {
@@ -169,7 +167,6 @@ namespace AiStudio4.Services
                                     {
                                         toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName, resultContentBlocks, cleanedToolResponseText);
 
-                                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = toolResultMessageContent });
                                         break;
                                     }
 
