@@ -19,7 +19,6 @@ namespace AiStudio4.Core.Models
         public List<ToolExecutionResultContentBlocks> ToolsOutputContentBlocks { get; set; } = new List<ToolExecutionResultContentBlocks>();
 
 
-        public string AggregatedToolOutput { get; set; }
 
         
         
@@ -43,33 +42,5 @@ namespace AiStudio4.Core.Models
 
         
         
-        
-        public string RequestedToolsSummary { get; set; }
-
-
-        
-        
-        
-        public static ToolExecutionResult Successful(string aggregatedToolOutput, List<Attachment> attachments = null)
-        {
-            return new ToolExecutionResult
-            {
-                AggregatedToolOutput = aggregatedToolOutput,
-                Attachments = attachments,
-                Success = true
-            };
-        }
-
-        
-        
-        
-        public static ToolExecutionResult Failed(string errorMessage)
-        {
-            return new ToolExecutionResult
-            {
-                ErrorMessage = errorMessage,
-                Success = false
-            };
-        }
     }
 }

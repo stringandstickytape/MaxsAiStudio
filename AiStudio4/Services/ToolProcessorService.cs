@@ -54,7 +54,7 @@ namespace AiStudio4.Services
         /// <param name="conv">The current conversation state</param>
         /// <param name="collatedResponse">Builder to accumulate tool execution outputs</param>
         /// <returns>Tool execution result with success status and updated content</returns>
-        public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default, string clientId = null)
+        public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, CancellationToken cancellationToken = default, string clientId = null)
         {
             // Rate limiting with lock for thread safety
             //lock (_rateLimitLock)
@@ -231,7 +231,7 @@ namespace AiStudio4.Services
                     // Add tool result message to conversation history
                     conv.messages[conv.messages.Count - 1].content += $"\n{toolResultMessageContent}\n";
 
-                    collatedResponse.AppendLine(toolResultMessageContent);
+                    //collatedResponse.AppendLine(toolResultMessageContent);
                 }
 
 
@@ -243,39 +243,37 @@ namespace AiStudio4.Services
             }
 
             // Prepare tool request and result information
-            StringBuilder toolRequestInfo = new StringBuilder();
-            string toolResultInfo = collatedResponse.ToString();
-
-            if (response.ToolResponseSet != null && response.ToolResponseSet.Tools.Any())
-            {
-                // Collect all tool names and parameters for the ToolRequested property
-                foreach (var tool in response.ToolResponseSet.Tools)
-                {
-                    if (toolRequestInfo.Length > 0)
-                        toolRequestInfo.AppendLine();
-                    toolRequestInfo.Append($"Use Tool: {tool.ToolName}");
-
-                    // Include parameters hash to ensure we can detect duplicate calls with different parameters
-                    // without storing potentially large parameter text
-                    if (!string.IsNullOrEmpty(tool.ResponseText))
-                    {
-                        string paramHash = ComputeSha256Hash(tool.ResponseText);
-                        toolRequestInfo.Append($" [{paramHash.Substring(0,7)}]");
-                    }
-                }
-            }
-
-            var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
+            //StringBuilder toolRequestInfo = new StringBuilder();
+            //string toolResultInfo = collatedResponse.ToString();
+            //
+            //if (response.ToolResponseSet != null && response.ToolResponseSet.Tools.Any())
+            //{
+            //    // Collect all tool names and parameters for the ToolRequested property
+            //    foreach (var tool in response.ToolResponseSet.Tools)
+            //    {
+            //        if (toolRequestInfo.Length > 0)
+            //            toolRequestInfo.AppendLine();
+            //        toolRequestInfo.Append($"Use Tool: {tool.ToolName}");
+            //
+            //        // Include parameters hash to ensure we can detect duplicate calls with different parameters
+            //        // without storing potentially large parameter text
+            //        if (!string.IsNullOrEmpty(tool.ResponseText))
+            //        {
+            //            string paramHash = ComputeSha256Hash(tool.ResponseText);
+            //            toolRequestInfo.Append($" [{paramHash.Substring(0,7)}]");
+            //        }
+            //    }
+            //}
+            //
+            //var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
 
             return new ToolExecutionResult
             {
-                AggregatedToolOutput = collatedResponse.ToString(),
                 Attachments = attachments,
                 Success = true,
                 ToolsOutputContentBlocks = toolsOutputContentBlocks,
                 // ContinueProcessing flag to indicate whether the tool loop should continue
                 ShouldContinueToolLoop = continueLoop,
-                RequestedToolsSummary = toolRequestInfoOut
             };
         }
 

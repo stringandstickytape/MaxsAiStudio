@@ -165,7 +165,6 @@ namespace AiStudio4.Services
                 List<Attachment> finalAttachments = new List<Attachment>(); 
 
 
-                StringBuilder collatedResponse = new StringBuilder();
 
 
                 
@@ -191,7 +190,6 @@ namespace AiStudio4.Services
                         break;
                     }
 
-                    collatedResponse = new StringBuilder();
                     currentIteration++;
 
                     
@@ -280,9 +278,9 @@ namespace AiStudio4.Services
 
                     //////// PROCESS TOOLS
 
-                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
+                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, request.CancellationToken, request.ClientId);
 
-                    var toolCollatedResponse = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
+                    var toolsResponeBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
 
 
                     /////// PROCESS TOOL RESULTS
@@ -291,13 +289,13 @@ namespace AiStudio4.Services
                     bool duplicateDetection = false;
 
                     
-                    if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
-                    {
-                        _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);
-                        await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row with identical parameters. Tool loop aborted.");
-                        duplicateDetection = true;
-                    }
-                    previousToolRequested = toolResult.RequestedToolsSummary;
+                    //if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
+                    //{
+                    //    _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);
+                    //    await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row with identical parameters. Tool loop aborted.");
+                    //    duplicateDetection = true;
+                    //}
+                    //previousToolRequested = toolResult.RequestedToolsSummary;
                     
 
                     continueLoop = toolResult.ShouldContinueToolLoop;
@@ -323,9 +321,7 @@ namespace AiStudio4.Services
                             if (!string.IsNullOrEmpty(interjection))
                             {
                                 
-                                collatedResponse.Insert(0, $"User interjection: {interjection}\n\n");
-
-                                toolCollatedResponse.Add(new ContentBlock { Content = $"User interjection: {interjection}\n\n" });
+                                toolsResponeBlocks.Add(new ContentBlock { Content = $"User interjection: {interjection}\n\n" });
                                 
                                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, "Your interjection has been added to the conversation.");
                             }
@@ -356,14 +352,14 @@ namespace AiStudio4.Services
                         
 
                         request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
-                            contentBlocks: toolCollatedResponse, parentMessageId: assistantMessageId, attachments: response.Attachments);
+                            contentBlocks: toolsResponeBlocks, parentMessageId: assistantMessageId, attachments: response.Attachments);
                         request.MessageId = newUserMessageId;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            ContentBlocks = toolCollatedResponse,
+                            ContentBlocks = toolsResponeBlocks,
                             ParentId = assistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
@@ -398,15 +394,15 @@ namespace AiStudio4.Services
                     { 
                         // We aren't looping.  So we need to send the final response back to the user and update the UI.
                         List<ContentBlock> contentBlocks = new();
-                        string duplicateDetectionText = "";
-                        if(duplicateDetection)
-                        {
-                            duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
-                            contentBlocks.Add(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text });
-                        }
+                        //string duplicateDetectionText = "";
+                        //if(duplicateDetection)
+                        //{
+                        //    duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
+                        //    contentBlocks.Add(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text });
+                        //}
                         
                         contentBlocks.AddRange(response.ContentBlocks);
-                        contentBlocks.AddRange(toolCollatedResponse);
+                        contentBlocks.AddRange(toolsResponeBlocks);
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             contentBlocks: contentBlocks.ToList(), parentMessageId: request.MessageId,

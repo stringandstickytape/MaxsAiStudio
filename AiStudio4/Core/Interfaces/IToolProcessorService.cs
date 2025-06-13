@@ -20,6 +20,6 @@ namespace AiStudio4.Core.Interfaces
         /// <param name="conv">The current conversation state</param>
         /// <param name="collatedResponse">Builder to accumulate tool execution outputs</param>
         /// <returns>Whether to continue the tool processing loop</returns>
-        Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default, string clientId = null);
+        Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, CancellationToken cancellationToken = default, string clientId = null);
     }
 }
