@@ -194,7 +194,7 @@ namespace AiStudio4.Services
                     {
                         ConvId = conv.ConvId,
                         MessageId = assistantMessageId,
-                        ContentBlocks = new List<ContentBlock>(), // Empty list for placeholder
+                        ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = "", ContentType = ContentType.Text } }, // Empty list for placeholder
                         ParentId = chatRequest.MessageId,
                         Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
                         Source = "assistant"
