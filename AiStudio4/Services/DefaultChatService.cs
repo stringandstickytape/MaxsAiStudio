@@ -1,5 +1,6 @@
+﻿
 
-
+// This is a test comment added by AI on user request
 using AiStudio4.Core.Exceptions;
 
 
@@ -282,7 +283,11 @@ namespace AiStudio4.Services
 
                     var toolsResponseBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
 
+                    var toolsRequestBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.RequestBlocks).ToList();
 
+                    var allRequestBlocks = new List<ContentBlock>();
+                    allRequestBlocks.AddRange(response.ContentBlocks);
+                    allRequestBlocks.AddRange(toolsRequestBlocks);
                     /////// PROCESS TOOL RESULTS
 
 
@@ -328,7 +333,7 @@ namespace AiStudio4.Services
                         }
 
                         var msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            contentBlocks: response.ContentBlocks, parentMessageId: request.MessageId,
+                            contentBlocks: allRequestBlocks, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
 
@@ -336,7 +341,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
-                            ContentBlocks = msg.ContentBlocks,
+                            ContentBlocks = allRequestBlocks,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",
@@ -401,7 +406,7 @@ namespace AiStudio4.Services
                         //    contentBlocks.Add(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text });
                         //}
                         
-                        contentBlocks.AddRange(response.ContentBlocks);
+                        contentBlocks.AddRange(allRequestBlocks);
                         contentBlocks.AddRange(toolsResponseBlocks);
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,

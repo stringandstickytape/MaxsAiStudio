@@ -3,6 +3,8 @@
 
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 
 
@@ -108,6 +110,38 @@ namespace AiStudio4.Services
 
                     try
                     {
+                        // Extract and handle task_description
+                        JObject toolCallArgs = null;
+                        string cleanedToolResponseText = toolResponse.ResponseText;
+
+                        try
+                        {
+                            toolCallArgs = JObject.Parse(toolResponse.ResponseText);
+                            if (toolCallArgs.TryGetValue("task_description", out JToken taskDescriptionToken))
+                            {
+                                string taskDescription = taskDescriptionToken.ToString();
+                                
+                                // Send the description to the front-end as a status update
+                                await _notificationFacade.SendStatusMessageAsync(clientId, taskDescription);
+                                
+                                // Add the task description to the request blocks for visibility
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Task: {taskDescription}\n\n" });
+                                
+                                // Remove the property from the arguments object
+                                toolCallArgs.Remove("task_description");
+                                
+                                // Update the response text to be used by the tool handlers
+                                cleanedToolResponseText = toolCallArgs.ToString(Formatting.None);
+                                
+                                _logger.LogInformation("Extracted task description for tool '{ToolName}': {Description}", toolResponse.ToolName, taskDescription);
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // The response might not be a JSON object, which is fine for some tools.
+                            // In that case, we can't extract a task_description, so we proceed with the original text.
+                            _logger.LogWarning("Tool response for '{ToolName}' is not a valid JSON object. Cannot extract task description.", toolResponse.ToolName);
+                        }
                         var nonMcpTool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
 
                         if (nonMcpTool == null)
@@ -118,7 +152,7 @@ namespace AiStudio4.Services
                                 var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
                                 var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
 
-                                toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName, resultContentBlocks);
+                                toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName, resultContentBlocks, cleanedToolResponseText);
 
                                 resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = toolResultMessageContent });
                             }
@@ -133,7 +167,7 @@ namespace AiStudio4.Services
 
                                     if(mcpTool != null)
                                     {
-                                        toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName, resultContentBlocks);
+                                        toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName, resultContentBlocks, cleanedToolResponseText);
 
                                         resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = toolResultMessageContent });
                                         break;
@@ -150,11 +184,11 @@ namespace AiStudio4.Services
                             var extraProps = tool?.ExtraProperties ?? new Dictionary<string, string>();
 
                             // Pass the extraProps to the tool processor
-                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, clientId);
+                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, cleanedToolResponseText, extraProps, clientId);
 
                             if (builtinToolResult.WasProcessed)
                             {
-                                response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
+                                //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
 
                                 resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Request: \n\n{toolResponse.ToolName}\n\n" });
 
@@ -211,9 +245,9 @@ namespace AiStudio4.Services
                                 // Handle non-MCP, non-built-in tools or tools where the server definition is missing/disabled
                                 _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool or recognized built-in tool.", toolResponse.ToolName);
 
-                                toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+                                toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{cleanedToolResponseText}\n```\n\n"; // Serialize the result content
 
-                                resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{toolResponse.ResponseText}\n```\n\n" });
+                                resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{cleanedToolResponseText}\n```\n\n" });
 
                                 // since the tool was not processed, the user must process it...
                                 continueLoop = false;
@@ -277,15 +311,18 @@ namespace AiStudio4.Services
             };
         }
 
-        private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName, ToolExecutionResultContentBlocks resultContentBlocks)
+        private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName, ToolExecutionResultContentBlocks resultContentBlocks, string cleanedToolResponseText = null)
         {
-            response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{actualToolName}\n\n", ContentType = ContentType.Text });
+            //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{actualToolName}\n\n", ContentType = ContentType.Text });
 
             resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"MCP tool requested: {actualToolName}\n\n" });
 
-            var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
+            // Use cleanedToolResponseText if provided, otherwise fall back to original ResponseText
+            string responseTextToUse = cleanedToolResponseText ?? toolResponse.ResponseText;
+            
+            var setsOfToolParameters = string.IsNullOrEmpty(responseTextToUse)
                 ? new List<Dictionary<string, object>>()
-                : ExtractMultipleJsonObjects(toolResponse.ResponseText)
+                : ExtractMultipleJsonObjects(responseTextToUse)
                     .Select(json => CustomJsonParser.ParseJson(json))
                     .ToList();
 
