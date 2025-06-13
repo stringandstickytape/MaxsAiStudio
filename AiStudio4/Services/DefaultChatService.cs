@@ -280,7 +280,7 @@ namespace AiStudio4.Services
 
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, request.CancellationToken, request.ClientId);
 
-                    var toolsResponeBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
+                    var toolsResponseBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
 
 
                     /////// PROCESS TOOL RESULTS
@@ -321,7 +321,7 @@ namespace AiStudio4.Services
                             if (!string.IsNullOrEmpty(interjection))
                             {
                                 
-                                toolsResponeBlocks.Add(new ContentBlock { Content = $"User interjection: {interjection}\n\n" });
+                                toolsResponseBlocks.Add(new ContentBlock { Content = $"User interjection: {interjection}\n\n" });
                                 
                                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, "Your interjection has been added to the conversation.");
                             }
@@ -352,14 +352,14 @@ namespace AiStudio4.Services
                         
 
                         request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
-                            contentBlocks: toolsResponeBlocks, parentMessageId: assistantMessageId, attachments: response.Attachments);
+                            contentBlocks: toolsResponseBlocks, parentMessageId: assistantMessageId, attachments: response.Attachments);
                         request.MessageId = newUserMessageId;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            ContentBlocks = toolsResponeBlocks,
+                            ContentBlocks = toolsResponseBlocks,
                             ParentId = assistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
@@ -402,7 +402,7 @@ namespace AiStudio4.Services
                         //}
                         
                         contentBlocks.AddRange(response.ContentBlocks);
-                        contentBlocks.AddRange(toolsResponeBlocks);
+                        contentBlocks.AddRange(toolsResponseBlocks);
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             contentBlocks: contentBlocks.ToList(), parentMessageId: request.MessageId,
