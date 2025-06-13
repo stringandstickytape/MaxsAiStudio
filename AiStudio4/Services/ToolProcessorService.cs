@@ -125,7 +125,7 @@ namespace AiStudio4.Services
                                 await _notificationFacade.SendStatusMessageAsync(clientId, taskDescription);
                                 
                                 // Add the task description to the request blocks for visibility
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Task: {taskDescription}\n\n" });
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Task: {taskDescription}\n\n", ContentType = ContentType.System });
                                 
                                 // Remove the property from the arguments object
                                 toolCallArgs.Remove("task_description");
