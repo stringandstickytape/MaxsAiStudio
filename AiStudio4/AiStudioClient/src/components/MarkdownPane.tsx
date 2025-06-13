@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry';
 import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './MarkdownPane/CodeBlock';
+import { cn } from '@/lib/utils';
 
 // Themeable properties for MarkdownPane code headers
 export const themeableProps = {
@@ -34,11 +35,18 @@ export const themeableProps = {
     },
 };
 
+// NEW: Define the variant type
+export type MarkdownVariant = 'default' | 'system';
+
 interface MarkdownPaneProps {
     message: string;
+    variant?: MarkdownVariant; // <-- ADD PROP
 }
 
-export const MarkdownPane = React.memo(function MarkdownPane({ message }: MarkdownPaneProps) {
+export const MarkdownPane = React.memo(function MarkdownPane({ 
+    message, 
+    variant = 'default' // <-- ADD PROP
+}: MarkdownPaneProps) {
     const [markdownContent, setMarkdownContent] = useState<string>('');
     const [mermaidKey, setMermaidKey] = useState(0);
     const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({});
@@ -166,6 +174,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
                     onToggleRaw={handleToggleRaw}
                     onToggleCollapse={handleToggleCollapse}
                     launchHtml={launchHtml}
+                    variant={variant} // <-- PASS VARIANT DOWN
                 />
             );
         },
@@ -191,11 +200,16 @@ export const MarkdownPane = React.memo(function MarkdownPane({ message }: Markdo
         tr: ({ children }: any) => <tr>{children}</tr>,
         th: ({ children }: any) => <th className="px-4 py-2 text-left font-medium">{children}</th>,
         td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,
-    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio]);
+    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio, variant]); // <-- ADD 'variant' to dependency array
 
     return (
-        <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
-            {markdownContent}
-        </ReactMarkdown>
+        <div className={cn(
+            "prose prose-invert prose-sm max-w-none prose-p:my-2 prose-headings:my-3 prose-li:my-0.5",
+            variant === 'system' && "border-l-4 border-destructive p-4 bg-destructive/10 rounded prose-headings:text-destructive-foreground prose-p:text-destructive-foreground/90 prose-li:text-destructive-foreground/90 prose-a:text-red-400 prose-a:hover:text-red-300 prose-strong:text-destructive-foreground prose-blockquote:border-destructive/50 prose-blockquote:text-destructive-foreground/80"
+        )}>
+            <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+                {markdownContent}
+            </ReactMarkdown>
+        </div>
     );
 });

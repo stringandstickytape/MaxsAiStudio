@@ -2,6 +2,8 @@
 import React from 'react';
 import { ExternalLink, Clipboard, ChevronDown, ChevronUp, Save } from 'lucide-react';
 import { createApiRequest } from '@/utils/apiUtils';
+import { cn } from '@/lib/utils';
+import { MarkdownVariant } from '../MarkdownPane';
 
 export interface CodeBlockHeaderProps {
     language: string;
@@ -12,6 +14,7 @@ export interface CodeBlockHeaderProps {
     onToggleRaw: () => void;
     onToggleCollapse: () => void;
     launchHtml?: () => void;
+    variant: MarkdownVariant; // <-- ADD PROP
 }
 
 export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
@@ -23,6 +26,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
     onToggleRaw,
     onToggleCollapse,
     launchHtml,
+    variant,
 }) => {
     const handleSaveToFile = async () => {
         let suggestedFilename = `codeblock.${language || 'txt'}`; // Use language for extension, fallback to .txt
@@ -35,10 +39,31 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
         }
     };
 
+    // --- ADD CONDITIONAL STYLING ---
+    const headerClasses = cn(
+        "MarkdownPane flex items-center justify-between px-2 py-1 rounded-t-xl border-b text-sm",
+        variant === 'system' && "bg-destructive/20 border-destructive/50 text-destructive-foreground"
+    );
+
+    const buttonClasses = cn(
+        "px-2 py-1 rounded transition-colors",
+        variant === 'system' 
+            ? "bg-destructive hover:bg-destructive/80 text-destructive-foreground" 
+            : ""
+    );
+
+    const iconButtonClasses = cn(
+        "p-1 transition-colors",
+        variant === 'system' 
+            ? "text-destructive-foreground/80 hover:text-destructive-foreground"
+            : ""
+    );
+
     return (
+        // --- APPLY CONDITIONAL CLASSES ---
         <div
-            className={`MarkdownPane flex items-center justify-between px-2 py-1 rounded-t-xl border-b text-sm`}
-            style={{
+            className={headerClasses}
+            style={variant === 'system' ? {} : {
                 background: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                 color: 'var(--global-text-color, var(--markdownpane-codeheader-text, #bfc7d5))',
                 borderColor: 'var(--global-border-color, var(--markdownpane-codeheader-border, #283040))',
@@ -49,8 +74,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
             <div className="flex items-center space-x-2">
                 <button
                     onClick={onToggleCollapse}
-                    className="transition-colors p-1"
-                    style={{ color: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))' }}
+                    className={cn("transition-colors", iconButtonClasses)}
+                    style={variant === 'system' ? {} : { color: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))' }}
                     title={isCollapsed ? "Expand code block" : "Collapse code block"}
                 >
                     {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
@@ -61,8 +86,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 {isVisualStudio && (
                     <button
                         onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
-                        className="px-2 py-1 rounded transition-colors"
-                        style={{
+                        className={buttonClasses}
+                        style={variant === 'system' ? {} : {
                             background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
                             color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                         }}
@@ -74,8 +99,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 {launchHtml && (
                     <button
                         onClick={launchHtml}
-                        className="px-2 py-1 rounded transition-colors flex items-center gap-1"
-                        style={{
+                        className={cn(buttonClasses, "flex items-center gap-1")}
+                        style={variant === 'system' ? {} : {
                             background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
                             color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
                         }}
@@ -111,7 +136,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                                     console.error('[Theme Debug] Error processing theme:', e);
                                 }
                             }}
-                            className="px-2 py-1 rounded transition-colors mr-2"
+                            className={cn(buttonClasses, "mr-2")}
                             style={{
                                 background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
                                 color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
@@ -166,7 +191,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                                     console.error('[Theme Debug] Error installing theme:', e);
                                 }
                             }}
-                            className="px-2 py-1 rounded transition-colors"
+                            className={buttonClasses}
                             style={{
                                 background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
                                 color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
@@ -179,7 +204,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 )}
                 <button
                     onClick={() => navigator.clipboard.writeText(content)}
-                    className="px-2 py-1 rounded transition-colors flex items-center justify-center"
+                    className={cn(buttonClasses, "flex items-center justify-center")}
                     style={{
                         background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
                         color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
@@ -190,7 +215,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 </button>
                 <button
                     onClick={handleSaveToFile}
-                    className="px-2 py-1 rounded transition-colors flex items-center justify-center"
+                    className={cn(buttonClasses, "flex items-center justify-center")}
                     style={{
                         background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
                         color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
@@ -201,7 +226,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 </button>
                 <button
                     onClick={onToggleRaw}
-                    className="px-2 py-1 rounded transition-colors"
+                    className={buttonClasses}
                     style={{
                         background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
                         color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',

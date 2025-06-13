@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { CodeBlockHeader } from './CodeBlockHeader';
+import { MarkdownVariant } from '../MarkdownPane';
 
 export interface CodeBlockProps {
     language: string;
@@ -16,6 +17,7 @@ export interface CodeBlockProps {
     onToggleRaw: () => void;
     onToggleCollapse: () => void;
     launchHtml: (content: string) => void;
+    variant: MarkdownVariant; // <-- ADD PROP
 }
 
 export const CodeBlock = React.memo<CodeBlockProps>(({
@@ -30,6 +32,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
     onToggleRaw,
     onToggleCollapse,
     launchHtml,
+    variant, // <-- Destructure prop
 }) => {
     const isHtmlBlock = language === 'html' || language === 'htm';
     const DiagramComponent = diagramRenderer ? diagramRenderer.Component : null;
@@ -45,6 +48,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
             onToggleRaw={onToggleRaw}
             onToggleCollapse={onToggleCollapse}
             launchHtml={isHtmlBlock ? () => launchHtml(content) : undefined}
+            variant={variant} // <-- PASS PROP
         />
     );
 
