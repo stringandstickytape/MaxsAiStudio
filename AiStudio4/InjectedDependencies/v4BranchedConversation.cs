@@ -64,7 +64,7 @@ namespace AiStudio4.InjectedDependencies
                 Messages.Add(new v4BranchedConvMessage
                 {
                     Role = v4BranchedConvMessageRole.System,
-                    UserMessage = "Conversation Root",
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = "Conversation Root", ContentType = ContentType.Text } },
                     Id = parentMessageId       // parent of the very first real message
                 });
             }
@@ -79,10 +79,9 @@ namespace AiStudio4.InjectedDependencies
                 msg.ParentId = parentMessageId;
                 msg.Role = role;
             }
-            
+
             // 3. (Re-)populate / overwrite the fields
-            msg.UserMessage = userMessage ?? string.Empty;
-            
+            msg.ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = userMessage, ContentType = ContentType.Text } };
             msg.Attachments = attachments ?? new List<DataModels.Attachment>();
             msg.CostInfo = costInfo;
 

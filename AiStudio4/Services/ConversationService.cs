@@ -46,9 +46,7 @@ namespace AiStudio4.Services
                 // Convert to the format expected by the client
                 var messagesForClient = allMessages.Select(msg => new {
                     id = msg.Id,
-                    contentBlocks = msg.ContentBlocks ?? 
-                        (string.IsNullOrEmpty(msg.UserMessage) ? new List<ContentBlock>() : 
-                         new List<ContentBlock> { new ContentBlock { Content = msg.UserMessage, ContentType = ContentType.Text } }),
+                    contentBlocks = msg.ContentBlocks ?? new List<ContentBlock>(),
                     parentId = msg.ParentId,
                     source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                             msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
@@ -195,8 +193,7 @@ namespace AiStudio4.Services
                                 .OrderBy(m => m.Id)
                                 .FirstOrDefault();
 
-                            var summary = conv.Summary ??
-                                (firstUserMessage?.UserMessage ?? "Untitled Conv");
+                            var summary = conv.Summary ?? "Untitled Conv";
 
                             // For each conv, create an entry with just the metadata
                             // No need to include full messages here

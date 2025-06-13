@@ -154,7 +154,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     return SerializeError($"Message with ID {messageId} not found in conversation {convId}");
 
                 // Update the message content
-                messageToUpdate.UserMessage = content;
+                // bodged to the first content block for now...
+                messageToUpdate.ContentBlocks.First().Content = content;
 
                 // Save the updated conversation
                 await _convStorage.SaveConv(conv);

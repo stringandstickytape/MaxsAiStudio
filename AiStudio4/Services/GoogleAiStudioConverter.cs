@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharedClasses;
+using AiStudio4.Core.Models;
 
 namespace AiStudio4.Services
 {
@@ -76,7 +77,14 @@ namespace AiStudio4.Services
                 {
                     Id = $"msg_sysroot_{Guid.NewGuid()}",
                     Role = v4BranchedConvMessageRole.System,
-                    UserMessage = $"Imported from Google AI Studio: '{originalFileName}' on {DateTime.UtcNow:g}",
+                    ContentBlocks = new List<ContentBlock>
+                    {
+                        new ContentBlock
+                        {
+                            Content = $"Imported from Google AI Studio: '{originalFileName}'  on {DateTime.UtcNow:g}",
+                            ContentType = ContentType.Text
+                        }
+                    },
                     Timestamp = DateTime.UtcNow,
                     ParentId = null
                 };
@@ -142,7 +150,7 @@ namespace AiStudio4.Services
                             Id = $"msg_{Guid.NewGuid()}",
                             ParentId = currentParentId,
                             Role = role,
-                            UserMessage = finalContent,
+                            ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = finalContent, ContentType = ContentType.Text } },
                             Timestamp = DateTime.UtcNow,
                             Temperature = role == v4BranchedConvMessageRole.Assistant ? googleData.runSettings?.temperature : null
                         };
@@ -154,7 +162,7 @@ namespace AiStudio4.Services
 
                             foreach(var attachment in attachments)
                             {
-                                newMessage.UserMessage += $"\n\n{BacktickHelper.ThreeTicks}{Path.GetExtension(attachment.Name).Replace(".","")}\n{attachment.Content}\n```\n";
+                                newMessage.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{BacktickHelper.ThreeTicks}{Path.GetExtension(attachment.Name).Replace(".", "")}\n{attachment.Content}\n```\n", ContentType = ContentType.Text });
                             }
 
                             pendingAttachments.Clear();
@@ -174,7 +182,11 @@ namespace AiStudio4.Services
                     var lastAssistantMsg = aiStudioConv.Messages.LastOrDefault(m => m.Role == v4BranchedConvMessageRole.Assistant);
                     if (lastAssistantMsg != null)
                     {
-                        lastAssistantMsg.UserMessage += $"\n\n<Thought>\n{pendingThoughts.ToString().Trim()}\n</Thought>";
+                        if (lastAssistantMsg.ContentBlocks == null)
+                        {
+                            lastAssistantMsg.ContentBlocks = new List<ContentBlock>();
+                        }
+                        lastAssistantMsg.ContentBlocks.Add(new ContentBlock { Content = $"\n\n<Thought>\n{pendingThoughts.ToString().Trim()}\n</Thought>", ContentType = ContentType.Text }) ;
                     }
                     else
                     {
@@ -184,7 +196,7 @@ namespace AiStudio4.Services
                             Id = $"msg_{Guid.NewGuid()}",
                             ParentId = currentParentId,
                             Role = v4BranchedConvMessageRole.Assistant,
-                            UserMessage = $"<Thought>\n{pendingThoughts.ToString().Trim()}\n</Thought>",
+                            ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = $"<Thought>\n{pendingThoughts.ToString().Trim()}\n</Thought>", ContentType = ContentType.Text } },
                             Timestamp = DateTime.UtcNow
                         };
                         aiStudioConv.Messages.Add(thoughtsMessage);

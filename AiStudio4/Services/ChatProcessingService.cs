@@ -206,7 +206,7 @@ namespace AiStudio4.Services
                     var summaryText = conv.Summary;
                     if(summaryText == null)
                     {
-                        var userMessage = conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.UserMessage;
+                        var userMessage = string.Join("\n\n", conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.ContentBlocks ?? new List<ContentBlock>());
 
                         if(userMessage == null)
                         {
@@ -284,7 +284,11 @@ namespace AiStudio4.Services
                                         {
                                             // Use captured request/response excerpts
                                             string userMessageExcerpt = chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message;
-                                            string aiResponseExcerpt = conv.Messages.Last().UserMessage.Length > 250 ? conv.Messages.Last().UserMessage.Substring(0, 250) : conv.Messages.Last().UserMessage;
+
+                                            var lastMessageContent = string.Join("\n\n", conv.Messages.Last().ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(cb => cb.Content));
+
+                                            string aiResponseExcerpt = lastMessageContent.Length > 250 
+                                            ? lastMessageContent.Substring(0, 250) : lastMessageContent;
                                             var summaryPrompt = $"Generate a concise 6 - 10 word summary of the following content.  Produce NO OTHER OUTPUT WHATSOEVER.  \n\n```txt\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}\n```\n";
 
                                             // Use scoped chat service
@@ -352,7 +356,8 @@ namespace AiStudio4.Services
 
             return allMessages.Select(msg => new {
                 id = msg.Id,
-                text = (msg.ContentBlocks != null && msg.ContentBlocks.Count > 0) ? string.Join(" ", msg.ContentBlocks.Select(cb => cb.Content)) : (msg.UserMessage ?? "[Empty Message]"),
+                contentBlocks = msg.ContentBlocks,
+                //text = (msg.ContentBlocks != null && msg.ContentBlocks.Count > 0) ? string.Join(" ", msg.ContentBlocks.Select(cb => cb.Content)) : (msg.UserMessage ?? "[Empty Message]"),
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                         msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",

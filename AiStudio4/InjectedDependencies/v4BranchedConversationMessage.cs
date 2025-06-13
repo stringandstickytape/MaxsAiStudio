@@ -17,8 +17,10 @@ namespace AiStudio4.InjectedDependencies
         /// A list of rich content blocks that make up the message.  This supersedes <see cref="UserMessage"/>.
         /// </summary>
         [JsonPropertyName("contentBlocks")]
-        public List<ContentBlock> ContentBlocks { get; set; } = new List<ContentBlock>();        [Obsolete("Use ContentBlocks instead.")]
+        public List<ContentBlock> ContentBlocks { get; set; } = new List<ContentBlock>();        
+        [Obsolete("Use ContentBlocks instead.")]
         public string UserMessage { get; set; }
+        
         public string Id { get; set; }
 
         // Add explicit parent reference
@@ -48,7 +50,6 @@ namespace AiStudio4.InjectedDependencies
             return new v4BranchedConvMessage
             {
                 Id = this.Id,
-                UserMessage = this.UserMessage,
                 Role = this.Role,
                 ParentId = this.ParentId,
                 CostInfo = this.CostInfo, // Assuming TokenCost is immutable or a struct

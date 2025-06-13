@@ -64,13 +64,17 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     
     // Listen for streaming events to track active streaming messages
     listenToWebSocketEvent('cfrag', (detail) => {
+      console.log(`[WebSocketStore] Received cfrag event:`, detail);
       if (detail.messageId) {
+        console.log(`[WebSocketStore] Adding streaming message: ${detail.messageId}`);
         get().addStreamingMessage(detail.messageId);
       }
     });
     
     listenToWebSocketEvent('endstream', (detail) => {
+      console.log(`[WebSocketStore] Received endstream event:`, detail);
       if (detail.messageId) {
+        console.log(`[WebSocketStore] Removing streaming message: ${detail.messageId}`);
         get().removeStreamingMessage(detail.messageId);
       }
       set({ isCancelling: false });
@@ -98,21 +102,29 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     },
 
     addStreamingMessage: (messageId) => {
-      set(state => ({
-        activeStreamingMessageIds: new Set([...state.activeStreamingMessageIds, messageId])
-      }));
+      console.log(`[WebSocketStore] addStreamingMessage called for: ${messageId}`);
+      set(state => {
+        const newSet = new Set([...state.activeStreamingMessageIds, messageId]);
+        console.log(`[WebSocketStore] Active streaming messages after add:`, Array.from(newSet));
+        return { activeStreamingMessageIds: newSet };
+      });
     },
 
     removeStreamingMessage: (messageId) => {
+      console.log(`[WebSocketStore] removeStreamingMessage called for: ${messageId}`);
       set(state => {
         const newSet = new Set(state.activeStreamingMessageIds);
         newSet.delete(messageId);
+        console.log(`[WebSocketStore] Active streaming messages after remove:`, Array.from(newSet));
         return { activeStreamingMessageIds: newSet };
       });
     },
 
     isMessageStreaming: (messageId) => {
-      return get().activeStreamingMessageIds.has(messageId);
+      const state = get();
+      const isStreaming = state.activeStreamingMessageIds.has(messageId);
+      console.log(`[WebSocketStore] isMessageStreaming(${messageId}): ${isStreaming}, activeStreamingMessageIds:`, Array.from(state.activeStreamingMessageIds));
+      return isStreaming;
     },
 
     hasActiveStreaming: () => {

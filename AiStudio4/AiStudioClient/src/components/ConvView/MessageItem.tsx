@@ -66,6 +66,17 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
   // Use the new streaming hook
   const { streamedContent } = useMessageStream(message.id, isStreamingTarget);
   
+  // *** NEW: Determine the content to display ***
+  // If this message is the active streaming target, show the live stream.
+  // Otherwise, show the final, stored content.
+  const displayContent = isStreamingTarget ? streamedContent : flattenedContent;
+  
+  // Debug logging
+  console.log(`[MessageItem] Render - messageId: ${message.id}, isStreamingTarget: ${isStreamingTarget}`);
+  console.log(`[MessageItem] flattenedContent length: ${flattenedContent.length}, streamedContent length: ${streamedContent.length}`);
+  console.log(`[MessageItem] displayContent source: ${isStreamingTarget ? 'streamedContent' : 'flattenedContent'}, length: ${displayContent.length}`);
+  console.log(`[MessageItem] contentBlocks:`, message.contentBlocks);
+  
   // Check if this message matches the search
   const isSearchMatch = searchResults?.some(result => 
     result.matchingMessageIds.includes(message.id)
@@ -139,7 +150,8 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
             onCancel={() => cancelEditMessage()}
           />
         ) : (
-          <>            <MarkdownPane message={(flattenedContent ?? '') + streamedContent} />
+          <>
+            <MarkdownPane message={displayContent} />
             {/* Only show actions if not actively streaming */}
             {!isStreamingTarget && (
               <MessageActions 

@@ -128,23 +128,7 @@ namespace AiStudio4.Dialogs
                 }
             }
         }
-        
-        public string Role => Message.Role.ToString();
-        
-        public string FormattedTimestamp => Message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss");
-        
-        public string MessagePreview
-        {
-            get
-            {
-                if (string.IsNullOrEmpty(Message.UserMessage))
-                    return "[Empty Message]";
-                
-                // Limit preview to first 200 characters and replace newlines with spaces
-                var preview = Message.UserMessage.Replace('\n', ' ').Replace('\r', ' ');
-                return preview.Length > 200 ? preview.Substring(0, 200) + "..." : preview;
-            }
-        }
+
 
         public MessageSelectionItem(v4BranchedConvMessage message)
         {

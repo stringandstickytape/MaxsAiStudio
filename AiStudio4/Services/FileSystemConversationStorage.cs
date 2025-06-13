@@ -232,12 +232,7 @@ namespace AiStudio4.Services
                                 }
                             }
                         }
-                        // Fallback to legacy UserMessage for extra safety
-                        if (!isMatch && message.UserMessage != null &&
-                            message.UserMessage.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            isMatch = true;
-                        }
+
                         if (isMatch)
                         {
                             matchingMessageIds.Add(message.Id);

@@ -32,6 +32,7 @@ export const useConvStore = create<ConvState>((set, get) => {
     
     if (typeof window !== 'undefined') {
         listenToWebSocketEvent('conv:upd', ({ content }) => {
+            console.log(`[useConvStore] Received conv:upd event:`, content);
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             

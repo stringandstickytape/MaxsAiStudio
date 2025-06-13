@@ -280,7 +280,7 @@ public partial class WebViewWindow : Window
                     var messagesForListDto = importedConv.Messages.Select(m => new
                     {
                         id = m.Id,
-                        text = m.UserMessage ?? "[Empty Message]",
+                        contentBlocks = m.ContentBlocks,
                         parentId = m.ParentId,
                         source = m.Role == v4BranchedConvMessageRole.User ? "user" :
                                 m.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
@@ -324,7 +324,7 @@ public partial class WebViewWindow : Window
                     var fullMessagesForLoad = firstConvToLoad.Messages.Select(m => new
                     {
                         id = m.Id,
-                        text = m.UserMessage ?? "[Empty Message]",
+                        contentBlocks = m.ContentBlocks ?? new List<ContentBlock>(),
                         parentId = m.ParentId,
                         source = m.Role == v4BranchedConvMessageRole.User ? "user" :
                                 m.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
