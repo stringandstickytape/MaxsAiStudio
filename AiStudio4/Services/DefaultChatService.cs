@@ -386,15 +386,16 @@ namespace AiStudio4.Services
                     else 
                     {
                         // We aren't looping.  So we need to send the final response back to the user and update the UI.
-
+                        List<ContentBlock> contentBlocks = new();
                         string duplicateDetectionText = "";
                         if(duplicateDetection)
                         {
                             duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
+                            contentBlocks.Add(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text });
                         }
-
-                        List<ContentBlock> contentBlocks = response.ContentBlocks.Prepend(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text }).ToList();
-                        contentBlocks.Append(new ContentBlock { Content = toolResult.AggregatedToolOutput, ContentType = ContentType.Text });
+                        
+                        contentBlocks.AddRange(response.ContentBlocks);
+                        contentBlocks.Add(new ContentBlock { Content = toolResult.AggregatedToolOutput, ContentType = ContentType.Text });
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             contentBlocks: contentBlocks.ToList(), parentMessageId: request.MessageId,
