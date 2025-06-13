@@ -82,7 +82,7 @@ namespace AiStudio4.AiServices
 
                 // Add conversation messages
                 foreach (var message in options.Conv.messages)
-                {
+                { 
                     ChatMessage chatMessage = CreateChatMessage(message);
                     messages.Add(chatMessage);
                 }
