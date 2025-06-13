@@ -161,12 +161,7 @@ namespace AiStudio4.Services
 
                     // Create placeholder AI message before starting the AI stream
                     
-                    var placeholderMessage = conv.AddOrUpdateMessage(
-                        v4BranchedConvMessageRole.Assistant,
-                        assistantMessageId,
-                        "", // Content is initially empty
-                        chatRequest.MessageId // Parent is the user's message
-                    );
+
 
                     // Save the conv system prompt if provided
                     if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
@@ -189,18 +184,16 @@ namespace AiStudio4.Services
                         DurationMs = 0, // User messages have zero processing duration
                     });
 
-                    // Notify client to create the placeholder AI MessageItem
-                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
-                    {
-                        ConvId = conv.ConvId,
-                        MessageId = assistantMessageId,
-                        ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = "", ContentType = ContentType.Text } }, // Empty list for placeholder
-                        ParentId = chatRequest.MessageId,
-                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                        Source = "assistant"
-                    });
 
-                    // Replace tree builder with direct message processing for conv list notification
+
+                    // Create a placeholder for the live stream to follow
+                    var placeholderMessage = conv.CreatePlaceholder(assistantMessageId, chatRequest.MessageId);
+
+                    // Notify client to create the placeholder AI MessageItem
+                    await _notificationService.NotifyConvPlaceholderUpdate(clientId, conv, placeholderMessage);
+
+
+
                     var messagesForClient = BuildFlatMessageStructure(conv);
 
                     var summaryText = conv.Summary;

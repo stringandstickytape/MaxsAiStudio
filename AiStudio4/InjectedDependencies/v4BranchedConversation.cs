@@ -6,6 +6,8 @@
 
 
 
+using AiStudio4.Core.Models;
+
 namespace AiStudio4.InjectedDependencies
 {
     public class v4BranchedConv
@@ -143,5 +145,16 @@ namespace AiStudio4.InjectedDependencies
 
             return path;
         }
+
+        public v4BranchedConvMessage CreatePlaceholder(string assistantMessageId, string parentId)
+        {
+            return AddOrUpdateMessage(
+                v4BranchedConvMessageRole.Assistant,
+                assistantMessageId,
+                "", // Content is initially empty
+                        parentId // Parent is the user's message
+            );
+        }
+
     }
 }

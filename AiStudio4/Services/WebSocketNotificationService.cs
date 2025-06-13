@@ -199,7 +199,20 @@ namespace AiStudio4.Services
                 throw new WebSocketNotificationException("Failed to send status message", ex);
             }
         }
-        
+
+        public async Task NotifyConvPlaceholderUpdate(string clientId, v4BranchedConv conv, v4BranchedConvMessage placeholderMessage)
+        {
+            await NotifyConvUpdate(clientId, new ConvUpdateDto
+            {
+                ConvId = conv.ConvId,
+                MessageId = placeholderMessage.Id,
+                ContentBlocks = placeholderMessage.ContentBlocks,
+                ParentId = placeholderMessage.ParentId,
+                Timestamp = new DateTimeOffset(placeholderMessage.Timestamp).ToUnixTimeMilliseconds(),
+                Source = "assistant"
+            });
+        }
+
         public async Task NotifyFileSystemChanges(IReadOnlyList<string> directories, IReadOnlyList<string> files)
         {
             try

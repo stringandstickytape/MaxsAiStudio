@@ -2,6 +2,7 @@
 
 
 
+
 namespace AiStudio4.Core.Interfaces
 {
     public interface IWebSocketNotificationService
@@ -47,5 +48,6 @@ namespace AiStudio4.Core.Interfaces
         
         
         Task NotifyFileSystemChanges(IReadOnlyList<string> directories, IReadOnlyList<string> files);
+        Task NotifyConvPlaceholderUpdate(string clientId, v4BranchedConv conv, v4BranchedConvMessage placeholderMessage);
     }
 }
