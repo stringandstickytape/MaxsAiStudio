@@ -259,7 +259,7 @@ namespace AiStudio4.Services
                         _logger.LogError(ex, "Error executing tool {ToolName}", toolResponse.ToolName);
                         toolResultMessageContent = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}";
 
-                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}" });
+                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}", ContentType = ContentType.System });
                     }
 
                     // Add tool result message to conversation history
@@ -315,7 +315,7 @@ namespace AiStudio4.Services
         {
             //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{actualToolName}\n\n", ContentType = ContentType.Text });
 
-            resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"MCP tool requested: {actualToolName}\n\n" });
+            resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"MCP tool requested: {actualToolName}\n\n", ContentType = ContentType.System });
 
             // Use cleanedToolResponseText if provided, otherwise fall back to original ResponseText
             string responseTextToUse = cleanedToolResponseText ?? toolResponse.ResponseText;
