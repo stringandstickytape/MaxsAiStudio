@@ -2,6 +2,7 @@ import React from 'react';
 import { ContentBlock } from '@/types/conv';
 import { TextContentRenderer } from './TextContentRenderer';
 import { SystemContentRenderer } from './SystemContentRenderer';
+import { AiHiddenContentRenderer } from './AiHiddenContentRenderer';
 
 export interface ContentBlockRendererProps {
   block: ContentBlock;
@@ -16,6 +17,7 @@ class ContentBlockRendererRegistry {
   constructor() {
     this.register('text', TextContentRenderer);
     this.register('system', SystemContentRenderer);
+    this.register('aihidden', AiHiddenContentRenderer);
   }
 
   register(type: string, component: ContentBlockRendererComponent) {
@@ -33,6 +35,7 @@ class ContentBlockRendererRegistry {
 const ContentType = {
   0: 'text',
   1: 'system',
+  2: 'aihidden',
 } as const;
 
 export const contentBlockRendererRegistry = new ContentBlockRendererRegistry();

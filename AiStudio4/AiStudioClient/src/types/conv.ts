@@ -3,7 +3,7 @@ import { Attachment } from './attachment';
 
 export interface ContentBlock {
   content: string;
-  contentType: 'text';
+  contentType: 'text' | 'system' | 'aihidden';
 }
 
 export interface Message {

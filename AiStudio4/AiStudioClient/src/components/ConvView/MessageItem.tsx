@@ -58,7 +58,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
   const attachmentsById = useAttachmentStore(state => state.attachmentsById);  const [editContent, setEditContent] = useState<string>('');
-    debugger;
+    
   // Helper: flattened text for rendering
   const flattenedContent = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
   const messageRef = useRef<HTMLDivElement>(null);
