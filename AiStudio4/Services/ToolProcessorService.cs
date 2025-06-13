@@ -220,7 +220,7 @@ namespace AiStudio4.Services
                                         resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n" });
                                     }
                                 }
-
+                                 
                                 if (!string.IsNullOrEmpty(builtinToolResult.StatusMessage))
                                 {
                                     toolResultMessageContent += $"Result: {builtinToolResult.StatusMessage}\n\n";
