@@ -225,7 +225,7 @@ namespace AiStudio4.Services
                                 {
                                     toolResultMessageContent += $"Result: {builtinToolResult.StatusMessage}\n\n";
 
-                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Result: {builtinToolResult.StatusMessage}\n\n" });
+                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"{builtinToolResult.StatusMessage}\n\n" });
                                 }
 
                                 // If the built-in tool indicates processing should stop
