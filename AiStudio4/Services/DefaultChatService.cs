@@ -436,7 +436,7 @@ namespace AiStudio4.Services
 
                     //
 
-                }
+                } 
 
                 _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
 
