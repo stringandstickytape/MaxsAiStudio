@@ -1,6 +1,5 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageItem.tsx
 import React from 'react';
-import { MarkdownPane } from '@/components/MarkdownPane';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { MessageMetadata } from './MessageMetadata';
 import { MessageActions } from './MessageActions';
@@ -10,6 +9,7 @@ import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { useMessageStream } from '@/hooks/useMessageStream';
+import { contentBlockRendererRegistry } from '@/components/content/contentBlockRendererRegistry';
 
 interface MessageItemProps {
   message: any;
@@ -66,10 +66,25 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
   // Use the new streaming hook
   const { streamedContent } = useMessageStream(message.id, isStreamingTarget);
   
-  // *** NEW: Determine the content to display ***
-  // If this message is the active streaming target, show the live stream.
-  // Otherwise, show the final, stored content.
-  const displayContent = isStreamingTarget ? streamedContent : flattenedContent;
+  // --- NEW RENDER FUNCTION ---
+  const renderContent = () => {
+    // Handle live streaming content
+    if (isStreamingTarget) {
+      const Renderer = contentBlockRendererRegistry.get('text'); // Stream is always text
+      return <Renderer block={{ content: streamedContent, contentType: 'text' }} />;
+    }
+
+    // Render all stored content blocks for the message
+    if (!message.contentBlocks || message.contentBlocks.length === 0) {
+      return null;
+    }
+
+    return message.contentBlocks.map((block: any, index: number) => {
+      const key = `${message.id}-block-${index}`;
+      const Renderer = contentBlockRendererRegistry.get(block.contentType);
+      return <Renderer key={key} block={block} />;
+    });
+  };
   
   // Debug logging
   console.log(`[MessageItem] Render - messageId: ${message.id}, isStreamingTarget: ${isStreamingTarget}`);
@@ -151,8 +166,9 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
           />
         ) : (
           <>
-            <MarkdownPane message={displayContent} />
-            {/* Only show actions if not actively streaming */}
+            {/* --- CALL THE NEW RENDER FUNCTION --- */}
+            {renderContent()}
+
             {!isStreamingTarget && (
               <MessageActions 
                 message={message} 
