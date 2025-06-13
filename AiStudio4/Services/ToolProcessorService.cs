@@ -111,6 +111,7 @@ namespace AiStudio4.Services
                     try
                     {
                         // Extract and handle task_description
+                        string taskDescription = null;
                         JObject toolCallArgs = null;
                         string cleanedToolResponseText = toolResponse.ResponseText;
 
@@ -119,7 +120,7 @@ namespace AiStudio4.Services
                             toolCallArgs = JObject.Parse(toolResponse.ResponseText);
                             if (toolCallArgs.TryGetValue("task_description", out JToken taskDescriptionToken))
                             {
-                                string taskDescription = taskDescriptionToken.ToString();
+                                taskDescription = taskDescriptionToken.ToString();
                                 
                                 // Send the description to the front-end as a status update
                                 await _notificationFacade.SendStatusMessageAsync(clientId, taskDescription);
@@ -152,7 +153,7 @@ namespace AiStudio4.Services
                                 var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
                                 var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
 
-                                toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName, resultContentBlocks, cleanedToolResponseText);
+                                toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName, resultContentBlocks, cleanedToolResponseText, taskDescription);
                             }
                             else
                             {
@@ -165,7 +166,7 @@ namespace AiStudio4.Services
 
                                     if(mcpTool != null)
                                     {
-                                        toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName, resultContentBlocks, cleanedToolResponseText);
+                                        toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName, resultContentBlocks, cleanedToolResponseText, taskDescription);
 
                                         break;
                                     }
@@ -308,7 +309,7 @@ namespace AiStudio4.Services
             };
         }
 
-        private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName, ToolExecutionResultContentBlocks resultContentBlocks, string cleanedToolResponseText = null)
+        private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName, ToolExecutionResultContentBlocks resultContentBlocks, string cleanedToolResponseText = null, string? taskDescription = null)
         {
             //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{actualToolName}\n\n", ContentType = ContentType.Text });
 
@@ -346,10 +347,20 @@ namespace AiStudio4.Services
                     toolResultMessageContent += $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n";
                     toolResultMessageContent += $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
 
-                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Tool Use: {actualToolName}\n\n" });
-                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n" });
-                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n" });
+                    //
+                    // User-visible content
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"[MCP] {actualToolName}: {taskDescription}\n\n", ContentType = ContentType.System });
 
+                    // AI-visible content
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"MCP tool called: {actualToolName}\n\n", ContentType = ContentType.AiHidden });
+
+                    var paramsText = JsonConvert.SerializeObject(toolParameterSet);
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"```mcp_tool_params\n{paramsText}\n```\n\n" });
+
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock
+                    {
+                        Content = $"```mcp_tool_output\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"
+                    });
 
                 }
                 _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);

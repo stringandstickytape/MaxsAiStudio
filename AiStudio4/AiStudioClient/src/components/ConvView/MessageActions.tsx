@@ -38,7 +38,7 @@ const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: Message
 export const MessageActions = React.memo(({ message, onEdit }: MessageActionsProps) => {
   return (
     <div 
-      className="ConvView flex items-center gap-2 pt-2" // Removed mt-2, added pt-2 for padding above actions
+      className="ConvView flex items-center gap-2" // Removed mt-2, added pt-2 for padding above actions
     >
       {/* Ellipsis button and conditional rendering logic removed */}
       <div
