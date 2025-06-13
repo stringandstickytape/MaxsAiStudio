@@ -201,8 +201,8 @@ namespace AiStudio4.Services
                     };
 
                     // This is where we select the content blocks to send to AI, into combined text message
-
-                    var messageHistory = request.BranchedConv.GetMessageHistory(request.MessageId)
+                    var history = request.BranchedConv.GetMessageHistory(request.MessageId);
+                    var messageHistory = history
                         .Select(msg => new MessageHistoryItem
                         {                            Role = msg.Role.ToString().ToLower(),
                             Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text) ?? new List<ContentBlock>()).Select(cb => cb.Content)),

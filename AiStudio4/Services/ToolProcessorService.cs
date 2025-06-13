@@ -125,7 +125,7 @@ namespace AiStudio4.Services
                                 await _notificationFacade.SendStatusMessageAsync(clientId, taskDescription);
                                 
                                 // Add the task description to the request blocks for visibility
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Task: {taskDescription}\n\n", ContentType = ContentType.System });
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{toolResponse.ToolName}: {taskDescription}\n\n", ContentType = ContentType.System });
                                 
                                 // Remove the property from the arguments object
                                 toolCallArgs.Remove("task_description");
@@ -190,7 +190,7 @@ namespace AiStudio4.Services
                             {
                                 //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
 
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Request: \n\n{toolResponse.ToolName}\n\n" });
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Use {toolResponse.ToolName}\n\n" });
 
                                 // tool already retrieved above
 
@@ -202,7 +202,7 @@ namespace AiStudio4.Services
                                 {
                                     toolResultMessageContent += $"{toolResponse.ToolName}";
 
-                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran: \n\n{toolResponse.ToolName}\n\n" });
+                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" });
                                 }
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
@@ -211,13 +211,13 @@ namespace AiStudio4.Services
                                     {
                                         toolResultMessageContent += $": {builtinToolResult.ResultMessage}\n\n";
 
-                                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Result: \n\n{builtinToolResult.ResultMessage}\n\n" });
+                                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"{builtinToolResult.ResultMessage}\n\n" });
                                     }
                                     else
                                     {
                                         toolResultMessageContent += $" Output:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
 
-                                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Result: \n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n" });
+                                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n" });
                                     }
                                 }
 
@@ -259,7 +259,7 @@ namespace AiStudio4.Services
                         _logger.LogError(ex, "Error executing tool {ToolName}", toolResponse.ToolName);
                         toolResultMessageContent = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}";
 
-                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}", ContentType = ContentType.System });
+                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}", ContentType = ContentType.Text });
                     }
 
                     // Add tool result message to conversation history
@@ -315,7 +315,7 @@ namespace AiStudio4.Services
         {
             //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{actualToolName}\n\n", ContentType = ContentType.Text });
 
-            resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"MCP tool requested: {actualToolName}\n\n", ContentType = ContentType.System });
+            resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"MCP tool requested: {actualToolName}\n\n", ContentType = ContentType.Text });
 
             // Use cleanedToolResponseText if provided, otherwise fall back to original ResponseText
             string responseTextToUse = cleanedToolResponseText ?? toolResponse.ResponseText;
