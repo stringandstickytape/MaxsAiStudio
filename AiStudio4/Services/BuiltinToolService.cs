@@ -1,13 +1,13 @@
-﻿// AiStudio4.Services\BuiltinToolService.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+// AiStudio4.Services\BuiltinToolService.cs
+
+
 using AiStudio4.Core.Tools;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+
+
+
+
+
 
 namespace AiStudio4.Services
 {

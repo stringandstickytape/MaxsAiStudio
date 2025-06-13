@@ -1,6 +1,6 @@
-﻿// AiStudio4/Services/CostingStrategies/NoCachingTokenCostStrategy.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+// AiStudio4/Services/CostingStrategies/NoCachingTokenCostStrategy.cs
+
+
 using SharedClasses.Providers;
 
 namespace AiStudio4.Services.CostingStrategies

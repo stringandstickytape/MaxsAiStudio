@@ -1,6 +1,6 @@
-﻿using AiStudio4.InjectedDependencies;
+
 using SharedClasses.Providers;
-using System.Collections.Generic;
+
 
 namespace AiStudio4.Core.Models
 {

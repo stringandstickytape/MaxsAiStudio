@@ -1,17 +1,17 @@
-﻿using AiStudio4.Dialogs; 
-using AiStudio4.InjectedDependencies; 
+using AiStudio4.Dialogs; 
+ 
 using AiStudio4.Services;
-using AiStudio4.Core.Interfaces;
+
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
 using AiStudio4.Services.Interfaces; 
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+
 using Microsoft.Win32; 
-using System;
-using System.Text;
+
+
 using AiStudio4.Dialogs; 
-using System.Windows;
+
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
@@ -19,15 +19,15 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
-using System.Threading.Tasks;
-using System.Linq;
-using System.IO;
-using System.Diagnostics;
+
+
+
+
 using AiStudio4.Core.Services;
 using static RoslynHelper;
-using System.Collections.Generic; 
-using AiStudio4.Core.Models;
-using Newtonsoft.Json;
+ 
+
+
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Cryptography;
 

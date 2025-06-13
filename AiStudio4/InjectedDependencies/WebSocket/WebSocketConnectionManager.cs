@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using Microsoft.Extensions.Logging;
+
 
 namespace AiStudio4.InjectedDependencies.WebSocketManagement
 {

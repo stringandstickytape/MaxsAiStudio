@@ -1,7 +1,7 @@
-﻿// Core/Interfaces/IThemeService.cs
-using AiStudio4.Core.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+// Core/Interfaces/IThemeService.cs
+
+
+
 
 namespace AiStudio4.Core.Interfaces
 {

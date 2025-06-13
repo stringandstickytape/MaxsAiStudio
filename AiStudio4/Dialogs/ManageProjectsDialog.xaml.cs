@@ -1,13 +1,13 @@
-﻿// AiStudio4/Dialogs/ManageProjectsDialog.xaml.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+// AiStudio4/Dialogs/ManageProjectsDialog.xaml.cs
+
+
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using System;
+
+
 using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
+
+
+
 using System.Windows.Data;
 using System.Globalization;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;

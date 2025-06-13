@@ -1,16 +1,16 @@
-﻿// \AiStudio4\Core\Tools\LaunchUrlTool.cs
-﻿using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+// \AiStudio4\Core\Tools\LaunchUrlTool.cs
+﻿
+
+
+
+
+
+
+
+
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+
+
 
 namespace AiStudio4.Core.Tools
 {

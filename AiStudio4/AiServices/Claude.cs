@@ -1,15 +1,15 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+
 using SharedClasses.Providers;
-using System.Diagnostics;
-using System.IO;
+
+
 using System.Net.Http;
-using System.Text;
+
 using System.Text.RegularExpressions;
-using AiStudio4.Core.Models;
+
 using static System.Net.Mime.MediaTypeNames;
 
 namespace AiStudio4.AiServices

@@ -1,17 +1,17 @@
-﻿// AiStudio4.Core\Tools\Git\GitBranchTool.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// AiStudio4.Core\Tools\Git\GitBranchTool.cs
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 namespace AiStudio4.Core.Tools.Git
 {

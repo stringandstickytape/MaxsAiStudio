@@ -1,6 +1,6 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Models\LogEntry.cs
-using System;
-using Microsoft.Extensions.Logging;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Models\LogEntry.cs
+
+
 
 namespace AiStudio4.Models
 {

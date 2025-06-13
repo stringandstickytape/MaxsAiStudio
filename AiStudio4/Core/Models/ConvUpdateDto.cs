@@ -1,6 +1,6 @@
-﻿using AiStudio4.DataModels;
-using AiStudio4.Core.Models;
-using System;
+using AiStudio4.DataModels;
+
+
 using SharedClasses.Providers;
 
 namespace AiStudio4.Core.Models

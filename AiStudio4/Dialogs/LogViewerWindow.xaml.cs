@@ -1,5 +1,5 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Dialogs\LogViewerWindow.xaml.cs
-using System.Windows;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Dialogs\LogViewerWindow.xaml.cs
+
 
 namespace AiStudio4.Dialogs
 {

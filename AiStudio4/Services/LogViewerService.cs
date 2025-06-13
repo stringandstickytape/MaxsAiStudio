@@ -1,9 +1,9 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\LogViewerService.cs
-using System;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\LogViewerService.cs
+
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows;
+
+
+
 using AiStudio4.Models;
 using AiStudio4.Services.Interfaces;
 

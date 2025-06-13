@@ -1,8 +1,8 @@
-﻿using AiStudio4.Core.Interfaces;
-using AiStudio4.InjectedDependencies;
+
+
 using AiStudio4.Services;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+
 
 namespace AiStudio4.Extensions
 {

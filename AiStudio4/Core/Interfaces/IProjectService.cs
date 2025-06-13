@@ -1,7 +1,7 @@
-﻿// AiStudio4/Core/Interfaces/IProjectService.cs
-using AiStudio4.Core.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+// AiStudio4/Core/Interfaces/IProjectService.cs
+
+
+
 
 namespace AiStudio4.Core.Interfaces
 {

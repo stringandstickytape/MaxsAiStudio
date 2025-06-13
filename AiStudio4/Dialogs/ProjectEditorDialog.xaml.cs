@@ -1,13 +1,13 @@
-﻿// AiStudio4/Dialogs/ProjectEditorDialog.xaml.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+// AiStudio4/Dialogs/ProjectEditorDialog.xaml.cs
+
+
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+
 using Microsoft.Win32;
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Windows;
+
+
+
+
 using System.Windows.Forms;
 
 namespace AiStudio4.Dialogs

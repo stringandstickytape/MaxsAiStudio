@@ -1,8 +1,8 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Audio;
@@ -10,19 +10,19 @@ using OpenAI.Images;
 using OpenAI.Embeddings;
 using OpenAI.Assistants;
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+
+
+
+
 using System.Net.Http;
-using System.Text;
+
 using System.Threading;
-using System.Threading.Tasks;
+
 using System.ClientModel;
-using AiStudio4.Core.Models;
+
 using AiStudio4.Services;
 using Azure.Core;
-using AiStudio4.Core.Interfaces;
+
 
 namespace AiStudio4.AiServices
 {

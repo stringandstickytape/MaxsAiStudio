@@ -1,19 +1,19 @@
-﻿// AiStudio4/Core/Tools/SecondAiOpinionTool.cs
+// AiStudio4/Core/Tools/SecondAiOpinionTool.cs
 using AiStudio4.AiServices;
 using AiStudio4.Convs;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+
+
 using AiStudio4.DataModels;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+
+
+
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
+
+
+
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.Core.Tools
 {

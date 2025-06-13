@@ -1,20 +1,20 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+
 using System.Net.Http.Headers;
-using System.Text;
+
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using SharedClasses.Providers;
 using AiStudio4.DataModels;
 using System.Net.Http;
 using AiStudio4.Convs;
-using System.IO;
-using System.Linq;
-using System.Collections.Generic;
+
+
+
 using System.Threading;
-using System.Threading.Tasks;
+
 using AiStudio4.Core.Tools; // added for tool support
-using System;
+
 
 namespace AiStudio4.AiServices
 {

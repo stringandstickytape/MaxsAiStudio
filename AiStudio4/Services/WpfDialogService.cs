@@ -1,8 +1,8 @@
-﻿// AiStudio4.Services/WpfDialogService.cs
-using AiStudio4.Core.Interfaces;
+// AiStudio4.Services/WpfDialogService.cs
+
 using AiStudio4.Dialogs; // Assuming WpfConfirmationDialog is in this namespace
-using System.Threading.Tasks;
-using System.Windows; // For Application.Current
+
+ // For Application.Current
 using System.Windows.Threading; // For Dispatcher
 
 namespace AiStudio4.Services

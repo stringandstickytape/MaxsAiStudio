@@ -1,10 +1,10 @@
-﻿using AiStudio4.AiServices;
-using AiStudio4.Core.Interfaces;
+using AiStudio4.AiServices;
+
 using Microsoft.AspNetCore.Authentication;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+
 using OpenAI.Chat;
-using System.Diagnostics;
+
 using System.Text.RegularExpressions;
 
 namespace AiStudio4.Core.Tools

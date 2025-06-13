@@ -1,13 +1,13 @@
-﻿// InjectedDependencies/StartupService.cs
-using AiStudio4.Core.Interfaces;
+// InjectedDependencies/StartupService.cs
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
+
+
+
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.InjectedDependencies
 {

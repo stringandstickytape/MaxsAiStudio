@@ -1,9 +1,9 @@
-﻿using AiStudio4.Core.Models;
+
 using AiStudio4.DataModels;
-using AiStudio4.Core.Models;
+
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
+
+
 using System.Text.Json.Serialization;
 
 namespace AiStudio4.InjectedDependencies

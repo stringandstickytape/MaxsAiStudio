@@ -1,6 +1,6 @@
-﻿using AiStudio4.AiServices;
+using AiStudio4.AiServices;
 using AiStudio4.Convs;
-using AiStudio4.Core.Interfaces;
+
 using AiStudio4.DataModels;
 using SharedClasses.Providers;
 

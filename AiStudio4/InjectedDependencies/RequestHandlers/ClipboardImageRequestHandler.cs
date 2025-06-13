@@ -1,9 +1,9 @@
-﻿// AiStudio4/InjectedDependencies/RequestHandlers/ClipboardImageRequestHandler.cs
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.IO;
-using System.Threading.Tasks;
+// AiStudio4/InjectedDependencies/RequestHandlers/ClipboardImageRequestHandler.cs
+
+
+
+
+
 
 namespace AiStudio4.InjectedDependencies.RequestHandlers
 {

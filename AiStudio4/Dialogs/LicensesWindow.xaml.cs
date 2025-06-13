@@ -1,8 +1,8 @@
-﻿// AiStudio4/Dialogs/LicensesWindow.xaml.cs
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Windows;
+// AiStudio4/Dialogs/LicensesWindow.xaml.cs
+
+
+
+
 
 namespace AiStudio4.Dialogs
 {

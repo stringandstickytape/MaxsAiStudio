@@ -1,9 +1,9 @@
-﻿// AiStudio4/Services/AiStudioToGoogleConverter.cs
-using AiStudio4.InjectedDependencies; // For v4BranchedConv, v4BranchedConvMessageRole
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+// AiStudio4/Services/AiStudioToGoogleConverter.cs
+ // For v4BranchedConv, v4BranchedConvMessageRole
+
+
+
+
 
 namespace AiStudio4.Services
 {

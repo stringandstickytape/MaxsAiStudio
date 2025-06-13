@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Models;
+
 using SharedClasses.Providers;
 
 namespace AiStudio4.DataModels

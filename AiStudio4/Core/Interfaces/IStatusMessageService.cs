@@ -1,5 +1,5 @@
-﻿// AiStudio4/Core/Interfaces/IStatusMessageService.cs
-using System.Threading.Tasks;
+// AiStudio4/Core/Interfaces/IStatusMessageService.cs
+
 
 namespace AiStudio4.Core.Interfaces
 {

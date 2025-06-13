@@ -1,15 +1,15 @@
-﻿
+
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.IO;
-using System.Linq;
-using AiStudio4.Core.Models; 
+
+
+
+
+
+ 
 using SharedClasses.Providers; 
 using System.Security.Cryptography; 
-using System.Text; 
-using System.Collections.Generic; 
+ 
+ 
 using System.Drawing; 
 
 namespace AiStudio4.InjectedDependencies

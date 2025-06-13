@@ -1,6 +1,6 @@
-﻿// AiStudio4/Core/Interfaces/IRequestHandler.cs
-using Newtonsoft.Json.Linq;
-using System.Threading.Tasks;
+// AiStudio4/Core/Interfaces/IRequestHandler.cs
+
+
 
 namespace AiStudio4.Core.Interfaces
 {

@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System.Net.WebSockets;
-using System.Text;
-using Newtonsoft.Json;
+
+
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+
 using AiStudio4.InjectedDependencies.WebSocketManagement;
 using AiStudio4.InjectedDependencies.WebSocket;
 

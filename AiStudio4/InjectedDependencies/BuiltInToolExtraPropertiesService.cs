@@ -1,9 +1,9 @@
-﻿// InjectedDependencies/BuiltInToolExtraPropertiesService.cs
-using AiStudio4.Core.Interfaces;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
+// InjectedDependencies/BuiltInToolExtraPropertiesService.cs
+
+
+
+
+
 
 namespace AiStudio4.InjectedDependencies
 {

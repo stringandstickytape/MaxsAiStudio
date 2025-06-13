@@ -1,7 +1,7 @@
-﻿//C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Core\Models\GitHubReleaseInfo.cs
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+//C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Core\Models\GitHubReleaseInfo.cs
+
+
+
 
 namespace AiStudio4.Core.Models
 {

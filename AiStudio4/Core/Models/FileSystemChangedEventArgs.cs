@@ -1,6 +1,6 @@
-﻿// Core/Models/FileSystemChangedEventArgs.cs
-using System;
-using System.Collections.Generic;
+// Core/Models/FileSystemChangedEventArgs.cs
+
+
 
 namespace AiStudio4.Core.Models
 {

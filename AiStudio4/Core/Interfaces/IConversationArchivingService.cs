@@ -1,5 +1,5 @@
-﻿// AiStudio4/Core/Interfaces/IConversationArchivingService.cs
-using System.Threading.Tasks;
+// AiStudio4/Core/Interfaces/IConversationArchivingService.cs
+
 
 namespace AiStudio4.Core.Interfaces
 {

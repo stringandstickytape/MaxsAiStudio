@@ -1,16 +1,16 @@
-﻿// AiStudio4/Services/GoogleAiStudioConverter.cs
-using AiStudio4.InjectedDependencies;
+// AiStudio4/Services/GoogleAiStudioConverter.cs
+
 using AiStudio4.DataModels;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
+
+
+
+
+
+
+
 using SharedClasses;
-using AiStudio4.Core.Models;
+
 
 namespace AiStudio4.Services
 {

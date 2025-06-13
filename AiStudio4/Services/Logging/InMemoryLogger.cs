@@ -1,8 +1,8 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\Logging\InMemoryLogger.cs
-using System;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\Logging\InMemoryLogger.cs
+
 using AiStudio4.Models;
 using AiStudio4.Services.Interfaces;
-using Microsoft.Extensions.Logging;
+
 
 namespace AiStudio4.Services.Logging
 {

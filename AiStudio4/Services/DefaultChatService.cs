@@ -1,17 +1,17 @@
-﻿using Microsoft.Extensions.Logging;
-using AiStudio4.InjectedDependencies;
+
+
 using AiStudio4.Core.Exceptions;
-using AiStudio4.Core.Models;
-using AiStudio4.Core.Interfaces;
+
+
 using SharedClasses.Providers;
 using AiStudio4.AiServices;
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
-using Newtonsoft.Json;
+
 using System.Text.Json;
-using Newtonsoft.Json.Linq;
-using System.Text;
-using System.IO;
+
+
+
 using AiStudio4.Core.Tools;
 using Microsoft.Extensions.DependencyInjection;
 

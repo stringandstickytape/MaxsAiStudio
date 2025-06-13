@@ -1,11 +1,11 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Dialogs\LogViewerViewModel.cs
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Dialogs\LogViewerViewModel.cs
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
+
 using System.Windows.Data;
 using AiStudio4.Models;
 using AiStudio4.Services.Interfaces;
-using Microsoft.Extensions.Logging;
+
 
 namespace AiStudio4.Dialogs
 {

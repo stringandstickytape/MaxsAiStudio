@@ -1,5 +1,5 @@
-﻿// AiStudio4/Dialogs/WpfConfirmationDialog.xaml.cs
-using System.Windows;
+// AiStudio4/Dialogs/WpfConfirmationDialog.xaml.cs
+
 
 namespace AiStudio4.Dialogs
 {

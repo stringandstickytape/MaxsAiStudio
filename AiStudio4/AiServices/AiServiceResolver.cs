@@ -1,4 +1,4 @@
-﻿using AiStudio4.Core.Interfaces;
+
 using AiStudio4.Services;
 using AiStudio4.Services.Interfaces;
 

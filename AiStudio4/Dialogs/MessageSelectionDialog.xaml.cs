@@ -1,11 +1,11 @@
-﻿// AiStudio4/Dialogs/MessageSelectionDialog.xaml.cs
-using AiStudio4.InjectedDependencies;
-using System;
-using System.Collections.Generic;
+// AiStudio4/Dialogs/MessageSelectionDialog.xaml.cs
+
+
+
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
-using System.Windows;
+
+
 
 
 namespace AiStudio4.Dialogs
