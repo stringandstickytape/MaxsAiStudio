@@ -190,7 +190,7 @@ namespace AiStudio4.Services
                             {
                                 //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
 
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Use {toolResponse.ToolName}\n\n" });
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"Use {toolResponse.ToolName}\n\n", ContentType = ContentType.AiHidden });
 
                                 // tool already retrieved above
 
@@ -202,7 +202,7 @@ namespace AiStudio4.Services
                                 {
                                     toolResultMessageContent += $"{toolResponse.ToolName}";
 
-                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" });
+                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.AiHidden });
                                 }
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
