@@ -277,7 +277,16 @@ namespace AiStudio4.Services
                         finalAttachments.AddRange(response.Attachments); 
                     }
 
+
+                    //////// PROCESS TOOLS
+
                     var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
+
+                    var toolCollatedResponse = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
+
+
+                    /////// PROCESS TOOL RESULTS
+
 
                     bool duplicateDetection = false;
 
@@ -316,6 +325,7 @@ namespace AiStudio4.Services
                                 
                                 collatedResponse.Insert(0, $"User interjection: {interjection}\n\n");
 
+                                toolCollatedResponse.Add(new ContentBlock { Content = $"User interjection: {interjection}\n\n" });
                                 
                                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, "Your interjection has been added to the conversation.");
                             }
@@ -344,15 +354,16 @@ namespace AiStudio4.Services
 
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
+
                         request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
-                            contentBlocks: new List<ContentBlock>{ new ContentBlock{ Content = collatedResponse.ToString(), ContentType = ContentType.Text } }, parentMessageId: assistantMessageId, attachments: response.Attachments);
+                            contentBlocks: toolCollatedResponse, parentMessageId: assistantMessageId, attachments: response.Attachments);
                         request.MessageId = newUserMessageId;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            ContentBlocks = new List<ContentBlock>{ new ContentBlock{ Content = collatedResponse.ToString(), ContentType = ContentType.Text } },
+                            ContentBlocks = toolCollatedResponse,
                             ParentId = assistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
@@ -384,7 +395,7 @@ namespace AiStudio4.Services
 
                     }
                     else 
-                    {
+                    { 
                         // We aren't looping.  So we need to send the final response back to the user and update the UI.
                         List<ContentBlock> contentBlocks = new();
                         string duplicateDetectionText = "";
@@ -430,8 +441,7 @@ namespace AiStudio4.Services
 
                 return new ChatResponse
                 {
-                    Success = true,
-                    ResponseText = collatedResponse.ToString()
+                    Success = true
                 };
 
 
