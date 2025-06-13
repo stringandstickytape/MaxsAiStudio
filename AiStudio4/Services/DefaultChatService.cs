@@ -406,7 +406,7 @@ namespace AiStudio4.Services
                         }
                         
                         contentBlocks.AddRange(response.ContentBlocks);
-                        contentBlocks.Add(new ContentBlock { Content = toolResult.AggregatedToolOutput, ContentType = ContentType.Text });
+                        contentBlocks.AddRange(toolCollatedResponse);
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
                             contentBlocks: contentBlocks.ToList(), parentMessageId: request.MessageId,
