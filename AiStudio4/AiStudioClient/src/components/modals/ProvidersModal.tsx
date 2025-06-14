@@ -12,17 +12,15 @@ import { ServiceProvider } from '@/types/settings';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 export function ProvidersModal() {
-  const { openModalId, closeModal, modalProps } = useModalStore();
-  const isOpen = openModalId === 'providers';
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'providers';
   
   const {
     providers,
     isLoading,
     error,
     fetchProviders,
-  } = useModelManagement();
-
-  const [providerToEdit, setProviderToEdit] = useState<ServiceProvider | null>(null);
+  } = useModelManagement();  const [providerToEdit, setProviderToEdit] = useState<ServiceProvider | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Listen for edit-provider events
@@ -45,8 +43,11 @@ export function ProvidersModal() {
       fetchProviders();
     }
   }, [isOpen, fetchProviders]);
-
-  if (!isOpen) return null;
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is ProvidersModalProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog

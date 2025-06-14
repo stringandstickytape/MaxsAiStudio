@@ -12,12 +12,13 @@ import { useModalStore, ModalRegistry } from '@/stores/useModalStore';
 type ConfirmationProps = ModalRegistry['confirmation'];
 
 export function ConfirmationModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'confirmation';
-  // Ensure modalProps is correctly typed when the modal is open
-  const props = isOpen ? (modalProps as ConfirmationProps) : null;
-
-  if (!isOpen || !props) return null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'confirmation';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is ConfirmationProps
+  const props = currentModal.props;
 
   const {
     title,

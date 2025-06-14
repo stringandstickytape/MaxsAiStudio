@@ -16,11 +16,13 @@ type ToolModalProps = ModalRegistry['tool'];
 export const themeableProps = {};
 
 export function ToolModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'tool';
-  const props = isOpen ? (modalProps as ToolModalProps) : null;
-
-  if (!isOpen) return null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'tool';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is ToolModalProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog

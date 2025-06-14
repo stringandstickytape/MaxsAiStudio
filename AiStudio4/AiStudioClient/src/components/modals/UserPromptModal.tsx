@@ -13,11 +13,13 @@ import { useInputBarStore } from '@/stores/useInputBarStore';
 type UserPromptProps = ModalRegistry['userPrompt'];
 
 export function UserPromptModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'userPrompt';
-  const props = isOpen ? (modalProps as UserPromptProps) : null;
-
-  if (!isOpen) return null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'userPrompt';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is UserPromptProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog
@@ -29,10 +31,9 @@ export function UserPromptModal() {
         <h2 className="text-xl font-semibold">User Prompts</h2>
       </UnifiedModalHeader>
       <UnifiedModalContent>
-        {/* Render the actual user prompt library content */} 
-        <UserPromptLibrary
-          initialEditPromptId={props?.editPromptId}
-          initialShowEditor={props?.createNew}
+        {/* Render the actual user prompt library content */}        <UserPromptLibrary
+          initialEditPromptId={props.editPromptId}
+          initialShowEditor={props.createNew}
           onEditorClosed={closeModal}
           onInsertPrompt={(prompt) => {
             if (prompt?.content) {

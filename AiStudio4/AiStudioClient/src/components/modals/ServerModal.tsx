@@ -28,9 +28,8 @@ type ServerCategory = {
 export const themeableProps = {};
 
 export function ServerModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'server';
-  const props = isOpen ? (modalProps as ServerModalProps) : null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'server';
 
   const {
     servers,
@@ -43,8 +42,7 @@ export function ServerModal() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false);
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedServer, setSelectedServer] = useState<McpServerDefinition | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);  const [selectedServer, setSelectedServer] = useState<McpServerDefinition | null>(null);
   const [formMode, setFormMode] = useState<'add' | 'edit'>('add');
 
   // Fetch servers whenever modal is opened
@@ -53,8 +51,11 @@ export function ServerModal() {
       handleRefreshServers();
     }
   }, [isOpen]);
-
-  if (!isOpen) return null;
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is ServerModalProps
+  const props = currentModal.props;
 
   const handleToggle = (id: string, current: boolean) => {
     setServerEnabled(id, !current);

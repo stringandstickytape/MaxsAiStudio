@@ -167,10 +167,8 @@ function App() {
         },
       });
     }
-  }, [activeConvId, createConv]);
-
-  // Destructure modal state from useModalStore
-  const { openModalId, closeModal } = useModalStore();
+  }, [activeConvId, createConv]);  // Destructure modal state from useModalStore
+  const { currentModal, closeModal } = useModalStore();
 
   // Assuming userPrompts is available in this scope; if not, it should be imported or passed as prop
   const userPrompts = []; // Placeholder, replace with actual user prompts source

@@ -13,8 +13,8 @@ import { commandEvents } from '@/commands/settingsCommands';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 export function ModelsModal() {
-  const { openModalId, closeModal, modalProps } = useModalStore();
-  const isOpen = openModalId === 'models';
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'models';
   
   const {
     models,
@@ -23,9 +23,7 @@ export function ModelsModal() {
     error,
     fetchModels,
     fetchProviders,
-  } = useModelManagement();
-
-  const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
+  } = useModelManagement();  const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   // Listen for edit-model events
@@ -49,8 +47,11 @@ export function ModelsModal() {
       fetchProviders();
     }
   }, [isOpen, fetchModels, fetchProviders]);
-
-  if (!isOpen) return null;
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is ModelsModalProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog

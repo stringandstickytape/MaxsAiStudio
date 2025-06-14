@@ -14,10 +14,13 @@ import { ThemeManagement } from '@/components/settings/ThemeManagement'; // Assu
 export const themeableProps = {};
 
 export function ThemeModal() {
-  const { openModalId, closeModal } = useModalStore();
-  const isOpen = openModalId === 'theme';
-
-  if (!isOpen) return null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'theme';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is ThemeModalProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog
