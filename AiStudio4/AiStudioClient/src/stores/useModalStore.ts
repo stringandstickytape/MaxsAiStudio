@@ -41,10 +41,17 @@ export interface ModalRegistry {
 
 export type ModalId = keyof ModalRegistry;
 
+// Type-safe modal data that preserves the relationship between ID and props
+type ModalStateData = {
+  [K in ModalId]: { id: K; props: ModalRegistry[K] }
+}[ModalId];
+
 type ModalState = {
+  currentModal: ModalStateData | null;
+  modalStack: ModalStateData[]; // For nested modals
+  // Backward compatibility properties - maintained in sync with currentModal
   openModalId: ModalId | null;
-  modalProps: any; // Will be typed based on the modal ID
-  modalStack: { id: ModalId; props: any }[]; // For nested modals
+  modalProps: any;
   openModal: <T extends ModalId>(id: T, props: ModalRegistry[T]) => void;
   closeModal: () => void;
   closeAllModals: () => void;
@@ -53,11 +60,20 @@ type ModalState = {
 };
 
 export const useModalStore = create<ModalState>((set, get) => ({
+  currentModal: null,
+  modalStack: [],
   openModalId: null,
   modalProps: {},
-  modalStack: [],
 
-  openModal: (id, props) => set({ openModalId: id, modalProps: props, modalStack: [] }), // Reset stack when opening a base modal
+  openModal: (id, props) => {
+    const modalData = { id, props } as ModalStateData;
+    set({ 
+      currentModal: modalData, 
+      openModalId: id,
+      modalProps: props,
+      modalStack: [] 
+    });
+  },
 
   closeModal: () => {
     const { modalStack } = get();
@@ -65,29 +81,46 @@ export const useModalStore = create<ModalState>((set, get) => ({
       // If closing a nested modal, revert to the previous one
       const lastModal = modalStack[modalStack.length - 1];
       set({
+        currentModal: lastModal,
         openModalId: lastModal.id,
         modalProps: lastModal.props,
         modalStack: modalStack.slice(0, -1),
       });
     } else {
       // If closing the base modal, clear everything
-      set({ openModalId: null, modalProps: {} });
+      set({ 
+        currentModal: null,
+        openModalId: null,
+        modalProps: {}
+      });
     }
   },
 
-  closeAllModals: () => set({ openModalId: null, modalProps: {}, modalStack: [] }),
+  closeAllModals: () => set({ 
+    currentModal: null, 
+    openModalId: null,
+    modalProps: {},
+    modalStack: [] 
+  }),
 
   openNestedModal: (id, props) => {
-    const { openModalId, modalProps } = get();
-    if (openModalId) {
+    const { currentModal } = get();
+    const modalData = { id, props } as ModalStateData;
+    if (currentModal) {
       set((state) => ({
-        modalStack: [...state.modalStack, { id: openModalId, props: modalProps }],
+        modalStack: [...state.modalStack, currentModal],
+        currentModal: modalData,
         openModalId: id,
         modalProps: props,
       }));
     } else {
       // If no modal is open, just open this as a base modal
-      set({ openModalId: id, modalProps: props, modalStack: [] });
+      set({ 
+        currentModal: modalData, 
+        openModalId: id,
+        modalProps: props,
+        modalStack: [] 
+      });
     }
   },
 
