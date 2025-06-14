@@ -58,11 +58,16 @@ const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps)
 };
 
 export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
-  const { editingMessageId, editingBlock, cancelEditMessage, cancelEditBlock, updateMessage, updateMessageBlock, editBlock } = useConvStore();
+  const { editingMessageId, editingBlock, cancelEditMessage, cancelEditBlock, updateMessage, updateMessageBlock, editBlock, editMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
   const attachmentsById = useAttachmentStore(state => state.attachmentsById);
   const [editContent, setEditContent] = useState<string>('');
+  const [hoveredBlockIndex, setHoveredBlockIndex] = useState<number | null>(null);
   const messageRef = useRef<HTMLDivElement>(null);
+  
+  // Calculate if this message is in edit mode
+  const isThisMessageInEditMode = editingMessageId === message.id || editingBlock?.messageId === message.id;
+  
   
   // Use the new streaming hook
   const { streamedContent } = useMessageStream(message.id, isStreamingTarget);
@@ -102,24 +107,32 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
         );
       }
 
-      // Otherwise, render the block with edit hover button
+      // Otherwise, render the block with hover highlighting and click-to-edit when in edit mode
       const Renderer = contentBlockRendererRegistry.get(block.contentType);
+      const isThisBlockHovered = hoveredBlockIndex === index;
+      
       return (
-        <div key={key} className="relative group">
+        <div 
+          key={key} 
+          className={`relative ${isThisMessageInEditMode ? 'cursor-pointer' : ''}`}
+          style={isThisMessageInEditMode && isThisBlockHovered ? {
+            borderLeft: '4px solid var(--global-secondary-color, #6b7280)',
+            paddingLeft: '8px',
+            transition: 'border-left 0.05s ease'
+          } : {
+            transition: 'border-left 0.05s ease'
+          }}
+          onMouseEnter={() => isThisMessageInEditMode && setHoveredBlockIndex(index)}
+          onMouseLeave={() => isThisMessageInEditMode && setHoveredBlockIndex(null)}
+          onClick={() => {
+            if (isThisMessageInEditMode) {
+              // Close global edit mode and start block editing
+              cancelEditMessage();
+              editBlock(message.id, index);
+            }
+          }}
+        >
           <Renderer block={block} />
-          {!isStreamingTarget && (
-            <button
-              onClick={() => editBlock(message.id, index)}
-              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 rounded-full"
-              style={{
-                backgroundColor: 'var(--global-secondary-color, rgba(107, 114, 128, 0.8))',
-                color: 'var(--global-secondary-text-color, #ffffff)',
-              }}
-              title="Edit this block"
-            >
-              <Pencil size={12} />
-            </button>
-          )}
         </div>
       );
     });
@@ -181,33 +194,27 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
           ...(window?.theme?.ConvView?.style || {})
         }}>
         {/* <MessageMetadata message={message} /> Moved to bottom */}
-        {editingMessageId === message.id ? (
-          <MessageEditor 
-            editContent={editContent} 
-            setEditContent={setEditContent} 
-            onSave={() => {
-              if (activeConvId) {
-                updateMessage({
-                  convId: activeConvId,
-                  messageId: message.id,
-                  newBlocks: [{ content: editContent, contentType: 'text' }]
-                });
+        {/* Always render content with block editing capabilities */}
+        {renderContent()}
+
+        {!isStreamingTarget && (
+          <MessageActions 
+            message={message}
+            onEdit={() => {
+              // Get current state at click time to avoid stale closure
+              const currentState = useConvStore.getState();
+              const isCurrentlyEditing = currentState.editingMessageId === message.id || currentState.editingBlock?.messageId === message.id;
+              
+              if (isCurrentlyEditing) {
                 cancelEditMessage();
+                cancelEditBlock();
+                setHoveredBlockIndex(null); // Clear hover state when exiting edit mode
+              } else {
+                editMessage(message.id);
               }
             }}
-            onCancel={() => cancelEditMessage()}
+            isInEditMode={isThisMessageInEditMode}
           />
-        ) : (
-          <>
-            {/* --- CALL THE NEW RENDER FUNCTION --- */}
-            {renderContent()}
-
-            {!isStreamingTarget && (
-              <MessageActions 
-                message={message} 
-              />
-            )}
-          </>
         )}
         
       </div>

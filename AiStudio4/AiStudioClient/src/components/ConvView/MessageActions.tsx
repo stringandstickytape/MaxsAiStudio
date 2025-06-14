@@ -1,6 +1,6 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageActions.tsx
 import { Clipboard, Pencil, Save, ArrowUp } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { saveCodeBlockAsFile } from '@/services/api/apiClient';
 import { MessageUtils } from '@/utils/messageUtils';
@@ -8,6 +8,8 @@ import { MessageUtils } from '@/utils/messageUtils';
 interface MessageActionsProps {
   // The message object carries contentBlocks (preferred) and a legacy content string
   message: any;
+  onEdit: () => void;
+  isInEditMode?: boolean;
 }
 
 // Custom comparison function for MessageActions memoization
@@ -29,13 +31,21 @@ const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: Message
     }
   }
   
+  // Compare isInEditMode prop - this is crucial for button state!
+  if (prevProps.isInEditMode !== nextProps.isInEditMode) return false;
+  
   // Note: We don't compare onEdit callback as it's expected to be stable
   // If the parent doesn't memoize it properly, this optimization is still beneficial
   
   return true;
 };
 
-export const MessageActions = React.memo(({ message }: MessageActionsProps) => {
+export const MessageActions = React.memo(({ message, onEdit, isInEditMode = false }: MessageActionsProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Debug: Log the isInEditMode value
+  console.log('MessageActions render:', { messageId: message.id, isInEditMode });
+  
   return (
     <div 
       className="ConvView flex items-center gap-2" // Removed mt-2, added pt-2 for padding above actions
@@ -62,6 +72,23 @@ export const MessageActions = React.memo(({ message }: MessageActionsProps) => {
           title="Copy message"
         >
           <Clipboard size={16} />
+        </button>
+        <button
+          onClick={onEdit}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className="ConvView p-1.5 rounded-full transition-all duration-200"
+          style={{
+            color: isInEditMode 
+              ? '#ffffff' 
+              : (isHovered ? '#ffffff' : '#9ca3af'),
+            backgroundColor: isInEditMode 
+              ? '#2563eb' 
+              : (isHovered ? 'rgba(55, 65, 81, 0.8)' : 'rgba(55, 65, 81, 0)'),
+          }}
+          title={isInEditMode ? "Exit edit mode" : "Edit message blocks"}
+        >
+          <Pencil size={16} />
         </button>
         <button
           onClick={async () => {
