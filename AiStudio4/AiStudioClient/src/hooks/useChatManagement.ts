@@ -2,7 +2,6 @@
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { v4 as uuidv4 } from 'uuid';
 import { prepareAttachmentsForTransmission, isTextFile } from '@/utils/attachmentUtils';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
@@ -129,54 +128,13 @@ export function useChatManagement() {
 
     const getConv = useCallback(
         async (convId: string) => {
-            const { convs } = useConvStore.getState();
-            const localConv = convs[convId];
-            if (localConv) {
-                return {
-                    id: convId,
-                    messages: localConv.messages,
-                };
-            }
-
             return executeApiCall(async () => {
-                const { fetchConvTree } = useHistoricalConvsStore.getState();
-                const treeData = await fetchConvTree(convId);
-                if (!treeData) {
-                    throw new Error('Failed to get conv tree');
+                const { loadOrGetConv } = useConvStore.getState();
+                const result = await loadOrGetConv(convId);
+                if (!result) {
+                    throw new Error('Failed to get conversation');
                 }
-                const { processAttachments } = await import('@/utils/attachmentUtils');
-                const { MessageGraph } = await import('@/utils/messageGraph');
-
-                const extractNodes = (node: any, nodes: any[] = []) => {
-                    if (!node) return nodes;
-                    const { children, ...rest } = node;
-                    nodes.push(rest);
-                    if (children && Array.isArray(children)) {
-                        for (const child of children) { extractNodes(child, nodes); }
-                    }
-                    return nodes;
-                };
-                const flatNodes = extractNodes(treeData);
-                const messages = flatNodes.map((node) => {
-                    let attachments = node.attachments;
-                    if (attachments && Array.isArray(attachments)) {
-                        attachments = processAttachments(attachments);
-                    }
-                    return {
-                        id: node.id,
-                        contentBlocks: node.contentBlocks ?? 
-                            (node.text ? [{ content: node.text, contentType: 'text' }] : []),
-                        source: node.source || (node.id.includes('user') ? 'user' : 'ai'),
-                        parentId: node.parentId,
-                        timestamp: typeof node.timestamp === 'number' ? node.timestamp : Date.now(),
-                        durationMs: typeof node.durationMs === 'number' ? node.durationMs : undefined,
-                        costInfo: node.costInfo || null,
-                        cumulativeCost: node.cumulativeCost,
-                        attachments: attachments || undefined,
-                        temperature: node.temperature || null
-                    };
-                });
-                return { id: convId, messages, summary: 'Loaded Conv' };
+                return result;
             });
         },
         [executeApiCall],

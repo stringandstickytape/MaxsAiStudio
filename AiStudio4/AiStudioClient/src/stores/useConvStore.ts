@@ -7,6 +7,7 @@ import { processAttachments } from '@/utils/attachmentUtils';
 import type { ContentBlock } from '@/types/conv';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { MessageUtils } from '@/utils/messageUtils';
+import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 
 interface ConvState {
     convs: Record<string, Conv>;
@@ -25,6 +26,7 @@ interface ConvState {
     deleteConv: (convId: string) => void;
     editMessage: (messageId: string | null) => void;
     cancelEditMessage: () => void;
+    loadOrGetConv: (convId: string) => Promise<{ id: string; messages: Message[]; summary?: string } | null>;
 }
 
 
@@ -397,6 +399,80 @@ export const useConvStore = create<ConvState>((set, get) => {
 
         editMessage: id => set(() => ({ editingMessageId: id })),
         cancelEditMessage: () => set(() => ({ editingMessageId: null })),
+        
+        loadOrGetConv: async (convId: string) => {
+            const { convs } = get();
+            const localConv = convs[convId];
+            
+            if (localConv) {
+                return {
+                    id: convId,
+                    messages: localConv.messages,
+                };
+            }
+
+            try {
+                const { fetchConvTree } = useHistoricalConvsStore.getState();
+                const treeData = await fetchConvTree(convId);
+                if (!treeData) {
+                    return null;
+                }
+
+                const { processAttachments } = await import('@/utils/attachmentUtils');
+                const { MessageGraph } = await import('@/utils/messageGraph');
+
+                const extractNodes = (node: any, nodes: any[] = []): any[] => {
+                    if (!node) return nodes;
+                    const { children, ...rest } = node;
+                    nodes.push(rest);
+                    if (children && Array.isArray(children)) {
+                        for (const child of children) { 
+                            extractNodes(child, nodes); 
+                        }
+                    }
+                    return nodes;
+                };
+
+                const flatNodes = extractNodes(treeData);
+                const messages = flatNodes.map((node) => {
+                    let attachments = node.attachments;
+                    if (attachments && Array.isArray(attachments)) {
+                        attachments = processAttachments(attachments);
+                    }
+                    return {
+                        id: node.id,
+                        contentBlocks: node.contentBlocks ?? 
+                            (node.text ? [{ content: node.text, contentType: 'text' }] : []),
+                        source: node.source || (node.id.includes('user') ? 'user' : 'ai'),
+                        parentId: node.parentId,
+                        timestamp: typeof node.timestamp === 'number' ? node.timestamp : Date.now(),
+                        durationMs: typeof node.durationMs === 'number' ? node.durationMs : undefined,
+                        costInfo: node.costInfo || null,
+                        cumulativeCost: node.cumulativeCost,
+                        attachments: attachments || undefined,
+                        temperature: node.temperature || null
+                    };
+                });
+
+                // Add the loaded conversation to the store
+                if (messages.length > 0) {
+                    const rootMessage = messages.find(m => !m.parentId) || messages[0];
+                    const newConv: Conv = {
+                        id: convId,
+                        messages: messages
+                    };
+                    
+                    set(state => ({
+                        convs: { ...state.convs, [convId]: newConv }
+                    }));
+                }
+
+                return { id: convId, messages, summary: 'Loaded Conv' };
+            } catch (error) {
+                console.error('Failed to load conversation:', error);
+                return null;
+            }
+        },
     };
 });
 
