@@ -299,3 +299,118 @@ setPrompts: (prompts) => {
 - **Functionality**: All command execution works as expected
 
 This refactoring successfully eliminated the useEffect-heavy command registration pattern, resulting in more performant, maintainable, and robust command management throughout the application.
+
+## Global Event Bus Modal Management Elimination
+
+### Summary
+Eliminated the remaining usage of global event bus (`windowEventService`) for opening modals in settings commands, replacing it with direct `useModalStore` calls. This completes the migration to a modern, state-driven modal management architecture.
+
+### Problem
+Settings commands (`settingsCommands.ts`) used an indirect event-driven pattern for opening modals:
+- Commands emitted global events like `command:edit-model`
+- UI components listened for these events via `useEffect` hooks
+- Event handlers then called `useModalStore` actions
+
+This created a code smell with several issues:
+- **Poor Traceability**: Hard to find where events were handled
+- **Implicit Dependencies**: Commands relied on listeners existing somewhere
+- **Reduced Predictability**: Event handling timing could be unpredictable
+- **Inconsistent Architecture**: Mix of event-driven and direct patterns
+
+### Solution
+Refactored all command `execute` functions to directly call `useModalStore.getState().openModal()` with appropriate modal IDs and props, eliminating the global event bus middleman.
+
+### Changes Made
+
+#### 1. Updated Settings Commands
+**File**: `src/commands/settingsCommands.ts`
+- **Removed**: `windowEventService`, `WindowEvents` imports
+- **Removed**: `commandEvents` helper object entirely
+- **Removed**: `SettingsCommandsConfig` interface (no longer needed)
+- **Modified**: `initializeSettingsCommands()` to remove config parameter
+- **Updated**: `registerModelCommands()` to pass `editModelId` prop directly
+- **Updated**: `registerProviderCommands()` to pass `editProviderId` prop directly
+- **Changed**: All command execution from event emission to direct modal opening
+
+#### 2. Updated Appearance Commands  
+**File**: `src/commands/appearanceCommands.ts`
+- **Removed**: `commandEvents` import (was causing syntax error)
+- **Removed**: `AppearanceCommandsConfig` interface
+- **Modified**: `initializeAppearanceCommands()` to remove config parameter
+- **Updated**: Appearance settings command to call `useModalStore` directly
+
+#### 3. Updated Command Registration Calls
+**File**: `src/components/commands/CommandInitializer.tsx`
+- **Simplified**: `initializeSettingsCommands()` call (removed config)
+- **Simplified**: `initializeAppearanceCommands()` call (removed config)
+
+**File**: `src/stores/useModelStore.ts`
+- **Updated**: `registerModelCommands()` call (removed openSettings callback)
+- **Updated**: `registerProviderCommands()` call (removed openSettings callback)
+
+#### 4. Updated Modal Components to Use Props
+**File**: `src/components/modals/ModelsModal.tsx`
+- **Removed**: `windowEventService`, `WindowEvents`, `commandEvents` imports
+- **Replaced**: Event listener `useEffect` with props-based `useEffect`
+- **Updated**: Edit model logic to check `currentModal.props.editModelId`
+- **Simplified**: Props handling to use fallback for safety
+
+**File**: `src/components/modals/ProvidersModal.tsx`
+- **Removed**: `windowEventService`, `WindowEvents` imports  
+- **Replaced**: Event listener `useEffect` with props-based `useEffect`
+- **Updated**: Edit provider logic to check `currentModal.props.editProviderId`
+- **Simplified**: Props handling to use fallback for safety
+
+#### 5. Cleaned Up Event Definitions
+**File**: `src/services/windowEvents.ts`
+- **Removed**: `COMMAND_SETTINGS_TAB`, `COMMAND_EDIT_MODEL`, `COMMAND_EDIT_PROVIDER`
+- **Preserved**: Other events still in use by different parts of the application
+
+### Benefits Achieved
+
+#### Code Quality
+- **Explicit and Traceable**: Modal opening is now self-documenting
+- **Decoupled from UI**: Commands no longer depend on specific UI components being mounted
+- **Reliable State Management**: All modal logic centralized in `useModalStore`
+- **Architectural Consistency**: All modal opening follows the same direct pattern
+
+#### Performance
+- **Eliminated Event Overhead**: No more global event emission and listening cycles
+- **Direct Function Calls**: More efficient than event-based communication
+- **Reduced Complexity**: Fewer moving parts in the modal opening flow
+
+#### Developer Experience
+- **Improved Debugging**: Easy to trace modal opening to specific command execution
+- **Better Maintainability**: Single place to modify modal opening behavior
+- **Enhanced Predictability**: Modal opening happens immediately and reliably
+
+### Data Flow Transformation
+
+**Before (Event-Driven)**:
+```
+Command Execution → windowEventService.emit() → [Global Window] → useEffect Listener → openModal()
+```
+
+**After (Direct State)**:
+```
+Command Execution → useModalStore.getState().openModal()
+```
+
+### Files Modified
+1. **Modified**: `src/commands/settingsCommands.ts`
+2. **Modified**: `src/commands/appearanceCommands.ts`
+3. **Modified**: `src/components/commands/CommandInitializer.tsx`
+4. **Modified**: `src/stores/useModelStore.ts`
+5. **Modified**: `src/components/modals/ModelsModal.tsx`
+6. **Modified**: `src/components/modals/ProvidersModal.tsx`
+7. **Modified**: `src/services/windowEvents.ts`
+
+### Verification Points
+- **Models Modal**: Opens via Ctrl+K → "Models"
+- **Providers Modal**: Opens via Ctrl+K → "Service Providers"  
+- **Appearance Modal**: Opens via Ctrl+K → "Appearance"
+- **Edit Model Commands**: Opens Models modal with specific model selected for editing
+- **Edit Provider Commands**: Opens Providers modal with specific provider selected for editing
+- **No Console Errors**: All imports resolved correctly
+
+This refactoring successfully eliminated the global event bus pattern for modal management, completing the migration to a modern, state-driven architecture that is more maintainable, performant, and predictable.
