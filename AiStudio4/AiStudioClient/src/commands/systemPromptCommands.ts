@@ -123,10 +123,6 @@ export function registerSystemPromptsAsCommands(toggleLibrary: () => void) {
             execute: () => {
                 // First select the prompt using our hook to ensure tools and user prompts are loaded
                 selectPromptFromCommand(prompt);
-                
-                // Then open the modal if needed
-                setCurrentPrompt(prompt);
-                useModalStore.getState().openModal('systemPrompt');
             },
         };
     });
