@@ -27,7 +27,7 @@ namespace AiStudio4
 {
     public partial class App : Application
     {
-public const decimal VersionNumber = 1.03m;
+public const decimal VersionNumber = 1.04m;
 
         private ServiceProvider _serviceProvider;
         public ServiceProvider Services => _serviceProvider;
