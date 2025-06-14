@@ -21,7 +21,6 @@ export function ChatSpace() {
   // Removed streamTokens - streaming is now handled directly in MessageItem
   const [currentAttachments, setCurrentAttachments] = useState<Attachment[]>([]);
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
-  const [inputValue, setInputValue] = useState('');
   const promptOverrideRef = useRef(false);
   // Only subscribe to activeConvId for header, not the full convs object
   const activeConvId = useConvStore(state => state.activeConvId);
@@ -41,17 +40,6 @@ export function ChatSpace() {
   // Removed the effect that was automatically setting input value based on selected message
   // Now we'll only set input value when explicitly requested
 
-  // Listen for set-prompt event and update inputValue directly, with override flag
-  useEffect(() => {
-    const handleSetPrompt = (event: CustomEvent<{ text: string }>) => {
-      promptOverrideRef.current = true;
-      setInputValue(event.detail.text);
-    };
-    window.addEventListener('set-prompt', handleSetPrompt as EventListener);
-    return () => {
-      window.removeEventListener('set-prompt', handleSetPrompt as EventListener);
-    };
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -125,8 +113,6 @@ export function ChatSpace() {
       </div>
       
       <div className="flex-shrink-0 w-full overflow-auto">        <InputBar
-          inputValue={inputValue}
-          onInputChange={setInputValue}
           onManageTools={openToolLibrary}
           disabled={isCancelling}
           onAttachmentChange={handleAttachmentChange}
