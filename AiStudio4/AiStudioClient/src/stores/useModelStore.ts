@@ -47,14 +47,14 @@ export const useModelStore = create<ModelStore>((set, get) => ({
         selectPrimaryModel: (guid) => selectPrimaryModel(guid),
         selectSecondaryModel: (guid) => selectSecondaryModel(guid),
       });
-      registerModelCommands(models, () => useModalStore.getState().openModal('models'));
+      registerModelCommands(models);
     }
   },
 
   setProviders: (providers) => {
     set({ providers });
     if (providers.length > 0) {
-      registerProviderCommands(providers, () => useModalStore.getState().openModal('providers'));
+      registerProviderCommands(providers);
     }
   },
 

@@ -15,9 +15,6 @@ export const WindowEvents = {
   OPEN_USER_PROMPT_LIBRARY: 'open-user-prompt-library',
   
   // Command events
-  COMMAND_SETTINGS_TAB: 'command:settings-tab',
-  COMMAND_EDIT_MODEL: 'command:edit-model',
-  COMMAND_EDIT_PROVIDER: 'command:edit-provider',
   
   // Input events
   APPEND_TO_PROMPT: 'append-to-prompt',

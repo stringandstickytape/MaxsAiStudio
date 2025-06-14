@@ -2,14 +2,9 @@
 import { useCommandStore } from '@/stores/useCommandStore';
 import { ZoomIn, ZoomOut, RotateCcw, Settings, Palette } from 'lucide-react';
 import { useAppearanceStore, fontSizeUtils } from '@/stores/useAppearanceStore';
-import { commandEvents } from '@/commands/settingsCommands';
 import { useModalStore } from '@/stores/useModalStore';
 
-interface AppearanceCommandsConfig {
-  openAppearanceSettings: () => void;
-}
-
-export function initializeAppearanceCommands(config: AppearanceCommandsConfig) {
+export function initializeAppearanceCommands() {
   const mac = navigator.platform.indexOf('Mac') !== -1;
   const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
 
@@ -28,8 +23,7 @@ export function initializeAppearanceCommands(config: AppearanceCommandsConfig) {
         ['appearance', 'font', 'size', 'theme', 'dark', 'light', 'settings', 'customize'],
         React.createElement(Settings, { size: 16 }),
         () => {
-          commandEvents.emit('settings-tab', 'appearance');
-          config.openAppearanceSettings();
+          useModalStore.getState().openModal('appearance', {});
         },
       ],
       [

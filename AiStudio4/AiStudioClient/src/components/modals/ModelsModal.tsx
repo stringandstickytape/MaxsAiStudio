@@ -9,8 +9,6 @@ import {
 import { ModelManagement } from '@/components/settings/ModelManagement';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Model } from '@/types/settings';
-import { commandEvents } from '@/commands/settingsCommands';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 export function ModelsModal() {
   const { currentModal, closeModal } = useModalStore();
@@ -23,22 +21,21 @@ export function ModelsModal() {
     error,
     fetchModels,
     fetchProviders,
-  } = useModelManagement();  const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
+  } = useModelManagement();
+  
+  const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Listen for edit-model events
+  // Handle edit model from props
   useEffect(() => {
-    const handleEditModel = (modelGuid: string) => {
-      const model = models.find((m) => m.guid === modelGuid);
+    if (isOpen && currentModal?.props?.editModelId) {
+      const model = models.find((m) => m.guid === currentModal.props.editModelId);
       if (model) {
         setModelToEdit(model);
         setEditDialogOpen(true);
       }
-    };
-
-    const unsubscribe = windowEventService.on(WindowEvents.COMMAND_EDIT_MODEL, handleEditModel);
-    return () => unsubscribe();
-  }, [models]);
+    }
+  }, [isOpen, currentModal?.props?.editModelId, models]);
 
   // Fetch data when modal opens
   useEffect(() => {
@@ -50,8 +47,8 @@ export function ModelsModal() {
   
   if (!isOpen || !currentModal) return null;
   
-  // TypeScript now knows currentModal.props is ModelsModalProps
-  const props = currentModal.props;
+  // Get props from modal store
+  const props = currentModal.props || {};
 
   return (
     <UnifiedModalDialog

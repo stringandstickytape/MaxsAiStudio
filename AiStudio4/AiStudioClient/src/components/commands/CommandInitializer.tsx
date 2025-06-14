@@ -137,13 +137,9 @@ export function CommandInitializer() {
       },
     });
     
-    initializeSettingsCommands({
-      openSettings: () => togglePanel('settings'),
-    });
+    initializeSettingsCommands();
     
-    initializeAppearanceCommands({
-      openAppearanceSettings: () => togglePanel('settings'),
-    });
+    initializeAppearanceCommands();
     
     initializeMcpServerManagementCommand();
     initializeVoiceInputCommand();

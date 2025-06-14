@@ -3,27 +3,8 @@ import { Book, Database, Edit, Server, Settings, Palette } from 'lucide-react';
 import React from 'react';
 import { useModalStore } from '@/stores/useModalStore';
 import { commandRegistry } from '@/services/commandRegistry';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
-type CommandEvent = 'edit-model' | 'edit-provider' | 'settings-tab';
-
-// Legacy commandEvents API - maintained for backward compatibility
-export const commandEvents = {
-  emit: (event: CommandEvent, data: any) => {
-    const eventName = `command:${event}`;
-    windowEventService.emit(eventName, data);
-  },
-  on: (event: CommandEvent, handler: (data: any) => void) => {
-    const eventName = `command:${event}`;
-    return windowEventService.on(eventName, handler);
-  },
-};
-
-interface SettingsCommandsConfig {
-  openSettings: () => void;
-}
-
-export function initializeSettingsCommands(config: SettingsCommandsConfig) {
+export function initializeSettingsCommands() {
   const mac = navigator.platform.indexOf('Mac') !== -1;
   const shortcut = (key: string) => (mac ? `⌘+${key}` : `Ctrl+${key}`);
 
@@ -84,7 +65,6 @@ export function initializeSettingsCommands(config: SettingsCommandsConfig) {
 
 export function registerModelCommands(
   models: { guid: string; friendlyName: string; modelName: string }[],
-  openSettings: () => void,
 ) {
   try {
     commandRegistry.unregisterGroup('edit-models-list');
@@ -98,9 +78,8 @@ export function registerModelCommands(
     section: 'settings',
     icon: React.createElement(Edit, { size: 16 }),
     execute: () => {
-      // Open the models modal and emit the edit model event
-      windowEventService.emit(WindowEvents.COMMAND_EDIT_MODEL, model.guid);
-      useModalStore.getState().openModal('models', {});
+      // Directly open the modal with the correct context
+      useModalStore.getState().openModal('models', { editModelId: model.guid });
     },
   }));
 
@@ -114,7 +93,6 @@ export function registerModelCommands(
 
 export function registerProviderCommands(
   providers: { guid: string; friendlyName: string; serviceName: string }[],
-  openSettings: () => void,
 ) {
   try {
     commandRegistry.unregisterGroup('edit-providers-list');
@@ -128,9 +106,8 @@ export function registerProviderCommands(
     section: 'settings',
     icon: React.createElement(Database, { size: 16 }),
     execute: () => {
-      // Open the providers modal and emit the edit provider event
-      windowEventService.emit(WindowEvents.COMMAND_EDIT_PROVIDER, provider.guid);
-      useModalStore.getState().openModal('providers', {});
+      // Directly open the modal with the correct context
+      useModalStore.getState().openModal('providers', { editProviderId: provider.guid });
     },
   }));
 

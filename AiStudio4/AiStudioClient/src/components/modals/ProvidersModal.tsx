@@ -9,7 +9,6 @@ import {
 import { ServiceProviderManagement } from '@/components/settings/ServiceProviderManagement';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { ServiceProvider } from '@/types/settings';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 export function ProvidersModal() {
   const { currentModal, closeModal } = useModalStore();
@@ -20,22 +19,21 @@ export function ProvidersModal() {
     isLoading,
     error,
     fetchProviders,
-  } = useModelManagement();  const [providerToEdit, setProviderToEdit] = useState<ServiceProvider | null>(null);
+  } = useModelManagement();
+  
+  const [providerToEdit, setProviderToEdit] = useState<ServiceProvider | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Listen for edit-provider events
+  // Handle edit provider from props
   useEffect(() => {
-    const handleEditProvider = (providerGuid: string) => {
-      const provider = providers.find((p) => p.guid === providerGuid);
+    if (isOpen && currentModal?.props?.editProviderId) {
+      const provider = providers.find((p) => p.guid === currentModal.props.editProviderId);
       if (provider) {
         setProviderToEdit(provider);
         setEditDialogOpen(true);
       }
-    };
-
-    const unsubscribe = windowEventService.on(WindowEvents.COMMAND_EDIT_PROVIDER, handleEditProvider);
-    return () => unsubscribe();
-  }, [providers]);
+    }
+  }, [isOpen, currentModal?.props?.editProviderId, providers]);
 
   // Fetch data when modal opens
   useEffect(() => {
@@ -46,8 +44,8 @@ export function ProvidersModal() {
   
   if (!isOpen || !currentModal) return null;
   
-  // TypeScript now knows currentModal.props is ProvidersModalProps
-  const props = currentModal.props;
+  // Get props from modal store
+  const props = currentModal.props || {};
 
   return (
     <UnifiedModalDialog
