@@ -5,10 +5,6 @@ import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
 import { windowEventService } from '@/services/windowEvents';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
-// import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog'; // Replaced by ModalManager
-// import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog'; // Replaced by ModalManager
-// import SettingsDialog from './components/modals/SettingsDialog'; // Replaced by ModalManager
-// import { ThemeLibrary } from './components/ThemeLibrary'; // Replaced by ModalManager
 import { ModalManager } from './components/modals/ModalManager'; // Import the new manager
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
@@ -194,15 +190,6 @@ function App() {
       {/* Centralized Modal Management */}
       <ModalManager />
 
-
-      {/* Old direct modal rendering (commented out/removed) */}
-      {/* <SystemPromptDialog /> */}
-      {/* <UserPromptDialog /> */}
-      {/* <SettingsDialog /> */}
-      {/* <ServerDialog /> */}
-      {/* {openModalId === 'theme' && <ThemeLibrary open={true} onOpenChange={(open) => { */}
-      {/*   if (!open) closeModal(); */}
-      {/* }} />} */}
     </FontSizeProvider>
   );
 }
