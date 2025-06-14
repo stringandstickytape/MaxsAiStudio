@@ -178,3 +178,124 @@ Removed the middlemen by updating event triggers to directly call `useModalStore
 - **Direct Store Usage**: All modal opening now goes through `useModalStore.getState().openModal()`
 
 This refactoring successfully eliminated the legacy bridge pattern and completed the migration to the modern modal management system, resulting in cleaner, more maintainable code.
+
+## Command Registration useEffect Elimination
+
+### Summary
+Eliminated over-reliance on `useEffect` hooks for synchronizing state and registering commands by moving command registration logic directly into Zustand store actions, making data flow more direct, performant, and robust.
+
+### Problem
+The application used `useEffect` hooks in `CommandInitializer.tsx` to watch for changes in data stores (system prompts, user prompts, models, tools, providers). When data changed, the effects would re-run command registration functions. This created:
+- **Performance Issues**: Unnecessary re-renders and effect re-executions
+- **Complex Dependencies**: Hard-to-track dependency arrays in useEffect
+- **Race Conditions**: Commands might not register if data loaded in unexpected order
+- **Indirection**: Command registration was separated from the data that triggered it
+
+### Solution
+Applied the **co-location pattern**: The action within each Zustand store that sets data is now directly responsible for calling the corresponding command registration function. This eliminates the need for intermediate UI components to "watch" for changes.
+
+### Changes Made
+
+#### 1. Modified Store Actions to Register Commands
+
+**File**: `src/stores/useSystemPromptStore.ts`
+- **Added**: Imports for `registerSystemPromptsAsCommands` and `useModalStore`
+- **Modified**: `setPrompts` action to call `registerSystemPromptsAsCommands()` immediately after setting prompts
+- **Result**: Commands register automatically when prompts are loaded/updated
+
+**File**: `src/stores/useUserPromptStore.ts`
+- **Added**: Imports for `registerUserPromptsAsCommands` and `useModalStore`
+- **Modified**: `setPrompts` action to call `registerUserPromptsAsCommands()` immediately after setting prompts
+- **Result**: User prompt commands register automatically when prompts are loaded/updated
+
+**File**: `src/stores/useModelStore.ts`
+- **Added**: Imports for `initializeModelCommands`, `registerModelCommands`, `registerProviderCommands`, and `useModalStore`
+- **Modified**: `setModels` action to call both `initializeModelCommands()` and `registerModelCommands()`
+- **Modified**: `setProviders` action to call `registerProviderCommands()`
+- **Result**: Model and provider commands register automatically when data is loaded/updated
+
+**File**: `src/stores/useToolStore.ts`
+- **Added**: Import for `registerToolsAsCommands`
+- **Modified**: Store to accept `get` parameter for accessing current state
+- **Modified**: `setTools` action to call `registerToolsAsCommands()` with current active tools and toggle handlers
+- **Result**: Tool commands register automatically when tools are loaded/updated
+
+#### 2. Simplified CommandInitializer Component
+
+**File**: `src/components/commands/CommandInitializer.tsx`
+- **Removed**: Imports for store-specific command registration functions
+- **Removed**: `useModelManagement` hook dependency
+- **Removed**: All `useEffect` hooks that subscribed to store changes
+- **Removed**: Complex subscription cleanup logic
+- **Simplified**: Main initialization `useEffect` to only register static commands once
+- **Kept**: Theme command subscription (as themes still need reactive updates)
+- **Kept**: MCP server commands (handled separately due to different pattern)
+- **Result**: Component is now much simpler and only handles static command registration
+
+### Benefits Achieved
+
+#### Performance Improvements
+- **Eliminated Re-renders**: No more `useEffect` dependencies causing unnecessary re-executions
+- **Direct Registration**: Commands register immediately when data is set, not on next render cycle
+- **Reduced Watchers**: Eliminated multiple store subscriptions in UI components
+
+#### Code Quality
+- **Co-location**: Command registration logic is now next to the data that triggers it
+- **Predictable Flow**: Data update → immediate command registration (no intermediate steps)
+- **Simplified Dependencies**: No complex `useEffect` dependency arrays to maintain
+- **Easier Debugging**: Can trace command registration directly to store actions
+
+#### Robustness
+- **Eliminated Race Conditions**: Commands always register when data is available
+- **Guaranteed Registration**: No risk of missing command updates due to effect timing
+- **Atomic Operations**: Data setting and command registration happen in the same action
+
+#### Maintainability
+- **Single Responsibility**: Each store action handles both data and its side effects
+- **Clearer Intent**: Code clearly shows that setting data triggers command registration
+- **Reduced Indirection**: No need to trace through multiple components to understand command flow
+
+### Technical Implementation Details
+
+#### Pattern Applied
+```typescript
+// Old pattern (in CommandInitializer.tsx)
+useEffect(() => {
+  if (prompts.length > 0) {
+    registerSystemPromptsAsCommands(/* ... */);
+  }
+}, [prompts]); // Watch for changes
+
+// New pattern (in store action)
+setPrompts: (prompts) => {
+  set({ prompts });
+  if (prompts.length > 0) {
+    registerSystemPromptsAsCommands(/* ... */); // Register immediately
+  }
+}
+```
+
+#### Store Integration
+- Commands now register during state updates, not after
+- Modal opening functions passed directly to command registration
+- Store actions remain pure functions with predictable side effects
+
+#### Backward Compatibility
+- All existing command functionality preserved
+- External APIs (Ctrl+K command bar) work exactly the same
+- No breaking changes to user experience
+
+### Files Modified
+1. **Modified**: `src/stores/useSystemPromptStore.ts`
+2. **Modified**: `src/stores/useUserPromptStore.ts`
+3. **Modified**: `src/stores/useModelStore.ts`
+4. **Modified**: `src/stores/useToolStore.ts`
+5. **Simplified**: `src/components/commands/CommandInitializer.tsx`
+
+### Verification Points
+- **Command Bar**: All dynamic commands (prompts, models, tools) appear correctly
+- **Registration Timing**: Commands register immediately when data loads
+- **Performance**: No excessive re-renders during data loading
+- **Functionality**: All command execution works as expected
+
+This refactoring successfully eliminated the useEffect-heavy command registration pattern, resulting in more performant, maintainable, and robust command management throughout the application.
