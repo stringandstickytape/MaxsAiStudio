@@ -248,7 +248,6 @@ export class WebSocketService {
                     content: message.content,
                 });
             } else if (message.messageType === 'transcription') {
-                console.log('received transcription');
                 // Handle transcription messages for appending to user prompt
                 dispatchWebSocketEvent('transcription:received', {
                     type: 'transcription',

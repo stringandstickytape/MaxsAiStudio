@@ -35,7 +35,6 @@ export function SystemPromptModal() {
           initialShowEditor={props.createNew}
           onApplyPrompt={(prompt) => {
             // Synchronize active tools on modal apply
-            console.log('SystemPromptModal: onApplyPrompt called with prompt:', prompt.guid, 'includeGitDiff:', prompt.includeGitDiff);
             useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
             closeModal();
           }}

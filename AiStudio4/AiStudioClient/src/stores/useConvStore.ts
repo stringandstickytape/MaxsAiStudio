@@ -33,7 +33,6 @@ export const useConvStore = create<ConvState>((set, get) => {
     
     if (typeof window !== 'undefined') {
         listenToWebSocketEvent('conv:upd', ({ content }) => {
-            console.log(`[useConvStore] Received conv:upd event:`, content);
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             
@@ -69,7 +68,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                 if (attachments) {
                     useAttachmentStore.getState().addAttachmentsForId(content.id, attachments);
                 }
-                console.log('temp = ', content.temperature);
                 
                 // Check if message already exists (for updates)
                 const existingMessageIndex = conv?.messages.findIndex(m => m.id === content.id) ?? -1;
@@ -319,7 +317,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
                 import('../services/api/apiClient').then(({ updateMessage }) =>
                     updateMessage({ convId, messageId, content })
-                        .catch(e => console.error('Failed to update message on server:', e))
+                        .catch(e => { /* Failed to update message on server */ })
                 );
 
                 return { convs: { ...s.convs, [convId]: { ...conv, messages: msgs } } };
@@ -408,19 +406,6 @@ Debug helper for the Conv store
 export const debugConvStore = () => {
     const state = useConvStore.getState();
 
-    console.groupCollapsed('🪲  Conv Store Debug');
-    console.log('Active Conv ID  :', state.activeConvId);
-    console.log('Selected Msg ID :', state.slctdMsgId);
-    console.log('Editing Msg ID  :', state.editingMessageId);
-    console.log('Convs           :', state.convs);            // full object
-    console.log(
-        'Conv summary    :',
-        Object.entries(state.convs).map(([id, c]) => ({
-            id,
-            messages: c.messages.length,
-        }))
-    );
-    console.groupEnd();
 
     return state; // handy if you want to inspect it further in the console
 };

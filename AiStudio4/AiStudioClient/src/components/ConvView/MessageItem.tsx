@@ -85,11 +85,6 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
     });
   };
   
-  // Debug logging
-  console.log(`[MessageItem] Render - messageId: ${message.id}, isStreamingTarget: ${isStreamingTarget}`);
-  console.log(`[MessageItem] streamedContent length: ${streamedContent.length}`);
-  console.log(`[MessageItem] contentBlocks:`, message.contentBlocks);
-  
   // Check if this message matches the search
   const isSearchMatch = searchResults?.some(result => 
     result.matchingMessageIds.includes(message.id)

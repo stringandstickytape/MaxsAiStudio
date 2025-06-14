@@ -173,10 +173,13 @@ export function InputBar({
         if (!isLoading) {
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
 
+            // Get the current input text directly from the store to avoid stale closure
+            const currentInputText = useInputBarStore.getState().inputText;
+
             const textAttachments = useAttachmentStore.getState().stagedAttachments.filter(att => att.textContent);
 
             const textFileContent = formatTextAttachments(textAttachments);
-            const fullMessage = (inputText ? inputText : "continue") + textFileContent;
+            const fullMessage = (currentInputText ? currentInputText : "continue") + textFileContent;
 
             const messageAttachments = useAttachmentStore.getState().getStagedAttachments().filter(att => !(att.textContent));
 
