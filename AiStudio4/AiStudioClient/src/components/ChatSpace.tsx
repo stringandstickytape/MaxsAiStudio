@@ -2,7 +2,6 @@
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
-import { Attachment } from '@/types/attachment';
 import { InputBar } from './InputBar';
 import { CommandBar } from './CommandBar';
 
@@ -19,7 +18,6 @@ import { setupPromptUtils } from '@/utils/promptUtils';
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   // Removed streamTokens - streaming is now handled directly in MessageItem
-  const [currentAttachments, setCurrentAttachments] = useState<Attachment[]>([]);
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
   const promptOverrideRef = useRef(false);
   // Only subscribe to activeConvId for header, not the full convs object
@@ -87,10 +85,6 @@ export function ChatSpace() {
   }, []);
 
   
-    const handleAttachmentChange = (attachments: Attachment[]) => {
-    setCurrentAttachments(attachments);
-  };
-  
   const openToolLibrary = () => {
     window.dispatchEvent(new CustomEvent('open-tool-library'));
   };
@@ -115,7 +109,6 @@ export function ChatSpace() {
       <div className="flex-shrink-0 w-full overflow-auto">        <InputBar
           onManageTools={openToolLibrary}
           disabled={isCancelling}
-          onAttachmentChange={handleAttachmentChange}
         />
       </div>
     </div>

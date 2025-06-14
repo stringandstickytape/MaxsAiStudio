@@ -18,7 +18,6 @@ import { useChatManagement } from '@/hooks/useChatManagement';
 import { useVoiceInputStore } from '@/stores/useVoiceInputStore';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useToast } from "@/hooks/use-toast";
-import { Attachment } from '@/types/attachment'; // Added for Attachment type
 import { useInputBarStore, useInputText } from '@/stores/useInputBarStore';
 
 // Import subcomponents
@@ -35,7 +34,6 @@ import { TopPControl } from './TopPControl';
 
 interface InputBarProps {
     onManageTools?: () => void;
-    onAttachmentChange?: (attachments: Attachment[]) => void;
     disabled?: boolean;
 }
 
@@ -51,7 +49,6 @@ declare global {
 
 export function InputBar({
     onManageTools,
-    onAttachmentChange,
     disabled = false,
 }: InputBarProps) {
     const textareaRef = useRef<MessageInputAreaRef>(null);
@@ -108,11 +105,6 @@ export function InputBar({
         }
     }, [voiceError, toast]);
 
-    useEffect(() => {
-        if (onAttachmentChange) {
-            onAttachmentChange(attachments);
-        }
-    }, [attachments, onAttachmentChange]);
 
     useEffect(() => {
         fetchServers();
