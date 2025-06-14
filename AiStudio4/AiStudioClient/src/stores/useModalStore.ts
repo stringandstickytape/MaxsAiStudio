@@ -80,7 +80,7 @@ export const useModalStore = create<ModalState>((set, get) => ({
   },
 
   closeModal: () => {
-    const { modalStack } = get();
+    const { modalStack, currentModal } = get();
     if (modalStack.length > 0) {
       // If closing a nested modal, revert to the previous one
       const lastModal = modalStack[modalStack.length - 1];

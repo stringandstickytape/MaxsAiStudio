@@ -11,8 +11,13 @@ import { useModelManagement } from '@/hooks/useResourceManagement';
 import { ServiceProvider } from '@/types/settings';
 
 export function ProvidersModal() {
-  const { currentModal, closeModal } = useModalStore();
-  const isOpen = currentModal?.id === 'providers';
+  const { currentModal, modalStack, closeModal } = useModalStore();
+  const isCurrentModal = currentModal?.id === 'providers';
+  const isInStack = modalStack.some(modal => modal.id === 'providers');
+  const isOpen = isCurrentModal || isInStack;
+  
+  // Get the modal data from either current or stack
+  const modalData = isCurrentModal ? currentModal : modalStack.find(modal => modal.id === 'providers');
   
   const {
     providers,
@@ -42,15 +47,19 @@ export function ProvidersModal() {
     }
   }, [isOpen, fetchProviders]);
   
-  if (!isOpen || !currentModal) return null;
+  if (!isOpen || !modalData) return null;
   
   // Get props from modal store
-  const props = currentModal.props || {};
+  const props = modalData.props || {};
 
   return (
     <UnifiedModalDialog
-      open={isOpen}
-      onOpenChange={(open) => !open && closeModal()}
+      open={isCurrentModal}
+      onOpenChange={(open) => {
+        if (!open && isCurrentModal) {
+          closeModal();
+        }
+      }}
       variant="settings"
       size="xl"
     >

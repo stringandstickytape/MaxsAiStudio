@@ -28,7 +28,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
 }) => {
   
   const { models, isLoading, error: storeError, addModel, updateModel, deleteModel, clearError } = useModelManagement();
-  const { openModal, closeModal } = useModalStore();
+  const { openModal, openNestedModal, closeModal } = useModalStore();
 
   // Search query for filtering models
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -53,7 +53,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   }, [clearError]);
 
   const handleAddModel = () => {
-    openModal('modelForm', {
+    openNestedModal('modelForm', {
       mode: 'add',
       providers: providers,
       onSubmit: handleAddModelSubmit,
@@ -74,7 +74,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   };
 
   const handleEditModel = (model: Model) => {
-    openModal('modelForm', {
+    openNestedModal('modelForm', {
       mode: 'edit',
       model: model,
       providers: providers,
@@ -96,7 +96,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   };
 
   const handleDeleteModel = (model: Model) => {
-    openModal('confirmation', {
+    openNestedModal('confirmation', {
       title: 'Confirm Deletion',
       description: `Are you sure you want to delete the model "${model.friendlyName}"? This action cannot be undone.`,
       danger: true,

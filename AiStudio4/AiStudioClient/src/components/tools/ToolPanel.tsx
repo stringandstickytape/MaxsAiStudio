@@ -59,7 +59,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
-  const { openModal } = useModalStore();
+  const { openModal, openNestedModal } = useModalStore();
   const { confirm } = useConfirmationDialog();
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
   }, [isOpen]);
 
   const handleAddTool = () => {
-    openModal('toolEditor', {
+    openNestedModal('toolEditor', {
       tool: null,
       categories,
       models,
@@ -94,7 +94,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
   };
 
   const handleEditTool = (tool: Tool) => {
-    openModal('toolEditor', {
+    openNestedModal('toolEditor', {
       tool,
       categories,
       models,

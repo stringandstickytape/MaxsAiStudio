@@ -40,7 +40,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
     clearError
   } = useThemeManagement();
   
-  const { openModal, closeModal } = useModalStore();
+  const { openModal, openNestedModal, closeModal } = useModalStore();
 
   const [currentThemeName, setCurrentThemeName] = useState<string>('Default');
   const [error, setLocalError] = useState<string | null>(null);
@@ -78,7 +78,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
   }, [clearError]);
 
   const handleAddTheme = () => {
-    openModal('themeForm', {
+    openNestedModal('themeForm', {
       mode: 'add',
       onSubmit: handleAddThemeSubmit,
     });
@@ -98,7 +98,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
   };
 
   const handleEditTheme = (theme: Theme) => {
-    openModal('themeForm', {
+    openNestedModal('themeForm', {
       mode: 'edit',
       theme: theme,
       onSubmit: handleUpdateThemeSubmit,
@@ -119,7 +119,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
   };
 
   const handleDeleteTheme = (theme: Theme) => {
-    openModal('confirmation', {
+    openNestedModal('confirmation', {
       title: 'Confirm Deletion',
       description: `Are you sure you want to delete the theme "${theme.name}"? This action cannot be undone.`,
       danger: true,

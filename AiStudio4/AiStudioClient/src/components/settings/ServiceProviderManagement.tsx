@@ -28,7 +28,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
 }) => {
   
   const { addProvider, updateProvider, deleteProvider, error: storeError, clearError } = useModelManagement();
-  const { openModal, closeModal } = useModalStore();
+  const { openModal, openNestedModal, closeModal } = useModalStore();
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setLocalError] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
   }, [clearError]);
 
   const handleAddProvider = () => {
-    openModal('providerForm', {
+    openNestedModal('providerForm', {
       mode: 'add',
       onSubmit: handleAddProviderSubmit,
     });
@@ -61,7 +61,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
   };
 
   const handleEditProvider = (provider: ServiceProvider) => {
-    openModal('providerForm', {
+    openNestedModal('providerForm', {
       mode: 'edit',
       provider: provider,
       onSubmit: handleUpdateProviderSubmit,
@@ -82,7 +82,7 @@ export const ServiceProviderManagement: React.FC<ServiceProviderManagementProps>
   };
 
   const handleDeleteProvider = (provider: ServiceProvider) => {
-    openModal('confirmation', {
+    openNestedModal('confirmation', {
       title: 'Confirm Deletion',
       description: `Are you sure you want to delete the provider "${provider.friendlyName}"? This action cannot be undone. Models associated with this provider may stop working.`,
       danger: true,

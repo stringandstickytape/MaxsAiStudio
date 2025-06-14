@@ -59,7 +59,7 @@ export function ToolEditorModal() {
       }}>
         <ToolEditor 
           tool={props.tool} 
-          onClose={() => closeModal()} 
+          onClose={() => {}} 
           categories={props.categories}
           models={props.models}
         />
