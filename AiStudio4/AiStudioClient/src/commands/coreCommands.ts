@@ -1,8 +1,9 @@
 ﻿// AiStudioClient/src/commands/coreCommands.ts
 import { v4 as uuidv4 } from 'uuid';
-import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal } from 'lucide-react';
+import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal, Bug } from 'lucide-react';
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
+import { useDebugStore } from '@/stores/useDebugStore';
 import { createApiRequest } from '@/utils/apiUtils';
 import { commandRegistry } from '@/services/commandRegistry';
 
@@ -106,6 +107,18 @@ export function initializeCoreCommands(handlers: {
         ['window', 'open', 'new', 'external', 'launch', 'create', 'instance'],
         React.createElement(ExternalLink, { size: 16 }),
         handlers.openNewWindow,
+      ],
+      [
+        'toggle-dev-view',
+        'Toggle Developer Content View',
+        '',
+        ['dev', 'developer', 'debug', 'content', 'view', 'toggle', 'hidden', 'ai', 'context', 'tool', 'blocks'],
+        React.createElement(Bug, { size: 16 }),
+        () => {
+          useDebugStore.getState().toggleDevContentView();
+          const isVisible = useDebugStore.getState().showDevContentView;
+          console.log(`Developer Content View: ${isVisible ? 'ON' : 'OFF'}`);
+        },
       ],
     ].map(([id, name, shortcut, keywords, icon, fn]) => ({
       id,
