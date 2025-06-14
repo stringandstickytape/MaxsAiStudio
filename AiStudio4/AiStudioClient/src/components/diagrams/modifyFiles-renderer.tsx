@@ -4,18 +4,11 @@ import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { ChevronDown, ChevronRight, Folder, File, CheckCircle, XCircle, Clock, Copy } from 'lucide-react';
 
 interface ModifyFilesChange {
-  id: string;
   description: string;
-  lineNumber?: number;
-  changeType: 'addition' | 'deletion' | 'modification';
-  oldContent: string;
-  newContent: string;
 }
 
 interface ModifyFilesFile {
   path: string;
-  relativePath: string;
-  fileType: string;
   status: 'modified' | 'failed';
   message: string;
   changeCount: number;
@@ -26,7 +19,6 @@ interface ModifyFilesSummary {
   totalFiles: number;
   totalChanges: number;
   success: boolean;
-  timestamp: string;
   successfulFiles?: number;
   failedFiles?: number;
   error?: string;
@@ -38,9 +30,6 @@ interface ModifyFilesData {
 }
 
 const ModifyFilesRendererComponent: FC<{ content: string; className?: string }> = ({ content, className }) => {
-  const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set());
-  const [expandedChanges, setExpandedChanges] = useState<Set<string>>(new Set());
-  const [searchTerm, setSearchTerm] = useState('');
 
   let data: ModifyFilesData | null = null;
   let parseError: string | null = null;
@@ -98,34 +87,9 @@ const ModifyFilesRendererComponent: FC<{ content: string; className?: string }> 
           <div className="space-y-3">
             {file.changes?.map((change, changeIndex) => (
               <div key={changeIndex} className="border-l-2 pl-3" style={{ borderLeftColor: 'var(--global-accent-color)' }}>
-                <div className="flex items-start gap-2 mb-1">
-                  <span className="text-xs px-2 py-1 rounded" style={{ backgroundColor: 'var(--global-accent-color)', color: 'var(--global-background-color)' }}>
-                    Line {change.lineNumber}
-                  </span>
-                </div>
                 <p className="text-sm mb-2" style={{ color: 'var(--global-text-color)' }}>
                   {change.description}
                 </p>
-                
-                {/* Old Content */}
-                {change.oldContent && (
-                  <div className="mb-3">
-                    <div className="text-xs font-medium mb-1" style={{ color: 'var(--global-muted-text-color)' }}>Old:</div>
-                    <pre className="whitespace-pre-wrap break-words p-2 rounded text-xs font-mono" style={{ backgroundColor: 'var(--global-secondary-background-color)', color: 'var(--global-text-color)', border: '1px solid var(--global-border-color)' }}>
-{change.oldContent}
-                    </pre>
-                  </div>
-                )}
-                
-                {/* New Content */}
-                {change.newContent && (
-                  <div className="mb-3">
-                    <div className="text-xs font-medium mb-1" style={{ color: 'var(--global-muted-text-color)' }}>New:</div>
-                    <pre className="whitespace-pre-wrap break-words p-2 rounded text-xs font-mono" style={{ backgroundColor: 'var(--global-secondary-background-color)', color: 'var(--global-text-color)', border: '1px solid var(--global-border-color)' }}>
-{change.newContent}
-                    </pre>
-                  </div>
-                )}
               </div>
             ))}
           </div>
