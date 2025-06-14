@@ -197,13 +197,6 @@ namespace AiStudio4.Services
 
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
 
-                                //if (!string.IsNullOrEmpty(toolResponse.ToolName))
-                                //{
-                                //    toolResultMessageContent += $"{toolResponse.ToolName}";
-                                //
-                                //    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.AiHidden });
-                                //}
-
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
                                 {
                                     if (string.IsNullOrEmpty(tool.OutputFileType))
@@ -308,6 +301,34 @@ namespace AiStudio4.Services
                 // ContinueProcessing flag to indicate whether the tool loop should continue
                 ShouldContinueToolLoop = continueLoop,
             };
+        }
+
+        /// <summary>
+        /// Re-applies a built-in tool with its original parameters
+        /// </summary>
+        public async Task<BuiltinToolResult> ReapplyToolAsync(string toolName, string toolParameters, string clientId)
+        {
+            if (string.IsNullOrEmpty(toolName))
+            {
+                _logger.LogError("ReapplyToolAsync called with no tool name.");
+                return new BuiltinToolResult { WasProcessed = false, ResultMessage = "Error: Tool name not provided." };
+            }
+
+            var tool = await _toolService.GetToolByToolNameAsync(toolName);
+            if (tool == null || !tool.IsBuiltIn)
+            {
+                _logger.LogWarning("Reapply attempted for a non-existent or non-built-in tool: {ToolName}", toolName);
+                return new BuiltinToolResult { WasProcessed = false, ResultMessage = $"Error: Tool '{toolName}' is not a re-appliable built-in tool." };
+            }
+
+            var extraProps = tool.ExtraProperties ?? new Dictionary<string, string>();
+
+            _logger.LogInformation("Re-applying built-in tool '{ToolName}' for client {ClientId}", toolName, clientId);
+
+            // Re-run the tool using the existing service, which handles all logic and security.
+            var result = await _builtinToolService.ProcessBuiltinToolAsync(toolName, toolParameters, extraProps, clientId);
+            
+            return result;
         }
 
         private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName, ToolExecutionResultContentBlocks resultContentBlocks, string cleanedToolResponseText = null, string? taskDescription = null)
