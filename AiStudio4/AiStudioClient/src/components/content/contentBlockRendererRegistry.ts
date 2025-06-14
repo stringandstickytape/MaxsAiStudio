@@ -3,6 +3,7 @@ import { ContentBlock } from '@/types/conv';
 import { TextContentRenderer } from './TextContentRenderer';
 import { SystemContentRenderer } from './SystemContentRenderer';
 import { AiHiddenContentRenderer } from './AiHiddenContentRenderer';
+import { ToolContentRenderer } from './ToolContentRenderer';
 
 export interface ContentBlockRendererProps {
   block: ContentBlock;
@@ -18,6 +19,7 @@ class ContentBlockRendererRegistry {
     this.register('text', TextContentRenderer);
     this.register('system', SystemContentRenderer);
     this.register('aihidden', AiHiddenContentRenderer);
+    this.register('tool', ToolContentRenderer);
   }
 
   register(type: string, component: ContentBlockRendererComponent) {
@@ -36,6 +38,7 @@ const ContentType = {
   0: 'text',
   1: 'system',
   2: 'aihidden',
+  3: 'tool',
 } as const;
 
 export const contentBlockRendererRegistry = new ContentBlockRendererRegistry();

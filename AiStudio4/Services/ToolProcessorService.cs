@@ -3,6 +3,7 @@
 
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
+using AiStudio4.Core.Models;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 
@@ -188,7 +189,7 @@ namespace AiStudio4.Services
                             {
                                 //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
 
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{toolResponse.ToolName}\n{cleanedToolResponseText}\n", ContentType = ContentType.AiHidden });
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{toolResponse.ToolName}\n{cleanedToolResponseText}\n", ContentType = ContentType.Tool });
                                 // tool already retrieved above
 
                                 var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);
@@ -199,7 +200,7 @@ namespace AiStudio4.Services
                                 {
                                     toolResultMessageContent += $"{toolResponse.ToolName}";
 
-                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.AiHidden });
+                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.Tool });
                                 }
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
@@ -350,11 +351,10 @@ namespace AiStudio4.Services
                     // User-visible content
                     resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"[MCP] {actualToolName}: {taskDescription}\n\n", ContentType = ContentType.System });
 
-                    // AI-visible content
-                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"MCP tool called: {actualToolName}\n\n", ContentType = ContentType.AiHidden });
-
+                    // Developer content
                     var paramsText = JsonConvert.SerializeObject(toolParameterSet);
-                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"```mcp_tool_params\n{paramsText}\n```\n\n" });
+                    string toolCallContent = $"MCP tool called: {actualToolName}\n\nParameters:\n```json\n{paramsText}\n```";
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = toolCallContent, ContentType = ContentType.Tool });
 
                     resultContentBlocks.ResponseBlocks.Add(new ContentBlock
                     {

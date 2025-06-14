@@ -198,17 +198,17 @@ export function initDebugUtils() {
   // Also expose the stop function globally
   window.stopRandomMessages = stopMessageGeneration;
 
-  // Expose AI Hidden Content toggle
-  window.toggleAiHidden = () => {
-    useDebugStore.getState().toggleAiHiddenContent();
-    const isVisible = useDebugStore.getState().showAiHiddenContent;
-    console.log(`AI Hidden Content Visibility: ${isVisible ? 'ON' : 'OFF'}`);
+  // Expose Dev Content View toggle
+  window.toggleDevView = () => {
+    useDebugStore.getState().toggleDevContentView();
+    const isVisible = useDebugStore.getState().showDevContentView;
+    console.log(`Developer Content View: ${isVisible ? 'ON' : 'OFF'}`);
   };
 
   console.log('Debug utilities initialized. Available commands:\n' +
     '- window.addRandomMessages(count?, minDelay?, maxDelay?, chunkSize?)\n' +
     '- window.stopRandomMessages()\n' +
-    '- window.toggleAiHidden()'
+    '- window.toggleDevView()'
   );
 }
 
@@ -217,6 +217,6 @@ declare global {
   interface Window {
     addRandomMessages: (count?: number, minDelay?: number, maxDelay?: number, chunkSize?: number) => Promise<() => void>;
     stopRandomMessages: () => void;
-    toggleAiHidden: () => void;
+    toggleDevView: () => void;
   }
 }

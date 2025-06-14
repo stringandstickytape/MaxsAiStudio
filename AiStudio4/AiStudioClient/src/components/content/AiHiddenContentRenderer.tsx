@@ -4,9 +4,9 @@ import { useDebugStore } from '@/stores/useDebugStore';
 import { ContentBlockRendererProps } from './contentBlockRendererRegistry';
 
 export const AiHiddenContentRenderer: React.FC<ContentBlockRendererProps> = ({ block }) => {
-  const showAiHiddenContent = useDebugStore((state) => state.showAiHiddenContent);
+  const showDevContentView = useDebugStore((state) => state.showDevContentView);
 
-  if (!showAiHiddenContent) {
+  if (!showDevContentView) {
     return null;
   }
 
