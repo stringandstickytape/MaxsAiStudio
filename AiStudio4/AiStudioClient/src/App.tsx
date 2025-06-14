@@ -3,7 +3,7 @@ import { NavigationContainer } from './components/navigation/NavigationContainer
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
-import { windowEventService, WindowEvents, OpenModalEventDetail, ModalCustomEvent } from '@/services/windowEvents';
+import { windowEventService } from '@/services/windowEvents';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 // import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog'; // Replaced by ModalManager
 // import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog'; // Replaced by ModalManager
@@ -74,23 +74,6 @@ function App() {
     }
     };
 
-    // Effect to handle opening the system prompt modal via event
-    useEffect(() => {
-        const handleOpenSystemPromptModal = (detail: any) => {
-            useModalStore.getState().openModal('systemPrompt', detail || {});
-        };
-        const unsubscribe = windowEventService.on(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, handleOpenSystemPromptModal);
-        return () => unsubscribe();
-    }, []);
-    
-    // Effect to handle opening the user prompt modal via event
-    useEffect(() => {
-        const handleOpenUserPromptModal = (detail: any) => {
-            useModalStore.getState().openModal('userPrompt', detail || {});
-        };
-        const unsubscribe = windowEventService.on(WindowEvents.OPEN_USER_PROMPT_MODAL, handleOpenUserPromptModal);
-        return () => unsubscribe();
-    }, []);
 
   
   useEffect(() => {

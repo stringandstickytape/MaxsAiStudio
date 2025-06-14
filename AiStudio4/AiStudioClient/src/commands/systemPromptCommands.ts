@@ -1,7 +1,7 @@
 ﻿// AiStudioClient/src/commands/systemPromptCommands.ts
 import React from 'react';
 import { MessageSquare, Pencil, PlusCircle } from 'lucide-react';
-import { windowEventService, WindowEvents, OpenModalEventDetail } from '@/services/windowEvents';
+import { OpenModalEventDetail } from '@/services/windowEvents';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useConvStore } from '@/stores/useConvStore';
 import { selectSystemPromptStandalone } from '@/hooks/useSystemPromptSelection';
@@ -32,8 +32,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 ['system', 'prompt', 'library', 'collection', 'manage', 'browse'],
                 React.createElement(MessageSquare, { size: 16 }),
                 () => {
-                    const payload: OpenModalEventDetail = {}; // No specific action, just open
-                    windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
+                    useModalStore.getState().openModal('systemPrompt', {});
                 },
             ],
             [
@@ -44,9 +43,7 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                 ['system', 'prompt', 'create', 'new', 'custom'],
                 React.createElement(PlusCircle, { size: 16 }),
                 () => {
-                    const payload: OpenModalEventDetail = { createNew: true };
-                    console.log('Emitting create new system prompt event with payload:', payload);
-                    windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
+                    useModalStore.getState().openModal('systemPrompt', { createNew: true });
                 },
             ],
             [
@@ -70,11 +67,9 @@ export function initializeSystemPromptCommands(config: SystemPromptCommandsConfi
                     if (!promptToEdit && prompts.length > 0) promptToEdit = prompts[0];
 
                     if (promptToEdit) {
-                        const payload: OpenModalEventDetail = { editPromptId: promptToEdit.guid };
-                        windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
+                        useModalStore.getState().openModal('systemPrompt', { editPromptId: promptToEdit.guid });
                     } else {
-                        const payload: OpenModalEventDetail = { createNew: true };
-                        windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, payload);
+                        useModalStore.getState().openModal('systemPrompt', { createNew: true });
                     }
                 },
             ],

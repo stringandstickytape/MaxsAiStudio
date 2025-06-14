@@ -29,9 +29,6 @@ export const WindowEvents = {
   SELECT_SECONDARY_MODEL: 'select-secondary-model',
   
   
-  // Modal events
-  OPEN_SYSTEM_PROMPT_MODAL: 'open-system-prompt-modal',
-  OPEN_USER_PROMPT_MODAL: 'open-user-prompt-modal',
   
   // Stream events
   STREAM_IGNORE: 'stream:ignore',
