@@ -189,7 +189,9 @@ namespace AiStudio4.Services
                             {
                                 //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
 
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{toolResponse.ToolName}\n{cleanedToolResponseText}\n", ContentType = ContentType.Tool });
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{toolResponse.ToolName}\n", ContentType = ContentType.AiHidden });
+
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{cleanedToolResponseText}\n", ContentType = ContentType.Tool });
                                 // tool already retrieved above
 
                                 var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);
@@ -200,7 +202,7 @@ namespace AiStudio4.Services
                                 {
                                     toolResultMessageContent += $"{toolResponse.ToolName}";
 
-                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.Tool });
+                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.AiHidden });
                                 }
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
