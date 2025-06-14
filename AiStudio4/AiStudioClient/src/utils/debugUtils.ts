@@ -1,5 +1,6 @@
 ﻿// AiStudioClient\src\utils\debugUtils.ts
 import { useConvStore } from '@/stores/useConvStore';
+import { useDebugStore } from '@/stores/useDebugStore';
 import { v4 as uuidv4 } from 'uuid';
 import { dispatchWebSocketEvent } from '@/services/websocket/websocketEvents';
 
@@ -196,6 +197,7 @@ export function initDebugUtils() {
 
   // Also expose the stop function globally
   window.stopRandomMessages = stopMessageGeneration;
+
 
   console.log('Debug utilities initialized. Available commands:\n' +
     '- window.addRandomMessages(count?, minDelay?, maxDelay?, chunkSize?)\n' +

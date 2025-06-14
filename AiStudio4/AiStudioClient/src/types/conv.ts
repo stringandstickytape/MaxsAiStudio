@@ -1,9 +1,14 @@
 ﻿
 import { Attachment } from './attachment';
 
+export interface ContentBlock {
+  content: string;
+  contentType: 'text' | 'system' | 'aihidden' | 'tool';
+}
+
 export interface Message {
   id: string;
-  content: string;
+  contentBlocks: ContentBlock[];
   source: 'user' | 'ai' | 'system';
   timestamp: number;
   parentId?: string | null;

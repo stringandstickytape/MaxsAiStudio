@@ -1,21 +1,22 @@
-﻿// AiStudio4/Core/Tools/GeminiGoogleSearchTool.cs
+// AiStudio4/Core/Tools/GeminiGoogleSearchTool.cs
 using AiStudio4.AiServices;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+
+
 using AiStudio4.Convs;
 using AiStudio4.DataModels;
-using AiStudio4.InjectedDependencies;
+
 using AiStudio4.Services.Interfaces;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+
+
 using SharedClasses.Models;
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
+
+
+
 using System.Threading;
-using System.Threading.Tasks;
+
+using Azure;
 
 namespace AiStudio4.Core.Tools
 {
@@ -217,12 +218,12 @@ namespace AiStudio4.Core.Tools
 
             if (!geminiApiResponse.Success)
             {
-                return CreateResult(false, false, $"Gemini search execution failed: {geminiApiResponse.ResponseText}");
+                return CreateResult(false, false, $"Gemini search execution failed: {string.Join("\n\n", geminiApiResponse.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content))}");
             }
 
             // --- 4. Format and return the result ---
             SendStatusUpdate("Gemini search completed. Returning results.");
-            return CreateResult(true, true, geminiApiResponse.ResponseText);
+            return CreateResult(true, true, string.Join("\n\n", geminiApiResponse.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)));
         }
     }
 }

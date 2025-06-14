@@ -1,6 +1,6 @@
-﻿// AiStudio4/Services/Interfaces/IDotNetProjectAnalyzerService.cs
-using System.Collections.Generic;
-using System.Threading.Tasks;
+// AiStudio4/Services/Interfaces/IDotNetProjectAnalyzerService.cs
+
+
 
 namespace AiStudio4.Services.Interfaces
 {

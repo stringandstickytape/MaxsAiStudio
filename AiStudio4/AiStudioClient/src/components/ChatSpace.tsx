@@ -2,7 +2,6 @@
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { AppHeader } from './AppHeader';
 import { ChatContainer } from './ChatContainer';
-import { Attachment } from '@/types/attachment';
 import { InputBar } from './InputBar';
 import { CommandBar } from './CommandBar';
 
@@ -13,20 +12,24 @@ import { CommandBar } from './CommandBar';
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { setupPromptUtils } from '@/utils/promptUtils';
 
 // AiStudioClient/src/components/ChatSpace.tsx
 export function ChatSpace() {
   const isMobile = useMediaQuery('(max-width: 768px)');
   // Removed streamTokens - streaming is now handled directly in MessageItem
-  const [currentAttachments, setCurrentAttachments] = useState<Attachment[]>([]);
   const [isCommandBarOpen, setIsCommandBarOpen] = useState(false);
-  const [inputValue, setInputValue] = useState('');
   const promptOverrideRef = useRef(false);
   // Only subscribe to activeConvId for header, not the full convs object
   const activeConvId = useConvStore(state => state.activeConvId);
   const { isCancelling } = useWebSocketStore();
   const { panels } = usePanelStore();
   
+  // Setup window prompt utilities
+  useEffect(() => {
+    setupPromptUtils();
+  }, []);
+
   // Memoize the ChatContainer to prevent unnecessary re-renders
   const memoizedChatContainer = useMemo(() => (
     <ChatContainer isMobile={isMobile} />
@@ -35,17 +38,6 @@ export function ChatSpace() {
   // Removed the effect that was automatically setting input value based on selected message
   // Now we'll only set input value when explicitly requested
 
-  // Listen for set-prompt event and update inputValue directly, with override flag
-  useEffect(() => {
-    const handleSetPrompt = (event: CustomEvent<{ text: string }>) => {
-      promptOverrideRef.current = true;
-      setInputValue(event.detail.text);
-    };
-    window.addEventListener('set-prompt', handleSetPrompt as EventListener);
-    return () => {
-      window.removeEventListener('set-prompt', handleSetPrompt as EventListener);
-    };
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -93,10 +85,6 @@ export function ChatSpace() {
   }, []);
 
   
-    const handleAttachmentChange = (attachments: Attachment[]) => {
-    setCurrentAttachments(attachments);
-  };
-  
   const openToolLibrary = () => {
     window.dispatchEvent(new CustomEvent('open-tool-library'));
   };
@@ -119,11 +107,8 @@ export function ChatSpace() {
       </div>
       
       <div className="flex-shrink-0 w-full overflow-auto">        <InputBar
-          inputValue={inputValue}
-          onInputChange={setInputValue}
           onManageTools={openToolLibrary}
           disabled={isCancelling}
-          onAttachmentChange={handleAttachmentChange}
         />
       </div>
     </div>

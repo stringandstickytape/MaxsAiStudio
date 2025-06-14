@@ -14,15 +14,27 @@ import { ThemeManagement } from '@/components/settings/ThemeManagement'; // Assu
 export const themeableProps = {};
 
 export function ThemeModal() {
-  const { openModalId, closeModal } = useModalStore();
-  const isOpen = openModalId === 'theme';
-
-  if (!isOpen) return null;
+  const { currentModal, modalStack, closeModal } = useModalStore();
+  const isCurrentModal = currentModal?.id === 'theme';
+  const isInStack = modalStack.some(modal => modal.id === 'theme');
+  const isOpen = isCurrentModal || isInStack;
+  
+  // Get the modal data from either current or stack
+  const modalData = isCurrentModal ? currentModal : modalStack.find(modal => modal.id === 'theme');
+  
+  if (!isOpen || !modalData) return null;
+  
+  // TypeScript now knows modalData.props is ThemeModalProps
+  const props = modalData.props;
 
   return (
     <UnifiedModalDialog
-      open={isOpen}
-      onOpenChange={(open) => !open && closeModal()}
+      open={isCurrentModal}
+      onOpenChange={(open) => {
+        if (!open && isCurrentModal) {
+          closeModal();
+        }
+      }}
       variant="library" 
       size="3xl" // Match ServerModal size
       height="lg" // Match ServerModal height

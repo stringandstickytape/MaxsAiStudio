@@ -3,16 +3,11 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ModelForm } from './ModelForm';
-import {
-  UnifiedModalDialog,
-  UnifiedModalHeader,
-  UnifiedModalContent,
-  UnifiedModalFooter
-} from '@/components/ui/unified-modal-dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
 import { Model } from '@/types/settings';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface ModelManagementProps {
   providers: any[]; 
@@ -33,24 +28,13 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
 }) => {
   
   const { models, isLoading, error: storeError, addModel, updateModel, deleteModel, clearError } = useModelManagement();
-
-  
-  const [internalEditingModel, setInternalEditingModel] = useState<Model | null>(null);  const [internalEditOpen, setInternalEditOpen] = useState(false);
+  const { openModal, openNestedModal, closeModal } = useModalStore();
 
   // Search query for filtering models
   const [searchQuery, setSearchQuery] = useState<string>('');
-
-  
-  const editingModel = externalModelToEdit !== undefined ? externalModelToEdit : internalEditingModel;
-  const setEditingModel = externalSetModelToEdit || setInternalEditingModel;
-  const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
-  const setEditOpen = externalSetEditOpen || setInternalEditOpen;
-
-  const [addOpen, setAddOpen] = useState(false);
-  const [modelToDelete, setModelToDelete] = useState<Model | null>(null);
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const [error, setLocalError] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);  const displayError = error || storeError;
+  const [isProcessing, setIsProcessing] = useState(false);
+  const displayError = error || storeError;
 
   // Filter models based on search query (friendly name, model name, or provider name)
   const filteredModels = models.filter((m) => {
@@ -63,20 +47,25 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     );
   });
 
-  
   useEffect(() => {
-    if (!addOpen && !editOpen && !deleteOpen) {
-      setLocalError(null);
-      clearError();
-    }
-  }, [addOpen, editOpen, deleteOpen, clearError]);
+    setLocalError(null);
+    clearError();
+  }, [clearError]);
 
-  const handleAddModel = async (modelData: Omit<Model, 'guid'>) => {
+  const handleAddModel = () => {
+    openNestedModal('modelForm', {
+      mode: 'add',
+      providers: providers,
+      onSubmit: handleAddModelSubmit,
+    });
+  };
+
+  const handleAddModelSubmit = async (modelData: Omit<Model, 'guid'>) => {
     setIsProcessing(true);
     setLocalError(null);
     try {
       await addModel(modelData);
-      setAddOpen(false);
+      closeModal();
     } catch (err: any) {
       setLocalError(err?.message || 'Failed to add model');
     } finally {
@@ -84,12 +73,21 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     }
   };
 
-  const handleUpdateModel = async (modelData: Model) => {
+  const handleEditModel = (model: Model) => {
+    openNestedModal('modelForm', {
+      mode: 'edit',
+      model: model,
+      providers: providers,
+      onSubmit: handleUpdateModelSubmit,
+    });
+  };
+
+  const handleUpdateModelSubmit = async (modelData: Model) => {
     setIsProcessing(true);
     setLocalError(null);
     try {
       await updateModel(modelData);
-      setEditOpen(false);
+      closeModal();
     } catch (err: any) {
       setLocalError(err?.message || 'Failed to update model');
     } finally {
@@ -97,14 +95,23 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
     }
   };
 
-  const handleDeleteModelConfirm = async () => {
-    if (!modelToDelete) return;
+  const handleDeleteModel = (model: Model) => {
+    openNestedModal('confirmation', {
+      title: 'Confirm Deletion',
+      description: `Are you sure you want to delete the model "${model.friendlyName}"? This action cannot be undone.`,
+      danger: true,
+      onConfirm: async () => {
+        await handleDeleteModelSubmit(model.guid);
+      }
+    });
+  };
 
+  const handleDeleteModelSubmit = async (modelGuid: string) => {
     setIsProcessing(true);
     setLocalError(null);
     try {
-      await deleteModel(modelToDelete.guid);
-      setDeleteOpen(false);
+      await deleteModel(modelGuid);
+      closeModal();
     } catch (err: any) {
       setLocalError(err?.message || 'Failed to delete model');
     } finally {
@@ -147,7 +154,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
             className="w-full md:w-72 lg:w-80 bg-gray-800 text-gray-100 border-gray-600 placeholder-gray-400"
           />
         </div>
-        <Button onClick={() => setAddOpen(true)} className="flex items-center gap-2 btn-primary self-start md:self-auto">
+        <Button onClick={handleAddModel} className="flex items-center gap-2 btn-primary self-start md:self-auto">
           <PlusCircle className="h-4 w-4" /> Add Model
         </Button>
       </div>
@@ -164,7 +171,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
               <p>No models configured yet.</p>
               <p className="mb-4">Add your first model to get started.</p>
               <Button
-                onClick={() => setAddOpen(true)}
+                onClick={handleAddModel}
                 variant="outline"
                 className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
               >
@@ -250,10 +257,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                           variant="ghost"
                           size="icon"
                           className="btn-ghost icon-btn h-6 w-6 p-0"
-                          onClick={() => {
-                            setEditingModel(model);
-                            setEditOpen(true);
-                          }}
+                          onClick={() => handleEditModel(model)}
                           disabled={isProcessing}
                         >
                           <Pencil className="h-3.5 w-3.5" />
@@ -272,10 +276,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
                           variant="ghost"
                           size="icon"
                           className="btn-danger icon-btn h-6 w-6 p-0"
-                          onClick={() => {
-                            setModelToDelete(model);
-                            setDeleteOpen(true);
-                          }}
+                          onClick={() => handleDeleteModel(model)}
                           disabled={isProcessing}
                         >
                           <Trash2 className="h-3.5 w-3.5" />
@@ -293,79 +294,11 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
         </div>
       )}
 
-      
-      <UnifiedModalDialog open={addOpen} onOpenChange={setAddOpen} size="xl" variant="settings">
-        <UnifiedModalHeader>
-          <h2 className="text-gray-100 text-xl font-semibold">Add New Model</h2>
-        </UnifiedModalHeader>
-        <UnifiedModalContent>
-          {displayError && (
-            <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-              {displayError}
-            </div>
-          )}
-          <ModelForm providers={providers} onSubmit={handleAddModel} isProcessing={isProcessing} />
-        </UnifiedModalContent>
-      </UnifiedModalDialog>
-
-      
-      <UnifiedModalDialog open={editOpen} onOpenChange={setEditOpen} size="xl" variant="settings">
-        <UnifiedModalHeader>
-          <h2 className="text-gray-100 text-xl font-semibold">Edit Model</h2>
-        </UnifiedModalHeader>
-        <UnifiedModalContent>
-          {displayError && (
-            <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-              {displayError}
-            </div>
-          )}
-          {editingModel && (
-            <ModelForm
-              key={`edit-model-form-${editingModel.guid}`}
-              providers={providers}
-              onSubmit={handleUpdateModel}
-              isProcessing={isProcessing}
-              initialValues={editingModel}
-            />
-          )}
-        </UnifiedModalContent>
-      </UnifiedModalDialog>
-
-      
-      <UnifiedModalDialog open={deleteOpen} onOpenChange={setDeleteOpen} size="xl" variant="settings">
-        <UnifiedModalHeader>
-          <h2 className="text-gray-100 text-xl font-semibold">Confirm Deletion</h2>
-        </UnifiedModalHeader>
-        <UnifiedModalContent>
-          <div className="py-4 text-gray-200">
-            Are you sure you want to delete the model <strong>{modelToDelete?.friendlyName}</strong>? This action cannot
-            be undone.
-          </div>
-          {displayError && (
-            <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
-              {displayError}
-            </div>
-          )}
-        </UnifiedModalContent>
-        <UnifiedModalFooter className="flex justify-end space-x-2">
-          <Button
-            variant="outline"
-            onClick={() => setDeleteOpen(false)}
-            disabled={isProcessing}
-            className="bg-gray-700 hover:bg-gray-600 text-gray-200 border-gray-600"
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={handleDeleteModelConfirm}
-            disabled={isProcessing}
-            className="bg-red-700 hover:bg-red-800 text-white border-red-900"
-          >
-            {isProcessing ? 'Deleting...' : 'Delete'}
-          </Button>
-        </UnifiedModalFooter>
-      </UnifiedModalDialog>
+      {displayError && (
+        <div className="bg-red-950/30 text-red-400 p-3 rounded-md mb-4 border border-red-800/50">
+          {displayError}
+        </div>
+      )}
     </>
   );
 };

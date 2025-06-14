@@ -7,15 +7,21 @@ export function useMessageStream(messageId: string, isStreamingTarget: boolean) 
   const [isComplete, setIsComplete] = useState(false);
 
   useEffect(() => {
+    
     if (!isStreamingTarget) {
       setStreamedContent('');
       setIsComplete(false);
       return;
     }
 
+
     const handleToken = (detail: any) => {
       if (detail.messageId === messageId) {
-        setStreamedContent(prev => prev + detail.content);
+        setStreamedContent(prev => {
+          const newContent = prev + detail.content;
+          return newContent;
+        });
+      } else {
       }
     };
 

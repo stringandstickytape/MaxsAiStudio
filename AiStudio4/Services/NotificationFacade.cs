@@ -1,8 +1,8 @@
-﻿// AiStudio4/Services/NotificationFacade.cs
-using System.Threading.Tasks;
+// AiStudio4/Services/NotificationFacade.cs
+
 using AiStudio4.Services.Interfaces;
-using AiStudio4.Core.Models;
-using AiStudio4.Core.Interfaces;
+
+
 
 namespace AiStudio4.Services
 {

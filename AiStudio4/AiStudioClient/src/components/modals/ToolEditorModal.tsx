@@ -21,11 +21,13 @@ type ToolEditorModalProps = {
 };
 
 export function ToolEditorModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'toolEditor';
-  const props = isOpen ? (modalProps as ToolEditorModalProps) : null;
-
-  if (!isOpen || !props) return null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'toolEditor';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is ToolEditorModalProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog
@@ -57,7 +59,7 @@ export function ToolEditorModal() {
       }}>
         <ToolEditor 
           tool={props.tool} 
-          onClose={() => closeModal()} 
+          onClose={() => {}} 
           categories={props.categories}
           models={props.models}
         />

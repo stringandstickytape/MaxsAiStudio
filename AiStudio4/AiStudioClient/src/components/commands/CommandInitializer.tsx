@@ -3,31 +3,19 @@ import { useEffect } from 'react';
 import { initializeCoreCommands } from '@/commands/coreCommands';
 import { initializeModelCommands } from '@/commands/modelCommands';
 import { initializeVoiceInputCommand } from '@/commands/voiceInputCommand';
-import { initializeSystemPromptCommands, registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
-import { initializeUserPromptCommands, registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
-import {
-  initializeSettingsCommands,
-  registerModelCommands,
-  registerProviderCommands,
-} from '@/commands/settingsCommands';
+import { initializeSystemPromptCommands } from '@/commands/systemPromptCommands';
+import { initializeUserPromptCommands } from '@/commands/userPromptCommands';
+import { initializeSettingsCommands } from '@/commands/settingsCommands';
 import { initializeAppearanceCommands } from '@/commands/appearanceCommands';
 import { registerThemeCommands } from '@/commands/themeCommands';
-import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
-import { useModelStore } from '@/stores/useModelStore';
 import { useThemeStore } from '@/stores/useThemeStore';
-import { useModelManagement } from '@/hooks/useResourceManagement';
 import { usePanelStore } from '@/stores/usePanelStore';
 import { useToolCommands } from '@/hooks/useToolCommands';
 import { usePinnedCommandsStore } from '@/stores/usePinnedCommandsStore';
-
 import { useToolsManagement } from '@/hooks/useToolsManagement';
 import { useUserPromptManagement } from '@/hooks/useUserPromptManagement';
-import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useFileSystemManagement } from '@/hooks/useFileSystemManagement';
-import { useCommandStore } from '@/stores/useCommandStore';
-import { useToolStore } from '@/stores/useToolStore';
-import { useFileSystemStore } from '@/stores/useFileSystemStore';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import useProjectStore from '@/stores/useProjectStore';
 import { registerMcpServersAsCommands, initializeMcpServerManagementCommand } from '@/commands/mcpServerCommands';
@@ -35,9 +23,6 @@ import { registerMcpServersAsCommands, initializeMcpServerManagementCommand } fr
 export function CommandInitializer() {
   // Panel and UI management
   const { togglePanel } = usePanelStore();
-  
-  // Model management
-  const { models, handleModelSelect } = useModelManagement();
   
   // Command and pinned commands management
   const { fetchPinnedCommands } = usePinnedCommandsStore();
@@ -96,18 +81,14 @@ export function CommandInitializer() {
           fetchMcpServers(),
           fetchProjects()
         ]);
-        
-        // Register commands that depend on loaded data
-        registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
-        registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
-        
+        // After fetching, the stores will automatically handle command registration.
       } catch (error) {
         console.error('Error loading initial data:', error);
       }
     };
     
     loadInitialData();
-  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, fetchFileSystem, fetchMcpServers, togglePanel]);
+  }, [fetchPinnedCommands, fetchTools, fetchToolCategories, fetchUserPrompts, fetchFileSystem, fetchMcpServers, fetchProjects]);
 
   // Register MCP server commands when servers change
   useEffect(() => {
@@ -122,21 +103,17 @@ export function CommandInitializer() {
     }
   }, [mcpServers, toggleMcpServerEnabled]);
 
-  // Register static MCP server management command
-  useEffect(() => {
-    initializeMcpServerManagementCommand();
-  }, []);
 
-  // Initialize core commands and UI interactions
+  // Initialize static commands once
   useEffect(() => {
+    // Register static command groups and commands
     initializeCoreCommands({
       toggleSidebar: () => togglePanel('sidebar'),
-      // Use the same function for both commands to ensure consistent behavior
       toggleSidebarCollapse: () => togglePanel('sidebar'),
       toggleSettings: () => togglePanel('settings'),
       openNewWindow: handleOpenNewWindow,
     });
-
+    
     initializeSystemPromptCommands({
       toggleLibrary: () => window.dispatchEvent(new CustomEvent('open-system-prompt-library')),
       createNewPrompt: () => {
@@ -147,7 +124,7 @@ export function CommandInitializer() {
         useModalStore.getState().openModal('systemPrompt', { editPromptId: promptId });
       },
     });
-
+    
     initializeUserPromptCommands({
       toggleLibrary: () => window.dispatchEvent(new CustomEvent('open-user-prompt-library')),
       createNewPrompt: () => {
@@ -159,90 +136,34 @@ export function CommandInitializer() {
         window.localStorage.setItem('userPrompt_edit', promptId);
       },
     });
-
-    initializeSettingsCommands({
-      openSettings: () => togglePanel('settings'),
+    
+    initializeSettingsCommands();
+    
+    initializeAppearanceCommands();
+    
+    initializeMcpServerManagementCommand();
+    initializeVoiceInputCommand();
+    
+    // Initial empty registration for model commands
+    initializeModelCommands({ 
+      getAvailableModels: () => [], 
+      selectPrimaryModel: () => {}, 
+      selectSecondaryModel: () => {} 
     });
 
-    initializeAppearanceCommands({
-      openAppearanceSettings: () => {
-        togglePanel('settings');
-      },
-    });
-
-    initializeModelCommands({
-      getAvailableModels: () => models,
-      selectPrimaryModel: (guid) => handleModelSelect('primary', guid),
-      selectSecondaryModel: (guid) => handleModelSelect('secondary', guid),
-    });
-
-    // Register theme commands initially and subscribe to theme changes
-    const selectTheme = (themeGuid: string) => {
-      useThemeStore.getState().setActiveThemeId(themeGuid);
-    };
+    // Initial theme registration and subscription
+    const selectTheme = (themeGuid: string) => useThemeStore.getState().setActiveThemeId(themeGuid);
     registerThemeCommands(selectTheme);
     const unsubscribeThemes = useThemeStore.subscribe(
       (state) => [state.themes, state.activeThemeId],
-      () => {
-        registerThemeCommands(selectTheme);
-      }
+      () => registerThemeCommands(selectTheme)
     );
 
-    initializeVoiceInputCommand();
-
-    // Register system prompts as commands and subscribe to changes
-    const systemPromptsUpdated = () => {
-      registerSystemPromptsAsCommands(() => togglePanel('systemPrompts'));
-    };
-
-    systemPromptsUpdated();
-    
-    // Register user prompts as commands and subscribe to changes
-    const userPromptsUpdated = () => {
-      registerUserPromptsAsCommands(() => togglePanel('userPrompts'));
-    };
-
-    userPromptsUpdated();
-
-    const unsubscribePrompts = useSystemPromptStore.subscribe(
-      (state) => state.prompts,
-      () => systemPromptsUpdated(),
-    );
-
-    const unsubscribeUserPrompts = useUserPromptStore.subscribe(
-      (state) => state.prompts,
-      () => userPromptsUpdated(),
-    );
-
-    const unsubscribeModels = useModelStore.subscribe(
-      (state) => state.models,
-      (models) => {
-        if (models.length > 0) {
-          registerModelCommands(models, () => togglePanel('settings'));
-        }
-      },
-    );
-
-    const unsubscribeProviders = useModelStore.subscribe(
-      (state) => state.providers,
-      (providers) => {
-        if (providers.length > 0) {
-          registerProviderCommands(providers, () => togglePanel('settings'));
-        }
-      },
-    );
-
-
-    // Cleanup function to unsubscribe from all subscriptions
+    // Cleanup theme subscription
     return () => {
-
-      unsubscribePrompts();
-      unsubscribeUserPrompts();
-      unsubscribeModels();
-      unsubscribeProviders();
       unsubscribeThemes();
     };
-  }, [models, togglePanel, handleModelSelect]);
+  }, []); // Empty dependency array ensures this runs only ONCE.
 
   return null;
 }

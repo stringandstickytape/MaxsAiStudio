@@ -1,14 +1,14 @@
-﻿using Microsoft.Extensions.Logging;
-using AiStudio4.InjectedDependencies;
-using AiStudio4.Core.Interfaces;
+
+
+
 using SharedClasses.Providers;
 using AiStudio4.AiServices;
 using AiStudio4.Convs;
-using System;
-using System.Collections.Generic;
+
+
 using System.Threading;
-using System.Threading.Tasks;
-using System.Linq;
+
+
 using AiStudio4.DataModels;
 
 namespace AiStudio4.Services
@@ -107,7 +107,7 @@ namespace AiStudio4.Services
                 return new SecondaryAiResponse
                 {
                     Success = response.Success,
-                    Response = response.ResponseText,
+                    Response = string.Join("\n\n", response.ContentBlocks.Where(x => x.ContentType == Core.Models.ContentType.Text).Select(x => x.Content)),
                     Error = response.Success ? string.Empty : "Failed to process request"
                 };
             }

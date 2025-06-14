@@ -11,9 +11,14 @@ export interface HistoricalConv {
   highlightColour?: string;
 }
 
+interface ContentBlock {
+  content: string;
+  contentType: 'text'|'system';
+}
+
 interface TreeNode {
   id: string;
-  text: string;
+  contentBlocks: ContentBlock[];
   children: TreeNode[];
   parentId?: string;
   timestamp?: number;
@@ -115,7 +120,7 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
           flatNodes.forEach((node: TreeNode) => {
             nodeMap.set(node.id, {
               id: node.id,
-              text: node.text,
+              contentBlocks: node.contentBlocks || [],
               children: [],
               parentId: node.parentId, 
               source: node.source, 

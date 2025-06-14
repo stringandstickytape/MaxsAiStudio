@@ -9,10 +9,13 @@ import {
 import { AppearanceTab } from '@/components/settings/AppearanceTab';
 
 export function AppearanceModal() {
-  const { openModalId, closeModal } = useModalStore();
-  const isOpen = openModalId === 'appearance';
-
-  if (!isOpen) return null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'appearance';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is AppearanceModalProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog

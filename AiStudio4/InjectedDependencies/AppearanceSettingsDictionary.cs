@@ -1,5 +1,5 @@
-﻿// InjectedDependencies/AppearanceSettingsDictionary.cs
-using System.Collections.Generic;
+// InjectedDependencies/AppearanceSettingsDictionary.cs
+
 
 namespace AiStudio4.InjectedDependencies
 {

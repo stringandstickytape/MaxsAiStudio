@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, RefObject, useCallback, useState } 
 import * as d3 from 'd3';
 import { TreeNode } from './types';
 import { getModelFriendlyName } from '@/utils/modelUtils';
+import { MessageUtils } from '@/utils/messageUtils';
 
 interface UseTreeVisualizationParams {
   svgRef: RefObject<SVGSVGElement>;
@@ -292,7 +293,10 @@ export const useTreeVisualization = ({
       .attr('class', 'node ConvTreeView')
       .attr('transform', (d) => `translate(${d.x},${d.y})`)
       .attr('cursor', 'pointer')
-      .on('click', (e, d) => onNodeClick(d.data.id, d.data.source, d.data.content))
+      .on('click', (e, d) => {
+        const content = MessageUtils.getContent(d.data as any);
+        onNodeClick(d.data.id, d.data.source, content);
+      })
       .on('mousedown', (e, d) => onNodeMiddleClick(e, d.data.id));
       
     // Add scale-invariant indicators for search matches
@@ -494,7 +498,8 @@ export const useTreeVisualization = ({
       .style('padding', '0 5px')
       .style('margin-bottom', '3px')
       .html((d) => {
-        const content = d.data.content || '';
+        const content = MessageUtils.getContent(d.data as any);
+        
         return content
           .replace(/&/g, '&amp;')
           .replace(/</g, '&lt;')

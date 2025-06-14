@@ -13,26 +13,28 @@ import { useModalStore, ModalRegistry } from '@/stores/useModalStore';
 type FormProps = ModalRegistry['form'];
 
 export function FormModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'form';
-  const props = isOpen ? (modalProps as FormProps) : null;
-
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'form';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is FormProps
+  const props = currentModal.props;
+  
   // Use a unique key based on modal open state to reset form when modal reopens
   const formKey = isOpen ? `form-${Date.now()}` : 'form-closed';
 
   const form = useForm({
     // Reset form values when the modal opens with new initialData
-    values: props?.initialData || {},
+    values: props.initialData || {},
   });
 
   React.useEffect(() => {
-    if (isOpen && props?.initialData) {
+    if (isOpen && props.initialData) {
       form.reset(props.initialData);
     }
     // Reset form when modal closes or initialData changes
-  }, [isOpen, props?.initialData, form.reset]);
-
-  if (!isOpen || !props) return null;
+  }, [isOpen, props.initialData, form.reset]);
 
   const {
     title,

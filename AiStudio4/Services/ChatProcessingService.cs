@@ -1,13 +1,14 @@
-﻿using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
-using AiStudio4.InjectedDependencies;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+
+
+
+
+
+
+
+
+
+
 using System.Text.RegularExpressions;
 using SharedClasses;
 using SharedClasses.Helpers;
@@ -145,10 +146,12 @@ namespace AiStudio4.Services
 
                     // Check if this is the first non-system message in the conversation
                     isFirstMessageInConv = conv.Messages.Count <= 1 ||
-                        (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));
-
-
-                    var newUserMessage = conv.AddOrUpdateMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, chatRequest.Message, chatRequest.ParentMessageId);
+                        (conv.Messages.Count == 2 && conv.Messages.Any(m => m.Role == v4BranchedConvMessageRole.System));                    // Build new content block list for rich message model
+                    var userContentBlocks = new List<ContentBlock>
+                    {
+                        new ContentBlock { Content = chatRequest.Message, ContentType = ContentType.Text }
+                    };
+                    var newUserMessage = conv.AddOrUpdateMessage(v4BranchedConvMessageRole.User, chatRequest.MessageId, userContentBlocks, chatRequest.ParentMessageId);
                     
                     // Add attachments to the message
                     if (attachments != null && attachments.Any())
@@ -158,12 +161,7 @@ namespace AiStudio4.Services
 
                     // Create placeholder AI message before starting the AI stream
                     
-                    var placeholderMessage = conv.AddOrUpdateMessage(
-                        v4BranchedConvMessageRole.Assistant,
-                        assistantMessageId,
-                        "", // Content is initially empty
-                        chatRequest.MessageId // Parent is the user's message
-                    );
+
 
                     // Save the conv system prompt if provided
                     if (!string.IsNullOrEmpty(chatRequest.SystemPromptId))
@@ -178,7 +176,7 @@ namespace AiStudio4.Services
                     {
                         ConvId = conv.ConvId,
                         MessageId = newUserMessage.Id,
-                        Content = newUserMessage.UserMessage,
+                        ContentBlocks = newUserMessage.ContentBlocks,
                         ParentId = chatRequest.ParentMessageId,
                         Timestamp = new DateTimeOffset(newUserMessage.Timestamp).ToUnixTimeMilliseconds(),
                         Source = "user", // Explicitly set source as "user"
@@ -186,24 +184,18 @@ namespace AiStudio4.Services
                         DurationMs = 0, // User messages have zero processing duration
                     });
 
-                    // Notify client to create the placeholder AI MessageItem
-                    await _notificationService.NotifyConvUpdate(clientId, new ConvUpdateDto
-                    {
-                        ConvId = conv.ConvId,
-                        MessageId = assistantMessageId,
-                        Content = "", // Empty content
-                        ParentId = chatRequest.MessageId,
-                        Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                        Source = "assistant"
-                    });
+                    var placeholderMessage = conv.CreatePlaceholder(assistantMessageId, newUserMessage.Id);
 
-                    // Replace tree builder with direct message processing for conv list notification
+                    // Notify client to create the placeholder AI MessageItem
+                    await _notificationService.NotifyConvPlaceholderUpdate(clientId, conv, placeholderMessage);
+
+
                     var messagesForClient = BuildFlatMessageStructure(conv);
 
                     var summaryText = conv.Summary;
                     if(summaryText == null)
                     {
-                        var userMessage = conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.UserMessage;
+                        var userMessage = string.Join("\n\n", conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.ContentBlocks ?? new List<ContentBlock>());
 
                         if(userMessage == null)
                         {
@@ -281,7 +273,11 @@ namespace AiStudio4.Services
                                         {
                                             // Use captured request/response excerpts
                                             string userMessageExcerpt = chatRequest.Message.Length > 250 ? chatRequest.Message.Substring(0, 250) : chatRequest.Message;
-                                            string aiResponseExcerpt = conv.Messages.Last().UserMessage.Length > 250 ? conv.Messages.Last().UserMessage.Substring(0, 250) : conv.Messages.Last().UserMessage;
+
+                                            var lastMessageContent = string.Join("\n\n", conv.Messages.Last().ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(cb => cb.Content));
+
+                                            string aiResponseExcerpt = lastMessageContent.Length > 250 
+                                            ? lastMessageContent.Substring(0, 250) : lastMessageContent;
                                             var summaryPrompt = $"Generate a concise 6 - 10 word summary of the following content.  Produce NO OTHER OUTPUT WHATSOEVER.  \n\n```txt\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}\n```\n";
 
                                             // Use scoped chat service
@@ -349,7 +345,8 @@ namespace AiStudio4.Services
 
             return allMessages.Select(msg => new {
                 id = msg.Id,
-                text = msg.UserMessage ?? "[Empty Message]",
+                contentBlocks = msg.ContentBlocks,
+                //text = (msg.ContentBlocks != null && msg.ContentBlocks.Count > 0) ? string.Join(" ", msg.ContentBlocks.Select(cb => cb.Content)) : (msg.UserMessage ?? "[Empty Message]"),
                 parentId = msg.ParentId,
                 source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                         msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",

@@ -1,6 +1,8 @@
 
 import { create } from 'zustand';
 import { UserPrompt } from '@/types/userPrompt';
+import { registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface UserPromptStore {
   prompts: UserPrompt[];
@@ -32,8 +34,8 @@ export const useUserPromptStore = create<UserPromptStore>((set) => ({
         .filter(p => p.isFavorite)
         .map(p => p.guid);
         
-      
       if (prompts.length > 0) {
+        registerUserPromptsAsCommands(() => useModalStore.getState().openModal('userPrompt'));
         window.dispatchEvent(new CustomEvent('user-prompts-updated'));
       }
         

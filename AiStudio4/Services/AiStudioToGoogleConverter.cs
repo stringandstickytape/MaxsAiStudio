@@ -1,9 +1,9 @@
-﻿// AiStudio4/Services/AiStudioToGoogleConverter.cs
-using AiStudio4.InjectedDependencies; // For v4BranchedConv, v4BranchedConvMessageRole
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+// AiStudio4/Services/AiStudioToGoogleConverter.cs
+ // For v4BranchedConv, v4BranchedConvMessageRole
+
+
+
+
 
 namespace AiStudio4.Services
 {
@@ -126,9 +126,24 @@ namespace AiStudio4.Services
                 {
                     case v4BranchedConvMessageRole.System:
                         // Add system prompt content to systemInstruction.parts
-                        if (!string.IsNullOrWhiteSpace(msg.UserMessage)) {
-                            rootObject.systemInstruction.parts.Add(new GoogleSystemInstructionPart { text = msg.UserMessage });
+                        if(msg.ContentBlocks.Any())
+                        {
+                            foreach (var block in msg.ContentBlocks)
+                            {
+                                if (block.ContentType == Core.Models.ContentType.Text)
+                                {
+                                    rootObject.systemInstruction.parts.Add(new GoogleSystemInstructionPart { text = block.Content });
+                                }
+                                else
+                                {
+                                    // Handle other content types if needed, e.g., images, files
+                                    // For now, we only handle text content
+                                }
+                            }
                         }
+                        //if (!string.IsNullOrWhiteSpace(msg.UserMessage)) {
+                        //    rootObject.systemInstruction.parts.Add(new GoogleSystemInstructionPart { text = msg.UserMessage });
+                        //}
                         continue; // System messages are handled by systemInstruction, not as a chunk
                     case v4BranchedConvMessageRole.User:
                         googleRole = "user";
@@ -142,7 +157,7 @@ namespace AiStudio4.Services
 
                 var chunk = new GoogleChunk
                 {
-                    text = msg.UserMessage,
+                    text = string.Join("\n\n", msg.ContentBlocks.Where(x => x.ContentType == Core.Models.ContentType.Text).Select(x => x.Content)),
                     role = googleRole,
                     isThought = false, // AiStudio4 doesn't store thoughts this way
                     // tokenCount and thoughtSignatures are omitted

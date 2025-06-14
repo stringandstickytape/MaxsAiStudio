@@ -4,7 +4,7 @@ import { ArrowDownToLine } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { SystemPromptComponent } from '@/components/SystemPrompt/SystemPromptComponent';
 import { useJumpToEndStore } from '@/stores/useJumpToEndStore';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface SystemPromptSectionProps {
     activeConvId: string | null;
@@ -20,7 +20,7 @@ export const SystemPromptSection = React.memo(({ activeConvId }: SystemPromptSec
         <div className="mb-2 rounded-lg flex-shrink-0 flex justify-between items-center">
             <SystemPromptComponent
                 convId={activeConvId || undefined}
-                onOpenLibrary={() => windowEventService.emit(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, {})}
+                onOpenLibrary={() => useModalStore.getState().openModal('systemPrompt', {})}
             />
         </div>
     );

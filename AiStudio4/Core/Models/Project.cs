@@ -1,5 +1,5 @@
-﻿// AiStudio4/Core/Models/Project.cs
-using System;
+// AiStudio4/Core/Models/Project.cs
+
 
 namespace AiStudio4.Core.Models
 {

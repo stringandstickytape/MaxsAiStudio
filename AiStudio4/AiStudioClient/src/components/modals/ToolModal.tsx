@@ -16,16 +16,28 @@ type ToolModalProps = ModalRegistry['tool'];
 export const themeableProps = {};
 
 export function ToolModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'tool';
-  const props = isOpen ? (modalProps as ToolModalProps) : null;
-
-  if (!isOpen) return null;
+  const { currentModal, modalStack, closeModal } = useModalStore();
+  const isCurrentModal = currentModal?.id === 'tool';
+  const isInStack = modalStack.some(modal => modal.id === 'tool');
+  const isOpen = isCurrentModal || isInStack;
+  
+  
+  // Get the modal data from either current or stack
+  const modalData = isCurrentModal ? currentModal : modalStack.find(modal => modal.id === 'tool');
+  
+  if (!isOpen || !modalData) return null;
+  
+  // TypeScript now knows modalData.props is ToolModalProps
+  const props = modalData.props;
 
   return (
     <UnifiedModalDialog
       open={isOpen}
-      onOpenChange={(open) => !open && closeModal()}
+      onOpenChange={(open) => {
+        if (!open && isCurrentModal) {
+          closeModal();
+        }
+      }}
       variant="library" // Use library variant as a base
       size="3xl" // Changed from 4xl to 3xl to match ServerModal
       height="lg" // Changed from xl to lg to match ServerModal

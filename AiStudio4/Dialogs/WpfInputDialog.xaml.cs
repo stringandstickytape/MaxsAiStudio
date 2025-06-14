@@ -1,5 +1,5 @@
-﻿// AiStudio4/Dialogs/WpfInputDialog.xaml.cs
-using System.Windows;
+// AiStudio4/Dialogs/WpfInputDialog.xaml.cs
+
 
 namespace AiStudio4.Dialogs
 {

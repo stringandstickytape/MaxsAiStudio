@@ -1,12 +1,15 @@
 ﻿// AiStudioClient\src\components\ConvView\MessageActions.tsx
 import { Clipboard, Pencil, Save, ArrowUp } from 'lucide-react';
-import React from 'react';
+import React, { useState } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { saveCodeBlockAsFile } from '@/services/api/apiClient';
+import { MessageUtils } from '@/utils/messageUtils';
 
 interface MessageActionsProps {
+  // The message object carries contentBlocks (preferred) and a legacy content string
   message: any;
   onEdit: () => void;
+  isInEditMode?: boolean;
 }
 
 // Custom comparison function for MessageActions memoization
@@ -19,7 +22,17 @@ const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: Message
   
   // Compare properties that affect actions
   if (prevMsg.id !== nextMsg.id) return false;
-  if (prevMsg.content !== nextMsg.content) return false;
+  
+  // Compare contentBlocks array
+  if (prevMsg.contentBlocks?.length !== nextMsg.contentBlocks?.length) return false;
+  if (prevMsg.contentBlocks) {
+    for (let i = 0; i < prevMsg.contentBlocks.length; i++) {
+      if (prevMsg.contentBlocks[i]?.content !== nextMsg.contentBlocks[i]?.content) return false;
+    }
+  }
+  
+  // Compare isInEditMode prop - this is crucial for button state!
+  if (prevProps.isInEditMode !== nextProps.isInEditMode) return false;
   
   // Note: We don't compare onEdit callback as it's expected to be stable
   // If the parent doesn't memoize it properly, this optimization is still beneficial
@@ -27,18 +40,26 @@ const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: Message
   return true;
 };
 
-export const MessageActions = React.memo(({ message, onEdit }: MessageActionsProps) => {
+export const MessageActions = React.memo(({ message, onEdit, isInEditMode = false }: MessageActionsProps) => {
+  const [isHovered, setIsHovered] = useState(false);
+  
+  // Debug: Log the isInEditMode value
+  console.log('MessageActions render:', { messageId: message.id, isInEditMode });
+  
   return (
     <div 
-      className="ConvView flex items-center gap-2 pt-2" // Removed mt-2, added pt-2 for padding above actions
+      className="ConvView flex items-center gap-2" // Removed mt-2, added pt-2 for padding above actions
     >
       {/* Ellipsis button and conditional rendering logic removed */}
       <div
         className="flex gap-2" // Changed: Removed overflow, whitespace, transition, etc.
         // Removed inline styles for maxWidth and opacity, making it always visible
       >
-        <button
-          onClick={() => navigator.clipboard.writeText(message.content)}
+        <button        // Copy concatenated text of all blocks using MessageUtils
+        onClick={() => {
+          const flat = MessageUtils.getContent(message);
+          navigator.clipboard.writeText(flat);
+        }}
           className="ConvView p-1.5 rounded-full transition-all duration-200"
           style={{
             color: 'var(--convview-text-color, #9ca3af)',
@@ -54,16 +75,18 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
         </button>
         <button
           onClick={onEdit}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
           className="ConvView p-1.5 rounded-full transition-all duration-200"
           style={{
-            color: 'var(--convview-text-color, #9ca3af)',
-            backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0))', // Kept original style
-            ':hover': {
-              color: 'var(--convview-text-color, #ffffff)',
-              backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0.8))'
-            }
+            color: isInEditMode 
+              ? '#ffffff' 
+              : (isHovered ? '#ffffff' : '#9ca3af'),
+            backgroundColor: isInEditMode 
+              ? '#2563eb' 
+              : (isHovered ? 'rgba(55, 65, 81, 0.8)' : 'rgba(55, 65, 81, 0)'),
           }}
-          title="Edit raw message"
+          title={isInEditMode ? "Exit edit mode" : "Edit message blocks"}
         >
           <Pencil size={16} />
         </button>
@@ -71,8 +94,10 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
           onClick={async () => {
             let suggestedFilename = `message.txt`;
             try {
-              // const { saveCodeBlockAsFile } = await import('@/services/api/apiClient'); // Already imported at top
-              await saveCodeBlockAsFile({ content: message.content, suggestedFilename });
+              // const { saveCodeBlockAsFile } = await import('@/services/api/apiClient'); 
+                // Already imported at top              
+                const flat = MessageUtils.getContent(message);
+              await saveCodeBlockAsFile({ content: flat, suggestedFilename });
             } catch (e) {
               console.error('Save As failed:', e);
             }
@@ -108,7 +133,7 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
                   const conversationText = upToMessages.map(m => {
                     const author = m.source === 'user' ? 'User' : (m.source === 'ai' ? 'AI' : (m.source || 'Unknown'));
                     const timestamp = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
-                    return `---\n${author}${timestamp ? ` [${timestamp}]` : ''}:\n${m.content}\n`;
+                    return `---\n${author}${timestamp ? ` [${timestamp}]` : ''}:\n${MessageUtils.getContent(m)}\n`;
                   }).join('\n');
                   let suggestedFilename = `conversation.txt`;
                   await saveCodeBlockAsFile({ content: conversationText, suggestedFilename });

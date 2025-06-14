@@ -1,5 +1,5 @@
-﻿// InjectedDependencies/IProjectHistoryService.cs
-using System.Collections.Generic;
+// InjectedDependencies/IProjectHistoryService.cs
+
 
 namespace AiStudio4.InjectedDependencies
 {

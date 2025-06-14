@@ -1,19 +1,19 @@
 using AiStudio4.Convs;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+
+
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using AiStudio4.Services.Interfaces;
-using Newtonsoft.Json.Linq;
+
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+
+
+
+
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
+
+
 
 namespace AiStudio4.AiServices
 {

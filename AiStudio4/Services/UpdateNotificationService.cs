@@ -1,6 +1,6 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\UpdateNotificationService.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\UpdateNotificationService.cs
+
+
 
 namespace AiStudio4.Services
 {

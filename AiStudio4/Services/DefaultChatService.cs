@@ -1,17 +1,18 @@
-﻿using Microsoft.Extensions.Logging;
-using AiStudio4.InjectedDependencies;
+﻿
+
+// This is a test comment added by AI on user request
 using AiStudio4.Core.Exceptions;
-using AiStudio4.Core.Models;
-using AiStudio4.Core.Interfaces;
+
+
 using SharedClasses.Providers;
 using AiStudio4.AiServices;
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
-using Newtonsoft.Json;
+
 using System.Text.Json;
-using Newtonsoft.Json.Linq;
-using System.Text;
-using System.IO;
+
+
+
 using AiStudio4.Core.Tools;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -114,7 +115,8 @@ namespace AiStudio4.Services
                 return new SimpleChatResponse
                 {
                     Success = response.Success,
-                    ResponseText = response.ResponseText,
+
+                    ResponseText = string.Join("\n\n",response.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)),
                     Error = response.Success ? null : "Failed to process chat request",
                     ProcessingTime = DateTime.UtcNow - startTime
                 };
@@ -164,7 +166,6 @@ namespace AiStudio4.Services
                 List<Attachment> finalAttachments = new List<Attachment>(); 
 
 
-                StringBuilder collatedResponse = new StringBuilder();
 
 
                 
@@ -190,7 +191,6 @@ namespace AiStudio4.Services
                         break;
                     }
 
-                    collatedResponse = new StringBuilder();
                     currentIteration++;
 
                     
@@ -200,11 +200,12 @@ namespace AiStudio4.Services
                         messages = new List<LinearConvMessage>()
                     };
 
-                    var messageHistory = request.BranchedConv.GetMessageHistory(request.MessageId)
+                    // This is where we select the content blocks to send to AI, into combined text message
+                    var history = request.BranchedConv.GetMessageHistory(request.MessageId);
+                    var messageHistory = history
                         .Select(msg => new MessageHistoryItem
-                        {
-                            Role = msg.Role.ToString().ToLower(),
-                            Content = msg.UserMessage,
+                        {                            Role = msg.Role.ToString().ToLower(),
+                            Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text || x.ContentType == ContentType.AiHidden) ?? new List<ContentBlock>()).Select(cb => cb.Content)),
                             Attachments = msg.Attachments
                         }).ToList();
 
@@ -214,8 +215,7 @@ namespace AiStudio4.Services
                     {
                         var message = new LinearConvMessage
                         {
-                            role = historyItem.Role,
-                            content = historyItem.Content,
+                            role = historyItem.Role,                            content = historyItem.Content,
                             attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
                             
                             
@@ -224,9 +224,7 @@ namespace AiStudio4.Services
                     }
 
                     
-                    var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");
-                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content)) 
-                    {
+                    var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content))                    {
                         linearConversation.messages.Add(new LinearConvMessage
                         {
                             role = "user",
@@ -265,7 +263,11 @@ namespace AiStudio4.Services
                             request.ToolIds.Add(stopTool);
                     }
 
+                    ////// FETCH RESPONSE
+
                     response = await aiService.FetchResponse(requestOptions);
+
+                    ////// PROCESS RESPONSE
 
                     await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Response received...");
 
@@ -274,18 +276,31 @@ namespace AiStudio4.Services
                         finalAttachments.AddRange(response.Attachments); 
                     }
 
-                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, collatedResponse, request.CancellationToken, request.ClientId);
+
+                    //////// PROCESS TOOLS
+
+                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, request.CancellationToken, request.ClientId);
+
+                    var toolsResponseBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
+
+                    var toolsRequestBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.RequestBlocks).ToList();
+
+                    var allRequestBlocks = new List<ContentBlock>();
+                    allRequestBlocks.AddRange(response.ContentBlocks);
+                    allRequestBlocks.AddRange(toolsRequestBlocks);
+                    /////// PROCESS TOOL RESULTS
+
 
                     bool duplicateDetection = false;
 
                     
-                    if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
-                    {
-                        _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);
-                        await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row with identical parameters. Tool loop aborted.");
-                        duplicateDetection = true;
-                    }
-                    previousToolRequested = toolResult.RequestedToolsSummary;
+                    //if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
+                    //{
+                    //    _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);
+                    //    await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row with identical parameters. Tool loop aborted.");
+                    //    duplicateDetection = true;
+                    //}
+                    //previousToolRequested = toolResult.RequestedToolsSummary;
                     
 
                     continueLoop = toolResult.ShouldContinueToolLoop;
@@ -301,9 +316,6 @@ namespace AiStudio4.Services
                     var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
                     var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
 
-
-                    
-
                     if (continueLoop)
                     {
                         
@@ -314,17 +326,14 @@ namespace AiStudio4.Services
                             if (!string.IsNullOrEmpty(interjection))
                             {
                                 
-                                collatedResponse.Insert(0, $"User interjection: {interjection}\n\n");
-
+                                toolsResponseBlocks.Add(new ContentBlock { Content = $"User interjection: {interjection}\n\n" });
                                 
                                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, "Your interjection has been added to the conversation.");
                             }
                         }
 
-                        
-
                         var msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            userMessage: response.ResponseText, parentMessageId: request.MessageId,
+                            contentBlocks: allRequestBlocks, parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
 
@@ -332,7 +341,7 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
-                            Content = toolResult.RequestedToolsSummary,
+                            ContentBlocks = allRequestBlocks,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",
@@ -346,15 +355,16 @@ namespace AiStudio4.Services
 
                         var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
+
                         request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
-                            userMessage: collatedResponse.ToString(), parentMessageId: assistantMessageId, attachments: response.Attachments);
+                            contentBlocks: toolsResponseBlocks, parentMessageId: assistantMessageId, attachments: response.Attachments);
                         request.MessageId = newUserMessageId;
 
                         await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = newUserMessageId,
-                            Content = collatedResponse.ToString(),
+                            ContentBlocks = toolsResponseBlocks,
                             ParentId = assistantMessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "user",
@@ -363,37 +373,33 @@ namespace AiStudio4.Services
                         });
                         assistantMessageId = $"msg_{Guid.NewGuid()}";
 
-                        var placeholderMessage = request.BranchedConv.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.Assistant,
-                            assistantMessageId,
-                            "", // Content is initially empty
-                            newUserMessageId // Parent is the user's message
-                        );
+
+
+
+                        var placeholderMessage = request.BranchedConv.CreatePlaceholder(assistantMessageId, newUserMessageId);
 
                         // Notify client to create the placeholder AI MessageItem
-                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                        {
-                            ConvId = request.BranchedConv.ConvId,
-                            MessageId = assistantMessageId,
-                            Content = "", // Empty content
-                            ParentId = newUserMessageId,
-                            Timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
-                            Source = "assistant"
-                        });
+                        await _notificationService.NotifyConvPlaceholderUpdate(request.ClientId, request.BranchedConv, placeholderMessage);
+
+                        request.BranchedConv.Save();
 
                     }
                     else 
-                    {
-                        string duplicateDetectionText = "";
-                        if(duplicateDetection)
-                        {
-                            duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
-                        }
-                        //assistantMessageId = $"msg_{Guid.NewGuid()}";
-                        string userMessage = $"{duplicateDetectionText}{response.ResponseText}\n{toolResult.AggregatedToolOutput}";
+                    { 
+                        // We aren't looping.  So we need to send the final response back to the user and update the UI.
+                        List<ContentBlock> contentBlocks = new();
+                        //string duplicateDetectionText = "";
+                        //if(duplicateDetection)
+                        //{
+                        //    duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
+                        //    contentBlocks.Add(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text });
+                        //}
+                        
+                        contentBlocks.AddRange(allRequestBlocks);
+                        contentBlocks.AddRange(toolsResponseBlocks);
 
                         v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            userMessage: userMessage, parentMessageId: request.MessageId,
+                            contentBlocks: contentBlocks.ToList(), parentMessageId: request.MessageId,
                             attachments: response.Attachments, costInfo: costInfo);
 
                         msg.Temperature = requestOptions.ApiSettings.Temperature;
@@ -402,7 +408,8 @@ namespace AiStudio4.Services
                         {
                             ConvId = request.BranchedConv.ConvId,
                             MessageId = assistantMessageId,
-                            Content = userMessage,
+                            ContentBlocks = contentBlocks,
+                            //Content = userMessage,
                             ParentId = request.MessageId,
                             Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                             Source = "assistant",
@@ -418,14 +425,13 @@ namespace AiStudio4.Services
 
                     //
 
-                }
+                } 
 
                 _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
 
                 return new ChatResponse
                 {
-                    Success = true,
-                    ResponseText = collatedResponse.ToString()
+                    Success = true
                 };
 
 

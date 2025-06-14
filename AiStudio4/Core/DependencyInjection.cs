@@ -1,14 +1,14 @@
-﻿// AiStudio4.Core\DependencyInjection.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+// AiStudio4.Core\DependencyInjection.cs
+
+
 using AiStudio4.Core.Services;
 using AiStudio4.Core.Tools;
-using AiStudio4.InjectedDependencies;
+
 using AiStudio4.InjectedDependencies.RequestHandlers;
 using AiStudio4.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
-using System.Reflection;
+
+
 
 namespace AiStudio4.Core
 {

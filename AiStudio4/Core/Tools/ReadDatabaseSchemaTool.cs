@@ -1,13 +1,13 @@
-﻿﻿using AiStudio4.Core.Models;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿
+
+
+
+
 using Microsoft.Data.SqlClient;
-using System.Text;
-using System.Threading.Tasks;
-using AiStudio4.InjectedDependencies;
-using AiStudio4.Core.Interfaces;
+
+
+
+
 
 namespace AiStudio4.Core.Tools
 {

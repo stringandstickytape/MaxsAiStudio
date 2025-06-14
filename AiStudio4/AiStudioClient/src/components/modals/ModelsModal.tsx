@@ -9,12 +9,15 @@ import {
 import { ModelManagement } from '@/components/settings/ModelManagement';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Model } from '@/types/settings';
-import { commandEvents } from '@/commands/settingsCommands';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
 
 export function ModelsModal() {
-  const { openModalId, closeModal, modalProps } = useModalStore();
-  const isOpen = openModalId === 'models';
+  const { currentModal, modalStack, closeModal } = useModalStore();
+  const isCurrentModal = currentModal?.id === 'models';
+  const isInStack = modalStack.some(modal => modal.id === 'models');
+  const isOpen = isCurrentModal || isInStack;
+  
+  // Get the modal data from either current or stack
+  const modalData = isCurrentModal ? currentModal : modalStack.find(modal => modal.id === 'models');
   
   const {
     models,
@@ -24,23 +27,20 @@ export function ModelsModal() {
     fetchModels,
     fetchProviders,
   } = useModelManagement();
-
+  
   const [modelToEdit, setModelToEdit] = useState<Model | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
-  // Listen for edit-model events
+  // Handle edit model from props
   useEffect(() => {
-    const handleEditModel = (modelGuid: string) => {
-      const model = models.find((m) => m.guid === modelGuid);
+    if (isOpen && currentModal?.props?.editModelId) {
+      const model = models.find((m) => m.guid === currentModal.props.editModelId);
       if (model) {
         setModelToEdit(model);
         setEditDialogOpen(true);
       }
-    };
-
-    const unsubscribe = windowEventService.on(WindowEvents.COMMAND_EDIT_MODEL, handleEditModel);
-    return () => unsubscribe();
-  }, [models]);
+    }
+  }, [isOpen, currentModal?.props?.editModelId, models]);
 
   // Fetch data when modal opens
   useEffect(() => {
@@ -49,13 +49,20 @@ export function ModelsModal() {
       fetchProviders();
     }
   }, [isOpen, fetchModels, fetchProviders]);
-
-  if (!isOpen) return null;
+  
+  if (!isOpen || !modalData) return null;
+  
+  // Get props from modal store
+  const props = modalData.props || {};
 
   return (
     <UnifiedModalDialog
-      open={isOpen}
-      onOpenChange={(open) => !open && closeModal()}
+      open={isCurrentModal}
+      onOpenChange={(open) => {
+        if (!open && isCurrentModal) {
+          closeModal();
+        }
+      }}
       variant="settings"
       size="xl"
     >

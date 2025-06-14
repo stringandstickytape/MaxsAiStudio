@@ -15,27 +15,17 @@ export const WindowEvents = {
   OPEN_USER_PROMPT_LIBRARY: 'open-user-prompt-library',
   
   // Command events
-  COMMAND_SETTINGS_TAB: 'command:settings-tab',
-  COMMAND_EDIT_MODEL: 'command:edit-model',
-  COMMAND_EDIT_PROVIDER: 'command:edit-provider',
   
   // Input events
   APPEND_TO_PROMPT: 'append-to-prompt',
   SET_PROMPT: 'set-prompt',
   
-  // Tool events
-  OPEN_TOOL_LIBRARY: 'open-tool-library',
   
   // Model events
   SELECT_PRIMARY_MODEL: 'select-primary-model',
   SELECT_SECONDARY_MODEL: 'select-secondary-model',
   
-  // Server events
-  OPEN_SERVER_LIST: 'open-server-list',
   
-  // Modal events
-  OPEN_SYSTEM_PROMPT_MODAL: 'open-system-prompt-modal',
-  OPEN_USER_PROMPT_MODAL: 'open-user-prompt-modal',
   
   // Stream events
   STREAM_IGNORE: 'stream:ignore',

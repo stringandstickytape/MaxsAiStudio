@@ -1,8 +1,8 @@
-﻿// AiStudio4.Core\Tools\CodeDiff\PathSecurityManager.cs
-using Microsoft.Extensions.Logging;
-using System;
-using System.IO;
-using System.Text;
+// AiStudio4.Core\Tools\CodeDiff\PathSecurityManager.cs
+
+
+
+
 
 namespace AiStudio4.Core.Tools.CodeDiff
 {

@@ -1,6 +1,7 @@
 ﻿import * as React from 'react';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { ChevronRight, ChevronDown, MessageCircle } from 'lucide-react';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 export interface TreeNode {
   id: string;
@@ -29,7 +30,7 @@ export const HistoricalConvTree: React.FC<HistoricalConvTreeProps> = ({ treeData
     if (node.text.startsWith('User:')) {
       
       const userContent = node.text.substring(5).trim();
-      window.setPrompt(userContent);
+      useInputBarStore.getState().setInputText(userContent);
     }
   };
 

@@ -12,11 +12,13 @@ import { SystemPromptLibrary } from '@/components/SystemPrompt/SystemPromptLibra
 type SystemPromptProps = ModalRegistry['systemPrompt'];
 
 export function SystemPromptModal() {
-  const { openModalId, modalProps, closeModal } = useModalStore();
-  const isOpen = openModalId === 'systemPrompt';
-  const props = isOpen ? (modalProps as SystemPromptProps) : null;
-
-  if (!isOpen || !props) return null;
+  const { currentModal, closeModal } = useModalStore();
+  const isOpen = currentModal?.id === 'systemPrompt';
+  
+  if (!isOpen || !currentModal) return null;
+  
+  // TypeScript now knows currentModal.props is SystemPromptProps
+  const props = currentModal.props;
 
   return (
     <UnifiedModalDialog
@@ -28,14 +30,12 @@ export function SystemPromptModal() {
         <h2 className="text-xl font-semibold">System Prompts</h2>
       </UnifiedModalHeader>
       <UnifiedModalContent>
-        {/* Render the actual system prompt library content */} 
-        <SystemPromptLibrary
-          convId={props.convId}
-          initialEditPromptId={props.editPromptId}
-          initialShowEditor={props.createNew}
+        {/* Render the actual system prompt library content */}        <SystemPromptLibrary
+          convId={props?.convId}
+          initialEditPromptId={props?.editPromptId}
+          initialShowEditor={props?.createNew}
           onApplyPrompt={(prompt) => {
             // Synchronize active tools on modal apply
-            console.log('SystemPromptModal: onApplyPrompt called with prompt:', prompt.guid, 'includeGitDiff:', prompt.includeGitDiff);
             useToolStore.getState().setActiveTools(Array.isArray(prompt.associatedTools) ? prompt.associatedTools : []);
             closeModal();
           }}

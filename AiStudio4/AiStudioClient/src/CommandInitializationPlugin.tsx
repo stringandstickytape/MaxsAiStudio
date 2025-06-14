@@ -1,24 +1,18 @@
 ﻿// AiStudioClient/src/CommandInitializationPlugin.tsx
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useSystemPromptStore } from '@/stores/useSystemPromptStore';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
-import { usePanelStore } from '@/stores/usePanelStore';
-import { useModalStore } from '@/stores/useModalStore';
-import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
-import { registerUserPromptsAsCommands } from '@/commands/userPromptCommands';
-import { useCommandStore } from '@/stores/useCommandStore';
 import { useToolStore } from '@/stores/useToolStore';
 import { SystemPrompt } from '@/types/systemPrompt';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
 import { commandRegistry } from '@/services/commandRegistry';
 import { createApiRequest } from '@/utils/apiUtils';
 import { useConvStore } from '@/stores/useConvStore';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
   const { prompts: userPrompts } = useUserPromptStore();
-  const { togglePanel } = usePanelStore();
-  const { openModal } = useModalStore();
   const { setActiveTools } = useToolStore();
   const { activeConvId } = useConvStore();
   
@@ -47,40 +41,6 @@ export function CommandInitializationPlugin() {
     }
   }, [activeConvId, setActiveTools]);
   
-  useEffect(() => {
-    if (systemPrompts.length > 0) {
-      registerSystemPromptsAsCommands(() => useModalStore.getState().openModal('systemPrompt'));
-    }
-  }, [systemPrompts]);
-  
-  
-  useEffect(() => {
-    if (userPrompts.length > 0) {
-      registerUserPromptsAsCommands(() => useModalStore.getState().openModal('userPrompt'));
-    }
-  }, [userPrompts]);
-  
-  
-  useEffect(() => {
-    const handleSystemPromptsUpdate = () => {
-      registerSystemPromptsAsCommands(() => useModalStore.getState().openModal('systemPrompt'));
-    };
-    
-    const handleUserPromptsUpdate = () => {
-      registerUserPromptsAsCommands(() => useModalStore.getState().openModal('userPrompt'));
-    };
-    
-    const unsubSystemPrompts = windowEventService.on(WindowEvents.SYSTEM_PROMPTS_UPDATED, handleSystemPromptsUpdate);
-    const unsubUserPrompts = windowEventService.on(WindowEvents.USER_PROMPTS_UPDATED, handleUserPromptsUpdate);
-    
-    if (systemPrompts.length > 0) handleSystemPromptsUpdate();
-    if (userPrompts.length > 0) handleUserPromptsUpdate();
-    
-    return () => {
-      unsubSystemPrompts();
-      unsubUserPrompts();
-    };
-  }, [systemPrompts.length, userPrompts.length]);
   
   // Handle system prompt selection and apply associated tools and user prompt
   useEffect(() => {
@@ -99,8 +59,8 @@ export function CommandInitializationPlugin() {
         if (selectedPrompt.associatedUserPromptId) {
           const userPrompt = userPrompts.find(p => p.guid === selectedPrompt.associatedUserPromptId);
           if (userPrompt && userPrompt.content) {
-            // Use the windowEventService to set the prompt content
-            windowEventService.emit(WindowEvents.SET_PROMPT, { text: userPrompt.content });
+            // Use the input bar store directly to set the prompt content
+            useInputBarStore.getState().setInputText(userPrompt.content);
             
           }
         }

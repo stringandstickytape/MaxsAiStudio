@@ -1,7 +1,7 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
+
+
 
 namespace AiStudio4.DataModels
 {

@@ -98,9 +98,10 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     },
 
     addStreamingMessage: (messageId) => {
-      set(state => ({
-        activeStreamingMessageIds: new Set([...state.activeStreamingMessageIds, messageId])
-      }));
+      set(state => {
+        const newSet = new Set([...state.activeStreamingMessageIds, messageId]);
+        return { activeStreamingMessageIds: newSet };
+      });
     },
 
     removeStreamingMessage: (messageId) => {
@@ -112,7 +113,9 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     },
 
     isMessageStreaming: (messageId) => {
-      return get().activeStreamingMessageIds.has(messageId);
+      const state = get();
+      const isStreaming = state.activeStreamingMessageIds.has(messageId);
+      return isStreaming;
     },
 
     hasActiveStreaming: () => {
@@ -124,12 +127,6 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
 
 export const debugWebSocketStore = () => {
   const state = useWebSocketStore.getState();
-  console.group('WebSocket Store Debug');
-  console.log('Connected:', state.isConnected);
-  console.log('Client ID:', state.clientId);
-  console.log('Last Message Time:', state.lastMessageTime ? new Date(state.lastMessageTime).toISOString() : 'Never');
-  console.log('Reconnect Attempts:', state.reconnectAttempts);
-  console.groupEnd();
   return state;
 };
 

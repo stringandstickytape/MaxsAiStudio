@@ -1,7 +1,7 @@
-﻿// AiStudio4/InjectedDependencies/IGeneralSettingsService.cs
-using AiStudio4.Core.Models; // If your Model class is here
+// AiStudio4/InjectedDependencies/IGeneralSettingsService.cs
+ // If your Model class is here
 using SharedClasses.Providers; // If your Model/ServiceProvider classes are here
-using System;
+
 
 namespace AiStudio4.InjectedDependencies
 {

@@ -1,19 +1,19 @@
-﻿// AiStudio4/Core/Tools/SecondAiOpinionTool.cs
+// AiStudio4/Core/Tools/SecondAiOpinionTool.cs
 using AiStudio4.AiServices;
 using AiStudio4.Convs;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+
+
 using AiStudio4.DataModels;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
+
+
+
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+
+
+
+
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.Core.Tools
 {
@@ -128,13 +128,13 @@ namespace AiStudio4.Core.Tools
             if (!response.Success)
             {
                 SendStatusUpdate($"Error response from {modelGuid}.");
-                return CreateResult(true, true, $"Error from {modelGuid}: {response.ResponseText}");
+                return CreateResult(true, true, $"Error from {modelGuid}: {string.Join("\n\n", response.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content))}");
             }
 
             var resultBuilder = new StringBuilder();
             resultBuilder.AppendLine($"### Response from [{modelToUse.FriendlyName}]");
             resultBuilder.AppendLine("---");
-            resultBuilder.AppendLine(response.ResponseText);
+            resultBuilder.AppendLine(string.Join("\n\n", response.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)));
 
             SendStatusUpdate($"Received response from {modelGuid}.");
             return CreateResult(true, true, resultBuilder.ToString());

@@ -1,12 +1,12 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.DataModels;
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
+
+
 using System.Net.Http;
-using System.Text;
+
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.AiServices
 {

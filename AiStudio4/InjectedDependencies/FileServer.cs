@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
-using System.IO;
+
 using System.Net.Http;
 
 namespace AiStudio4.InjectedDependencies

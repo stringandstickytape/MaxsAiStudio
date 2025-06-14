@@ -1,6 +1,7 @@
 
 import { create } from 'zustand';
 import { Tool, ToolCategory } from '@/types/toolTypes';
+import { registerToolsAsCommands } from '@/commands/toolCommands';
 
 interface ToolStore {
   
@@ -21,7 +22,7 @@ interface ToolStore {
   setError: (error: string | null) => void;
 }
 
-export const useToolStore = create<ToolStore>((set) => ({
+export const useToolStore = create<ToolStore>((set, get) => ({
   
   tools: [],
   categories: [],
@@ -30,7 +31,14 @@ export const useToolStore = create<ToolStore>((set) => ({
   error: null,
 
   
-  setTools: (tools) => set({ tools }),
+  setTools: (tools) => {
+    set({ tools });
+    const { activeTools, addActiveTool, removeActiveTool } = get();
+    registerToolsAsCommands(tools, activeTools, (toolId, activate) => {
+      if (activate) addActiveTool(toolId);
+      else removeActiveTool(toolId);
+    });
+  },
 
   setCategories: (categories) => set({ categories }),
 

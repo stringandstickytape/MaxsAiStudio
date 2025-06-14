@@ -1,19 +1,19 @@
-﻿// AiStudio4/Services/GoogleDriveService.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+// AiStudio4/Services/GoogleDriveService.cs
+
+
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Drive.v3;
 using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using Google.Apis.Upload; // For IUploadProgress
-using Microsoft.Extensions.Logging; // Add this using
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
+ // Add this using
+
+
+
+
+
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.Services
 {

@@ -1,13 +1,13 @@
-using AiStudio4.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
+
+
+
+
+
+
+
+
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.Core.Tools.CodeDiff
 {
@@ -90,7 +90,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
                     return false;
                 }
 
-                // Exactly one match – replace it with newContent verbatim
+                // Exactly one match ï¿½ replace it with newContent verbatim
                 var match = matches[0];
                 modifiedContent = modifiedContent.Remove(match.Index, match.Length)
                                                  .Insert(match.Index, newContent);
@@ -136,7 +136,7 @@ namespace AiStudio4.Core.Tools.CodeDiff
 
         /// <summary>
         /// Normalises all line endings in <paramref name="text"/> to LF.
-        /// Does *not* touch spaces or tabs – that is left to the regex.
+        /// Does *not* touch spaces or tabs ï¿½ that is left to the regex.
         /// </summary>
         private static string NormalizeLineEndings(string text)
         {

@@ -3,14 +3,8 @@ import { NavigationContainer } from './components/navigation/NavigationContainer
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
-import { windowEventService, WindowEvents, OpenModalEventDetail, ModalCustomEvent } from '@/services/windowEvents';
+import { windowEventService } from '@/services/windowEvents';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
-// import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog'; // Replaced by ModalManager
-// import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog'; // Replaced by ModalManager
-import { ToolDialog } from './components/tools/ToolDialog'; // Bridge component for legacy event handling
-// import SettingsDialog from './components/modals/SettingsDialog'; // Replaced by ModalManager
-// import { ThemeLibrary } from './components/ThemeLibrary'; // Replaced by ModalManager
-import { ServerDialog } from './components/servers/ServerDialog'; // Bridge component for legacy event handling
 import { ModalManager } from './components/modals/ModalManager'; // Import the new manager
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
@@ -21,6 +15,7 @@ import { useModalStore } from '@/stores/useModalStore';
 import { slashItemRegistry } from './services/slashItemRegistry';
 import { UserPromptProvider } from './services/providers/userPromptProvider';
 import { FileNameProvider } from './services/providers/fileNameProvider';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -75,23 +70,6 @@ function App() {
     }
     };
 
-    // Effect to handle opening the system prompt modal via event
-    useEffect(() => {
-        const handleOpenSystemPromptModal = (detail: any) => {
-            useModalStore.getState().openModal('systemPrompt', detail || {});
-        };
-        const unsubscribe = windowEventService.on(WindowEvents.OPEN_SYSTEM_PROMPT_MODAL, handleOpenSystemPromptModal);
-        return () => unsubscribe();
-    }, []);
-    
-    // Effect to handle opening the user prompt modal via event
-    useEffect(() => {
-        const handleOpenUserPromptModal = (detail: any) => {
-            useModalStore.getState().openModal('userPrompt', detail || {});
-        };
-        const unsubscribe = windowEventService.on(WindowEvents.OPEN_USER_PROMPT_MODAL, handleOpenUserPromptModal);
-        return () => unsubscribe();
-    }, []);
 
   
   useEffect(() => {
@@ -168,10 +146,8 @@ function App() {
         },
       });
     }
-  }, [activeConvId, createConv]);
-
-  // Destructure modal state from useModalStore
-  const { openModalId, closeModal } = useModalStore();
+  }, [activeConvId, createConv]);  // Destructure modal state from useModalStore
+  const { currentModal, closeModal } = useModalStore();
 
   // Assuming userPrompts is available in this scope; if not, it should be imported or passed as prop
   const userPrompts = []; // Placeholder, replace with actual user prompts source
@@ -184,8 +160,8 @@ function App() {
       const { userPromptId } = e.detail;
       if (userPromptId) {
         const userPrompt = userPrompts.find(up => up.guid === userPromptId);
-        if (userPrompt && window.setPrompt) {
-          window.setPrompt(userPrompt.content);
+        if (userPrompt) {
+          useInputBarStore.getState().setInputText(userPrompt.content);
         }
       }
     };
@@ -214,18 +190,6 @@ function App() {
       {/* Centralized Modal Management */}
       <ModalManager />
 
-      {/* Bridge components for legacy event handling */}
-      <ToolDialog />
-      <ServerDialog />
-
-      {/* Old direct modal rendering (commented out/removed) */}
-      {/* <SystemPromptDialog /> */}
-      {/* <UserPromptDialog /> */}
-      {/* <SettingsDialog /> */}
-      {/* <ServerDialog /> */}
-      {/* {openModalId === 'theme' && <ThemeLibrary open={true} onOpenChange={(open) => { */}
-      {/*   if (!open) closeModal(); */}
-      {/* }} />} */}
     </FontSizeProvider>
   );
 }

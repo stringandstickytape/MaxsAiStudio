@@ -2,7 +2,7 @@
 import React from 'react';
 import { Tool } from '@/types/toolTypes';
 import { commandRegistry } from '@/services/commandRegistry';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface ToolCommandsConfig {
   openToolLibrary: () => void;
@@ -31,7 +31,7 @@ export function initializeToolCommands(config: ToolCommandsConfig) {
         'Open the tool library',
         '',
         ['manage', 'tools', 'panel', 'settings', 'configure'],
-        config.openToolLibrary,
+        () => useModalStore.getState().openModal('tool', {}),
       ],
     ].map(([id, name, description, shortcut, keywords, fn]) => ({
       id,

@@ -1,5 +1,7 @@
 ﻿import { create } from 'zustand';
 import { SystemPrompt } from '@/types/systemPrompt';
+import { registerSystemPromptsAsCommands } from '@/commands/systemPromptCommands';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface SystemPromptStore {
   prompts: SystemPrompt[];
@@ -33,8 +35,8 @@ export const useSystemPromptStore = create<SystemPromptStore>((set) => ({
     set((state) => {
       const defaultPrompt = prompts.find((p) => p.isDefault);
         
-      
       if (prompts.length > 0) {
+        registerSystemPromptsAsCommands(() => useModalStore.getState().openModal('systemPrompt'));
         window.dispatchEvent(new CustomEvent('system-prompts-updated'));
       }
         

@@ -1,4 +1,6 @@
-﻿using AiStudio4.DataModels;
+using AiStudio4.DataModels;
+
+
 using SharedClasses.Providers;
 
 namespace AiStudio4.Core.Models
@@ -7,8 +9,12 @@ namespace AiStudio4.Core.Models
     {
         public string ConvId { get; set; }
         public string MessageId { get; set; }
-        public string ParentId { get; set; }
-        public object Content { get; set; } // sometimes this is a c# string, sometimes another type...
+        public string ParentId { get; set; }        
+
+        /// <summary>
+        /// The new rich content representation for a message.
+        /// </summary>
+        public List<ContentBlock> ContentBlocks { get; set; }
         public long Timestamp { get; set; }
         public string Source { get; set; }
         public List<Attachment> Attachments { get; set; }

@@ -183,7 +183,7 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
                     id: convId,
                     rootMessage: {
                         id: rootMessage.id,
-                        content: rootMessage.content,
+                        contentBlocks: rootMessage.contentBlocks ?? [],
                         source: rootMessage.source,
                         parentId: null,
                         timestamp: rootMessage.timestamp,
@@ -205,7 +205,7 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
                         convId,
                         message: {
                             id: message.id,
-                            content: message.content,
+                            contentBlocks: message.contentBlocks ?? [],
                             source: message.source,
                             parentId: message.parentId,
                             timestamp: message.timestamp,

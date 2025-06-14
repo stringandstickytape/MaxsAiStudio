@@ -1,9 +1,9 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+
+
+
 using AiStudio4.Services;
 using AiStudio4.Services.Interfaces;
 using AiStudio4.Services.Logging;
@@ -11,15 +11,15 @@ using AiStudio4.Dialogs;
 using AiStudio4.InjectedDependencies.WebSocketManagement;
 using AiStudio4.InjectedDependencies.WebSocket;
 using Microsoft.Extensions.Hosting;
-using System.Windows;
-using System.IO;
-using AiStudio4.InjectedDependencies;
+
+
+
 using AiStudio4.InjectedDependencies.RequestHandlers;
-using Newtonsoft.Json;
+
 using Newtonsoft.Json.Serialization;
 using AiStudio4.Core;
-using System;
-using System.Threading.Tasks;
+
+
 using AiStudio4.Services.Interfaces;
 using System.Net.Http; 
 
@@ -110,7 +110,6 @@ public const decimal VersionNumber = 1.03m;
             services.AddSingleton<WebSocketServer>();
             services.AddSingleton<ConvService>();
             services.AddSingleton<ChatProcessingService>();
-            services.AddSingleton<MessageHistoryService>();
             services.AddSingleton<ChatManager>();
             
             // Register request handlers

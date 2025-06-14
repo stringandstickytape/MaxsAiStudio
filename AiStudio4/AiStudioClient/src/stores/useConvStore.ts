@@ -4,25 +4,33 @@ import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
 import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { processAttachments } from '@/utils/attachmentUtils';
+import type { ContentBlock } from '@/types/conv';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
+import { MessageUtils } from '@/utils/messageUtils';
+import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 
 interface ConvState {
     convs: Record<string, Conv>;
     activeConvId: string | null;
     slctdMsgId: string | null;
     editingMessageId: string | null;
+    editingBlock: { messageId: string; blockIndex: number; } | null;
     createConv: (p: { id?: string; rootMessage: Message; slctdMsgId?: string }) => void;
     addMessage: (p: { convId: string; message: Message }) => void;
     setActiveConv: (convId: string) => void;
     selectMessage: (convId: string, messageId: string) => void;
     getConv: (convId: string) => Conv | undefined;
     getActiveConv: () => Conv | undefined;
-    updateMessage: (p: { convId: string; messageId: string; content: string }) => void;
+    updateMessage: (p: { convId: string; messageId: string; newBlocks: ContentBlock[] }) => void;
+    updateMessageBlock: (convId: string, messageId: string, blockIndex: number, newContent: string) => void;
     deleteMessage: (p: { convId: string; messageId: string }) => void;
     clearConv: (convId: string) => void;
     deleteConv: (convId: string) => void;
     editMessage: (messageId: string | null) => void;
+    editBlock: (messageId: string, blockIndex: number) => void;
     cancelEditMessage: () => void;
+    cancelEditBlock: () => void;
+    loadOrGetConv: (convId: string) => Promise<{ id: string; messages: Message[]; summary?: string } | null>;
 }
 
 
@@ -56,6 +64,8 @@ export const useConvStore = create<ConvState>((set, get) => {
                 }
 
                 
+                const contentBlocks: ContentBlock[] = content.contentBlocks ?? [];
+
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
                     : undefined;
@@ -64,7 +74,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                 if (attachments) {
                     useAttachmentStore.getState().addAttachmentsForId(content.id, attachments);
                 }
-                console.log('temp = ', content.temperature);
                 
                 // Check if message already exists (for updates)
                 const existingMessageIndex = conv?.messages.findIndex(m => m.id === content.id) ?? -1;
@@ -76,7 +85,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         const existingMessage = updatedMessages[existingMessageIndex];
                         updatedMessages[existingMessageIndex] = { 
                             ...existingMessage, 
-                            content: content.content,
+                            contentBlocks: contentBlocks,
                             durationMs: content.durationMs,
                             costInfo: content.costInfo || existingMessage.costInfo,
                             cumulativeCost: content.cumulativeCost || existingMessage.cumulativeCost,
@@ -96,7 +105,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                         convId: targetConvId,
                         message: {
                             id: content.id,
-                            content: content.content,
+                            contentBlocks: contentBlocks,
                             source: content.source,
                             parentId,
                             timestamp: content.timestamp || Date.now(),
@@ -138,7 +147,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     id: convId,
                     rootMessage: {
                         id: content.id,
-                        content: content.content,
+                        contentBlocks: content.contentBlocks ?? [],
                         source: content.source,
                         parentId: null,
                         timestamp: content.timestamp || Date.now(),
@@ -153,7 +162,7 @@ export const useConvStore = create<ConvState>((set, get) => {
 
         listenToWebSocketEvent('conv:load', ({ content }) => {
             if (!content?.messages?.length) return;
-            const { convId, messages } = content;
+            const { convId, messages } = content as any;
 
             const slctdMsgId = new URLSearchParams(window.location.search).get('messageId');
             const { createConv, addMessage, setActiveConv } = get();
@@ -165,7 +174,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 id: convId,
                 rootMessage: {
                     id: rootMsg.id,
-                    content: rootMsg.content,
+                    contentBlocks: rootMsg.contentBlocks ?? [] as any,
                     source: rootMsg.source as 'user' | 'ai' | 'system',
                     parentId: null,
                     timestamp: rootMsg.timestamp || Date.now(),
@@ -189,11 +198,13 @@ export const useConvStore = create<ConvState>((set, get) => {
                         useAttachmentStore.getState().addAttachmentsForId(m.id, attachments);
                     }
 
+                    const mBlocks: ContentBlock[] = m.contentBlocks ?? [];
+
                     addMessage({
                         convId,
                         message: {
                             id: m.id,
-                            content: m.content,
+                            contentBlocks: mBlocks,
                             source: m.source as 'user' | 'ai' | 'system',
                             parentId: m.parentId,
                             timestamp: m.timestamp || Date.now(),
@@ -222,6 +233,7 @@ export const useConvStore = create<ConvState>((set, get) => {
         activeConvId: null,
         slctdMsgId: null,
         editingMessageId: null,
+        editingBlock: null,
 
         createConv: ({ id = `conv_${uuidv4()}`, rootMessage, slctdMsgId }) =>
             set(s => ({
@@ -241,7 +253,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const updMsg = { 
                     ...message, 
                     id: message.id,
-                    content: message.content,
+                    contentBlocks: message.contentBlocks ?? [],
                     source: message.source,
                     timestamp: message.timestamp,
                     durationMs: message.durationMs, // Explicitly include durationMs
@@ -298,21 +310,55 @@ export const useConvStore = create<ConvState>((set, get) => {
             return activeConvId ? convs[activeConvId] : undefined;
         },
 
-        updateMessage: ({ convId, messageId, content }) =>
+        updateMessage: ({ convId, messageId, newBlocks }) =>
             set(s => {
                 const conv = s.convs[convId];
                 if (!conv) return s;
                 const idx = conv.messages.findIndex(m => m.id === messageId);
                 if (idx === -1) return s;
                 const msgs = [...conv.messages];
-                msgs[idx] = { ...msgs[idx], content };
+                msgs[idx] = { 
+                    ...msgs[idx], 
+                    contentBlocks: newBlocks
+                };
 
                 import('../services/api/apiClient').then(({ updateMessage }) =>
-                    updateMessage({ convId, messageId, content })
-                        .catch(e => console.error('Failed to update message on server:', e))
+                    updateMessage({ convId, messageId, contentBlocks: newBlocks })
+                        .catch(e => { /* Failed to update message on server */ })
                 );
 
                 return { convs: { ...s.convs, [convId]: { ...conv, messages: msgs } } };
+            }),
+
+        updateMessageBlock: (convId, messageId, blockIndex, newContent) =>
+            set(s => {
+                const conv = s.convs[convId];
+                if (!conv) return s;
+                const idx = conv.messages.findIndex(m => m.id === messageId);
+                if (idx === -1) return s;
+                const message = conv.messages[idx];
+                if (!message.contentBlocks || blockIndex >= message.contentBlocks.length) return s;
+                
+                const msgs = [...conv.messages];
+                const updatedBlocks = [...message.contentBlocks];
+                updatedBlocks[blockIndex] = { 
+                    ...updatedBlocks[blockIndex],
+                    content: newContent 
+                };
+                msgs[idx] = { 
+                    ...msgs[idx], 
+                    contentBlocks: updatedBlocks
+                };
+
+                import('../services/api/apiClient').then(({ updateMessage }) =>
+                    updateMessage({ convId, messageId, contentBlocks: updatedBlocks })
+                        .catch(e => { /* Failed to update message on server */ })
+                );
+
+                return { 
+                    convs: { ...s.convs, [convId]: { ...conv, messages: msgs } },
+                    editingBlock: null
+                };
             }),
 
         deleteMessage: ({ convId, messageId }) =>
@@ -388,7 +434,83 @@ export const useConvStore = create<ConvState>((set, get) => {
             }),
 
         editMessage: id => set(() => ({ editingMessageId: id })),
+        editBlock: (messageId, blockIndex) => set(() => ({ editingBlock: { messageId, blockIndex } })),
         cancelEditMessage: () => set(() => ({ editingMessageId: null })),
+        cancelEditBlock: () => set(() => ({ editingBlock: null })),
+        
+        loadOrGetConv: async (convId: string) => {
+            const { convs } = get();
+            const localConv = convs[convId];
+            
+            if (localConv) {
+                return {
+                    id: convId,
+                    messages: localConv.messages,
+                };
+            }
+
+            try {
+                const { fetchConvTree } = useHistoricalConvsStore.getState();
+                const treeData = await fetchConvTree(convId);
+                if (!treeData) {
+                    return null;
+                }
+
+                const { processAttachments } = await import('@/utils/attachmentUtils');
+                const { MessageGraph } = await import('@/utils/messageGraph');
+
+                const extractNodes = (node: any, nodes: any[] = []): any[] => {
+                    if (!node) return nodes;
+                    const { children, ...rest } = node;
+                    nodes.push(rest);
+                    if (children && Array.isArray(children)) {
+                        for (const child of children) { 
+                            extractNodes(child, nodes); 
+                        }
+                    }
+                    return nodes;
+                };
+
+                const flatNodes = extractNodes(treeData);
+                const messages = flatNodes.map((node) => {
+                    let attachments = node.attachments;
+                    if (attachments && Array.isArray(attachments)) {
+                        attachments = processAttachments(attachments);
+                    }
+                    return {
+                        id: node.id,
+                        contentBlocks: node.contentBlocks ?? 
+                            (node.text ? [{ content: node.text, contentType: 'text' }] : []),
+                        source: node.source || (node.id.includes('user') ? 'user' : 'ai'),
+                        parentId: node.parentId,
+                        timestamp: typeof node.timestamp === 'number' ? node.timestamp : Date.now(),
+                        durationMs: typeof node.durationMs === 'number' ? node.durationMs : undefined,
+                        costInfo: node.costInfo || null,
+                        cumulativeCost: node.cumulativeCost,
+                        attachments: attachments || undefined,
+                        temperature: node.temperature || null
+                    };
+                });
+
+                // Add the loaded conversation to the store
+                if (messages.length > 0) {
+                    const rootMessage = messages.find(m => !m.parentId) || messages[0];
+                    const newConv: Conv = {
+                        id: convId,
+                        messages: messages
+                    };
+                    
+                    set(state => ({
+                        convs: { ...state.convs, [convId]: newConv }
+                    }));
+                }
+
+                return { id: convId, messages, summary: 'Loaded Conv' };
+            } catch (error) {
+                console.error('Failed to load conversation:', error);
+                return null;
+            }
+        },
     };
 });
 
@@ -398,19 +520,6 @@ Debug helper for the Conv store
 export const debugConvStore = () => {
     const state = useConvStore.getState();
 
-    console.groupCollapsed('🪲  Conv Store Debug');
-    console.log('Active Conv ID  :', state.activeConvId);
-    console.log('Selected Msg ID :', state.slctdMsgId);
-    console.log('Editing Msg ID  :', state.editingMessageId);
-    console.log('Convs           :', state.convs);            // full object
-    console.log(
-        'Conv summary    :',
-        Object.entries(state.convs).map(([id, c]) => ({
-            id,
-            messages: c.messages.length,
-        }))
-    );
-    console.groupEnd();
 
     return state; // handy if you want to inspect it further in the console
 };

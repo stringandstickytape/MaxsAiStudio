@@ -1,7 +1,7 @@
-﻿using SharedClasses.Providers;
-using System;
+using SharedClasses.Providers;
 
-using AiStudio4.Core.Interfaces;
+
+
 
 namespace AiStudio4.Core.Models
 {

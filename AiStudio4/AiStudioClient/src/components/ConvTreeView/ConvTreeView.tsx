@@ -11,6 +11,7 @@ import { useMessageTree } from './useMessageTree';
 import { useTreeVisualization } from './useTreeVisualization';
 import { EmptyTreeView } from './EmptyTreeView';
 import { TreeControls } from './TreeControls';
+import { MessageUtils } from '@/utils/messageUtils';
 
 // Use React.memo to prevent unnecessary re-renders
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
@@ -60,7 +61,8 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
             if (message) {
                 // Set the prompt to the user message content
                 if (window.setPrompt) {
-                    window.setPrompt(message.content);
+                    const flat = MessageUtils.getContent(message);
+                    window.setPrompt(flat);
                 }
                 
                 // If it has a parent, select the parent (AI message)

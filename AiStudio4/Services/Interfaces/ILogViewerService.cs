@@ -1,6 +1,6 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\Interfaces\ILogViewerService.cs
-using System;
-using System.Collections.Generic;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\Interfaces\ILogViewerService.cs
+
+
 using AiStudio4.Models;
 
 namespace AiStudio4.Services.Interfaces

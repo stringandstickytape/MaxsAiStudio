@@ -1,6 +1,6 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Core\Interfaces\IGitHubReleaseService.cs
-using System.Threading.Tasks;
-using AiStudio4.Core.Models;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Core\Interfaces\IGitHubReleaseService.cs
+
+
 
 namespace AiStudio4.Core.Interfaces
 {

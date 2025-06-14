@@ -1,17 +1,17 @@
-﻿// AiStudio4/Services/DotNetProjectAnalyzerService.cs
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+// AiStudio4/Services/DotNetProjectAnalyzerService.cs
+
+
+
+
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.Extensions.Logging;
+
 using AiStudio4.Services.Interfaces;
-using AiStudio4.InjectedDependencies;
+
 using static RoslynHelper;
-using System.IO;
+
 
 namespace AiStudio4.Services
 {

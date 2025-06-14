@@ -1,6 +1,7 @@
-using AiStudio4.Core.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+
+
+
+
 
 namespace AiStudio4.Core.Interfaces
 {
@@ -47,5 +48,6 @@ namespace AiStudio4.Core.Interfaces
         
         
         Task NotifyFileSystemChanges(IReadOnlyList<string> directories, IReadOnlyList<string> files);
+        Task NotifyConvPlaceholderUpdate(string clientId, v4BranchedConv conv, v4BranchedConvMessage placeholderMessage);
     }
 }

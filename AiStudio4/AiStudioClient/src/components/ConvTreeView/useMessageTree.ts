@@ -26,7 +26,7 @@ export const useMessageTree = (messages: Message[]) => {
       const buildTree = (message: Message, depth: number = 0): TreeNode => {
         const node: TreeNode = {
           id: message.id,
-          content: message.content,
+          contentBlocks: message.contentBlocks || [],
           source: message.source,
           children: [],
           parentId: message.parentId,

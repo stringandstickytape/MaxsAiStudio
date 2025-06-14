@@ -153,7 +153,7 @@ export const ConvView = ({
 
                     // Determine if this message item is the target for the current stream
                     const isStreamingTarget = isMessageStreaming(message.id) && (message.source === 'ai' || message.source === 'assistant');
-
+                    
                     return (
                         <MessageItem
                             key={message.id}

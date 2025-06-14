@@ -40,7 +40,7 @@ apiClient.interceptors.response.use(
 
 
 
-export async function updateMessage(params: { convId: string; messageId: string; content: string }) {
+export async function updateMessage(params: { convId: string; messageId: string; contentBlocks: any[] }) {
   try {
     const response = await apiClient.post('/api/updateMessage', params);
     return response.data;

@@ -1,8 +1,8 @@
-﻿// AiStudio4/Services/CostingStrategies/TokenCostStrategyFactory.cs
-using AiStudio4.Core.Interfaces;
+// AiStudio4/Services/CostingStrategies/TokenCostStrategyFactory.cs
+
 using Microsoft.Extensions.DependencyInjection;
 using SharedClasses.Providers;
-using System;
+
 
 namespace AiStudio4.Services.CostingStrategies
 {

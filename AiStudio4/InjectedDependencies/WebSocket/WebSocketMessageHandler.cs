@@ -1,10 +1,10 @@
-﻿using System.Net.WebSockets;
-using System.Text;
+using System.Net.WebSockets;
+
 using AiStudio4.InjectedDependencies.WebSocketManagement;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using AiStudio4.Core.Interfaces;
-using System.Threading.Tasks;
+
+
+
+
 using System.Collections.Concurrent;
 using System.Threading;
 

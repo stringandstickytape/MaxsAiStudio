@@ -1,6 +1,9 @@
 ﻿
 import { create } from 'zustand';
 import { Model, ServiceProvider } from '@/types/settings';
+import { initializeModelCommands } from '@/commands/modelCommands';
+import { registerModelCommands, registerProviderCommands } from '@/commands/settingsCommands';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface ModelStore {
   
@@ -35,9 +38,25 @@ export const useModelStore = create<ModelStore>((set, get) => ({
   error: null,
 
   
-  setModels: (models) => set({ models }),
+  setModels: (models) => {
+    set({ models });
+    if (models.length > 0) {
+      const { selectPrimaryModel, selectSecondaryModel } = useModelStore.getState();
+      initializeModelCommands({
+        getAvailableModels: () => models,
+        selectPrimaryModel: (guid) => selectPrimaryModel(guid),
+        selectSecondaryModel: (guid) => selectSecondaryModel(guid),
+      });
+      registerModelCommands(models);
+    }
+  },
 
-  setProviders: (providers) => set({ providers }),
+  setProviders: (providers) => {
+    set({ providers });
+    if (providers.length > 0) {
+      registerProviderCommands(providers);
+    }
+  },
 
     selectPrimaryModel: (modelGuid) => {
     const state = get();

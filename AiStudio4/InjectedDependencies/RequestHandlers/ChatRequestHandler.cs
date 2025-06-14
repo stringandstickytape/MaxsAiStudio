@@ -1,12 +1,12 @@
-﻿// AiStudio4/InjectedDependencies/RequestHandlers/ChatRequestHandler.cs
-using AiStudio4.Core.Interfaces;
+// AiStudio4/InjectedDependencies/RequestHandlers/ChatRequestHandler.cs
+
 using AiStudio4.AiServices;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+
+
+
+
+
+
 
 namespace AiStudio4.InjectedDependencies.RequestHandlers
 {
@@ -65,7 +65,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     "getModels" => JsonConvert.SerializeObject(new { success = true, models = _generalSettingsService.CurrentSettings.ModelList }),
                     "getServiceProviders" => JsonConvert.SerializeObject(new { success = true, providers = _generalSettingsService.CurrentSettings.ServiceProviders }),
                     "getAvailableServiceProviders" => JsonConvert.SerializeObject(new { success = true, serviceProviders = AiServiceResolver.GetAvailableServiceNames() }),
-                    "convmessages" => await _chatManager.HandleConvMessagesRequest(clientId, requestObject),
                     "getConv" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "historicalConvTree" => await _chatManager.HandleHistoricalConvTreeRequest(clientId, requestObject),
                     "deleteMessageWithDescendants" => await _chatManager.HandleDeleteMessageWithDescendantsRequest(clientId, requestObject),
@@ -131,7 +130,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             {
                 string convId = requestObject["convId"]?.ToString();
                 string messageId = requestObject["messageId"]?.ToString();
-                string content = requestObject["content"]?.ToString();
+                var contentBlocksToken = requestObject["contentBlocks"];
 
                 if (string.IsNullOrEmpty(convId))
                     return SerializeError("Conversation ID cannot be empty");
@@ -139,8 +138,36 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 if (string.IsNullOrEmpty(messageId))
                     return SerializeError("Message ID cannot be empty");
 
-                if (content == null) // Allow empty content but not null
-                    return SerializeError("Message content cannot be null");
+                if (contentBlocksToken == null)
+                    return SerializeError("Content blocks cannot be null");
+
+                // Parse contentBlocks array
+                var contentBlocksList = new List<Core.Models.ContentBlock>();
+                if (contentBlocksToken is JArray contentBlocksArray)
+                {
+                    foreach (var blockToken in contentBlocksArray)
+                    {
+                        var content = blockToken["content"]?.ToString() ?? "";
+                        var contentTypeString = blockToken["contentType"]?.ToString() ?? "text";
+                        
+                        // Parse contentType string to enum
+                        Core.Models.ContentType contentType = Core.Models.ContentType.Text; // Default
+                        if (Enum.TryParse<Core.Models.ContentType>(contentTypeString, true, out var parsedContentType))
+                        {
+                            contentType = parsedContentType;
+                        }
+                        
+                        contentBlocksList.Add(new Core.Models.ContentBlock
+                        {
+                            Content = content,
+                            ContentType = contentType
+                        });
+                    }
+                }
+                else
+                {
+                    return SerializeError("Content blocks must be an array");
+                }
 
                 // Load the conversation
                 var conv = await _convStorage.LoadConv(convId);
@@ -154,8 +181,9 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 if (messageToUpdate == null)
                     return SerializeError($"Message with ID {messageId} not found in conversation {convId}");
 
-                // Update the message content
-                messageToUpdate.UserMessage = content;
+                // Update the message content blocks
+                messageToUpdate.ContentBlocks.Clear();
+                messageToUpdate.ContentBlocks.AddRange(contentBlocksList);
 
                 // Save the updated conversation
                 await _convStorage.SaveConv(conv);
@@ -163,11 +191,11 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                 // Notify the client about the update
                 await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(new
                 {
-                    type = "conv:update",
+                    type = "conv:upd",
                     content = new
                     {
-                        messageId,
-                        content,
+                        id = messageId,
+                        contentBlocks = contentBlocksList.Select(cb => new { content = cb.Content, contentType = cb.ContentType.ToString().ToLowerInvariant() }).ToArray(),
                         convId,
                         timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()
                     }

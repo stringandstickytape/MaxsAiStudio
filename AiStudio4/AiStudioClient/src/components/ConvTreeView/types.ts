@@ -1,5 +1,5 @@
 ﻿// AiStudioClient\src\components\ConvTreeView\types.ts
-import { Message } from '@/types/conv';
+import { Message, ContentBlock } from '@/types/conv';
 
 export interface TreeViewProps {
   convId: string;
@@ -8,7 +8,7 @@ export interface TreeViewProps {
 
 export interface TreeNode {
   id: string;
-  content: string;
+  contentBlocks: ContentBlock[];
   source: string;
   children: TreeNode[];
   parentId?: string;

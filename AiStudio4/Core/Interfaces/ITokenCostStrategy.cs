@@ -1,5 +1,5 @@
-﻿// AiStudio4/Core/Interfaces/ITokenCostStrategy.cs
-using AiStudio4.Core.Models;
+// AiStudio4/Core/Interfaces/ITokenCostStrategy.cs
+
 using SharedClasses.Providers;
 
 namespace AiStudio4.Core.Interfaces

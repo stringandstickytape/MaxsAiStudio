@@ -1,14 +1,14 @@
-﻿using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+
+
+
+
+
+
+
+
+
+
+
 
 namespace AiStudio4.Services
 {
@@ -46,7 +46,7 @@ namespace AiStudio4.Services
                 // Convert to the format expected by the client
                 var messagesForClient = allMessages.Select(msg => new {
                     id = msg.Id,
-                    text = msg.UserMessage ?? "[Empty Message]",
+                    contentBlocks = msg.ContentBlocks ?? new List<ContentBlock>(),
                     parentId = msg.ParentId,
                     source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
                             msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
@@ -119,7 +119,7 @@ namespace AiStudio4.Services
                 {
                     ConvId = conv.ConvId,
                     MessageId = messageId,
-                    Content = new { type = "messageDeleted", messageId, descendantCount = toDelete.Count - 1 }
+                    //Content = new { type = "messageDeleted", messageId, descendantCount = toDelete.Count - 1 }
                 });
                 
                 return JsonConvert.SerializeObject(new { success = true, deletedCount = toDelete.Count });
@@ -150,7 +150,7 @@ namespace AiStudio4.Services
                     {
                         ConvId = convId,
                         MessageId = null,
-                        Content = new { type = "conversationDeleted", convId }
+                        //Content = new { type = "conversationDeleted", convId }
                     });
                     
                     return JsonConvert.SerializeObject(new { success = true });
@@ -193,8 +193,7 @@ namespace AiStudio4.Services
                                 .OrderBy(m => m.Id)
                                 .FirstOrDefault();
 
-                            var summary = conv.Summary ??
-                                (firstUserMessage?.UserMessage ?? "Untitled Conv");
+                            var summary = conv.Summary ?? "Untitled Conv";
 
                             // For each conv, create an entry with just the metadata
                             // No need to include full messages here

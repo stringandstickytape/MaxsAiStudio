@@ -1,8 +1,8 @@
-﻿using AiStudio4.Convs;
+using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Audio;
@@ -10,19 +10,19 @@ using OpenAI.Images;
 using OpenAI.Embeddings;
 using OpenAI.Assistants;
 using SharedClasses.Providers;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+
+
+
+
 using System.Net.Http;
-using System.Text;
+
 using System.Threading;
-using System.Threading.Tasks;
+
 using System.ClientModel;
-using AiStudio4.Core.Models;
+
 using AiStudio4.Services;
 using Azure.Core;
-using AiStudio4.Core.Interfaces;
+
 
 namespace AiStudio4.AiServices
 {
@@ -82,7 +82,7 @@ namespace AiStudio4.AiServices
 
                 // Add conversation messages
                 foreach (var message in options.Conv.messages)
-                {
+                { 
                     ChatMessage chatMessage = CreateChatMessage(message);
                     messages.Add(chatMessage);
                 }
@@ -300,7 +300,7 @@ namespace AiStudio4.AiServices
                                             lastToolResponse.ResponseText = lastToolResponse.ResponseText.Trim();
                                             return new AiResponse
                                             {
-                                                ResponseText = responseBuilder.ToString().TrimEnd(),
+                                                ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                                                 Success = true,
                                                 TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
                                                 ChosenTool = chosenTool,
@@ -345,7 +345,7 @@ namespace AiStudio4.AiServices
 
                 return new AiResponse
                 {
-                    ResponseText = responseBuilder.ToString(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                     Success = true,
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                     ChosenTool = chosenTool,
@@ -371,7 +371,7 @@ namespace AiStudio4.AiServices
 
                 return new AiResponse
                 {
-                    ResponseText = responseBuilder.ToString().TrimEnd(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                     Success = true, // Still consider it a success, just partial
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                     ChosenTool = chosenTool,
@@ -397,7 +397,7 @@ namespace AiStudio4.AiServices
 
                 return new AiResponse
                 {
-                    ResponseText = responseBuilder.ToString().TrimEnd() + "\n" + ex.ToString(),
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd() + "\n" + ex.ToString(), ContentType = Core.Models.ContentType.Text } },
                     Success = true, // Still consider it a success, just partial
                     TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
                     ChosenTool = chosenTool,
@@ -508,7 +508,7 @@ namespace AiStudio4.AiServices
             {
                 errorMessage += $" Additional info: {additionalInfo}";
             }
-            return new AiResponse { Success = false, ResponseText = errorMessage };
+            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = Core.Models.ContentType.Text } }};
         }
 
     }

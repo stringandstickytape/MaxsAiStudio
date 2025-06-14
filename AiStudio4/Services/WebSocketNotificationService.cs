@@ -1,13 +1,13 @@
-﻿using AiStudio4.Core.Exceptions;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading.Tasks;
+using AiStudio4.Core.Exceptions;
+
+
+
+
+
+
+
+
+
 
 namespace AiStudio4.Services
 {
@@ -22,8 +22,8 @@ namespace AiStudio4.Services
         {
             _webSocketServer = webSocketServer;
             _logger = logger;
-        }
-
+        }        
+        
         public async Task NotifyConvUpdate(string clientId, ConvUpdateDto update)
         {
             try
@@ -33,10 +33,11 @@ namespace AiStudio4.Services
                 }
 
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
-                if (update == null) throw new ArgumentNullException(nameof(update));
+                if (update == null) throw new ArgumentNullException(nameof(update));                // Determine update type
+                bool hasContentBlocks = update.ContentBlocks != null && update.ContentBlocks.Count > 0;
+                bool hasPlainContent = update.ContentBlocks.Any(x => x.ContentType == 0);
 
-                // If Content is a regular conv update
-                if (update.Content is string)
+                if (hasContentBlocks)
                 {
                     var message = new
                     {
@@ -45,11 +46,10 @@ namespace AiStudio4.Services
                         {
                             convId = update.ConvId,
                             id = update.MessageId,
-                            content = update.Content,
-                            source = update.Source ?? "ai", // Use provided source or default to "ai"
+                            contentBlocks = update.ContentBlocks,
+                            source = update.Source ?? "ai",
                             parentId = update.ParentId,
                             timestamp = update.Timestamp,
-                            // Note: We're no longer sending children arrays to the client
                             tokenUsage = update.TokenUsage,
                             costInfo = update.CostInfo,
                             cumulativeCost = update.CumulativeCost,
@@ -60,10 +60,32 @@ namespace AiStudio4.Services
                     };
                     await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
                 }
-                // If Content is a conv load message
+                else if (hasPlainContent)
+                {
+                    var message = new
+                    {
+                        messageType = "conv",
+                        content = new
+                        {
+                            convId = update.ConvId,
+                            id = update.MessageId,
+                            contentBlocks = update.ContentBlocks,
+                            source = update.Source ?? "ai",
+                            parentId = update.ParentId,
+                            timestamp = update.Timestamp,
+                            tokenUsage = update.TokenUsage,
+                            costInfo = update.CostInfo,
+                            cumulativeCost = update.CumulativeCost,
+                            attachments = update.Attachments,
+                            durationMs = update.DurationMs,
+                            temperature = update.Temperature
+                        }
+                    };
+                    await _webSocketServer.SendToAllClientsAsync(JsonConvert.SerializeObject(message));
+                }
                 else
                 {
-                    await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(update.Content));
+                    _logger.LogDebug("Conversation update error for {ClientId}", clientId);
                 }
 
                 _logger.LogDebug("Sent conv update to client {ClientId}", clientId);
@@ -177,7 +199,20 @@ namespace AiStudio4.Services
                 throw new WebSocketNotificationException("Failed to send status message", ex);
             }
         }
-        
+
+        public async Task NotifyConvPlaceholderUpdate(string clientId, v4BranchedConv conv, v4BranchedConvMessage placeholderMessage)
+        {
+            await NotifyConvUpdate(clientId, new ConvUpdateDto
+            {
+                ConvId = conv.ConvId,
+                MessageId = placeholderMessage.Id,
+                ContentBlocks = placeholderMessage.ContentBlocks,
+                ParentId = placeholderMessage.ParentId,
+                Timestamp = new DateTimeOffset(placeholderMessage.Timestamp).ToUnixTimeMilliseconds(),
+                Source = "assistant"
+            });
+        }
+
         public async Task NotifyFileSystemChanges(IReadOnlyList<string> directories, IReadOnlyList<string> files)
         {
             try

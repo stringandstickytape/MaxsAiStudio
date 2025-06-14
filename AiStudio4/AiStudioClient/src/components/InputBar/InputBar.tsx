@@ -1,4 +1,4 @@
-﻿// AiStudioClient/src/components/InputBar/InputBar.tsx
+﻿// AiStudio4/AiStudioClient/src/components/InputBar/InputBar.tsx
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusMessage } from '@/components/StatusMessage';
@@ -18,7 +18,7 @@ import { useChatManagement } from '@/hooks/useChatManagement';
 import { useVoiceInputStore } from '@/stores/useVoiceInputStore';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useToast } from "@/hooks/use-toast";
-import { Attachment } from '@/types/attachment'; // Added for Attachment type
+import { useInputBarStore, useInputText } from '@/stores/useInputBarStore';
 
 // Import subcomponents
 import { SystemPromptSection } from './SystemPromptSection';
@@ -33,10 +33,7 @@ import { TemperatureControl } from './TemperatureControl';
 import { TopPControl } from './TopPControl';
 
 interface InputBarProps {
-
-    onInputChange?: (value: string) => void;
     onManageTools?: () => void;
-    onAttachmentChange?: (attachments: Attachment[]) => void;
     disabled?: boolean;
 }
 
@@ -51,24 +48,16 @@ declare global {
 }
 
 export function InputBar({
-
-    inputValue,
-    onInputChange,
     onManageTools,
-    onAttachmentChange,
     disabled = false,
 }: InputBarProps) {
     const textareaRef = useRef<MessageInputAreaRef>(null);
-
-    const [localInputText, setLocalInputText] = useState('');
+    const inputText = useInputText();
 
     const {
-		stagedAttachments: attachments,
+        stagedAttachments: attachments,
         addStagedAttachment: addAttachment,
     } = useAttachmentStore();
-
-    const inputText = inputValue ?? localInputText;
-    const setInputText = onInputChange || setLocalInputText;
     const { activeTools, removeActiveTool } = useToolStore();
 
     const { fetchServers } = useMcpServerStore();
@@ -80,10 +69,10 @@ export function InputBar({
     const { toast } = useToast();
 
     const handleFinalVoiceTranscript = useCallback((text: string) => {
-        setInputText(prevText => (prevText ? prevText + ' ' : '') + text.trim());
+        useInputBarStore.getState().appendToInputText(text.trim());
         stopVoiceStoreListening();
         textareaRef.current?.focusWithCursor();
-    }, [setInputText, stopVoiceStoreListening]);
+    }, [stopVoiceStoreListening]);
 
     const { isSupported: voiceIsSupported, startMicCapture, stopMicCapture, resetTranscript } = useVoiceInput({ onTranscriptFinalized: handleFinalVoiceTranscript });
 
@@ -116,11 +105,6 @@ export function InputBar({
         }
     }, [voiceError, toast]);
 
-    useEffect(() => {
-        if (onAttachmentChange) {
-            onAttachmentChange(attachments);
-        }
-    }, [attachments, onAttachmentChange]);
 
     useEffect(() => {
         fetchServers();
@@ -128,14 +112,18 @@ export function InputBar({
 
     const handleChatMessage = useCallback(async (message: string, messageAttachments?: Attachment[]) => {
         try {
-            let convId = activeConvId;
+            // Get latest state directly from stores AT EXECUTION TIME
+            let { activeConvId: currentConvId, createConv: createConvAction } = useConvStore.getState();
+            const { convPrompts, defaultPromptId, prompts } = useSystemPromptStore.getState();
+
+            let convId = currentConvId;
             let systemPromptId = null;
             let systemPromptContent = null;
 
             if (!convId) {
                 convId = `conv_${uuidv4()}`;
                 const messageId = `msg_${uuidv4()}`;
-                createConv({
+                createConvAction({
                     id: convId,
                     rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
                 });
@@ -150,7 +138,6 @@ export function InputBar({
             const messageId = `msg_${uuidv4()}`;
             setCurrentRequest({ convId, messageId });
 
-            // parentMessageId is now handled internally by sendMessage via store state
             await sendMessage({
                 convId,
                 message,
@@ -165,18 +152,7 @@ export function InputBar({
         } finally {
             setCurrentRequest(undefined);
         }
-    }, [
-        activeTools,
-        convPrompts,
-        defaultPromptId,
-        prompts,
-        sendMessage,
-        activeConvId,
-        slctdMsgId,
-        convs,
-        createConv,
-        setCurrentRequest
-    ]);
+    }, [sendMessage, setCurrentRequest]);
 
     const handleSend = async () => {
         if (isCancelling) return;
@@ -189,46 +165,29 @@ export function InputBar({
         if (!isLoading) {
             windowEventService.emit(WindowEvents.STREAM_ALLOW);
 
+            // Get the current input text directly from the store to avoid stale closure
+            const currentInputText = useInputBarStore.getState().inputText;
+
             const textAttachments = useAttachmentStore.getState().stagedAttachments.filter(att => att.textContent);
 
             const textFileContent = formatTextAttachments(textAttachments);
-            const fullMessage = (inputText ? inputText : "continue") + textFileContent;
+            const fullMessage = (currentInputText ? currentInputText : "continue") + textFileContent;
 
             const messageAttachments = useAttachmentStore.getState().getStagedAttachments().filter(att => !(att.textContent));
-            
+
             await handleChatMessage(fullMessage, messageAttachments);
             useAttachmentStore.getState().clearStagedAttachments();
-            setInputText('');
+            useInputBarStore.getState().clearInputText();
         }
     };
 
-        // Handle cancellation state cleanup
+    // Handle cancellation state cleanup
     useEffect(() => {
         if (!isLoading && isCancelling) {
             setIsCancelling(false);
         }
     }, [isLoading, isCancelling, setIsCancelling]);
 
-    // Memoize event handlers to prevent unnecessary effect re-runs
-    const handleAppendToPrompt = useCallback((data: { text: string }) => {
-        setInputText(text => text + data.text);
-        textareaRef.current?.focusWithCursor();
-    }, [setInputText]);
-
-    const handleSetPrompt = useCallback((data: { text: string }) => {
-        setInputText(data.text);
-        textareaRef.current?.focusWithCursor();
-    }, [setInputText]);
-
-    useEffect(() => {
-        const unsubAppend = windowEventService.on(WindowEvents.APPEND_TO_PROMPT, handleAppendToPrompt);
-        const unsubSet = windowEventService.on(WindowEvents.SET_PROMPT, handleSetPrompt);
-
-        return () => {
-            unsubAppend();
-            unsubSet();
-        };
-    }, [handleAppendToPrompt, handleSetPrompt]);
 
     return (
         <div className="InputBar bg-gray-900 border-gray-700/50 shadow-2xl p-2 relative before:content-[''] before:absolute before:top-[-15px] before:left-0 before:right-0 before:h-[15px] before:bg-transparent backdrop-blur-sm"
@@ -251,8 +210,6 @@ export function InputBar({
                 <div className="flex gap-2 mb-2">
                     <MessageInputArea
                         ref={textareaRef}
-                        inputText={inputText}
-                        setInputText={setInputText}
                         onSend={handleSend}
                         isLoading={isLoading}
                         disabled={disabled}
@@ -308,7 +265,6 @@ export function InputBar({
                         isCancelling={isCancelling}
                         disabled={disabled}
                         inputText={inputText}
-                        setInputText={setInputText}
                         messageSent={!!currentRequest}
                     />
                 </div>
@@ -317,14 +273,5 @@ export function InputBar({
     );
 }
 
-window.appendToPrompt = text => {
-    windowEventService.emit(WindowEvents.APPEND_TO_PROMPT, { text });
-    return true;
-};
-
-window.setPrompt = text => {
-    windowEventService.emit(WindowEvents.SET_PROMPT, { text });
-    return true;
-};
 
 export const themeableProps = {};

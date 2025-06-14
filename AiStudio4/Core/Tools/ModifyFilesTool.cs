@@ -1,20 +1,20 @@
-﻿﻿
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+﻿
+
+
 using AiStudio4.Core.Tools.CodeDiff;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
+
+
+
+
+
+
+
+
+
+
+
 
 namespace AiStudio4.Core.Tools
 {
@@ -348,8 +348,8 @@ namespace AiStudio4.Core.Tools
                 var fileObj = new JObject
                 {
                     ["path"] = filePath,
-                    ["relativePath"] = GetRelativePath(filePath),
-                    ["fileType"] = GetFileExtension(filePath),
+                    //["relativePath"] = GetRelativePath(filePath),
+                    //["fileType"] = GetFileExtension(filePath),
                     ["status"] = result.Success ? "modified" : "failed",
                     ["message"] = result.Message,
                     ["changeCount"] = changesArray.Count,
@@ -363,12 +363,12 @@ namespace AiStudio4.Core.Tools
                 {
                     var changeObj = new JObject
                     {
-                        ["id"] = $"change-{changeIndex++}",
+                        //["id"] = $"change-{changeIndex++}",
                         ["description"] = change["description"]?.ToString() ?? "Code modification",
-                        ["lineNumber"] = change["lineNumber"],
-                        ["changeType"] = DetermineChangeType(change["oldContent"]?.ToString(), change["newContent"]?.ToString()),
-                        ["oldContent"] = change["oldContent"]?.ToString() ?? "",
-                        ["newContent"] = change["newContent"]?.ToString() ?? ""
+                        //["lineNumber"] = change["lineNumber"],
+                        //["changeType"] = DetermineChangeType(change["oldContent"]?.ToString(), change["newContent"]?.ToString()),
+                        //["oldContent"] = change["oldContent"]?.ToString() ?? "",
+                        //["newContent"] = change["newContent"]?.ToString() ?? ""
                     };
                     changesOutputArray.Add(changeObj);
                 }
@@ -388,7 +388,6 @@ namespace AiStudio4.Core.Tools
                     ["totalFiles"] = modifications?.Count ?? 0,
                     ["totalChanges"] = modifications?.Sum(m => ((JArray)m["changes"]).Count) ?? 0,
                     ["success"] = false,
-                    ["timestamp"] = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"),
                     ["error"] = errorMessage
                 },
                 ["files"] = new JArray()

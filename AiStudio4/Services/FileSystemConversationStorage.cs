@@ -1,15 +1,16 @@
-﻿using AiStudio4.Core.Exceptions;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.InjectedDependencies;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using AiStudio4.Core.Exceptions;
+
+
+
+
+
+
+
+
+
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.Services
 {
@@ -41,13 +42,25 @@ namespace AiStudio4.Services
                 }
 
                 var settings = new JsonSerializerSettings { MaxDepth = 10240 };
-                var json = await File.ReadAllTextAsync(path);
-                var conv = JsonConvert.DeserializeObject<v4BranchedConv>(json, settings);
+                var json = await File.ReadAllTextAsync(path);                var conv = JsonConvert.DeserializeObject<v4BranchedConv>(json, settings);
                 
                 // Handle backward compatibility with old hierarchical structure
                 if (conv.Messages == null || !conv.Messages.Any())
                 {
                     conv.Messages = new List<v4BranchedConvMessage>();
+                }
+
+                // MIGRATION: convert legacy UserMessage -> ContentBlocks
+                foreach (var message in conv.Messages)
+                {
+                    if ((message.ContentBlocks == null || message.ContentBlocks.Count == 0) && !string.IsNullOrEmpty(message.UserMessage))
+                    {
+                        message.ContentBlocks = new List<ContentBlock>
+                        {
+                            new ContentBlock { Content = message.UserMessage, ContentType = ContentType.Text }
+                        };
+                        message.UserMessage = null;
+                    }
                 }
 
                 _logger.LogDebug("Loaded conv {ConvId}", convId);
@@ -204,10 +217,23 @@ namespace AiStudio4.Services
                     {
                         // Skip system messages
                         if (message.Role == v4BranchedConvMessageRole.System)
-                            continue;
-                        // Case-insensitive search in message content
-                        if (message.UserMessage != null &&
-                            message.UserMessage.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                            continue;                        // Search inside rich content blocks first
+                        bool isMatch = false;
+                        if (message.ContentBlocks != null && message.ContentBlocks.Any())
+                        {
+                            foreach (var block in message.ContentBlocks)
+                            {
+                                if (block.ContentType == ContentType.Text &&
+                                    block.Content != null &&
+                                    block.Content.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0)
+                                {
+                                    isMatch = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (isMatch)
                         {
                             matchingMessageIds.Add(message.Id);
                         }

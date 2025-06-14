@@ -1,13 +1,13 @@
-﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\GitHubReleaseService.cs
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using System;
+// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Services\GitHubReleaseService.cs
+
+
+
+
+
 using System.Globalization;
-using System.Linq;
+
 using System.Net.Http;
-using System.Threading.Tasks;
+
 
 namespace AiStudio4.Services
 {

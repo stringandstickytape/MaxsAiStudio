@@ -1,10 +1,10 @@
-﻿using AiStudio4.AiServices;
-using AiStudio4.Core.Interfaces;
+using AiStudio4.AiServices;
+
 using Microsoft.AspNetCore.Authentication;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+
+
 using OpenAI.Chat;
-using System.Diagnostics;
+
 using System.Text.RegularExpressions;
 
 namespace AiStudio4.Core.Tools
@@ -49,20 +49,25 @@ namespace AiStudio4.Core.Tools
                     obj["name"] = $"{tool.Name.Replace(" ", "")}";
                     obj["description"] = tool.Description?.ToString() ?? "No description provided."; // Handle null description
                     
+                    JObject inputSchema = null;
                     // Ensure InputSchema is not null before trying to parse
                     //if (tool.InputSchema != null)
                     {
                         try
                         {
-                            obj["input_schema"] = JToken.Parse(tool.InputSchema.ToString());
+                            inputSchema = JToken.Parse(tool.InputSchema.ToString()) as JObject;
                         }
                         catch (JsonReaderException ex)
                         {
                             // Log the error and potentially skip this tool or use a default schema
                             System.Diagnostics.Debug.WriteLine($"Error parsing input schema for tool {tool.Name} on server {serverDefinition.Id}: {ex.Message}");
-                            obj["input_schema"] = new JObject(new JProperty("type", "object"), new JProperty("properties", new JObject())); // Default empty schema
+                            inputSchema = new JObject(new JProperty("type", "object"), new JProperty("properties", new JObject())); // Default empty schema
                         }
                     }
+
+                    // Inject the task_description property
+                    InjectTaskDescriptionProperty(inputSchema);
+                    obj["input_schema"] = inputSchema;
 
 
                     switch (format)
@@ -108,6 +113,9 @@ namespace AiStudio4.Core.Tools
             
             var toolText = Regex.Replace(tool.Schema, @"^//.*\n", "", RegexOptions.Multiline);
             var toolConfig = JObject.Parse(toolText);
+
+            // Inject the task_description property
+            InjectTaskDescriptionProperty(toolConfig["input_schema"] as JObject);
             
             switch (format)
             {
@@ -357,6 +365,46 @@ namespace AiStudio4.Core.Tools
             if (obj == null) return;
 
 
+        }
+
+        private void InjectTaskDescriptionProperty(JObject inputSchema)
+        {
+            if (inputSchema == null) return;
+
+            // Ensure 'properties' and 'required' exist
+            if (inputSchema["properties"] == null)
+            {
+                inputSchema["properties"] = new JObject();
+            }
+            if (inputSchema["required"] == null)
+            {
+                inputSchema["required"] = new JArray();
+            }
+
+            var properties = (JObject)inputSchema["properties"];
+            var required = (JArray)inputSchema["required"];
+
+            // Define the new property
+            var taskDescriptionProperty = new JObject
+            {
+                ["type"] = "string",
+                ["description"] = "A concise, user-facing description of the task you are performing with this tool call. This will be shown to the user as a status update. For example: 'Searching for C# files...' or 'Analyzing project structure.'"
+            };
+
+            // Prepend the new property to make it prominent for the AI
+            var newProperties = new JObject();
+            newProperties["task_description"] = taskDescriptionProperty;
+            foreach (var prop in properties.Properties())
+            {
+                newProperties[prop.Name] = prop.Value;
+            }
+            inputSchema["properties"] = newProperties;
+            
+            // Add to the 'required' array if not already present
+            if (!required.Any(r => r.ToString() == "task_description"))
+            {
+                required.Insert(0, "task_description");
+            }
         }
 
     }

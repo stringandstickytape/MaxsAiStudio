@@ -1,21 +1,25 @@
-﻿using Microsoft.Extensions.Logging;
-using AiStudio4.Core.Interfaces;
-using AiStudio4.Core.Models;
+
+
+
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
-using Newtonsoft.Json;
+using AiStudio4.Core.Models;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
+using Newtonsoft.Json;
+
+
+
+
+
+
+
 using System.Threading;
-using System.Threading.Tasks;
+
 using SharedClasses;
 using System.Windows.Forms;
-using System.Diagnostics;
+
 using System.Security.Cryptography;
+using ModelContextProtocol.Protocol;
 
 namespace AiStudio4.Services
 {
@@ -54,28 +58,30 @@ namespace AiStudio4.Services
         /// <param name="conv">The current conversation state</param>
         /// <param name="collatedResponse">Builder to accumulate tool execution outputs</param>
         /// <returns>Tool execution result with success status and updated content</returns>
-        public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, StringBuilder collatedResponse, CancellationToken cancellationToken = default, string clientId = null)
+        public async Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, CancellationToken cancellationToken = default, string clientId = null)
         {
             // Rate limiting with lock for thread safety
-            lock (_rateLimitLock)
-            {
-                var currentTime = DateTime.Now;
-                var timeSinceLastRequest = currentTime - _lastRequestTime;
+            //lock (_rateLimitLock)
+            //{
+            //    var currentTime = DateTime.Now;
+            //    var timeSinceLastRequest = currentTime - _lastRequestTime;
+            //
+            //    if (timeSinceLastRequest < _minimumRequestInterval)
+            //    {
+            //        var delayTime = _minimumRequestInterval - timeSinceLastRequest;
+            //        _logger.LogInformation($"Rate limiting: Waiting for {delayTime.TotalSeconds:F1} seconds before next processing cycle (inside lock)");
+            //        // Note: Task.Delay cannot be awaited inside a lock.
+            //        // If significant delays are common, consider a different rate-limiting approach (e.g., SemaphoreSlim or async lock).
+            //        // For short delays, Thread.Sleep might be acceptable, but blocks the thread.
+            //        // Choosing Thread.Sleep for simplicity assuming delays are infrequent/short.
+            //        Thread.Sleep(delayTime);
+            //    }
+            //
+            //    // Update the last request time after any delay
+            //    _lastRequestTime = DateTime.Now;
+            //}
 
-                if (timeSinceLastRequest < _minimumRequestInterval)
-                {
-                    var delayTime = _minimumRequestInterval - timeSinceLastRequest;
-                    _logger.LogInformation($"Rate limiting: Waiting for {delayTime.TotalSeconds:F1} seconds before next processing cycle (inside lock)");
-                    // Note: Task.Delay cannot be awaited inside a lock.
-                    // If significant delays are common, consider a different rate-limiting approach (e.g., SemaphoreSlim or async lock).
-                    // For short delays, Thread.Sleep might be acceptable, but blocks the thread.
-                    // Choosing Thread.Sleep for simplicity assuming delays are infrequent/short.
-                    Thread.Sleep(delayTime);
-                }
-
-                // Update the last request time after any delay
-                _lastRequestTime = DateTime.Now;
-            }
+            var toolsOutputContentBlocks = new List<ToolExecutionResultContentBlocks>();
 
             bool continueLoop = true;
             List<Attachment> attachments = new List<Attachment>();
@@ -101,9 +107,44 @@ namespace AiStudio4.Services
                     string toolResultMessageContent = "";
                     string toolIdToReport = toolResponse.ToolName; // Use ToolCallId if available, otherwise fallback
                     string clientIdForTool = clientId; // Store client ID for tool status updates
+                    var resultContentBlocks = new ToolExecutionResultContentBlocks();
+                    toolsOutputContentBlocks.Add(resultContentBlocks);
 
                     try
                     {
+                        // Extract and handle task_description
+                        string taskDescription = null;
+                        JObject toolCallArgs = null;
+                        string cleanedToolResponseText = toolResponse.ResponseText;
+
+                        try
+                        {
+                            toolCallArgs = JObject.Parse(toolResponse.ResponseText);
+                            if (toolCallArgs.TryGetValue("task_description", out JToken taskDescriptionToken))
+                            {
+                                taskDescription = taskDescriptionToken.ToString();
+                                
+                                // Send the description to the front-end as a status update
+                                await _notificationFacade.SendStatusMessageAsync(clientId, taskDescription);
+                                
+                                // Add the task description to the request blocks for visibility
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{toolResponse.ToolName}: {taskDescription}\n\n", ContentType = ContentType.System });
+                                
+                                // Remove the property from the arguments object
+                                toolCallArgs.Remove("task_description");
+                                
+                                // Update the response text to be used by the tool handlers
+                                cleanedToolResponseText = toolCallArgs.ToString(Formatting.None);
+                                
+                                _logger.LogInformation("Extracted task description for tool '{ToolName}': {Description}", toolResponse.ToolName, taskDescription);
+                            }
+                        }
+                        catch (JsonException)
+                        {
+                            // The response might not be a JSON object, which is fine for some tools.
+                            // In that case, we can't extract a task_description, so we proceed with the original text.
+                            _logger.LogWarning("Tool response for '{ToolName}' is not a valid JSON object. Cannot extract task description.", toolResponse.ToolName);
+                        }
                         var nonMcpTool = await _toolService.GetToolByToolNameAsync(toolResponse.ToolName);
 
                         if (nonMcpTool == null)
@@ -114,7 +155,7 @@ namespace AiStudio4.Services
                                 var serverDefinitionId = toolResponse.ToolName.Split('_')[0];
                                 var actualToolName = string.Join("_", toolResponse.ToolName.Split('_').Skip(1));
 
-                                toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName);
+                                toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinitionId, actualToolName, resultContentBlocks, cleanedToolResponseText, taskDescription);
                             }
                             else
                             {
@@ -127,7 +168,8 @@ namespace AiStudio4.Services
 
                                     if(mcpTool != null)
                                     {
-                                        toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName);
+                                        toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName, resultContentBlocks, cleanedToolResponseText, taskDescription);
+
                                         break;
                                     }
 
@@ -142,32 +184,41 @@ namespace AiStudio4.Services
                             var extraProps = tool?.ExtraProperties ?? new Dictionary<string, string>();
 
                             // Pass the extraProps to the tool processor
-                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, toolResponse.ResponseText, extraProps, clientId);
+                            var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, cleanedToolResponseText, extraProps, clientId);
 
                             if (builtinToolResult.WasProcessed)
                             {
-                                response.ResponseText += $"\n\n{toolResponse.ToolName}\n\n";
+                                //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
+
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = new JObject { ["toolName"] = toolResponse.ToolName, ["parameters"] = JToken.Parse(cleanedToolResponseText) }.ToString(Formatting.None), ContentType = ContentType.Tool });
+
                                 // tool already retrieved above
 
                                 var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);
 
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
 
-                                if (!string.IsNullOrEmpty(toolResponse.ToolName))
-                                {
-                                    toolResultMessageContent += $"{toolResponse.ToolName}";
-                                }
-
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
                                 {
                                     if (string.IsNullOrEmpty(tool.OutputFileType))
+                                    {
                                         toolResultMessageContent += $": {builtinToolResult.ResultMessage}\n\n";
-                                    else toolResultMessageContent += $" Output:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
-                                }
 
+                                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"{builtinToolResult.ResultMessage}\n\n" });
+                                    }
+                                    else
+                                    {
+                                        toolResultMessageContent += $" Output:\n\n```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n";
+
+                                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"```{tool.OutputFileType}\n{builtinToolResult.ResultMessage}\n```\n\n" });
+                                    }
+                                }
+                                 
                                 if (!string.IsNullOrEmpty(builtinToolResult.StatusMessage))
                                 {
                                     toolResultMessageContent += $"Result: {builtinToolResult.StatusMessage}\n\n";
+
+                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"{builtinToolResult.StatusMessage}\n\n" });
                                 }
 
                                 // If the built-in tool indicates processing should stop
@@ -187,7 +238,9 @@ namespace AiStudio4.Services
                                 // Handle non-MCP, non-built-in tools or tools where the server definition is missing/disabled
                                 _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool or recognized built-in tool.", toolResponse.ToolName);
 
-                                toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{toolResponse.ResponseText}\n```\n\n"; // Serialize the result content
+                                toolResultMessageContent += $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{cleanedToolResponseText}\n```\n\n"; // Serialize the result content
+
+                                resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Tool used: {toolResponse.ToolName}\n\n```{tool?.Filetype ?? "json"}\n{cleanedToolResponseText}\n```\n\n" });
 
                                 // since the tool was not processed, the user must process it...
                                 continueLoop = false;
@@ -198,12 +251,16 @@ namespace AiStudio4.Services
                     {
                         _logger.LogError(ex, "Error executing tool {ToolName}", toolResponse.ToolName);
                         toolResultMessageContent = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}";
+
+                        resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}", ContentType = ContentType.Text });
+
+                        continueLoop = false;
                     }
 
                     // Add tool result message to conversation history
                     conv.messages[conv.messages.Count - 1].content += $"\n{toolResultMessageContent}\n";
 
-                    collatedResponse.AppendLine(toolResultMessageContent);
+                    //collatedResponse.AppendLine(toolResultMessageContent);
                 }
 
 
@@ -215,47 +272,80 @@ namespace AiStudio4.Services
             }
 
             // Prepare tool request and result information
-            StringBuilder toolRequestInfo = new StringBuilder();
-            string toolResultInfo = collatedResponse.ToString();
-
-            if (response.ToolResponseSet != null && response.ToolResponseSet.Tools.Any())
-            {
-                // Collect all tool names and parameters for the ToolRequested property
-                foreach (var tool in response.ToolResponseSet.Tools)
-                {
-                    if (toolRequestInfo.Length > 0)
-                        toolRequestInfo.AppendLine();
-                    toolRequestInfo.Append($"Use Tool: {tool.ToolName}");
-
-                    // Include parameters hash to ensure we can detect duplicate calls with different parameters
-                    // without storing potentially large parameter text
-                    if (!string.IsNullOrEmpty(tool.ResponseText))
-                    {
-                        string paramHash = ComputeSha256Hash(tool.ResponseText);
-                        toolRequestInfo.Append($" [{paramHash.Substring(0,7)}]");
-                    }
-                }
-            }
-
-            var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
+            //StringBuilder toolRequestInfo = new StringBuilder();
+            //string toolResultInfo = collatedResponse.ToString();
+            //
+            //if (response.ToolResponseSet != null && response.ToolResponseSet.Tools.Any())
+            //{
+            //    // Collect all tool names and parameters for the ToolRequested property
+            //    foreach (var tool in response.ToolResponseSet.Tools)
+            //    {
+            //        if (toolRequestInfo.Length > 0)
+            //            toolRequestInfo.AppendLine();
+            //        toolRequestInfo.Append($"Use Tool: {tool.ToolName}");
+            //
+            //        // Include parameters hash to ensure we can detect duplicate calls with different parameters
+            //        // without storing potentially large parameter text
+            //        if (!string.IsNullOrEmpty(tool.ResponseText))
+            //        {
+            //            string paramHash = ComputeSha256Hash(tool.ResponseText);
+            //            toolRequestInfo.Append($" [{paramHash.Substring(0,7)}]");
+            //        }
+            //    }
+            //}
+            //
+            //var toolRequestInfoOut = continueLoop ? toolRequestInfo.ToString() : $"{toolRequestInfo.ToString()}\n\n{toolResultInfo}";
 
             return new ToolExecutionResult
             {
-                AggregatedToolOutput = collatedResponse.ToString(),
                 Attachments = attachments,
                 Success = true,
+                ToolsOutputContentBlocks = toolsOutputContentBlocks,
                 // ContinueProcessing flag to indicate whether the tool loop should continue
                 ShouldContinueToolLoop = continueLoop,
-                RequestedToolsSummary = toolRequestInfoOut
             };
         }
 
-        private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName)
+        /// <summary>
+        /// Re-applies a built-in tool with its original parameters
+        /// </summary>
+        public async Task<BuiltinToolResult> ReapplyToolAsync(string toolName, string toolParameters, string clientId)
         {
-            response.ResponseText += $"\n\n{actualToolName}\n\n";
-            var setsOfToolParameters = string.IsNullOrEmpty(toolResponse.ResponseText)
+            if (string.IsNullOrEmpty(toolName))
+            {
+                _logger.LogError("ReapplyToolAsync called with no tool name.");
+                return new BuiltinToolResult { WasProcessed = false, ResultMessage = "Error: Tool name not provided." };
+            }
+
+            var tool = await _toolService.GetToolByToolNameAsync(toolName);
+            if (tool == null || !tool.IsBuiltIn)
+            {
+                _logger.LogWarning("Reapply attempted for a non-existent or non-built-in tool: {ToolName}", toolName);
+                return new BuiltinToolResult { WasProcessed = false, ResultMessage = $"Error: Tool '{toolName}' is not a re-appliable built-in tool." };
+            }
+
+            var extraProps = tool.ExtraProperties ?? new Dictionary<string, string>();
+
+            _logger.LogInformation("Re-applying built-in tool '{ToolName}' for client {ClientId}", toolName, clientId);
+
+            // Re-run the tool using the existing service, which handles all logic and security.
+            var result = await _builtinToolService.ProcessBuiltinToolAsync(toolName, toolParameters, extraProps, clientId);
+            
+            return result;
+        }
+
+        private async Task<string> ProcessMcpTool(AiResponse response, ToolResponseItem toolResponse, string toolResultMessageContent, string serverDefinitionId, string actualToolName, ToolExecutionResultContentBlocks resultContentBlocks, string cleanedToolResponseText = null, string? taskDescription = null)
+        {
+            //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{actualToolName}\n\n", ContentType = ContentType.Text });
+
+            resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"MCP tool requested: {actualToolName}\n\n", ContentType = ContentType.Text });
+
+            // Use cleanedToolResponseText if provided, otherwise fall back to original ResponseText
+            string responseTextToUse = cleanedToolResponseText ?? toolResponse.ResponseText;
+            
+            var setsOfToolParameters = string.IsNullOrEmpty(responseTextToUse)
                 ? new List<Dictionary<string, object>>()
-                : ExtractMultipleJsonObjects(toolResponse.ResponseText)
+                : ExtractMultipleJsonObjects(responseTextToUse)
                     .Select(json => CustomJsonParser.ParseJson(json))
                     .ToList();
 
@@ -273,12 +363,29 @@ namespace AiStudio4.Services
                 if (retVal.Content.Count == 0)
                 {
                     toolResultMessageContent += "\nTool executed successfully with no return content.\n";
+
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = "\nTool executed successfully with no return content.\n" });
                 }
                 else
                 {
                     toolResultMessageContent += $"Tool Use: {actualToolName}\n\n";
                     toolResultMessageContent += $"\n\nParameters:\n{string.Join("\n", toolParameterSet.Select(x => $"{x.Key} : {x.Value.ToString()}"))}\n\n";
                     toolResultMessageContent += $"```json\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"; // Serialize the result content
+
+                    //
+                    // User-visible content
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"[MCP] {actualToolName}: {taskDescription}\n\n", ContentType = ContentType.System });
+
+                    // Developer content
+                    var paramsText = JsonConvert.SerializeObject(toolParameterSet);
+                    string toolCallContent = $"MCP tool called: {actualToolName}\n\nParameters:\n```json\n{paramsText}\n```";
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = toolCallContent, ContentType = ContentType.Tool });
+
+                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock
+                    {
+                        Content = $"```mcp_tool_output\n{JsonConvert.SerializeObject(retVal.Content)}\n```\n\n"
+                    });
+
                 }
                 _logger.LogDebug("MCP tool result: {Result}", toolResultMessageContent);
             }

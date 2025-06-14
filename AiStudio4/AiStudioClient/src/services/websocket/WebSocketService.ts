@@ -4,6 +4,7 @@ import { prepareAttachmentsForTransmission } from '@/utils/attachmentUtils';
 import { toast } from '@/hooks/use-toast';
 import { handleWebSocketMessage } from '@/utils/websocketUtils';
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 export interface WebSocketMessage {
     messageType: string;
@@ -247,7 +248,6 @@ export class WebSocketService {
                     content: message.content,
                 });
             } else if (message.messageType === 'transcription') {
-                console.log('received transcription');
                 // Handle transcription messages for appending to user prompt
                 dispatchWebSocketEvent('transcription:received', {
                     type: 'transcription',
@@ -257,8 +257,7 @@ export class WebSocketService {
                 // Extract transcription text and append to prompt
                 const transcriptionText = message.content?.text;
                 if (transcriptionText) {
-                    const textToAppend = " " + transcriptionText; // Prepend a space
-                    windowEventService.emit(WindowEvents.APPEND_TO_PROMPT, { text: textToAppend });
+                    useInputBarStore.getState().appendToInputText(transcriptionText, true);
                 }
             } else if (message.messageType === 'interjectionAck') {
                 // Handle interjection acknowledgment

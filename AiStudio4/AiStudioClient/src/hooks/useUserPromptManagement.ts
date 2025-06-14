@@ -3,6 +3,7 @@ import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { UserPrompt } from '@/types/userPrompt';
 import { createResourceHook } from './useResourceFactory';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 export function useUserPromptManagement() {
   
@@ -77,8 +78,8 @@ export function useUserPromptManagement() {
 
   // Add method to insert user prompt into input bar
   const insertUserPrompt = useCallback((prompt: UserPrompt) => {
-    if (prompt && window.setPrompt) {
-      window.setPrompt(prompt.content);
+    if (prompt) {
+      useInputBarStore.getState().setInputText(prompt.content);
       return true;
     }
     return false;
