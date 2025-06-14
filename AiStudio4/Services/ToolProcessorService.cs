@@ -189,9 +189,8 @@ namespace AiStudio4.Services
                             {
                                 //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
 
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{toolResponse.ToolName}\n", ContentType = ContentType.AiHidden });
+                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = new JObject { ["toolName"] = toolResponse.ToolName, ["parameters"] = JToken.Parse(cleanedToolResponseText) }.ToString(Formatting.None), ContentType = ContentType.Tool });
 
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = $"{cleanedToolResponseText}\n", ContentType = ContentType.Tool });
                                 // tool already retrieved above
 
                                 var builtIn = _builtinToolService.GetBuiltinTools().First(x => x.Name == toolResponse.ToolName);
