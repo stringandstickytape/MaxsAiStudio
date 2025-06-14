@@ -10,6 +10,7 @@ import { useSearchStore } from '@/stores/useSearchStore';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { useMessageStream } from '@/hooks/useMessageStream';
 import { contentBlockRendererRegistry } from '@/components/content/contentBlockRendererRegistry';
+import { MessageUtils } from '@/utils/messageUtils';
 
 interface MessageItemProps {
   message: any;
@@ -57,10 +58,8 @@ const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps)
 export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
   const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
-  const attachmentsById = useAttachmentStore(state => state.attachmentsById);  const [editContent, setEditContent] = useState<string>('');
-    
-  // Helper: flattened text for rendering
-  const flattenedContent = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
+  const attachmentsById = useAttachmentStore(state => state.attachmentsById);
+  const [editContent, setEditContent] = useState<string>('');
   const messageRef = useRef<HTMLDivElement>(null);
   
   // Use the new streaming hook
@@ -88,7 +87,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
   
   // Debug logging
   console.log(`[MessageItem] Render - messageId: ${message.id}, isStreamingTarget: ${isStreamingTarget}`);
-  console.log(`[MessageItem] flattenedContent length: ${flattenedContent.length}, streamedContent length: ${streamedContent.length}`);
+  console.log(`[MessageItem] streamedContent length: ${streamedContent.length}`);
   console.log(`[MessageItem] contentBlocks:`, message.contentBlocks);
   
   // Check if this message matches the search
@@ -171,7 +170,8 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
             {!isStreamingTarget && (
               <MessageActions 
                 message={message} 
-                onEdit={() => {                  setEditContent(flattenedContent);
+                onEdit={() => {
+                  setEditContent(MessageUtils.getContent(message));
                   useConvStore.getState().editMessage(message.id);
                 }} 
               />

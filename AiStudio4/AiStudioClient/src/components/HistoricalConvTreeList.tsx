@@ -181,8 +181,8 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
 
                 createConv({
                     id: convId,
-                    rootMessage: {                        id: rootMessage.id,
-                        content: rootMessage.contentBlocks?.map((cb:any)=>cb.content).join('\n\n') ?? '',
+                    rootMessage: {
+                        id: rootMessage.id,
                         contentBlocks: rootMessage.contentBlocks ?? [],
                         source: rootMessage.source,
                         parentId: null,
@@ -204,7 +204,7 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
                     addMessage({
                         convId,
                         message: {
-                            id: message.id,                            content: message.contentBlocks?.map((cb:any)=>cb.content).join('\n\n') ?? '',
+                            id: message.id,
                             contentBlocks: message.contentBlocks ?? [],
                             source: message.source,
                             parentId: message.parentId,

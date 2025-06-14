@@ -3,6 +3,7 @@ import { Clipboard, Pencil, Save, ArrowUp } from 'lucide-react';
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { saveCodeBlockAsFile } from '@/services/api/apiClient';
+import { MessageUtils } from '@/utils/messageUtils';
 
 interface MessageActionsProps {
   // The message object carries contentBlocks (preferred) and a legacy content string
@@ -45,9 +46,9 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
         className="flex gap-2" // Changed: Removed overflow, whitespace, transition, etc.
         // Removed inline styles for maxWidth and opacity, making it always visible
       >
-        <button        // Copy concatenated text of all blocks (fallback to legacy string)
+        <button        // Copy concatenated text of all blocks using MessageUtils
         onClick={() => {
-          const flat = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
+          const flat = MessageUtils.getContent(message);
           navigator.clipboard.writeText(flat);
         }}
           className="ConvView p-1.5 rounded-full transition-all duration-200"
@@ -84,7 +85,7 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
             try {
               // const { saveCodeBlockAsFile } = await import('@/services/api/apiClient'); 
                 // Already imported at top              
-                const flat = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
+                const flat = MessageUtils.getContent(message);
               await saveCodeBlockAsFile({ content: flat, suggestedFilename });
             } catch (e) {
               console.error('Save As failed:', e);
@@ -121,7 +122,7 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
                   const conversationText = upToMessages.map(m => {
                     const author = m.source === 'user' ? 'User' : (m.source === 'ai' ? 'AI' : (m.source || 'Unknown'));
                     const timestamp = m.timestamp ? new Date(m.timestamp).toLocaleString() : '';
-                    return `---\n${author}${timestamp ? ` [${timestamp}]` : ''}:\n${m.content}\n`;
+                    return `---\n${author}${timestamp ? ` [${timestamp}]` : ''}:\n${MessageUtils.getContent(m)}\n`;
                   }).join('\n');
                   let suggestedFilename = `conversation.txt`;
                   await saveCodeBlockAsFile({ content: conversationText, suggestedFilename });

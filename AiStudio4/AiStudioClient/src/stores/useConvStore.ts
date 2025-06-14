@@ -6,6 +6,7 @@ import { listenToWebSocketEvent } from '@/services/websocket/websocketEvents';
 import { processAttachments } from '@/utils/attachmentUtils';
 import type { ContentBlock } from '@/types/conv';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
+import { MessageUtils } from '@/utils/messageUtils';
 
 interface ConvState {
     convs: Record<string, Conv>;
@@ -59,7 +60,6 @@ export const useConvStore = create<ConvState>((set, get) => {
 
                 
                 const contentBlocks: ContentBlock[] = content.contentBlocks ?? [];
-                const flattened = contentBlocks.map(cb => cb.content).join('\n\n');
 
                 const attachments = content.attachments && Array.isArray(content.attachments) 
                     ? processAttachments(content.attachments)
@@ -81,7 +81,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                         const existingMessage = updatedMessages[existingMessageIndex];
                         updatedMessages[existingMessageIndex] = { 
                             ...existingMessage, 
-                            content: flattened,
                             contentBlocks: contentBlocks,
                             durationMs: content.durationMs,
                             costInfo: content.costInfo || existingMessage.costInfo,
@@ -102,7 +101,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                         convId: targetConvId,
                         message: {
                             id: content.id,
-                            content: flattened,
                             contentBlocks: contentBlocks,
                             source: content.source,
                             parentId,
@@ -145,7 +143,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                     id: convId,
                     rootMessage: {
                         id: content.id,
-                        content: content.contentBlocks?.map((cb:any)=>cb.content).join('\n\n') ?? '',
+                        contentBlocks: content.contentBlocks ?? [],
                         source: content.source,
                         parentId: null,
                         timestamp: content.timestamp || Date.now(),
@@ -172,7 +170,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                 id: convId,
                 rootMessage: {
                     id: rootMsg.id,
-                    content: rootMsg.contentBlocks?.map((cb:any)=>cb.content).join('\n\n') ?? '',
                     contentBlocks: rootMsg.contentBlocks ?? [] as any,
                     source: rootMsg.source as 'user' | 'ai' | 'system',
                     parentId: null,
@@ -198,13 +195,11 @@ export const useConvStore = create<ConvState>((set, get) => {
                     }
 
                     const mBlocks: ContentBlock[] = m.contentBlocks ?? [];
-                    const mFlat = mBlocks.map(cb=>cb.content).join('\n\n');
 
                     addMessage({
                         convId,
                         message: {
                             id: m.id,
-                            content: mFlat,
                             contentBlocks: mBlocks,
                             source: m.source as 'user' | 'ai' | 'system',
                             parentId: m.parentId,
@@ -253,7 +248,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const updMsg = { 
                     ...message, 
                     id: message.id,
-                    content: message.content,
                     contentBlocks: message.contentBlocks ?? [],
                     source: message.source,
                     timestamp: message.timestamp,
@@ -320,8 +314,7 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const msgs = [...conv.messages];
                 msgs[idx] = { 
                     ...msgs[idx], 
-                    content,
-                    contentBlocks: msgs[idx].contentBlocks ? msgs[idx].contentBlocks.map((cb,i)=> i===0 ? { ...cb, content } : cb ) : [{ content, contentType: 'text' }]
+                    contentBlocks: [{ content, contentType: 'text' }]
                 };
 
                 import('../services/api/apiClient').then(({ updateMessage }) =>

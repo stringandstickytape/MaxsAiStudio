@@ -11,6 +11,7 @@ import { useMessageTree } from './useMessageTree';
 import { useTreeVisualization } from './useTreeVisualization';
 import { EmptyTreeView } from './EmptyTreeView';
 import { TreeControls } from './TreeControls';
+import { MessageUtils } from '@/utils/messageUtils';
 
 // Use React.memo to prevent unnecessary re-renders
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
@@ -59,8 +60,8 @@ const ConvTreeViewComponent: React.FC<TreeViewProps> = ({ convId, messages }) =>
             const message = conv.messages.find(msg => msg.id === nodeId);
             if (message) {
                 // Set the prompt to the user message content
-                if (window.setPrompt) {                    // Prefer rich contentBlocks, fallback to legacy string
-                    const flat = message.contentBlocks?.map((cb: any) => cb.content).join('\n\n') ?? '';
+                if (window.setPrompt) {
+                    const flat = MessageUtils.getContent(message);
                     window.setPrompt(flat);
                 }
                 
