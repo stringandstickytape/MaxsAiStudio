@@ -197,12 +197,12 @@ namespace AiStudio4.Services
 
                                 _logger.LogInformation("Built-in tool '{ToolName}' was processed.", toolResponse.ToolName);
 
-                                if (!string.IsNullOrEmpty(toolResponse.ToolName))
-                                {
-                                    toolResultMessageContent += $"{toolResponse.ToolName}";
-
-                                    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.AiHidden });
-                                }
+                                //if (!string.IsNullOrEmpty(toolResponse.ToolName))
+                                //{
+                                //    toolResultMessageContent += $"{toolResponse.ToolName}";
+                                //
+                                //    resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Ran {toolResponse.ToolName}:\n\n" , ContentType = ContentType.AiHidden });
+                                //}
 
                                 if (!string.IsNullOrEmpty(builtinToolResult.ResultMessage))
                                 {
