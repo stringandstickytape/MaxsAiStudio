@@ -8,7 +8,6 @@ import { MessageUtils } from '@/utils/messageUtils';
 interface MessageActionsProps {
   // The message object carries contentBlocks (preferred) and a legacy content string
   message: any;
-  onEdit: () => void;
 }
 
 // Custom comparison function for MessageActions memoization
@@ -36,7 +35,7 @@ const areActionsPropsEqual = (prevProps: MessageActionsProps, nextProps: Message
   return true;
 };
 
-export const MessageActions = React.memo(({ message, onEdit }: MessageActionsProps) => {
+export const MessageActions = React.memo(({ message }: MessageActionsProps) => {
   return (
     <div 
       className="ConvView flex items-center gap-2" // Removed mt-2, added pt-2 for padding above actions
@@ -63,21 +62,6 @@ export const MessageActions = React.memo(({ message, onEdit }: MessageActionsPro
           title="Copy message"
         >
           <Clipboard size={16} />
-        </button>
-        <button
-          onClick={onEdit}
-          className="ConvView p-1.5 rounded-full transition-all duration-200"
-          style={{
-            color: 'var(--convview-text-color, #9ca3af)',
-            backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0))', // Kept original style
-            ':hover': {
-              color: 'var(--convview-text-color, #ffffff)',
-              backgroundColor: 'var(--convview-bg, rgba(55, 65, 81, 0.8))'
-            }
-          }}
-          title="Edit raw message"
-        >
-          <Pencil size={16} />
         </button>
         <button
           onClick={async () => {

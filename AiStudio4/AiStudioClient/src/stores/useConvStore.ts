@@ -14,18 +14,22 @@ interface ConvState {
     activeConvId: string | null;
     slctdMsgId: string | null;
     editingMessageId: string | null;
+    editingBlock: { messageId: string; blockIndex: number; } | null;
     createConv: (p: { id?: string; rootMessage: Message; slctdMsgId?: string }) => void;
     addMessage: (p: { convId: string; message: Message }) => void;
     setActiveConv: (convId: string) => void;
     selectMessage: (convId: string, messageId: string) => void;
     getConv: (convId: string) => Conv | undefined;
     getActiveConv: () => Conv | undefined;
-    updateMessage: (p: { convId: string; messageId: string; content: string }) => void;
+    updateMessage: (p: { convId: string; messageId: string; newBlocks: ContentBlock[] }) => void;
+    updateMessageBlock: (convId: string, messageId: string, blockIndex: number, newContent: string) => void;
     deleteMessage: (p: { convId: string; messageId: string }) => void;
     clearConv: (convId: string) => void;
     deleteConv: (convId: string) => void;
     editMessage: (messageId: string | null) => void;
+    editBlock: (messageId: string, blockIndex: number) => void;
     cancelEditMessage: () => void;
+    cancelEditBlock: () => void;
     loadOrGetConv: (convId: string) => Promise<{ id: string; messages: Message[]; summary?: string } | null>;
 }
 
@@ -229,6 +233,7 @@ export const useConvStore = create<ConvState>((set, get) => {
         activeConvId: null,
         slctdMsgId: null,
         editingMessageId: null,
+        editingBlock: null,
 
         createConv: ({ id = `conv_${uuidv4()}`, rootMessage, slctdMsgId }) =>
             set(s => ({
@@ -305,7 +310,7 @@ export const useConvStore = create<ConvState>((set, get) => {
             return activeConvId ? convs[activeConvId] : undefined;
         },
 
-        updateMessage: ({ convId, messageId, content }) =>
+        updateMessage: ({ convId, messageId, newBlocks }) =>
             set(s => {
                 const conv = s.convs[convId];
                 if (!conv) return s;
@@ -314,15 +319,46 @@ export const useConvStore = create<ConvState>((set, get) => {
                 const msgs = [...conv.messages];
                 msgs[idx] = { 
                     ...msgs[idx], 
-                    contentBlocks: [{ content, contentType: 'text' }]
+                    contentBlocks: newBlocks
                 };
 
                 import('../services/api/apiClient').then(({ updateMessage }) =>
-                    updateMessage({ convId, messageId, content })
+                    updateMessage({ convId, messageId, contentBlocks: newBlocks })
                         .catch(e => { /* Failed to update message on server */ })
                 );
 
                 return { convs: { ...s.convs, [convId]: { ...conv, messages: msgs } } };
+            }),
+
+        updateMessageBlock: (convId, messageId, blockIndex, newContent) =>
+            set(s => {
+                const conv = s.convs[convId];
+                if (!conv) return s;
+                const idx = conv.messages.findIndex(m => m.id === messageId);
+                if (idx === -1) return s;
+                const message = conv.messages[idx];
+                if (!message.contentBlocks || blockIndex >= message.contentBlocks.length) return s;
+                
+                const msgs = [...conv.messages];
+                const updatedBlocks = [...message.contentBlocks];
+                updatedBlocks[blockIndex] = { 
+                    ...updatedBlocks[blockIndex],
+                    content: newContent 
+                };
+                msgs[idx] = { 
+                    ...msgs[idx], 
+                    contentBlocks: updatedBlocks
+                };
+
+                import('../services/api/apiClient').then(({ updateMessage }) =>
+                    updateMessage({ convId, messageId, contentBlocks: updatedBlocks })
+                        .catch(e => { /* Failed to update message on server */ })
+                );
+
+                return { 
+                    convs: { ...s.convs, [convId]: { ...conv, messages: msgs } },
+                    editingBlock: null
+                };
             }),
 
         deleteMessage: ({ convId, messageId }) =>
@@ -398,7 +434,9 @@ export const useConvStore = create<ConvState>((set, get) => {
             }),
 
         editMessage: id => set(() => ({ editingMessageId: id })),
+        editBlock: (messageId, blockIndex) => set(() => ({ editingBlock: { messageId, blockIndex } })),
         cancelEditMessage: () => set(() => ({ editingMessageId: null })),
+        cancelEditBlock: () => set(() => ({ editingBlock: null })),
         
         loadOrGetConv: async (convId: string) => {
             const { convs } = get();

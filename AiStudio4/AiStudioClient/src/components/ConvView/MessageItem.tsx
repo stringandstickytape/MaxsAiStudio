@@ -4,6 +4,7 @@ import { MessageAttachments } from '@/components/MessageAttachments';
 import { MessageMetadata } from './MessageMetadata';
 import { MessageActions } from './MessageActions';
 import { MessageEditor } from './MessageEditor';
+import { BlockEditor } from './BlockEditor';
 import { useState, useRef, useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
@@ -11,6 +12,7 @@ import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { useMessageStream } from '@/hooks/useMessageStream';
 import { contentBlockRendererRegistry } from '@/components/content/contentBlockRendererRegistry';
 import { MessageUtils } from '@/utils/messageUtils';
+import { Pencil } from 'lucide-react';
 
 interface MessageItemProps {
   message: any;
@@ -56,7 +58,7 @@ const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps)
 };
 
 export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarget = false }: MessageItemProps) => {
-  const { editingMessageId, cancelEditMessage, updateMessage } = useConvStore();
+  const { editingMessageId, editingBlock, cancelEditMessage, cancelEditBlock, updateMessage, updateMessageBlock, editBlock } = useConvStore();
   const { searchResults, highlightedMessageId } = useSearchStore();
   const attachmentsById = useAttachmentStore(state => state.attachmentsById);
   const [editContent, setEditContent] = useState<string>('');
@@ -78,10 +80,48 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
       return null;
     }
 
+    // Check if this message is being edited at block level
+    const isBlockEditing = editingBlock?.messageId === message.id;
+
     return message.contentBlocks.map((block: any, index: number) => {
       const key = `${message.id}-block-${index}`;
+      
+      // If this specific block is being edited, render the BlockEditor
+      if (isBlockEditing && editingBlock?.blockIndex === index) {
+        return (
+          <BlockEditor
+            key={key}
+            initialContent={block.content}
+            onSave={(newContent) => {
+              updateMessageBlock(activeConvId, message.id, index, newContent);
+            }}
+            onCancel={() => {
+              cancelEditBlock();
+            }}
+          />
+        );
+      }
+
+      // Otherwise, render the block with edit hover button
       const Renderer = contentBlockRendererRegistry.get(block.contentType);
-      return <Renderer key={key} block={block} />;
+      return (
+        <div key={key} className="relative group">
+          <Renderer block={block} />
+          {!isStreamingTarget && (
+            <button
+              onClick={() => editBlock(message.id, index)}
+              className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 rounded-full"
+              style={{
+                backgroundColor: 'var(--global-secondary-color, rgba(107, 114, 128, 0.8))',
+                color: 'var(--global-secondary-text-color, #ffffff)',
+              }}
+              title="Edit this block"
+            >
+              <Pencil size={12} />
+            </button>
+          )}
+        </div>
+      );
     });
   };
   
@@ -150,7 +190,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
                 updateMessage({
                   convId: activeConvId,
                   messageId: message.id,
-                  content: editContent
+                  newBlocks: [{ content: editContent, contentType: 'text' }]
                 });
                 cancelEditMessage();
               }
@@ -165,10 +205,6 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
             {!isStreamingTarget && (
               <MessageActions 
                 message={message} 
-                onEdit={() => {
-                  setEditContent(MessageUtils.getContent(message));
-                  useConvStore.getState().editMessage(message.id);
-                }} 
               />
             )}
           </>
