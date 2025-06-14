@@ -19,6 +19,7 @@ using SharedClasses;
 using System.Windows.Forms;
 
 using System.Security.Cryptography;
+using ModelContextProtocol.Protocol;
 
 namespace AiStudio4.Services
 {
@@ -252,6 +253,8 @@ namespace AiStudio4.Services
                         toolResultMessageContent = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}";
 
                         resultContentBlocks.ResponseBlocks.Add(new ContentBlock { Content = $"Error executing tool '{toolResponse.ToolName}': {ex.Message}", ContentType = ContentType.Text });
+
+                        continueLoop = false;
                     }
 
                     // Add tool result message to conversation history
