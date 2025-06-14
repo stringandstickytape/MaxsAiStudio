@@ -7,10 +7,8 @@ import { windowEventService, WindowEvents, OpenModalEventDetail, ModalCustomEven
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 // import { SystemPromptDialog } from './components/SystemPrompt/SystemPromptDialog'; // Replaced by ModalManager
 // import { UserPromptDialog } from './components/UserPrompt/UserPromptDialog'; // Replaced by ModalManager
-import { ToolDialog } from './components/tools/ToolDialog'; // Bridge component for legacy event handling
 // import SettingsDialog from './components/modals/SettingsDialog'; // Replaced by ModalManager
 // import { ThemeLibrary } from './components/ThemeLibrary'; // Replaced by ModalManager
-import { ServerDialog } from './components/servers/ServerDialog'; // Bridge component for legacy event handling
 import { ModalManager } from './components/modals/ModalManager'; // Import the new manager
 import { useEffect } from 'react';
 import { useConvStore } from '@/stores/useConvStore';
@@ -215,9 +213,6 @@ function App() {
       {/* Centralized Modal Management */}
       <ModalManager />
 
-      {/* Bridge components for legacy event handling */}
-      <ToolDialog />
-      <ServerDialog />
 
       {/* Old direct modal rendering (commented out/removed) */}
       {/* <SystemPromptDialog /> */}

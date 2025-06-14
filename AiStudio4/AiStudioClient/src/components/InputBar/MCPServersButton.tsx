@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Server } from 'lucide-react';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
+import { useModalStore } from '@/stores/useModalStore';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -19,7 +19,7 @@ export const MCPServersButton = React.memo(({ disabled }: MCPServersButtonProps)
     const { enabledCount } = useMcpServerStore();
     
     const handleOpenServerList = useCallback(() => {
-        windowEventService.emit(WindowEvents.OPEN_SERVER_LIST);
+        useModalStore.getState().openModal('server', {});
     }, []);
     
     const handleMouseDown = useCallback((e: React.MouseEvent) => {

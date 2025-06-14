@@ -97,3 +97,84 @@ Completed a comprehensive refactoring of the client-side input bar state managem
 7. **Modified**: `src/hooks/useUserPromptManagement.ts`
 
 This refactoring successfully eliminated the code smell of distributed state management while maintaining all existing functionality and external integrations.
+
+## Legacy Modal Bridge Components Elimination
+
+### Summary
+Eliminated legacy "bridge" components that listened for global window events and translated them into `useModalStore` actions, completing the migration to the modern modal management system.
+
+### Problem
+The application contained bridge components (`ToolDialog.tsx`, `ServerDialog.tsx`) that served as intermediaries between legacy window events and the modern `useModalStore`. This created unnecessary indirection, obscured data flow, and represented incomplete technical debt from a partial refactoring.
+
+### Solution
+Removed the middlemen by updating event triggers to directly call `useModalStore.getState().openModal()` instead of emitting global events that bridge components would listen for.
+
+### Changes Made
+
+#### 1. Updated Command Definitions
+- **File**: `src/commands/toolCommands.ts`
+  - **Removed**: `windowEventService` import
+  - **Added**: `useModalStore` import  
+  - **Changed**: `config.openToolLibrary` → `() => useModalStore.getState().openModal('tool', {})`
+
+- **File**: `src/commands/mcpServerCommands.ts`
+  - **Verified**: Already using `useModalStore.getState().openModal('server', {})` directly
+
+#### 2. Updated Input Bar Buttons
+- **File**: `src/components/InputBar/ToolsButton.tsx`
+  - **Removed**: `windowEventService, WindowEvents` imports
+  - **Added**: `useModalStore` import
+  - **Changed**: `windowEventService.emit(WindowEvents.OPEN_TOOL_LIBRARY)` → `useModalStore.getState().openModal('tool', {})`
+
+- **File**: `src/components/InputBar/MCPServersButton.tsx`
+  - **Removed**: `windowEventService, WindowEvents` imports
+  - **Added**: `useModalStore` import
+  - **Changed**: `windowEventService.emit(WindowEvents.OPEN_SERVER_LIST)` → `useModalStore.getState().openModal('server', {})`
+
+#### 3. Deleted Bridge Components
+- **Deleted**: `src/components/tools/ToolDialog.tsx`
+- **Deleted**: `src/components/servers/ServerDialog.tsx`
+
+#### 4. Updated App Component
+- **File**: `src/App.tsx`
+  - **Removed**: Imports for `ToolDialog` and `ServerDialog`
+  - **Removed**: Bridge components from render tree
+
+#### 5. Cleaned Up Legacy Events
+- **File**: `src/services/windowEvents.ts`
+  - **Removed**: `OPEN_TOOL_LIBRARY: 'open-tool-library'`
+  - **Removed**: `OPEN_SERVER_LIST: 'open-server-list'`
+
+### Benefits Achieved
+
+#### Code Quality
+- **Improved Clarity**: Modal opening is now direct and predictable
+- **Reduced Complexity**: Eliminated unnecessary abstraction layer
+- **Enhanced Maintainability**: Centralized modal logic in `useModalStore`
+- **Eliminated Technical Debt**: Completed migration to modern modal system
+
+#### Performance
+- **Reduced Event Overhead**: Eliminated global event emission and listening
+- **Direct Function Calls**: More efficient than event-based communication
+- **Smaller Bundle**: Removed unused bridge component code
+
+#### Developer Experience
+- **Better Traceability**: Can easily trace modal opening to direct function calls
+- **Consistent Patterns**: All modal opening now follows the same pattern
+- **Simplified Debugging**: No need to trace through event systems
+
+### Files Modified
+1. **Modified**: `src/commands/toolCommands.ts`
+2. **Modified**: `src/components/InputBar/ToolsButton.tsx`
+3. **Modified**: `src/components/InputBar/MCPServersButton.tsx`
+4. **Modified**: `src/App.tsx`
+5. **Modified**: `src/services/windowEvents.ts`
+6. **Deleted**: `src/components/tools/ToolDialog.tsx`
+7. **Deleted**: `src/components/servers/ServerDialog.tsx`
+
+### Verification
+- **Tool Library**: Accessible via Ctrl+K → "Manage Tools" command and Tools button in input bar
+- **MCP Servers**: Accessible via Ctrl+K → "Manage MCP Servers" command and MCP Servers button in input bar
+- **Direct Store Usage**: All modal opening now goes through `useModalStore.getState().openModal()`
+
+This refactoring successfully eliminated the legacy bridge pattern and completed the migration to the modern modal management system, resulting in cleaner, more maintainable code.

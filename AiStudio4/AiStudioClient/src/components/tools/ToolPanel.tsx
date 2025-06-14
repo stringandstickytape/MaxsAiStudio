@@ -282,7 +282,7 @@ export function ToolPanel({ isOpen = true, isModal = true, onClose, onToolSelect
           <Card className="card-base" style={{ backgroundColor: 'var(--global-background-color)', borderColor: 'var(--global-border-color)', borderRadius: 'var(--global-border-radius)', boxShadow: 'var(--global-box-shadow)' }}>
             <CardHeader style={{ backgroundColor: 'var(--global-background-color)' }}>
               <CardTitle className="text-sm font-medium" style={{ color: 'var(--global-text-color)' }}>Categories</CardTitle>
-              <p className="text-xs mt-1" style={{ color: 'var(--global-secondary-color)' }}>(Double-click to select all)</p> 
+              <p className="text-xs mt-1" style={{ color: 'var(--global-secondary-color)' }}>(Double-click to select entire category)</p> 
             </CardHeader>
             <CardContent className="p-2" style={{ backgroundColor: 'var(--global-background-color)' }}>
               <div className="space-y-1" style={{ backgroundColor: 'var(--global-background-color)' }}>

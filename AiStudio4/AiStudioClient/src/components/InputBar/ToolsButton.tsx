@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Wrench } from 'lucide-react';
-import { windowEventService, WindowEvents } from '@/services/windowEvents';
+import { useModalStore } from '@/stores/useModalStore';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ToolsButtonProps {
@@ -23,7 +23,7 @@ const areToolsButtonPropsEqual = (prevProps: ToolsButtonProps, nextProps: ToolsB
 
 export const ToolsButton = React.memo(({ activeTools, removeActiveTool, disabled }: ToolsButtonProps) => {
     const handleOpenToolLibrary = useCallback(() => {
-        windowEventService.emit(WindowEvents.OPEN_TOOL_LIBRARY);
+        useModalStore.getState().openModal('tool', {});
     }, []);
     
     const handleMouseDown = useCallback((e: React.MouseEvent) => {
