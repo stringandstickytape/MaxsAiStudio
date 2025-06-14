@@ -1,5 +1,6 @@
 // AiStudio4/InjectedDependencies/RequestHandlers/MiscRequestHandler.cs
 
+using AiStudio4.Core.Interfaces;
 using Microsoft.Win32;
 
 
@@ -19,17 +20,22 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
     public class MiscRequestHandler : BaseRequestHandler
     {
         private readonly IGeneralSettingsService _generalSettingsService;
+        private readonly IToolProcessorService _toolProcessorService;
+        private readonly ILogger<MiscRequestHandler> _logger;
 
-        public MiscRequestHandler(IGeneralSettingsService generalSettingsService)
+        public MiscRequestHandler(IGeneralSettingsService generalSettingsService, IToolProcessorService toolProcessorService, ILogger<MiscRequestHandler> logger)
         {
             _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
+            _toolProcessorService = toolProcessorService ?? throw new ArgumentNullException(nameof(toolProcessorService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected override IEnumerable<string> SupportedRequestTypes => new[]
         {
             "saveCodeBlockAsFile",
             "gitDiff",
-            "exitApplication"
+            "exitApplication",
+            "reapplyTool"
         };
 
         public override async Task<string> HandleAsync(string clientId, string requestType, JObject requestObject)
@@ -41,6 +47,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     "saveCodeBlockAsFile" => await HandleSaveCodeBlockAsFileRequest(requestObject),
                     "gitDiff" => await HandleGitDiffRequest(),
                     "exitApplication" => HandleExitApplicationRequest(),
+                    "reapplyTool" => await HandleReapplyToolRequest(clientId, requestObject),
                     _ => SerializeError($"Unsupported request type: {requestType}")
                 };
             }
@@ -155,6 +162,29 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             if (proc.ExitCode != 0)
                 throw new Exception($"Git error: {error}");
             return output;
+        }
+
+        private async Task<string> HandleReapplyToolRequest(string clientId, JObject requestObject)
+        {
+            try
+            {
+                string toolName = requestObject["toolName"]?.ToString();
+                string toolParameters = requestObject["parameters"]?.ToString();
+
+                if (string.IsNullOrEmpty(toolName) || toolParameters == null)
+                {
+                    return SerializeError("Tool name and parameters are required.");
+                }
+
+                var result = await _toolProcessorService.ReapplyToolAsync(toolName, toolParameters, clientId);
+
+                return JsonConvert.SerializeObject(new { success = true, result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling reapplyTool request.");
+                return SerializeError($"Error reapplying tool: {ex.Message}");
+            }
         }
     }
 }

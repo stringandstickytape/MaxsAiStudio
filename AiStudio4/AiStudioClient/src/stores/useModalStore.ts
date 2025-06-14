@@ -36,6 +36,10 @@ export interface ModalRegistry {
     cancelLabel?: string;
     children?: React.ReactNode; // Added to support passing form fields
   };
+  info: {
+    title: string;
+    content: string;
+  };
   // Add other modal types here
 }
 

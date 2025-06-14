@@ -13,6 +13,7 @@ import { ServerModal } from './ServerModal';
 import { ThemeModal } from './ThemeModal';
 import { ConfirmationModal } from './ConfirmationModal';
 import { FormModal } from './FormModal';
+import { InfoModal } from './InfoModal';
 
 export function ModalManager() {
   // Each modal component now internally checks the store
@@ -30,6 +31,7 @@ export function ModalManager() {
       <ThemeModal />
       <ConfirmationModal />
       <FormModal />
+      <InfoModal />
       {/* Add other modal components here as they are created */}
     </>
   );
