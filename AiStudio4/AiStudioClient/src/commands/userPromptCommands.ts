@@ -5,6 +5,7 @@ import { windowEventService, WindowEvents, OpenModalEventDetail } from '@/servic
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { commandRegistry } from '@/services/commandRegistry';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 
 interface UserPromptCommandsConfig {
@@ -114,7 +115,7 @@ export function registerUserPromptsAsCommands(toggleLibrary: () => void) {
       }),
       execute: () => {
         setCurrentPrompt(prompt);
-        windowEventService.emit(WindowEvents.SET_PROMPT, { text: prompt.content });
+        useInputBarStore.getState().setInputText(prompt.content);
       },
     };
   });

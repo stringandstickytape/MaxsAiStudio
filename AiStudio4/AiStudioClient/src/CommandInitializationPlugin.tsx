@@ -13,6 +13,7 @@ import { windowEventService, WindowEvents } from '@/services/windowEvents';
 import { commandRegistry } from '@/services/commandRegistry';
 import { createApiRequest } from '@/utils/apiUtils';
 import { useConvStore } from '@/stores/useConvStore';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 export function CommandInitializationPlugin() {
   const { prompts: systemPrompts } = useSystemPromptStore();
@@ -99,8 +100,8 @@ export function CommandInitializationPlugin() {
         if (selectedPrompt.associatedUserPromptId) {
           const userPrompt = userPrompts.find(p => p.guid === selectedPrompt.associatedUserPromptId);
           if (userPrompt && userPrompt.content) {
-            // Use the windowEventService to set the prompt content
-            windowEventService.emit(WindowEvents.SET_PROMPT, { text: userPrompt.content });
+            // Use the input bar store directly to set the prompt content
+            useInputBarStore.getState().setInputText(userPrompt.content);
             
           }
         }

@@ -13,6 +13,7 @@ import { CommandBar } from './CommandBar';
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { setupPromptUtils } from '@/utils/promptUtils';
 
 // AiStudioClient/src/components/ChatSpace.tsx
 export function ChatSpace() {
@@ -27,6 +28,11 @@ export function ChatSpace() {
   const { isCancelling } = useWebSocketStore();
   const { panels } = usePanelStore();
   
+  // Setup window prompt utilities
+  useEffect(() => {
+    setupPromptUtils();
+  }, []);
+
   // Memoize the ChatContainer to prevent unnecessary re-renders
   const memoizedChatContainer = useMemo(() => (
     <ChatContainer isMobile={isMobile} />

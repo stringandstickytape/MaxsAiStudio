@@ -1,5 +1,6 @@
 
 import { useUserPromptStore } from '@/stores/useUserPromptStore';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 /**
  * Utility to directly handle prompt shortcuts in the command bar input
@@ -18,7 +19,7 @@ export function handlePromptShortcut(inputText: string): boolean {
   
   if (matchingPrompt) {
     
-    window.setPrompt(matchingPrompt.content);
+    useInputBarStore.getState().setInputText(matchingPrompt.content);
     return true;
   }
   

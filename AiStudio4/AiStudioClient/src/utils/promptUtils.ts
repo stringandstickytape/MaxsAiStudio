@@ -1,24 +1,21 @@
 
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
-export function setupPromptUtils(setTextFn) {
-  window.appendToPrompt = (text, options = {}) => {
+export function setupPromptUtils() {
+  window.setPrompt = (text: string) => {
+    useInputBarStore.getState().setInputText(text);
+    return true;
+  };
+
+  window.appendToPrompt = (text: string, options: { newLine?: boolean; replaceCurrent?: boolean } = {}) => {
     const { newLine = true, replaceCurrent = false } = options;
 
     try {
-      let currentInputValue = '';
-
-      if (window._currentPromptText !== undefined) {
-        currentInputValue = window._currentPromptText;
+      if (replaceCurrent) {
+        useInputBarStore.getState().setInputText(text);
+      } else {
+        useInputBarStore.getState().appendToInputText(text, newLine);
       }
-
-      const formattedText = newLine && currentInputValue.length > 0 ? '\n' + text : text;
-
-      const newValue = replaceCurrent ? formattedText : currentInputValue + formattedText;
-
-      setTextFn(newValue);
-
-      window._currentPromptText = newValue;
-
       return true;
     } catch (error) {
       console.error('Failed to append to prompt:', error);
@@ -26,14 +23,11 @@ export function setupPromptUtils(setTextFn) {
     }
   };
 
-  window.getPromptText = () => {
-    return window._currentPromptText || '';
-  };
-
+  window.getPromptText = () => useInputBarStore.getState().inputText;
 }
 
 export function cleanupPromptUtils() {
+  delete window.setPrompt;
   delete window.appendToPrompt;
   delete window.getPromptText;
-  delete window._currentPromptText;
 }

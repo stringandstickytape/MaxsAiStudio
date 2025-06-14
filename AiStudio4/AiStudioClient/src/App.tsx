@@ -21,6 +21,7 @@ import { useModalStore } from '@/stores/useModalStore';
 import { slashItemRegistry } from './services/slashItemRegistry';
 import { UserPromptProvider } from './services/providers/userPromptProvider';
 import { FileNameProvider } from './services/providers/fileNameProvider';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -184,8 +185,8 @@ function App() {
       const { userPromptId } = e.detail;
       if (userPromptId) {
         const userPrompt = userPrompts.find(up => up.guid === userPromptId);
-        if (userPrompt && window.setPrompt) {
-          window.setPrompt(userPrompt.content);
+        if (userPrompt) {
+          useInputBarStore.getState().setInputText(userPrompt.content);
         }
       }
     };

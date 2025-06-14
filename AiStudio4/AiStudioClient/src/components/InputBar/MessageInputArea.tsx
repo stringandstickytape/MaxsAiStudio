@@ -4,10 +4,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { webSocketService } from '@/services/websocket/WebSocketService';
 import { SlashDropdown } from '@/components/SlashDropdown';
 import { getCursorPosition } from '@/utils/textAreaUtils';
+import { useInputBarStore, useInputText } from '@/stores/useInputBarStore';
 
 interface MessageInputAreaProps {
-    inputText: string;
-    setInputText: (value: string) => void;
     onSend: () => void;
     isLoading: boolean;
     disabled: boolean;
@@ -16,8 +15,6 @@ interface MessageInputAreaProps {
 }
 
 function MessageInputAreaComponent({
-    inputText: propInputText,
-    setInputText: propSetInputText,
     onSend,
     isLoading,
     disabled,
@@ -25,15 +22,24 @@ function MessageInputAreaComponent({
     onAttachFile
 }: MessageInputAreaProps) {
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [localInputText, setLocalInputText] = useState<string>(propInputText);
+    const inputText = useInputText();
+    const requestFocus = useInputBarStore((state) => state.requestFocus);
+    
     const [cursorPosition, setCursorPosition] = useState<number | null>(null);
     const [showSlashDropdown, setShowSlashDropdown] = useState(false);
     const [slashQuery, setSlashQuery] = useState('');
     
-    // Update local state when prop changes
+    // Effect to handle focus requests
     useEffect(() => {
-        setLocalInputText(propInputText);
-    }, [propInputText]);
+        if (requestFocus && textareaRef.current) {
+            textareaRef.current.focus();
+            const length = textareaRef.current.value.length;
+            textareaRef.current.setSelectionRange(length, length);
+            setCursorPosition(length);
+            // Use the store's getState() to avoid dependency issues
+            useInputBarStore.getState().setRequestFocus(false);
+        }
+    }, [requestFocus]); // Remove setRequestFocus from dependencies
 
     // Notify parent of cursor position changes
     useEffect(() => {
@@ -56,18 +62,17 @@ function MessageInputAreaComponent({
         }
     }, []);
     
-    // Handle text input with debounced parent updates
+    // Handle text input
     const handleTextAreaInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
         const value = e.target.value;
         const selectionStart = e.target.selectionStart;
         
-        // Update both local and parent state immediately
-        setLocalInputText(value);
-        propSetInputText(value);
+        // Update store state
+        useInputBarStore.getState().setInputText(value);
         
         setCursorPosition(selectionStart);
         checkSlashCommand(value, selectionStart);
-    }, [propSetInputText, checkSlashCommand]);
+    }, [checkSlashCommand]);
 
     // Handle click events on textarea
     const handleTextAreaClick = useCallback((e: React.MouseEvent<HTMLTextAreaElement>) => {
@@ -110,9 +115,8 @@ function MessageInputAreaComponent({
                 const text = e.currentTarget.value;
                 const newText = text.substring(0, cursorPos) + ' ' + text.substring(cursorPos);
                 e.currentTarget.value = newText;
-                // Update both local and parent state
-                setLocalInputText(newText);
-                propSetInputText(newText);
+                // Update store state
+                useInputBarStore.getState().setInputText(newText);
                 // Set cursor position after the space
                 setTimeout(() => {
                     if (textareaRef.current) {
@@ -128,15 +132,14 @@ function MessageInputAreaComponent({
             e.preventDefault();
             // If tool loop is running (isLoading), send interjection instead of normal send
             if (isLoading) {
-                webSocketService.sendInterjection(localInputText);
-                setLocalInputText('');
-                propSetInputText('');
+                webSocketService.sendInterjection(inputText);
+                useInputBarStore.getState().clearInputText();
             } else {
                 onSend();
             }
             return;
         }
-    }, [showSlashDropdown, isLoading, localInputText, onSend, propSetInputText]);
+    }, [showSlashDropdown, isLoading, inputText, onSend]);
 
     // Handle selection from dropdown
     const handleSlashItemSelect = useCallback((text: string) => {
@@ -167,9 +170,8 @@ function MessageInputAreaComponent({
                     ? textBeforeCursor.substring(0, slashStart) + textAfterCursor
                     : textBeforeCursor.substring(0, slashStart) + text + textAfterCursor;
                 
-                // Update both local and parent state
-                setLocalInputText(newValue);
-                propSetInputText(newValue);
+                // Update store state
+                useInputBarStore.getState().setInputText(newValue);
                 
                 // Set cursor position after the inserted text (or at slashStart if removed)
                 const newCursorPosition = text === '' ? slashStart : (slashStart + text.length);
@@ -185,7 +187,7 @@ function MessageInputAreaComponent({
         }
         
         setShowSlashDropdown(false);
-    }, [propSetInputText]);
+    }, []);
 
     // Handle cancellation
     const handleSlashDropdownCancel = useCallback(() => {
@@ -231,7 +233,7 @@ function MessageInputAreaComponent({
             <Textarea
                 ref={textareaRef}
                 className="flex-1 w-full p-2 border rounded-xl resize-none focus:outline-none shadow-inner transition-all duration-200 placeholder:text-gray-400 input-ghost"
-                value={localInputText}
+                value={inputText}
                 onChange={handleTextAreaInput}
                 onClick={handleTextAreaClick}
                 onKeyUp={handleTextAreaKeyUp}
@@ -266,9 +268,9 @@ export const MessageInputArea = React.memo(MessageInputAreaComponent,
         // Only re-render when these props change
         return (
             prevProps.isLoading === nextProps.isLoading &&
-            prevProps.disabled === nextProps.disabled &&
-            prevProps.inputText === nextProps.inputText
+            prevProps.disabled === nextProps.disabled
             // We don't compare function props as they should be stable references
+            // inputText is now managed by the store and will trigger re-renders automatically
         );
     }
 );

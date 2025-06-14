@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/unified-modal-dialog';
 import { UserPromptLibrary } from '@/components/UserPrompt/UserPromptLibrary'; // Assuming this holds the content
 import { windowEventService, WindowEvents } from '@/services/windowEvents';
+import { useInputBarStore } from '@/stores/useInputBarStore';
 
 type UserPromptProps = ModalRegistry['userPrompt'];
 
@@ -35,8 +36,8 @@ export function UserPromptModal() {
           onEditorClosed={closeModal}
           onInsertPrompt={(prompt) => {
             if (prompt?.content) {
-              // Use the window event service to set the prompt
-              windowEventService.emit(WindowEvents.SET_PROMPT, { text: prompt.content });
+              // Use the input bar store directly to set the prompt
+              useInputBarStore.getState().setInputText(prompt.content);
               closeModal();
             }
           }}
