@@ -4,11 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeForm } from './ThemeForm';
-import { UnifiedModalDialog, UnifiedModalContent, UnifiedModalHeader } from '@/components/ui/unified-modal-dialog';
 import { Pencil, Trash2, Star, PlusCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { Theme } from '@/types/theme';
 import { useThemeManagement } from '@/hooks/useThemeManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { useModalStore } from '@/stores/useModalStore';
 
 interface ThemeManagementProps {
   themeToEdit?: Theme | null;
@@ -39,21 +39,10 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
     refreshThemes,
     clearError
   } = useThemeManagement();
+  
+  const { openModal, closeModal } = useModalStore();
 
-  // Handle internal/external state for editing
-  const [internalEditingTheme, setInternalEditingTheme] = useState<Theme | null>(null);
-  const [internalEditOpen, setInternalEditOpen] = useState(false);
   const [currentThemeName, setCurrentThemeName] = useState<string>('Default');
-
-  // Use external state if provided, otherwise use internal state
-  const editingTheme = externalThemeToEdit !== undefined ? externalThemeToEdit : internalEditingTheme;
-  const setEditingTheme = externalSetThemeToEdit || setInternalEditingTheme;
-  const editOpen = externalEditOpen !== undefined ? externalEditOpen : internalEditOpen;
-  const setEditOpen = externalSetEditOpen || setInternalEditOpen;
-
-  const [addOpen, setAddOpen] = useState(false);
-  const [themeToDelete, setThemeToDelete] = useState<Theme | null>(null);
-  const [deleteOpen, setDeleteOpen] = useState(false);
   const [error, setLocalError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -82,20 +71,25 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
     };
   }, []);
 
-  // Clear errors when dialogs close
+  // Clear errors on mount
   useEffect(() => {
-    if (!addOpen && !editOpen && !deleteOpen) {
-      setLocalError(null);
-      clearError();
-    }
-  }, [addOpen, editOpen, deleteOpen, clearError]);
+    setLocalError(null);
+    clearError();
+  }, [clearError]);
 
-  const handleAddTheme = async (themeData: Omit<Theme, 'guid'>) => {
+  const handleAddTheme = () => {
+    openModal('themeForm', {
+      mode: 'add',
+      onSubmit: handleAddThemeSubmit,
+    });
+  };
+
+  const handleAddThemeSubmit = async (themeData: Omit<Theme, 'guid'>) => {
     setIsProcessing(true);
     setLocalError(null);
     try {
       await createTheme(themeData);
-      setAddOpen(false);
+      closeModal();
     } catch (err: any) {
       setLocalError(err?.message || 'Failed to add theme');
     } finally {
@@ -103,12 +97,20 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
     }
   };
 
-  const handleUpdateTheme = async (themeData: Theme) => {
+  const handleEditTheme = (theme: Theme) => {
+    openModal('themeForm', {
+      mode: 'edit',
+      theme: theme,
+      onSubmit: handleUpdateThemeSubmit,
+    });
+  };
+
+  const handleUpdateThemeSubmit = async (themeData: Theme) => {
     setIsProcessing(true);
     setLocalError(null);
     try {
       await updateTheme(themeData);
-      setEditOpen(false);
+      closeModal();
     } catch (err: any) {
       setLocalError(err?.message || 'Failed to update theme');
     } finally {
@@ -116,22 +118,24 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
     }
   };
 
-  const handleDeleteThemeConfirm = async () => {
-    if (!themeToDelete) {
-      
-      return;
-    }
+  const handleDeleteTheme = (theme: Theme) => {
+    openModal('confirmation', {
+      title: 'Confirm Deletion',
+      description: `Are you sure you want to delete the theme "${theme.name}"? This action cannot be undone.`,
+      danger: true,
+      onConfirm: async () => {
+        await handleDeleteThemeSubmit(theme.guid);
+      }
+    });
+  };
 
-    
+  const handleDeleteThemeSubmit = async (themeGuid: string) => {
     setIsProcessing(true);
     setLocalError(null);
     try {
-      
-      const result = await deleteTheme(themeToDelete.guid);
-      
-      setDeleteOpen(false);
+      await deleteTheme(themeGuid);
+      closeModal();
     } catch (err: any) {
-      
       setLocalError(err?.message || 'Failed to delete theme');
     } finally {
       setIsProcessing(false);
@@ -210,7 +214,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
           </Button>
           <Button 
-            onClick={() => setAddOpen(true)} 
+            onClick={handleAddTheme} 
             className="flex items-center gap-2"
             style={{
               backgroundColor: 'var(--global-primary-color)',
@@ -234,7 +238,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
               <p style={{ color: 'var(--global-text-color)' }}>No themes configured yet.</p>
               <p className="mb-4" style={{ color: 'var(--global-text-color)' }}>Add your first theme to get started.</p>
               <Button
-                onClick={() => setAddOpen(true)}
+                onClick={handleAddTheme}
                 variant="outline"
                 style={{
                   backgroundColor: 'var(--global-background-color)',
@@ -333,10 +337,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 p-0"
-                          onClick={() => {
-                            setEditingTheme(theme);
-                            setEditOpen(true);
-                          }}
+                          onClick={() => handleEditTheme(theme)}
                           disabled={isProcessing}
                           style={{
                             backgroundColor: 'transparent',
@@ -359,10 +360,7 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6 p-0"
-                          onClick={() => {
-                            setThemeToDelete(theme);
-                            setDeleteOpen(true);
-                          }}
+                          onClick={() => handleDeleteTheme(theme)}
                           disabled={isProcessing}
                           style={{
                             backgroundColor: 'transparent',
@@ -384,85 +382,11 @@ export const ThemeManagement: React.FC<ThemeManagementProps> = ({
         </div>
       )}
 
-      {/* Add Theme Dialog */}
-      <UnifiedModalDialog open={addOpen} onOpenChange={setAddOpen} size="xl" variant="form" style={{ backgroundColor: 'var(--global-background-color)' }}>
-        <UnifiedModalHeader style={{ backgroundColor: 'var(--global-background-color)' }}>
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--global-text-color)' }}>Add New Theme</h2>
-        </UnifiedModalHeader>
-        <UnifiedModalContent style={{ backgroundColor: 'var(--global-background-color)' }}>
-          {displayError && (
-            <div className="p-3 rounded-md mb-4" style={{ backgroundColor: 'var(--global-destructive-color-translucent, rgba(220, 38, 38, 0.1))', color: 'var(--global-destructive-color, var(--global-primary-color))', borderColor: 'var(--global-destructive-color-muted, rgba(220, 38, 38, 0.3))' }}>
-              {displayError}
-            </div>
-          )}
-          <ThemeForm onSubmit={handleAddTheme} isProcessing={isProcessing} />
-        </UnifiedModalContent>
-      </UnifiedModalDialog>
-
-      {/* Edit Theme Dialog */}
-      <UnifiedModalDialog open={editOpen} onOpenChange={setEditOpen} size="xl" variant="form" style={{ backgroundColor: 'var(--global-background-color)' }}>
-        <UnifiedModalHeader style={{ backgroundColor: 'var(--global-background-color)' }}>
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--global-text-color)' }}>Edit Theme</h2>
-        </UnifiedModalHeader>
-        <UnifiedModalContent style={{ backgroundColor: 'var(--global-background-color)' }}>
-          {displayError && (
-            <div className="p-3 rounded-md mb-4" style={{ backgroundColor: 'var(--global-destructive-color-translucent, rgba(220, 38, 38, 0.1))', color: 'var(--global-destructive-color, var(--global-primary-color))', borderColor: 'var(--global-destructive-color-muted, rgba(220, 38, 38, 0.3))' }}>
-              {displayError}
-            </div>
-          )}
-          {editingTheme && (
-            <ThemeForm
-              key={`edit-theme-form-${editingTheme.guid}`}
-              onSubmit={handleUpdateTheme}
-              isProcessing={isProcessing}
-              initialValues={editingTheme}
-            />
-          )}
-        </UnifiedModalContent>
-      </UnifiedModalDialog>
-
-      {/* Delete Theme Dialog */}
-      <UnifiedModalDialog open={deleteOpen} onOpenChange={setDeleteOpen} size="md" variant="confirmation" style={{ backgroundColor: 'var(--global-background-color)' }}>
-        <UnifiedModalHeader style={{ backgroundColor: 'var(--global-background-color)' }}>
-          <h2 className="text-lg font-semibold" style={{ color: 'var(--global-text-color)' }}>Confirm Deletion</h2>
-        </UnifiedModalHeader>
-        <UnifiedModalContent style={{ backgroundColor: 'var(--global-background-color)' }}>
-          <div className="py-4" style={{ color: 'var(--global-text-color)' }}>
-            Are you sure you want to delete the theme <strong>{themeToDelete?.name}</strong>? This action cannot
-            be undone.
-          </div>
-          {displayError && (
-            <div className="p-3 rounded-md mb-4" style={{ backgroundColor: 'var(--global-destructive-color-translucent, rgba(220, 38, 38, 0.1))', color: 'var(--global-destructive-color, var(--global-primary-color))', borderColor: 'var(--global-destructive-color-muted, rgba(220, 38, 38, 0.3))' }}>
-              {displayError}
-            </div>
-          )}
-          <div className="flex justify-end space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteOpen(false)}
-              disabled={isProcessing}
-              style={{
-                backgroundColor: 'var(--global-background-color)',
-                borderColor: 'var(--global-border-color)',
-                color: 'var(--global-text-color)'
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteThemeConfirm}
-              disabled={isProcessing}
-              style={{
-                backgroundColor: 'var(--global-destructive-color, var(--global-primary-color))',
-                color: '#ffffff'
-              }}
-            >
-              {isProcessing ? 'Deleting...' : 'Delete'}
-            </Button>
-          </div>
-        </UnifiedModalContent>
-      </UnifiedModalDialog>
+      {displayError && (
+        <div className="p-3 rounded-md mb-4" style={{ backgroundColor: 'var(--global-destructive-color-translucent, rgba(220, 38, 38, 0.1))', color: 'var(--global-destructive-color, var(--global-primary-color))', borderColor: 'var(--global-destructive-color-muted, rgba(220, 38, 38, 0.3))' }}>
+          {displayError}
+        </div>
+      )}
     </>
   );
 };

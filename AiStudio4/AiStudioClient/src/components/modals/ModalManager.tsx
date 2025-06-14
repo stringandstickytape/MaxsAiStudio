@@ -14,6 +14,9 @@ import { ThemeModal } from './ThemeModal';
 import { ConfirmationModal } from './ConfirmationModal';
 import { FormModal } from './FormModal';
 import { InfoModal } from './InfoModal';
+import { ModelFormModal } from './ModelFormModal';
+import { ProviderFormModal } from './ProviderFormModal';
+import { ThemeFormModal } from './ThemeFormModal';
 
 export function ModalManager() {
   // Each modal component now internally checks the store
@@ -32,6 +35,9 @@ export function ModalManager() {
       <ConfirmationModal />
       <FormModal />
       <InfoModal />
+      <ModelFormModal />
+      <ProviderFormModal />
+      <ThemeFormModal />
       {/* Add other modal components here as they are created */}
     </>
   );

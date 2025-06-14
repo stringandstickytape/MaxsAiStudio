@@ -26,15 +26,22 @@ export interface ModalRegistry {
     cancelLabel?: string;
     danger?: boolean;
   };
-  form: {
-    title: string;
-    description?: string;
+  // Specific modal types for management components
+  modelForm: {
+    mode: 'add' | 'edit';
+    model?: any;
+    providers: any[];
     onSubmit: (data: any) => void;
-    onCancel?: () => void;
-    initialData?: any;
-    submitLabel?: string;
-    cancelLabel?: string;
-    children?: React.ReactNode; // Added to support passing form fields
+  };
+  providerForm: {
+    mode: 'add' | 'edit';
+    provider?: any;
+    onSubmit: (data: any) => void;
+  };
+  themeForm: {
+    mode: 'add' | 'edit';
+    theme?: any;
+    onSubmit: (data: any) => void;
   };
   info: {
     title: string;
