@@ -36,7 +36,7 @@ function mapOpenRouterToModel(openRouterModel: OpenRouterModel, providerGuid: st
   }
 
   return {
-    guid: '', 
+      guid: crypto.randomUUID(), 
     modelName: openRouterModel.id,
     friendlyName: friendlyName,
     userNotes: openRouterModel.description,
