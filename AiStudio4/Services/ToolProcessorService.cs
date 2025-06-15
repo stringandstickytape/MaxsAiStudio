@@ -149,6 +149,8 @@ namespace AiStudio4.Services
 
                         if (nonMcpTool == null)
                         {
+                            resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = new JObject { ["toolName"] = toolResponse.ToolName, ["parameters"] = JToken.Parse(cleanedToolResponseText) }.ToString(Formatting.None), ContentType = ContentType.Tool });
+
                             // Check if it's an MCP tool
                             if (toolResponse.ToolName.Contains("_") && serverDefinitions.Any(x => x.IsEnabled && toolResponse.ToolName.StartsWith(x.Id + "_")))
                             {
@@ -170,6 +172,8 @@ namespace AiStudio4.Services
                                     {
                                         toolResultMessageContent = await ProcessMcpTool(response, toolResponse, toolResultMessageContent, serverDefinition.Id, toolResponse.ToolName, resultContentBlocks, cleanedToolResponseText, taskDescription);
 
+
+
                                         break;
                                     }
 
@@ -186,11 +190,13 @@ namespace AiStudio4.Services
                             // Pass the extraProps to the tool processor
                             var builtinToolResult = await _builtinToolService.ProcessBuiltinToolAsync(toolResponse.ToolName, cleanedToolResponseText, extraProps, clientId);
 
+                            resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = new JObject { ["toolName"] = toolResponse.ToolName, ["parameters"] = JToken.Parse(cleanedToolResponseText) }.ToString(Formatting.None), ContentType = ContentType.Tool });
+
                             if (builtinToolResult.WasProcessed)
                             {
                                 //response.ContentBlocks.Add(new ContentBlock { Content = $"\n\n{toolResponse.ToolName}\n\n" });
 
-                                resultContentBlocks.RequestBlocks.Add(new ContentBlock { Content = new JObject { ["toolName"] = toolResponse.ToolName, ["parameters"] = JToken.Parse(cleanedToolResponseText) }.ToString(Formatting.None), ContentType = ContentType.Tool });
+                                
 
                                 // tool already retrieved above
 
