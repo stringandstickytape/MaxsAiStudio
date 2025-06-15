@@ -161,73 +161,78 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
       data-message-id={message.id}
       ref={messageRef}>
 
-      <div 
-        className={`ConvView message-container px-3 py-2 shadow-md w-full`}
-        style={{
-          background: message.source === 'user' 
-            ? 'var(--global-user-message-background, #1e40af)' 
-            : 'var(--global-ai-message-background, #1f2937)',
-          color: message.source === 'user'
-            ? 'var(--global-user-message-text-color, #ffffff)'
-            : 'var(--global-ai-message-text-color, #ffffff)',
-          borderRadius: 'var(--global-border-radius, 0.5rem)',
-          borderColor: message.source === 'user'
-            ? 'var(--global-user-message-border-color, rgba(55, 65, 81, 0.3))'
-            : 'var(--global-ai-message-border-color, rgba(55, 65, 81, 0.3))',
-          borderWidth: message.source === 'user'
-            ? 'var(--global-user-message-border-width, 0px)'
-            : 'var(--global-ai-message-border-width, 0px)',
-          borderStyle: message.source === 'user'
-            ? 'var(--global-user-message-border-style, solid)'
-            : 'var(--global-ai-message-border-style, solid)',
-          ...(isSearchMatch && {
-            borderLeft: '3px solid var(--global-primary-color, #2563eb)',
-            paddingLeft: '0.5rem',
-            backgroundColor: message.source === 'user' 
-              ? 'rgba(37, 99, 235, 0.2)' // Blue with opacity for user messages
-              : 'rgba(37, 99, 235, 0.1)', // Lighter blue for AI messages
-          }),
-          ...(isHighlighted && {
-            scrollMarginTop: '100px', // Ensures the element is visible when scrolled to
-            boxShadow: '0 0 0 2px var(--convview-accent-color, #2563eb)'
-          }),
-          ...(window?.theme?.ConvView?.style || {})
-        }}>
-        {/* <MessageMetadata message={message} /> Moved to bottom */}
-        {/* Always render content with block editing capabilities */}
-        {renderContent()}
+      {/* Message bubble container */}
+      <div className={`flex w-full ${message.source === 'user' ? 'justify-end' : 'justify-start'}`}>
+        <div 
+          className={`ConvView message-container px-3 py-2 shadow-md inline-block`}
+          style={{
+            background: message.source === 'user' 
+              ? 'var(--global-user-message-background, #1e40af)' 
+              : 'var(--global-ai-message-background, #1f2937)',
+            color: message.source === 'user'
+              ? 'var(--global-user-message-text-color, #ffffff)'
+              : 'var(--global-ai-message-text-color, #ffffff)',
+            borderRadius: 'var(--global-border-radius, 0.5rem)',
+            borderColor: message.source === 'user'
+              ? 'var(--global-user-message-border-color, rgba(55, 65, 81, 0.3))'
+              : 'var(--global-ai-message-border-color, rgba(55, 65, 81, 0.3))',
+            borderWidth: message.source === 'user'
+              ? 'var(--global-user-message-border-width, 0px)'
+              : 'var(--global-ai-message-border-width, 0px)',
+            borderStyle: message.source === 'user'
+              ? 'var(--global-user-message-border-style, solid)'
+              : 'var(--global-ai-message-border-style, solid)',
+            ...(isSearchMatch && {
+              borderLeft: '3px solid var(--global-primary-color, #2563eb)',
+              paddingLeft: '0.5rem',
+              backgroundColor: message.source === 'user' 
+                ? 'rgba(37, 99, 235, 0.2)' // Blue with opacity for user messages
+                : 'rgba(37, 99, 235, 0.1)', // Lighter blue for AI messages
+            }),
+            ...(isHighlighted && {
+              scrollMarginTop: '100px', // Ensures the element is visible when scrolled to
+              boxShadow: '0 0 0 2px var(--convview-accent-color, #2563eb)'
+            }),
+            ...(window?.theme?.ConvView?.style || {})
+          }}>
+          {/* <MessageMetadata message={message} /> Moved to bottom */}
+          {/* Always render content with block editing capabilities */}
+          {renderContent()}
 
-        {!isStreamingTarget && (
-          <MessageActions 
-            message={message}
-            onEdit={() => {
-              // Get current state at click time to avoid stale closure
-              const currentState = useConvStore.getState();
-              const isCurrentlyEditing = currentState.editingMessageId === message.id || currentState.editingBlock?.messageId === message.id;
-              
-              if (isCurrentlyEditing) {
-                cancelEditMessage();
-                cancelEditBlock();
-                setHoveredBlockIndex(null); // Clear hover state when exiting edit mode
-              } else {
-                editMessage(message.id);
-              }
-            }}
-            isInEditMode={isThisMessageInEditMode}
-          />
-        )}
-        
-      </div>
-          <MessageMetadata message={message} />
-      {((message.attachments && message.attachments.length > 0) || (attachmentsById[message.id] && attachmentsById[message.id].length > 0)) && (
-        <div className="ConvView mt-3 pt-3 border-t" style={{
-          borderColor: 'var(--convview-border-color, rgba(55, 65, 81, 0.3))'
-        }}>
-          <MessageAttachments attachments={attachmentsById[message.id] || message.attachments} />
+          {!isStreamingTarget && (
+            <MessageActions 
+              message={message}
+              onEdit={() => {
+                // Get current state at click time to avoid stale closure
+                const currentState = useConvStore.getState();
+                const isCurrentlyEditing = currentState.editingMessageId === message.id || currentState.editingBlock?.messageId === message.id;
+                
+                if (isCurrentlyEditing) {
+                  cancelEditMessage();
+                  cancelEditBlock();
+                  setHoveredBlockIndex(null); // Clear hover state when exiting edit mode
+                } else {
+                  editMessage(message.id);
+                }
+              }}
+              isInEditMode={isThisMessageInEditMode}
+            />
+          )}
         </div>
-      )}
-
-      {/* MessageActions was here, moved inside the message-container div */}
+      </div>
+      
+      {/* Message metadata and attachments below the message */}
+      <div className={`flex flex-col ${message.source === 'user' ? 'items-end' : 'items-start'} mt-1`}>
+        <MessageMetadata message={message} />
+        
+        {((message.attachments && message.attachments.length > 0) || (attachmentsById[message.id] && attachmentsById[message.id].length > 0)) && (
+          <div className="ConvView mt-2 pt-2 border-t" style={{
+            borderColor: 'var(--convview-border-color, rgba(55, 65, 81, 0.3))'
+          }}>
+            <MessageAttachments attachments={attachmentsById[message.id] || message.attachments} />
+          </div>
+        )}
+      </div>
     </div>
   );
 }, arePropsEqual);
