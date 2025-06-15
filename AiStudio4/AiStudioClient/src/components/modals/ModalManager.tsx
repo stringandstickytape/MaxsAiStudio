@@ -17,6 +17,7 @@ import { InfoModal } from './InfoModal';
 import { ModelFormModal } from './ModelFormModal';
 import { ProviderFormModal } from './ProviderFormModal';
 import { ThemeFormModal } from './ThemeFormModal';
+import { OpenRouterModelModal } from './OpenRouterModelModal';
 
 export function ModalManager() {
   // Each modal component now internally checks the store
@@ -38,6 +39,7 @@ export function ModalManager() {
       <ModelFormModal />
       <ProviderFormModal />
       <ThemeFormModal />
+      <OpenRouterModelModal />
       {/* Add other modal components here as they are created */}
     </>
   );

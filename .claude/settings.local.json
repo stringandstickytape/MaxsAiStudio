@@ -8,7 +8,8 @@
       "Bash(find:*)",
       "Bash(rm:*)",
       "Bash(grep:*)",
-      "Bash(pnpm run:*)"
+      "Bash(pnpm run:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": []
   }

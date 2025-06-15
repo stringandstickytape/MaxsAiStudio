@@ -21,6 +21,7 @@ namespace AiStudio4.InjectedDependencies
         {
             if (System.Diagnostics.Debugger.IsAttached)
             {
+
                 await ForwardToDevServer(context);
             }
             else

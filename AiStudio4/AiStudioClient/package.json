@@ -46,6 +46,7 @@
     "@radix-ui/react-toggle-group": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@reduxjs/toolkit": "^2.8.2",
+    "@tanstack/react-table": "^8.21.3",
     "@tanstack/react-virtual": "^3.13.9",
     "@types/mdx": "^2.0.13",
     "@types/styled-components": "^5.1.34",

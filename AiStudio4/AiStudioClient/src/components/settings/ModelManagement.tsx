@@ -3,11 +3,13 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ModelForm } from './ModelForm';
-import { Pencil, Trash2, Star, PlusCircle, AlertCircle } from 'lucide-react';
+import { Pencil, Trash2, Star, PlusCircle, AlertCircle, Download } from 'lucide-react';
 import { Model } from '@/types/settings';
 import { useModelManagement } from '@/hooks/useResourceManagement';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useModalStore } from '@/stores/useModalStore';
+import { useModelStore } from '@/stores/useModelStore';
+import { toast } from '@/hooks/use-toast';
 
 interface ModelManagementProps {
   providers: any[]; 
@@ -29,6 +31,9 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
   
   const { models, isLoading, error: storeError, addModel, updateModel, deleteModel, clearError } = useModelManagement();
   const { openModal, openNestedModal, closeModal } = useModalStore();
+  const openRouterProvider = useModelStore(state => 
+    state.providers.find(p => p.url.startsWith('https://openrouter.ai'))
+  );
 
   // Search query for filtering models
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -58,6 +63,18 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
       providers: providers,
       onSubmit: handleAddModelSubmit,
     });
+  };
+
+  const handleOpenRouterImport = () => {
+    if (!openRouterProvider) {
+      toast({
+        title: "Provider Not Found",
+        description: "Please configure a Service Provider for OpenRouter first.",
+        variant: "destructive",
+      });
+      return;
+    }
+    openModal('openRouterImporter', {});
   };
 
   const handleAddModelSubmit = async (modelData: Omit<Model, 'guid'>) => {
@@ -154,9 +171,14 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
             className="w-full md:w-72 lg:w-80 bg-gray-800 text-gray-100 border-gray-600 placeholder-gray-400"
           />
         </div>
-        <Button onClick={handleAddModel} className="flex items-center gap-2 btn-primary self-start md:self-auto">
-          <PlusCircle className="h-4 w-4" /> Add Model
-        </Button>
+        <div className="flex items-center gap-2 self-start md:self-auto">
+          <Button onClick={handleOpenRouterImport} className="flex items-center gap-2 btn-primary">
+            <Download className="h-4 w-4" /> Add OpenRouter Model
+          </Button>
+          <Button onClick={handleAddModel} className="flex items-center gap-2 btn-primary">
+            <PlusCircle className="h-4 w-4" /> Add Model
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
