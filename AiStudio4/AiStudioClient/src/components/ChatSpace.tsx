@@ -102,11 +102,11 @@ export function ChatSpace() {
         />
       </div>
       
-      <div className="flex-1 overflow-auto min-h-0">
+      <div className="flex-1 overflow-auto min-h-0 w-full max-w-3xl mx-auto" style={{width: '100%'}}>
         {memoizedChatContainer}
       </div>
       
-      <div className="flex-shrink-0 w-full overflow-auto">        <InputBar
+      <div className="flex-shrink-0 w-full max-w-3xl mx-auto overflow-auto">        <InputBar
           onManageTools={openToolLibrary}
           disabled={isCancelling}
         />

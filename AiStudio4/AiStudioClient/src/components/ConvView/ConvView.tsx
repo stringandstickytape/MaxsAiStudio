@@ -130,7 +130,7 @@ export const ConvView = ({
 
     return (
         <StickToBottom 
-            className="ConvView ConvViewMain h-full relative overflow-y-auto"
+            className="ConvView ConvViewMain h-full relative overflow-y-auto w-full"
             ref={scrollContainerRef}
             stickToBottom={isStickingEnabled}
             style={{
@@ -141,10 +141,12 @@ export const ConvView = ({
                 fontSize: 'var(--global-font-size, inherit)',
                 borderRadius: 'var(--global-border-radius, 0)',
                 boxShadow: 'var(--global-box-shadow, none)',
+                width: '100%',
+                minWidth: '100%',
                 ...(window?.theme?.ConvView?.style || {})
             }}
         >
-            <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4">
+            <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4 w-full" style={{width: '100%', minWidth: '100%'}}>
                 {/* ConversationControls removed: always show all messages */}
 
                 {visibleMessages.map((message) => {

@@ -155,16 +155,27 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
     }
   }, [isHighlighted]);
 
+
   return (
     <div
       className="ConvView w-full group flex flex-col relative markdown-pane"
       data-message-id={message.id}
       ref={messageRef}>
 
-      {/* Message bubble container */}
-      <div className={`flex w-full ${message.source === 'user' ? 'justify-end' : 'justify-start'}`}>
+      {/* Message bubble container using CSS Grid to force full width */}
+      <div 
+        className="w-full grid"
+        style={{
+          minWidth: '100%',
+          gridTemplateColumns: message.source === 'user' ? '1fr auto' : 'auto 1fr',
+          width: '100%'
+        }}
+      >
+        
         <div 
-          className={`ConvView message-container px-3 py-2 shadow-md inline-block`}
+          className={`ConvView message-container px-3 py-2 shadow-md inline-block ${
+            message.source === 'user' ? 'justify-self-end' : 'justify-self-start'
+          }`}
           style={{
             background: message.source === 'user' 
               ? 'var(--global-user-message-background, #1e40af)' 
