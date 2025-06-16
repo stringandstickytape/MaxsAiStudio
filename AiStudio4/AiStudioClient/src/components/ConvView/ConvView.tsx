@@ -43,53 +43,6 @@ export const ConvView = ({
         return conv.messages[conv.messages.length - 1];
     }, [activeConvId, convs]);
 
-    // Add scroll event listener to detect manual scrolling
-    useEffect(() => {
-        // Common handler function
-        const handleScrollEvent = (e: Event) => {
-            const target = e.target as HTMLElement;
-            // Check if this is a ConvView-related scroll
-            let isConvViewScroll = false;
-
-            // Check if the target is the ConvView or a child of it
-            if (scrollContainerRef.current && scrollContainerRef.current.contains(target)) {
-                isConvViewScroll = true;
-            }
-
-            // Only process if it's a ConvView scroll
-            if (isConvViewScroll) {
-                // If sticking was enabled, disable it upon manual scroll
-                if (isStickingEnabled) {
-                    setIsStickingEnabled(false);
-                }
-            }
-        };
-
-        // Add event listeners to all possible elements
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.addEventListener('scroll', handleScrollEvent, { capture: true });
-        }
-
-        // this doesn't work because race condition
-        const convViewElement2 = document.querySelector('.ConvViewMain');
-        if (convViewElement2) {
-            convViewElement2.addEventListener('scroll', handleScrollEvent, { capture: true });
-        }
-
-        document.addEventListener('scroll', handleScrollEvent, { capture: true });
-
-        return () => {
-            if (scrollContainerRef.current) {
-                scrollContainerRef.current.removeEventListener('scroll', handleScrollEvent, { capture: true });
-            }
-            if (convViewElement2) {
-                convViewElement2.removeEventListener('scroll', handleScrollEvent, { capture: true });
-            }
-            document.removeEventListener('scroll', handleScrollEvent, { capture: true });
-            window.removeEventListener('scroll', handleScrollEvent, { capture: true });
-        };
-    }, [isStickingEnabled]); // Re-run effect if isStickingEnabled changes
-
     // Calculate message chain based on selected message or latest message
     const messageChain = useMemo(() => {
         if (!activeConvId) return [];
