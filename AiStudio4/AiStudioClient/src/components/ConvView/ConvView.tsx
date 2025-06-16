@@ -1,5 +1,6 @@
 ﻿// AiStudioClient\src\components\ConvView\ConvView.tsx
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import './ConvView.css';
 import { StickToBottom } from 'use-stick-to-bottom';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -24,6 +25,8 @@ export const ConvView = ({
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [isStickingEnabled, setIsStickingEnabled] = useState(true);
+    const [isScrolling, setIsScrolling] = useState(false);
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     
     // Optimize store subscription - only get what we need
     const activeConvId = useConvStore(state => state.activeConvId);
@@ -62,10 +65,36 @@ export const ConvView = ({
     // No need to update visibleCount when conversation changes, always show all messages
 
 
-    // Removed stream:clear event handling - no longer needed with new streaming system
+    // Removed stream:clear event handling - no longer needed with new streaming system    // No need for handleLoadMore, always show all messages
 
-    // No need for handleLoadMore, always show all messages
+    // Handle scroll events for auto-hide scrollbar
+    const handleScroll = useCallback(() => {
+        setIsScrolling(true);
+        
+        // Clear existing timeout
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+        
+        // Set timeout to hide scrollbar after scrolling stops
+        scrollTimeoutRef.current = setTimeout(() => {
+            setIsScrolling(false);
+        }, 1000);
+    }, []);
 
+    // Add scroll event listener
+    useEffect(() => {
+        const scrollContainer = scrollContainerRef.current;
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+            return () => {
+                scrollContainer.removeEventListener('scroll', handleScroll);
+                if (scrollTimeoutRef.current) {
+                    clearTimeout(scrollTimeoutRef.current);
+                }
+            };
+        }
+    }, [handleScroll]);
 
     if (!activeConvId) return null;
     if (!messageChain.length) return null;
@@ -81,12 +110,10 @@ export const ConvView = ({
         );
     }
 
-    return (
-        <StickToBottom 
-            className="ConvView ConvViewMain h-full relative overflow-y-auto w-full"
+    return (        <StickToBottom 
+            className={`ConvView ConvViewMain h-full relative overflow-y-auto w-full ${isScrolling ? 'scrolling' : ''}`}
             ref={scrollContainerRef}
-            stickToBottom={isStickingEnabled}
-            style={{
+            stickToBottom={isStickingEnabled}            style={{
                 backgroundColor: 'var(--global-background-color, transparent)',
                 color: 'var(--global-text-color, #ffffff)',
                 borderColor: 'var(--global-border-color, rgba(55, 65, 81, 0.3))',
