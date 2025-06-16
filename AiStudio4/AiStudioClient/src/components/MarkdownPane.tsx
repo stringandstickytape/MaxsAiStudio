@@ -126,6 +126,8 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         }
     };
 
+    let codeBlockIndex = 0;
+
     const components = useMemo(() => ({
         code({ className, children }: any) {
             const match = /language-(\w+)/.exec(className || '');
@@ -133,15 +135,9 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             const language = match ? match[1] : 'txt';
             const content = String(children).replace(/\n$/, '');
             const diagramRenderer = codeBlockRendererRegistry.get(language);
-            const blockId = `${language}-${content.slice(0, 20)}`;
-            if (showRawContent[blockId] === undefined) {
-                setShowRawContent((prev) => ({ ...prev, [blockId]: false }));
-            }
-            if (isCodeCollapsed[blockId] === undefined) {
-                setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: false }));
-            }
-            const isRawView = showRawContent[blockId];
-            const isCollapsed = isCodeCollapsed[blockId];
+            const blockId = `code-block-${codeBlockIndex++}`;
+            const isRawView = showRawContent[blockId] ?? false;
+            const isCollapsed = isCodeCollapsed[blockId] ?? false;
             const handleToggleRaw = useCallback(() => {
                 setShowRawContent((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
                 setMermaidKey((prev) => prev + 1);
@@ -154,7 +150,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
                     behavior: 'auto'
                 });
                 setTimeout(() => {
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
+                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? false) }));
                     markdownPaneElement.scrollTo({
                         top: Math.max(0, currentScrollPosition + 1),
                         behavior: 'auto'

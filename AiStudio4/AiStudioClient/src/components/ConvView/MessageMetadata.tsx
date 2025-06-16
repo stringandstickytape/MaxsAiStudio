@@ -109,75 +109,78 @@ const formatTimestamp = (timestamp?: number | null) => {
 };
 
 export const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
-  const metadataItems = [];
+    const metadataItems = [];
 
-  // Timestamp
-  if (typeof message.timestamp === 'number' && message.timestamp > 0) {
-    metadataItems.push(
-      <span key="timestamp" title={new Date(message.timestamp).toLocaleString()}>
-        {formatTimestamp(message.timestamp)}
-      </span>
-    );
-  }
+    // Timestamp
+    if (typeof message.timestamp === 'number' && message.timestamp > 0) {
+        metadataItems.push(
+            <span key="timestamp" title={new Date(message.timestamp).toLocaleString()}>
+                {formatTimestamp(message.timestamp)}
+            </span>
+        );
+    }
 
-  // Duration
-  if (typeof message.durationMs === 'number' && message.durationMs > 0) {
-    metadataItems.push(
-      <span key="duration" title={`Response took ${message.durationMs}ms`}>
-        {formatDuration(message)}
-      </span>
-    );
-  }
+    // Duration
+    if (typeof message.durationMs === 'number' && message.durationMs > 0) {
+        metadataItems.push(
+            <span key="duration" title={`Response took ${message.durationMs}ms`}>
+                {formatDuration(message)}
+            </span>
+        );
+    }
 
-  // Token and Cost Info
-  if (message.costInfo) {
-    metadataItems.push(
-      <span key="tokens">
-        Tokens: {message.costInfo.tokenUsage.inputTokens} in / {message.costInfo.tokenUsage.outputTokens} out
-      </span>
-    );
+    // Token and Cost Info
+    if (message.costInfo) {
+        metadataItems.push(
+            <span key="tokens">
+                Tokens: {message.costInfo.tokenUsage.inputTokens} in / {message.costInfo.tokenUsage.outputTokens} out
+            </span>
+        );
+    
 
     if (message.costInfo.tokenUsage.cacheCreationInputTokens > 0 || message.costInfo.tokenUsage.cacheReadInputTokens > 0) {
-      metadataItems.push(
-        <span key="cache">
-          Cache: {message.costInfo.tokenUsage.cacheCreationInputTokens} created,{' '}
-          {message.costInfo.tokenUsage.cacheReadInputTokens} read
-        </span>
-      );
+        metadataItems.push(
+            <span key="cache">
+                Cache: {message.costInfo.tokenUsage.cacheCreationInputTokens} created,{' '}
+                {message.costInfo.tokenUsage.cacheReadInputTokens} read
+            </span>
+        );
     }
 
     metadataItems.push(
-      <span key="cost" className="flex items-center">
-        Cost: ${message.costInfo.totalCost.toFixed(3)} (Cum: ${message.cumulativeCost?.toFixed(3)})
-      </span>
+        <span key="cost" className="flex items-center">
+            Cost: ${message.costInfo.totalCost.toFixed(3)} (Cum: ${message.cumulativeCost?.toFixed(3)})
+        </span>
     );
 
     metadataItems.push(
-      <span key="pricing" className="text-gray-500">
-        (${message.costInfo.inputCostPer1M.toFixed(2)}/${message.costInfo.outputCostPer1M.toFixed(2)})
-      </span>
+        <span key="pricing" className="text-gray-500">
+            (${message.costInfo.inputCostPer1M.toFixed(2)}/${message.costInfo.outputCostPer1M.toFixed(2)})
+        </span>
     );
 
     if ((message.source === 'ai' || message.source === 'assistant') && typeof message.temperature === 'number') {
-      metadataItems.push(
-        <span key="temp" title={`AI response generated with temperature: ${message.temperature.toFixed(1)}`}>
-          Temp: {message.temperature.toFixed(1)}
-        </span>
-      );
+        metadataItems.push(
+            <span key="temp" title={`AI response generated with temperature: ${message.temperature.toFixed(1)}`}>
+                Temp: {message.temperature.toFixed(1)}
+            </span>
+        );
     }
 
     if (message.costInfo.modelGuid) {
-      metadataItems.push(
-        <span key="model">
-          {formatModelDisplay(message.costInfo.modelGuid)}
-        </span>
-      );
+        metadataItems.push(
+            <span key="model">
+                {formatModelDisplay(message.costInfo.modelGuid)}
+            </span>
+        );
     }
-  }
+}
 
-  if (metadataItems.length === 0 && !message.id) {
-    return null;
-  }
+
+    if (metadataItems.length === 0 && !message.id) {
+        return null;
+    }
+
 
   return (
     <div className="ConvView flex flex-row flex-nowrap items-center text-[0.75rem] whitespace-nowrap overflow-x-hidden pb-1">

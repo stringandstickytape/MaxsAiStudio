@@ -1,0 +1,49 @@
+﻿/* AiStudioClient/src/components/ConvView/ConvView.css */
+
+/* Custom scrollbar styles for ConvView */
+.ConvView.ConvViewMain {
+  /* Firefox scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+.ConvView.ConvViewMain:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+}
+
+/* Webkit scrollbar styling for Chrome, Safari, Edge */
+.ConvView.ConvViewMain::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ConvView.ConvViewMain::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ConvView.ConvViewMain::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, opacity 0.3s ease;
+}
+
+.ConvView.ConvViewMain:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.ConvView.ConvViewMain::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.ConvView.ConvViewMain::-webkit-scrollbar-thumb:active {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+/* Show scrollbar during scroll events */
+.ConvView.ConvViewMain.scrolling::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.ConvView.ConvViewMain.scrolling {
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+}
