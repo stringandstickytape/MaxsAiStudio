@@ -138,7 +138,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
                 setShowRawContent((prev) => ({ ...prev, [blockId]: false }));
             }
             if (isCodeCollapsed[blockId] === undefined) {
-                setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: true }));
+                setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: false }));
             }
             const isRawView = showRawContent[blockId];
             const isCollapsed = isCodeCollapsed[blockId];
@@ -179,7 +179,11 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             );
         },
         hr: () => <hr className="my-2"/>,
-        pre: ({ children }: any) => <pre className="leading-snug whitespace-pre-wrap break-words">{children}</pre>,
+        pre: ({ children }: any) => <pre className="leading-snug whitespace-pre-wrap break-words" style={{
+            backgroundColor: 'var(--global-background-color, #000000))',
+            color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
+            lineBreak: 'anywhere'
+        }}>{children}</pre>,
         p: ({ children }: any) => <p className="leading-snug mb-1 whitespace-pre-wrap break-words">{children}</p>,
         h1: ({ children }: any) => <h1 className="mb-1 leading-relaxed text-3xl font-bold my-6">{children}</h1>,
         h2: ({ children }: any) => <h2 className="mb-1 leading-normal text-2xl font-bold my-5">{children}</h2>,
@@ -205,7 +209,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     return (
         <div className={cn(
             "text-sm",
-            variant === 'system' && "border-l-4 border-destructive p-2 bg-destructive/10 rounded prose-headings:text-destructive-foreground prose-p:text-destructive-foreground/90 prose-li:text-destructive-foreground/90 prose-a:text-red-400 prose-a:hover:text-red-300 prose-strong:text-destructive-foreground prose-blockquote:border-destructive/50 prose-blockquote:text-destructive-foreground/80"
+            variant === 'system' && "border-l-4 border-destructive p-2 bg-destructive/10 rounded prose-headings:text-destructive-foreground prose-p:text-destructive-foreground/90 prose-li:text-destructive-foreground/90 prose-a:text-red-400 prose-a:hover:text-red-300 prose-strong:text-destructive-foreground prose-blockquote:border-destructive/50 prose-blockquote:text-destructive-foreground/80",
         )}>
             <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
                 {markdownContent}
