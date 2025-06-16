@@ -26,16 +26,16 @@ interface ActionButtonsProps {
 
 // Custom comparison function for ActionButtons memoization
 const areActionButtonsPropsEqual = (prevProps: ActionButtonsProps, nextProps: ActionButtonsProps) => {
-  // Compare all props that affect rendering
-  return (
-    prevProps.isLoading === nextProps.isLoading &&
-    prevProps.isCancelling === nextProps.isCancelling &&
-    prevProps.disabled === nextProps.disabled &&
-    prevProps.isListening === nextProps.isListening &&
-    prevProps.messageSent === nextProps.messageSent &&
-    prevProps.inputText === nextProps.inputText
-    // Note: We don't compare function props as they should be stable references
-  );
+    // Compare all props that affect rendering
+    return (
+        prevProps.isLoading === nextProps.isLoading &&
+        prevProps.isCancelling === nextProps.isCancelling &&
+        prevProps.disabled === nextProps.disabled &&
+        prevProps.isListening === nextProps.isListening &&
+        prevProps.messageSent === nextProps.messageSent &&
+        prevProps.inputText === nextProps.inputText
+        // Note: We don't compare function props as they should be stable references
+    );
 };
 
 export const ActionButtons = React.memo(({
@@ -53,14 +53,14 @@ export const ActionButtons = React.memo(({
     onToggleListening, // Added
 }: ActionButtonsProps) => {
     const isConnected = useWebSocketStore(state => state.isConnected);
-    
+
     const handleInterjection = () => {
         if (inputText.trim()) {
             webSocketService.sendInterjection(inputText);
             setInputText('');
         }
     };
-    
+
     return (
         <div className="flex flex-row gap-2 items-center self-center">
             <FileAttachment
@@ -80,7 +80,7 @@ export const ActionButtons = React.memo(({
                 className="h-6"
                 variant="outline"
                 size="icon"
-                onClick={() => useModalStore.getState().openModal('userPrompt')}
+                onClick={() => useModalStore.getState().openModal('userPrompt', {})}
                 aria-label="User prompts"
                 disabled={isLoading || disabled}
                 style={{
@@ -136,7 +136,7 @@ export const ActionButtons = React.memo(({
                     <Send className="h-5 w-5" />
                 </Button>
             )}
-            
+
             {/* Cancel Button - Only visible when loading and not cancelling */}
             {isLoading && !isCancelling && (
                 <Button
@@ -157,7 +157,7 @@ export const ActionButtons = React.memo(({
                     <X className="h-5 w-5" />
                 </Button>
             )}
-            
+
             {/* Interject Button - Only visible when loading, not cancelling, and there's text */}
             {isLoading && !isCancelling && messageSent && (
                 <Button
