@@ -104,8 +104,8 @@ const formatTimestamp = (timestamp?: number | null) => {
   if (!timestamp) return null;
   
   const date = new Date(timestamp);
-  return date.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' + 
-         date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })  + ' ' + 
+        date.toLocaleDateString([], { month: 'short', day: 'numeric' });
 };
 
 export const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
@@ -133,7 +133,7 @@ export const MessageMetadata = React.memo(({ message }: MessageMetadataProps) =>
     if (message.costInfo) {
         metadataItems.push(
             <span key="tokens">
-                Tokens: {message.costInfo.tokenUsage.inputTokens} in / {message.costInfo.tokenUsage.outputTokens} out
+                {message.costInfo.tokenUsage.inputTokens} ⬆️ {message.costInfo.tokenUsage.outputTokens} ⬇️
             </span>
         );
     
@@ -141,7 +141,7 @@ export const MessageMetadata = React.memo(({ message }: MessageMetadataProps) =>
     if (message.costInfo.tokenUsage.cacheCreationInputTokens > 0 || message.costInfo.tokenUsage.cacheReadInputTokens > 0) {
         metadataItems.push(
             <span key="cache">
-                Cache: {message.costInfo.tokenUsage.cacheCreationInputTokens} created,{' '}
+                Cache {message.costInfo.tokenUsage.cacheCreationInputTokens} new,{' '}
                 {message.costInfo.tokenUsage.cacheReadInputTokens} read
             </span>
         );
@@ -149,23 +149,9 @@ export const MessageMetadata = React.memo(({ message }: MessageMetadataProps) =>
 
     metadataItems.push(
         <span key="cost" className="flex items-center">
-            Cost: ${message.costInfo.totalCost.toFixed(3)} (Cum: ${message.cumulativeCost?.toFixed(3)})
+            ${message.costInfo.totalCost.toFixed(2)}  Σ${message.cumulativeCost?.toFixed(2)}
         </span>
     );
-
-    metadataItems.push(
-        <span key="pricing" className="text-gray-500">
-            (${message.costInfo.inputCostPer1M.toFixed(2)}/${message.costInfo.outputCostPer1M.toFixed(2)})
-        </span>
-    );
-
-    if ((message.source === 'ai' || message.source === 'assistant') && typeof message.temperature === 'number') {
-        metadataItems.push(
-            <span key="temp" title={`AI response generated with temperature: ${message.temperature.toFixed(1)}`}>
-                Temp: {message.temperature.toFixed(1)}
-            </span>
-        );
-    }
 
     if (message.costInfo.modelGuid) {
         metadataItems.push(
@@ -174,6 +160,10 @@ export const MessageMetadata = React.memo(({ message }: MessageMetadataProps) =>
             </span>
         );
     }
+
+    
+
+
 }
 
 

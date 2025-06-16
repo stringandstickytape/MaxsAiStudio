@@ -66,7 +66,7 @@ export function getModelFriendlyName(modelGuid?: string): string {
 
 export function formatModelDisplay(modelGuid?: string): string {
   if (!modelGuid) return '';
-  return `Model: ${getModelFriendlyName(modelGuid)}`;
+  return `${getModelFriendlyName(modelGuid)}`;
 }
 
 
