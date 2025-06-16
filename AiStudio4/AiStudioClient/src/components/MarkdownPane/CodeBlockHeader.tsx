@@ -63,7 +63,10 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
         // --- APPLY CONDITIONAL CLASSES ---
         <div
             className={headerClasses}
-            style={variant === 'system' ? {} : {
+            style={variant === 'system' ? {
+                fontFamily: 'var(--global-font-family, sans-serif)', // Add this line
+            } : {
+                fontFamily: 'var(--global-font-family, sans-serif)', // Add this line
                 background: 'transparent',
                 color: 'var(--global-text-color, var(--markdownpane-codeheader-text, #bfc7d5))',
                 borderColor: 'var(--global-border-color, var(--markdownpane-codeheader-border, #283040))',

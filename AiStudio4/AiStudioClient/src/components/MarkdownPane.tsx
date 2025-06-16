@@ -180,8 +180,9 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         },
         hr: () => <hr className="my-2"/>,
         pre: ({ children }: any) => <pre className="leading-snug whitespace-pre-wrap break-words" style={{
-            backgroundColor: 'var(--global-background-color, #000000))',
+            backgroundColor: 'var(--global-background-color, #000000)',
             color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
+            borderRadius: 'var(--global-border-radius, inherit)',
             lineBreak: 'anywhere'
         }}>{children}</pre>,
         p: ({ children }: any) => <p className="leading-snug mb-1 whitespace-pre-wrap break-words">{children}</p>,

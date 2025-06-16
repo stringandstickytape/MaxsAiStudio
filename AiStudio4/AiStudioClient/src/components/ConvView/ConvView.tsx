@@ -146,7 +146,7 @@ export const ConvView = ({
                 ...(window?.theme?.ConvView?.style || {})
             }}
         >
-            <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4 w-full" style={{width: '100%', minWidth: '100%'}}>
+            <StickToBottom.Content className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
                 {/* ConversationControls removed: always show all messages */}
 
                 {visibleMessages.map((message) => {
