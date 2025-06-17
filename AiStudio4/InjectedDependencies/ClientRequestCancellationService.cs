@@ -47,7 +47,6 @@ namespace AiStudio4.InjectedDependencies
                     {
                         tokenSources.Remove(sourceToRemove);
                         sourceToRemove.Dispose();
-                        _logger.LogDebug("Removed token source for client {ClientId}", clientId);
                     }
 
                     if (tokenSources.Count == 0)

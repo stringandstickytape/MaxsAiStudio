@@ -136,7 +136,6 @@ namespace AiStudio4.Services
                                 // Update the response text to be used by the tool handlers
                                 cleanedToolResponseText = toolCallArgs.ToString(Formatting.None);
                                 
-                                _logger.LogInformation("Extracted task description for tool '{ToolName}': {Description}", toolResponse.ToolName, taskDescription);
                             }
                         }
                         catch (JsonException)

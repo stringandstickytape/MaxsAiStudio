@@ -10,7 +10,8 @@
       "Bash(grep:*)",
       "Bash(pnpm run:*)",
       "Bash(pnpm add:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "WebFetch(domain:docs.anthropic.com)"
     ],
     "deny": []
   }

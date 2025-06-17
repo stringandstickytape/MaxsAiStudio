@@ -9,6 +9,7 @@ using AiStudio4.AiServices;
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
 
+using System.Linq;
 using System.Text.Json;
 
 
@@ -55,7 +56,6 @@ namespace AiStudio4.Services
             var startTime = DateTime.UtcNow;
             try
             {
-                _logger.LogInformation("Processing simple chat request");
                 
                 
                 var secondaryModelName = _generalSettingsService.CurrentSettings.SecondaryModel;
@@ -322,16 +322,46 @@ namespace AiStudio4.Services
                 var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
                 var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
                 
-                // Update or create final message with response content and cost info
-                // Note: The message may have already been created by callbacks during tool loop
-                var finalMessage = request.BranchedConv.AddOrUpdateMessage(
-                    role: v4BranchedConvMessageRole.Assistant,
-                    newMessageId: assistantMessageId,
-                    contentBlocks: response.ContentBlocks,
-                    parentMessageId: requestOptions.ParentMessageId ?? request.MessageId, // Use updated parent if interjections occurred
-                    attachments: response.Attachments,
-                    costInfo: costInfo
-                );
+                // Handle final message - use the CURRENT assistant message ID from the loop
+                // The assistantMessageId may have been updated during the tool loop
+                var finalAssistantMessageId = requestOptions.AssistantMessageId ?? assistantMessageId;
+                var existingMessage = request.BranchedConv.Messages.FirstOrDefault(m => m.Id == finalAssistantMessageId);
+                
+                _logger.LogInformation("🏁 DEFAULTCHATSERVICE: Final message processing - OriginalId: {OriginalId}, FinalId: {FinalId}, ExistingMessage: {Exists}, FinalParent: {FinalParent}", 
+                    assistantMessageId, finalAssistantMessageId, existingMessage != null, requestOptions.ParentMessageId);
+                
+                v4BranchedConvMessage finalMessage;
+                
+                if (existingMessage != null)
+                {
+                    // Assistant message already exists - append final response content
+                    var combinedContentBlocks = new List<ContentBlock>(existingMessage.ContentBlocks);
+                    if (response.ContentBlocks != null)
+                    {
+                        combinedContentBlocks.AddRange(response.ContentBlocks);
+                    }
+                    
+                    finalMessage = request.BranchedConv.AddOrUpdateMessage(
+                        role: v4BranchedConvMessageRole.Assistant,
+                        newMessageId: finalAssistantMessageId,
+                        contentBlocks: combinedContentBlocks,
+                        parentMessageId: existingMessage.ParentId, // Keep original parent
+                        attachments: (existingMessage.Attachments ?? new List<Attachment>()).Concat(response.Attachments ?? new List<Attachment>()).ToList(),
+                        costInfo: costInfo
+                    );
+                }
+                else
+                {
+                    // No existing message - create new one (fallback case)
+                    finalMessage = request.BranchedConv.AddOrUpdateMessage(
+                        role: v4BranchedConvMessageRole.Assistant,
+                        newMessageId: finalAssistantMessageId,
+                        contentBlocks: response.ContentBlocks,
+                        parentMessageId: requestOptions.ParentMessageId ?? request.MessageId,
+                        attachments: response.Attachments,
+                        costInfo: costInfo
+                    );
+                }
 
                 finalMessage.Temperature = requestOptions.ApiSettings.Temperature;
 
@@ -340,12 +370,12 @@ namespace AiStudio4.Services
                 await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                 {
                     ConvId = request.BranchedConv.ConvId,
-                    MessageId = assistantMessageId,
-                    ContentBlocks = response.ContentBlocks,
+                    MessageId = finalAssistantMessageId,
+                    ContentBlocks = finalMessage.ContentBlocks, // Use the complete content blocks
                     ParentId = finalMessage.ParentId,
                     Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                     Source = "assistant",
-                    Attachments = response.Attachments,
+                    Attachments = finalMessage.Attachments,
                     DurationMs = 0,
                     CostInfo = costInfo,
                     CumulativeCost = finalMessage.CumulativeCost,
@@ -354,6 +384,9 @@ namespace AiStudio4.Services
                 });
 
                 _logger.LogInformation("Successfully processed chat request using provider-managed tool loop.");
+
+                // DEBUG: Dump final conversation structure
+                DumpConversationStructure(request.BranchedConv);
 
                 return new ChatResponse
                 {
@@ -431,6 +464,48 @@ namespace AiStudio4.Services
             }
 
             return systemPromptContent;
+        }
+
+        private void DumpConversationStructure(v4BranchedConv conversation)
+        {
+            System.Diagnostics.Debug.WriteLine("📊 ===== FINAL CONVERSATION STRUCTURE =====");
+            System.Diagnostics.Debug.WriteLine($"📊 Conversation ID: {conversation.ConvId}");
+            System.Diagnostics.Debug.WriteLine($"📊 Total Messages: {conversation.Messages.Count}");
+            System.Diagnostics.Debug.WriteLine("📊");
+
+            // Sort messages by creation order (or try to build tree)
+            var rootMessages = conversation.Messages.Where(m => string.IsNullOrEmpty(m.ParentId) || m.Role == v4BranchedConvMessageRole.System).ToList();
+            
+            foreach (var root in rootMessages)
+            {
+                DumpMessageAndChildren(conversation, root, 0);
+            }
+
+            System.Diagnostics.Debug.WriteLine("📊 ===== END CONVERSATION STRUCTURE =====");
+        }
+
+        private void DumpMessageAndChildren(v4BranchedConv conversation, v4BranchedConvMessage message, int depth)
+        {
+            var indent = new string(' ', depth * 2);
+            var roleIcon = message.Role switch
+            {
+                v4BranchedConvMessageRole.User => "👤",
+                v4BranchedConvMessageRole.Assistant => "🤖",
+                v4BranchedConvMessageRole.System => "⚙️",
+                _ => "❓"
+            };
+
+            var contentPreview = message.ContentBlocks?.FirstOrDefault()?.Content?.Substring(0, Math.Min(50, message.ContentBlocks.FirstOrDefault()?.Content?.Length ?? 0)) ?? "";
+            if (contentPreview.Length == 50) contentPreview += "...";
+
+            System.Diagnostics.Debug.WriteLine($"📊 {indent}{roleIcon} {message.Role} | ID: {message.Id} | Parent: {message.ParentId ?? "null"} | Blocks: {message.ContentBlocks?.Count ?? 0} | \"{contentPreview}\"");
+
+            // Find and dump children
+            var children = conversation.Messages.Where(m => m.ParentId == message.Id).ToList();
+            foreach (var child in children)
+            {
+                DumpMessageAndChildren(conversation, child, depth + 1);
+            }
         }
     }
 

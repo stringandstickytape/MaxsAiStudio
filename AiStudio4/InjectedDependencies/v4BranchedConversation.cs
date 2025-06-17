@@ -80,6 +80,14 @@ namespace AiStudio4.InjectedDependencies
 
                 msg.ParentId = parentMessageId;
                 msg.Role = role;
+                
+                // DEBUG: Log message creation
+                Console.WriteLine($"🆕 CREATED MESSAGE - Conv: {ConvId}, Role: {role}, MessageId: {newMessageId}, ParentId: {parentMessageId}");
+            }
+            else
+            {
+                // DEBUG: Log message update
+                Console.WriteLine($"🔄 UPDATED MESSAGE - Conv: {ConvId}, Role: {role}, MessageId: {newMessageId}, ParentId: {parentMessageId}");
             }
 
             // 3. (Re-)populate / overwrite the fields

@@ -297,6 +297,8 @@ namespace AiStudio4.AiServices
                 // Notify about assistant message with tool calls
                 if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
                 {
+                    Debug.WriteLine($"🤖 CLAUDE: Creating ASSISTANT message - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}, ContentBlocks: {contentBlocks.Count}");
+                    
                     var message = options.BranchedConversation.AddOrUpdateMessage(
                         v4BranchedConvMessageRole.Assistant,
                         options.AssistantMessageId,
@@ -461,15 +463,23 @@ namespace AiStudio4.AiServices
                         
                         // Create a user message with tool results
                         var toolResultMessageId = Guid.NewGuid().ToString();
-                        options.BranchedConversation.AddOrUpdateMessage(
+                        Debug.WriteLine($"👤 CLAUDE: Creating USER message (tool results) - MessageId: {toolResultMessageId}, ParentId: {options.AssistantMessageId}, ToolResults: {toolResultBlocks.Count}");
+                        
+                        var toolResultMessage = options.BranchedConversation.AddOrUpdateMessage(
                             v4BranchedConvMessageRole.User,
                             toolResultMessageId,
                             toolResultBlocks,
                             options.AssistantMessageId); // Parent is the assistant message that made the tool calls
+
+                        // Notify client about the tool result message via callback
+                        if (options.OnAssistantMessageCreated != null)
+                        {
+                            await options.OnAssistantMessageCreated(toolResultMessage);
+                        }
                         
-                        // Update parent for next iteration
+                        // Store the tool result message ID to update parent for next iteration
+                        // We'll update these at the end of the loop iteration
                         options.ParentMessageId = toolResultMessageId;
-                        options.AssistantMessageId = Guid.NewGuid().ToString(); // New ID for next assistant response
                     }
                 }
 
@@ -478,6 +488,13 @@ namespace AiStudio4.AiServices
                 {
                     // Continue the loop to let the AI respond to the interjection or tool stop
                     continue;
+                }
+                
+                // 9. Prepare for next iteration - generate new assistant message ID
+                // Each iteration should create a new AI message for proper conversation flow
+                if (options.BranchedConversation != null)
+                {
+                    options.AssistantMessageId = Guid.NewGuid().ToString();
                 }
             }
 
@@ -846,7 +863,7 @@ namespace AiStudio4.AiServices
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"Error parsing JSON: {ex.Message}");
+                Debug.WriteLine($"Error parsing JSON: {ex.Message}");
             }
         }
 

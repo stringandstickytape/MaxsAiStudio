@@ -75,7 +75,6 @@ public class ToolExecutor : IToolExecutor
                 // Update the parameters to be used by the tool handlers
                 cleanedToolParameters = toolCallArgs.ToString(Formatting.None);
                 
-                _logger.LogInformation("Extracted task description for tool '{ToolName}': {Description}", toolName, taskDescription);
             }
         }
         catch (JsonException)
