@@ -65,12 +65,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         setIsVisualStudio(isVS);
     }, []);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            codeBlockRendererRegistry.renderAll();
-        }, 50);
-        return () => clearTimeout(timer);
-    }, [markdownContent, mermaidKey]);
+    // Removed renderAll call since React components handle their own rendering
 
     // Add CSS to handle li > p display
     useEffect(() => {
@@ -143,19 +138,31 @@ export const MarkdownPane = React.memo(function MarkdownPane({
                 setMermaidKey((prev) => prev + 1);
             }, [blockId]);
             const handleToggleCollapse = useCallback(() => {
-                const markdownPaneElement = document.querySelector('.markdown-pane')?.parentElement?.parentElement || document.documentElement;
-                const currentScrollPosition = markdownPaneElement.scrollTop;
-                markdownPaneElement.scrollTo({
-                    top: Math.max(0, currentScrollPosition - 1),
-                    behavior: 'auto'
-                });
-                setTimeout(() => {
+                // Find the scrollable container - try multiple selectors
+                let scrollContainer = document.querySelector('.markdown-pane')?.parentElement?.parentElement;
+                
+                // If that doesn't work, try finding a container with scroll
+                if (!scrollContainer || scrollContainer === document.documentElement) {
+                    const containers = [
+                        document.querySelector('[data-testid="chat-container"]'),
+                        document.querySelector('.chat-container'),
+                        document.querySelector('.overflow-auto'),
+                        document.querySelector('.scroll-container')
+                    ].filter(Boolean);
+                    
+                    scrollContainer = containers.find(container => 
+                        container && container.scrollHeight > container.clientHeight
+                    ) || null;
+                }
+                
+                // Only proceed if we found a valid scroll container (not document.documentElement)
+                if (scrollContainer && scrollContainer !== document.documentElement) {
+                    const currentScrollPosition = scrollContainer.scrollTop;
                     setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? false) }));
-                    markdownPaneElement.scrollTo({
-                        top: Math.max(0, currentScrollPosition + 1),
-                        behavior: 'auto'
-                    });
-                }, 10);
+                } else {
+                    // Just toggle without scroll manipulation if we can't find proper container
+                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? false) }));
+                }
             }, [blockId]);
             return (
                 <CodeBlock
@@ -170,7 +177,8 @@ export const MarkdownPane = React.memo(function MarkdownPane({
                     onToggleRaw={handleToggleRaw}
                     onToggleCollapse={handleToggleCollapse}
                     launchHtml={launchHtml}
-                    variant={variant} // <-- PASS VARIANT DOWN
+                    variant={variant}
+                    fullMarkdown={markdownContent}
                 />
             );
         },

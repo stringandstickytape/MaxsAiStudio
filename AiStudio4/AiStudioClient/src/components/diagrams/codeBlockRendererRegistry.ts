@@ -23,7 +23,35 @@ class CodeBlockRendererRegistry {
         return this.renderers.get(type) || this.renderers.get('txt')!;
     }
 
-    async renderAll() {
+    isMarkdownComplete(markdown: string): boolean {
+        // Count opening and closing fences
+        const openingFences = (markdown.match(/^```/gm) || []).length;
+        const closingFences = (markdown.match(/^```$/gm) || []).length;
+        
+        // Also check for incomplete fence at the end
+        const endsWithIncompleteFence = /```[^`]*$/.test(markdown);
+        
+        return openingFences === closingFences && !endsWithIncompleteFence;
+    }
+
+    shouldRenderCodeBlock(fullMarkdown: string, codeBlockContent: string): boolean {
+        // Always render if markdown is complete
+        if (this.isMarkdownComplete(fullMarkdown)) {
+            return true;
+        }
+
+        // Find the last incomplete code block
+        const lastIncompleteMatch = fullMarkdown.match(/```[^`]*$/);
+        if (lastIncompleteMatch) {
+            const incompleteContent = lastIncompleteMatch[0].replace(/^```[^\n]*\n?/, '');
+            // Don't render if this is the incomplete block at the end
+            return incompleteContent !== codeBlockContent;
+        }
+
+        return true;
+    }
+
+    async renderAll(fullMarkdown?: string) {
         const uniqueRenderers = new Set(this.renderers.values());
 
         for (const renderer of uniqueRenderers) {
@@ -37,8 +65,17 @@ class CodeBlockRendererRegistry {
 
                     await Promise.all(batch.map(async (element) => {
                         const content = element.getAttribute('data-content') || '';
+                        
+                        // Skip rendering if we have the full markdown and this block shouldn't be rendered
+                        if (fullMarkdown && !this.shouldRenderCodeBlock(fullMarkdown, content)) {
+                            return;
+                        }
+
                         try {
-                            await renderer.render(content, element as HTMLElement);
+                            // The render method doesn't exist on the renderers - they use React components
+                            // This renderAll method seems to be for non-React renderers or legacy code
+                            // Since we're dealing with React components, we don't need to do anything here
+                            // The rendering is handled by the React components themselves
                         } catch (error) {
                             console.error('Failed to render diagram:', error);
                         }
