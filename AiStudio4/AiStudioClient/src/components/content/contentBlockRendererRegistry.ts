@@ -20,6 +20,7 @@ class ContentBlockRendererRegistry {
     this.register('system', SystemContentRenderer);
     this.register('aihidden', AiHiddenContentRenderer);
     this.register('tool', ToolContentRenderer);
+    this.register('toolresponse', ToolContentRenderer); // Reuse for now, can create specific renderer later
   }
 
   register(type: string, component: ContentBlockRendererComponent) {
@@ -39,6 +40,7 @@ const ContentType = {
   1: 'system',
   2: 'aihidden',
   3: 'tool',
+  4: 'toolresponse',
 } as const;
 
 export const contentBlockRendererRegistry = new ContentBlockRendererRegistry();

@@ -236,7 +236,81 @@ namespace AiStudio4.Services
                         MessageId = assistantMessageId, 
                         MessageType = "endstream", 
                         Content = "" 
-                    })
+                    }),
+                    // New properties for branched conversation updates
+                    BranchedConversation = request.BranchedConv,
+                    ParentMessageId = request.MessageId,
+                    AssistantMessageId = assistantMessageId,
+                    ClientId = request.ClientId,
+                    
+                    // Callbacks for conversation updates during tool loop
+                    OnAssistantMessageCreated = async (message) =>
+                    {
+                        // Message is already added to branched conversation by the callback
+                        // Just notify the client
+                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                        {
+                            ConvId = request.BranchedConv.ConvId,
+                            MessageId = message.Id,
+                            ContentBlocks = message.ContentBlocks,
+                            ParentId = message.ParentId,
+                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                            Source = "assistant",
+                            Attachments = message.Attachments,
+                            DurationMs = 0,
+                            TokenUsage = null, // Will be updated later with final usage
+                            Temperature = message.Temperature
+                        });
+                    },
+                    
+                    OnToolCallsGenerated = async (messageId, contentBlocks, toolCalls) =>
+                    {
+                        // Notify client about tool calls
+                        await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
+                        {
+                            MessageId = messageId,
+                            MessageType = "toolcalls",
+                            Content = JsonConvert.SerializeObject(toolCalls.Select(t => new { name = t.ToolName, status = "pending" }))
+                        });
+                    },
+                    
+                    OnToolExecuted = async (messageId, toolName, result) =>
+                    {
+                        // Notify client about tool execution result
+                        await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
+                        {
+                            MessageId = messageId,
+                            MessageType = "toolresult",
+                            Content = JsonConvert.SerializeObject(new 
+                            { 
+                                toolName = toolName,
+                                success = result.WasProcessed,
+                                result = result.ResultMessage
+                            })
+                        });
+                    },
+                    
+                    OnUserInterjection = async (interjectionId, content) =>
+                    {
+                        // Add interjection to branched conversation
+                        var interjectionMessage = request.BranchedConv.AddOrUpdateMessage(
+                            v4BranchedConvMessageRole.User,
+                            interjectionId,
+                            content,
+                            assistantMessageId); // Parent is the current assistant message
+                        
+                        // Notify client
+                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                        {
+                            ConvId = request.BranchedConv.ConvId,
+                            MessageId = interjectionId,
+                            ContentBlocks = interjectionMessage.ContentBlocks,
+                            ParentId = assistantMessageId,
+                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                            Source = "user",
+                            DurationMs = 0
+                        });
+                    }
                 };
 
                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
@@ -248,12 +322,13 @@ namespace AiStudio4.Services
                 var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
                 var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
                 
-                // Create final message with response content
+                // Update or create final message with response content and cost info
+                // Note: The message may have already been created by callbacks during tool loop
                 var finalMessage = request.BranchedConv.AddOrUpdateMessage(
                     role: v4BranchedConvMessageRole.Assistant,
                     newMessageId: assistantMessageId,
                     contentBlocks: response.ContentBlocks,
-                    parentMessageId: request.MessageId,
+                    parentMessageId: requestOptions.ParentMessageId ?? request.MessageId, // Use updated parent if interjections occurred
                     attachments: response.Attachments,
                     costInfo: costInfo
                 );
@@ -261,13 +336,13 @@ namespace AiStudio4.Services
                 finalMessage.Temperature = requestOptions.ApiSettings.Temperature;
 
                 
-                // Notify client of final response
+                // Always send final update with complete cost information
                 await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                 {
                     ConvId = request.BranchedConv.ConvId,
                     MessageId = assistantMessageId,
                     ContentBlocks = response.ContentBlocks,
-                    ParentId = request.MessageId,
+                    ParentId = finalMessage.ParentId,
                     Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                     Source = "assistant",
                     Attachments = response.Attachments,

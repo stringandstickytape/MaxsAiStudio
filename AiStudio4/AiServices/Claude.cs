@@ -2,6 +2,7 @@ using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 
 
 using SharedClasses.Providers;
@@ -270,6 +271,51 @@ namespace AiStudio4.AiServices
                     return response; // We're done, return the final text response
                 }
 
+                // 4a. Build complete content blocks including tool calls
+                var contentBlocks = new List<ContentBlock>();
+                
+                // Add any text content first
+                if (response.ContentBlocks != null)
+                {
+                    contentBlocks.AddRange(response.ContentBlocks);
+                }
+                
+                // Add tool call blocks
+                foreach (var toolCall in response.ToolResponseSet.Tools)
+                {
+                    contentBlocks.Add(new ContentBlock
+                    {
+                        ContentType = ContentType.Tool,
+                        Content = JsonConvert.SerializeObject(new
+                        {
+                            toolName = toolCall.ToolName,
+                            parameters = toolCall.ResponseText
+                        })
+                    });
+                }
+                
+                // Notify about assistant message with tool calls
+                if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+                {
+                    var message = options.BranchedConversation.AddOrUpdateMessage(
+                        v4BranchedConvMessageRole.Assistant,
+                        options.AssistantMessageId,
+                        contentBlocks,
+                        options.ParentMessageId,
+                        response.Attachments);
+                    
+                    await options.OnAssistantMessageCreated(message);
+                }
+
+                // 4b. Notify about tool calls
+                if (options.OnToolCallsGenerated != null)
+                {
+                    await options.OnToolCallsGenerated(
+                        options.AssistantMessageId,
+                        contentBlocks,
+                        response.ToolResponseSet.Tools);
+                }
+
                 // 5. Add the AI's response with tool calls to conversation history
                 var assistantContent = new JArray();
                 
@@ -312,11 +358,21 @@ namespace AiStudio4.AiServices
                     {
                         ClientId = clientId,
                         CancellationToken = options.CancellationToken,
-                        Conversation = null, // We don't have the branched conversation here
-                        CurrentIteration = iteration
+                        BranchedConversation = options.BranchedConversation,
+                        LinearConversation = linearConv,
+                        CurrentIteration = iteration,
+                        AssistantMessageId = options.AssistantMessageId,
+                        ParentMessageId = options.ParentMessageId
                     };
 
                     var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
+                    
+                    // Notify about tool execution
+                    if (options.OnToolExecuted != null)
+                    {
+                        await options.OnToolExecuted(options.AssistantMessageId, toolCall.ToolName, executionResult);
+                    }
+                    
                     
                     // Check if tool execution indicates we should stop the loop
                     if (!executionResult.ContinueProcessing || executionResult.UserInterjection != null)
@@ -326,11 +382,28 @@ namespace AiStudio4.AiServices
                         // If there's a user interjection, add it to the conversation
                         if (executionResult.UserInterjection != null)
                         {
+                            var interjectionId = Guid.NewGuid().ToString();
+                            
+                            // Notify about interjection
+                            if (options.OnUserInterjection != null)
+                            {
+                                await options.OnUserInterjection(interjectionId, executionResult.UserInterjection);
+                            }
+                            
+                            // Add to linear conversation
                             linearConv.messages.Add(new LinearConvMessage
                             {
                                 role = "user",
                                 content = executionResult.UserInterjection
                             });
+                            
+                            // Update parent for next iteration
+                            if (options.BranchedConversation != null)
+                            {
+                                options.ParentMessageId = interjectionId;
+                                options.AssistantMessageId = Guid.NewGuid().ToString();
+                            }
+                            
                             break; // Don't execute remaining tools, process the interjection
                         }
                     }
@@ -349,14 +422,55 @@ namespace AiStudio4.AiServices
                     });
                 }
                 
-                // 7. Add tool results to conversation history
+                // 7. Add tool results to both linear and branched conversations
                 if (toolResults.Any())
                 {
+                    // Add to linear conversation for API
                     linearConv.messages.Add(new LinearConvMessage
                     {
                         role = "user",
                         content = toolResults.ToString()
                     });
+                    
+                    // Add to branched conversation as a user message containing tool results
+                    if (options.BranchedConversation != null)
+                    {
+                        var toolResultBlocks = new List<ContentBlock>();
+                        
+                        foreach (var toolResult in toolResults)
+                        {
+                            var toolName = response.ToolResponseSet.Tools
+                                .FirstOrDefault(t => 
+                                {
+                                    var toolId = assistantContent
+                                        .FirstOrDefault(c => c["type"]?.ToString() == "tool_use" && c["name"]?.ToString() == t.ToolName)?["id"]?.ToString();
+                                    return toolResult["tool_use_id"]?.ToString() == toolId;
+                                })?.ToolName ?? "Unknown Tool";
+                            
+                            toolResultBlocks.Add(new ContentBlock
+                            {
+                                ContentType = ContentType.ToolResponse,
+                                Content = JsonConvert.SerializeObject(new
+                                {
+                                    toolName = toolName,
+                                    result = toolResult["content"]?.ToString(),
+                                    success = !(bool)(toolResult["is_error"] ?? false)
+                                })
+                            });
+                        }
+                        
+                        // Create a user message with tool results
+                        var toolResultMessageId = Guid.NewGuid().ToString();
+                        options.BranchedConversation.AddOrUpdateMessage(
+                            v4BranchedConvMessageRole.User,
+                            toolResultMessageId,
+                            toolResultBlocks,
+                            options.AssistantMessageId); // Parent is the assistant message that made the tool calls
+                        
+                        // Update parent for next iteration
+                        options.ParentMessageId = toolResultMessageId;
+                        options.AssistantMessageId = Guid.NewGuid().ToString(); // New ID for next assistant response
+                    }
                 }
 
                 // 8. Check if we should stop the loop

@@ -1,4 +1,5 @@
 using AiStudio4.Convs;
+using AiStudio4.InjectedDependencies;
 using SharedClasses.Providers;
 
 
@@ -52,6 +53,34 @@ namespace AiStudio4.DataModels
         // Callbacks for streaming updates
         public Action<string> OnStreamingUpdate { get; set; }
         public Action OnStreamingComplete { get; set; }
+
+        // New callbacks for conversation updates during tool loop
+        /// <summary>
+        /// Called when AI generates a response that may include tool calls
+        /// </summary>
+        public Func<v4BranchedConvMessage, Task> OnAssistantMessageCreated { get; set; }
+        
+        /// <summary>
+        /// Called when AI generates tool calls
+        /// </summary>
+        public Func<string, List<Core.Models.ContentBlock>, List<Core.Models.ToolResponseItem>, Task> OnToolCallsGenerated { get; set; }
+        
+        /// <summary>
+        /// Called after each tool execution completes
+        /// Parameters: messageId, toolName, result
+        /// </summary>
+        public Func<string, string, Core.Models.BuiltinToolResult, Task> OnToolExecuted { get; set; }
+        
+        /// <summary>
+        /// Called when a user interjection occurs during tool execution
+        /// </summary>
+        public Func<string, string, Task> OnUserInterjection { get; set; }
+        
+        // Branched conversation context for tool loop
+        public v4BranchedConv BranchedConversation { get; set; }
+        public string ParentMessageId { get; set; }
+        public string AssistantMessageId { get; set; }
+        public string ClientId { get; set; }
 
         // Factory method to create from the old parameter list for backward compatibility
         public static AiRequestOptions Create(

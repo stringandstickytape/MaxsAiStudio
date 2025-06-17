@@ -307,8 +307,11 @@ namespace AiStudio4.AiServices
                     {
                         ClientId = clientId,
                         CancellationToken = options.CancellationToken,
-                        Conversation = null, // We don't have the branched conversation here
-                        CurrentIteration = iteration
+                        BranchedConversation = options.BranchedConversation,
+                        LinearConversation = linearConv,
+                        CurrentIteration = iteration,
+                        AssistantMessageId = options.AssistantMessageId,
+                        ParentMessageId = options.ParentMessageId
                     };
 
                     var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);

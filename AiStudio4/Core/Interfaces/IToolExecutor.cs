@@ -1,4 +1,5 @@
 using AiStudio4.Core.Models;
+using AiStudio4.Convs;
 using AiStudio4.InjectedDependencies;
 using System.Collections.Generic;
 using System.Threading;
@@ -38,4 +39,6 @@ public class ToolExecutionContext
     public v4BranchedConv BranchedConversation { get; set; }
     public LinearConv LinearConversation { get; set; }
     public int CurrentIteration { get; set; }
+    public string AssistantMessageId { get; set; }
+    public string ParentMessageId { get; set; }
 }
