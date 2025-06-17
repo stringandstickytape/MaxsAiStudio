@@ -6,6 +6,7 @@ import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { useAppearanceStore } from '@/stores/useAppearanceStore';
 
 import { MessageItem } from './MessageItem';
 import { ScrollToBottomButton } from './ScrollToBottomButton';
@@ -24,9 +25,13 @@ export const ConvView = ({
 }: ConvViewProps) => {
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
-    const [isStickingEnabled, setIsStickingEnabled] = useState(true);
     const [isScrolling, setIsScrolling] = useState(false);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    
+    // Get stick-to-bottom setting from appearance store
+    const stickToBottomEnabled = useAppearanceStore(state => state.stickToBottomEnabled);
+    const setStickToBottom = useAppearanceStore(state => state.setStickToBottom);
+    
     
     // Optimize store subscription - only get what we need
     const activeConvId = useConvStore(state => state.activeConvId);
@@ -110,45 +115,79 @@ export const ConvView = ({
         );
     }
 
-    return (        <StickToBottom 
-            className={`ConvView ConvViewMain h-full relative overflow-y-auto w-full ${isScrolling ? 'scrolling' : ''}`}
-            ref={scrollContainerRef}
-            stickToBottom={isStickingEnabled}            style={{
-                backgroundColor: 'var(--global-background-color, transparent)',
-                color: 'var(--global-text-color, #ffffff)',
-                borderColor: 'var(--global-border-color, rgba(55, 65, 81, 0.3))',
-                fontFamily: 'var(--global-font-family, inherit)',
-                fontSize: 'var(--global-font-size, inherit)',
-                borderRadius: 'var(--global-border-radius, 0)',
-                boxShadow: 'var(--global-box-shadow, none)',
-                width: '100%',
-                minWidth: '100%',
-                ...(window?.theme?.ConvView?.style || {})
-            }}
-        >
-            <StickToBottom.Content className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
-                {/* ConversationControls removed: always show all messages */}
+    const containerClassName = `ConvView ConvViewMain h-full relative overflow-y-auto w-full ${isScrolling ? 'scrolling' : ''}`;
+    const containerStyle = {
+        backgroundColor: 'var(--global-background-color, transparent)',
+        color: 'var(--global-text-color, #ffffff)',
+        borderColor: 'var(--global-border-color, rgba(55, 65, 81, 0.3))',
+        fontFamily: 'var(--global-font-family, inherit)',
+        fontSize: 'var(--global-font-size, inherit)',
+        borderRadius: 'var(--global-border-radius, 0)',
+        boxShadow: 'var(--global-box-shadow, none)',
+        width: '100%',
+        minWidth: '100%',
+        ...(window?.theme?.ConvView?.style || {})
+    };
 
-                {visibleMessages.map((message) => {
-                    // Skip system messages
-                    if (message.source === 'system') return null;
+    const messageContent = (
+        <>
+            {/* ConversationControls removed: always show all messages */}
+            {visibleMessages.map((message) => {
+                // Skip system messages
+                if (message.source === 'system') return null;
 
-                    // Determine if this message item is the target for the current stream
-                    const isStreamingTarget = isMessageStreaming(message.id) && (message.source === 'ai' || message.source === 'assistant');
-                    
-                    return (
-                        <MessageItem
-                            key={message.id}
-                            message={message}
-                            activeConvId={activeConvId}
-                            isStreamingTarget={isStreamingTarget}
-                        />
-                    );
-                })}
-            </StickToBottom.Content>
-            
-            {/* Add scroll to bottom button */}
-            <ScrollToBottomButton onActivateSticking={() => setIsStickingEnabled(true)} />
-        </StickToBottom>
+                // Determine if this message item is the target for the current stream
+                const isStreamingTarget = isMessageStreaming(message.id) && (message.source === 'ai' || message.source === 'assistant');
+                
+                return (
+                    <MessageItem
+                        key={message.id}
+                        message={message}
+                        activeConvId={activeConvId}
+                        isStreamingTarget={isStreamingTarget}
+                    />
+                );
+            })}
+        </>
     );
+
+    if (stickToBottomEnabled) {
+        return (
+            <StickToBottom 
+                className={containerClassName}
+                ref={scrollContainerRef}
+                style={containerStyle}
+            >
+                <StickToBottom.Content className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
+                    {messageContent}
+                </StickToBottom.Content>
+                
+                {/* Add scroll to bottom button */}
+                <ScrollToBottomButton 
+                    onActivateSticking={() => setStickToBottom(true)} 
+                    stickToBottomEnabled={stickToBottomEnabled}
+                    scrollContainerRef={scrollContainerRef}
+                />
+            </StickToBottom>
+        );
+    } else {
+        return (
+            <div 
+                className={containerClassName}
+                ref={scrollContainerRef}
+                style={containerStyle}
+            >
+                <div className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
+                    {messageContent}
+                </div>
+                
+                {/* Add scroll to bottom button */}
+                <ScrollToBottomButton 
+                    onActivateSticking={() => setStickToBottom(true)} 
+                    stickToBottomEnabled={stickToBottomEnabled}
+                    scrollContainerRef={scrollContainerRef}
+                />
+            </div>
+        );
+    }
 };

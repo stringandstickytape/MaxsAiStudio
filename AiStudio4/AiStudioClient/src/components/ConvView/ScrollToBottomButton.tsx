@@ -1,29 +1,86 @@
 ﻿// AiStudioClient\src\components\ConvView\ScrollToBottomButton.tsx
 import { useStickToBottomContext } from 'use-stick-to-bottom';
 import { ArrowDown } from 'lucide-react';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 interface ScrollToBottomButtonProps {
   onActivateSticking: () => void;
+  stickToBottomEnabled?: boolean;
+  scrollContainerRef?: React.RefObject<HTMLDivElement>;
 }
 
 // Custom comparison function for ScrollToBottomButton memoization
 const areScrollButtonPropsEqual = (prevProps: ScrollToBottomButtonProps, nextProps: ScrollToBottomButtonProps) => {
-  // The onActivateSticking callback should be stable, but even if it's not,
-  // the component's behavior doesn't change based on the callback content
-  // We'll assume the callback is functionally equivalent between renders
-  return true;
+  return (
+    prevProps.stickToBottomEnabled === nextProps.stickToBottomEnabled &&
+    prevProps.scrollContainerRef === nextProps.scrollContainerRef
+  );
 };
 
-export const ScrollToBottomButton = React.memo(({ onActivateSticking }: ScrollToBottomButtonProps) => {
-  const { isAtBottom, scrollToBottom } = useStickToBottomContext();
+export const ScrollToBottomButton = React.memo(({ 
+  onActivateSticking, 
+  stickToBottomEnabled = true, 
+  scrollContainerRef 
+}: ScrollToBottomButtonProps) => {
+  
+  // State for manual scroll position tracking when stick-to-bottom is disabled
+  const [isAtBottomManual, setIsAtBottomManual] = useState(true);
+  
+  // Try to get context, but handle the case where it doesn't exist
+  let stickToBottomContext = null;
+  try {
+    if (stickToBottomEnabled) {
+      stickToBottomContext = useStickToBottomContext();
+    }
+  } catch (error) {
+    // Context not available, we'll use manual tracking
+  }
+
+  // Manual scroll position tracking for when stick-to-bottom is disabled
+  const checkIfAtBottom = useCallback(() => {
+    if (!scrollContainerRef?.current) return;
+    
+    const element = scrollContainerRef.current;
+    const isAtBottom = Math.abs(element.scrollHeight - element.clientHeight - element.scrollTop) < 5;
+    setIsAtBottomManual(isAtBottom);
+  }, [scrollContainerRef]);
+
+  // Set up scroll listener when stick-to-bottom is disabled
+  useEffect(() => {
+    if (stickToBottomEnabled || !scrollContainerRef?.current) return;
+
+    const element = scrollContainerRef.current;
+    element.addEventListener('scroll', checkIfAtBottom, { passive: true });
+    
+    // Initial check
+    checkIfAtBottom();
+    
+    return () => {
+      element.removeEventListener('scroll', checkIfAtBottom);
+    };
+  }, [stickToBottomEnabled, scrollContainerRef, checkIfAtBottom]);
 
   const handleScrollToBottom = () => {
     // Enable sticking to bottom when button is clicked
     onActivateSticking();
-    // Scroll to bottom
-    scrollToBottom();
+    
+    if (stickToBottomContext) {
+      // Use library's scroll method
+      stickToBottomContext.scrollToBottom();
+    } else if (scrollContainerRef?.current) {
+      // Manual scroll to bottom
+      const element = scrollContainerRef.current;
+      element.scrollTo({
+        top: element.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
   };
+
+  // Determine if we're at bottom based on available context
+  const isAtBottom = stickToBottomEnabled 
+    ? (stickToBottomContext?.isAtBottom ?? true)
+    : isAtBottomManual;
 
   // Only show the button when not at bottom
   if (isAtBottom) return null;

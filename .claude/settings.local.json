@@ -12,7 +12,9 @@
       "Bash(pnpm add:*)",
       "Bash(ls:*)",
       "WebFetch(domain:docs.anthropic.com)",
-      "WebFetch(domain:ai.google.dev)"
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:github.com)"
     ],
     "deny": []
   }
