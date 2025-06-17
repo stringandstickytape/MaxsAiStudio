@@ -1,17 +1,14 @@
 using AiStudio4.Convs;
-
-
+using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
+using AiStudio4.InjectedDependencies;
 using AiStudio4.Services.Interfaces;
-
+using Newtonsoft.Json;
 using SharedClasses.Providers;
-
-
-
-
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 
 
 
@@ -27,7 +24,7 @@ namespace AiStudio4.AiServices
 
         public string ChosenTool { get; set; } = null;
 
-        public ToolResponse ToolResponseSet { get; set; } = null;
+        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
 
         protected HttpClient client = new HttpClient();
         protected bool clientInitialised = false;
@@ -88,6 +85,258 @@ namespace AiStudio4.AiServices
             // Fallback implementation - just use the legacy single-call method
             // This will work for providers that don't implement tool loops yet
             return await FetchResponse(options, forceNoTools: false);
+        }
+
+        /// <summary>
+        /// Common tool loop implementation that can be used by provider-specific implementations.
+        /// This method handles the common pattern of:
+        /// 1. Making API calls with tools
+        /// 2. Executing returned tool calls
+        /// 3. Adding results to conversation
+        /// 4. Repeating until no more tool calls or max iterations reached
+        /// </summary>
+        protected virtual async Task<AiResponse> ExecuteCommonToolLoop(
+            AiRequestOptions options, 
+            Core.Interfaces.IToolExecutor toolExecutor, 
+            Func<AiRequestOptions, Task<AiResponse>> makeApiCall,
+            Func<AiResponse, LinearConvMessage> createAssistantMessage,
+            Func<List<ContentBlock>, LinearConvMessage> createToolResultMessage,
+            int maxIterations = 10)
+        {
+            var linearConv = options.Conv;
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
+                linearConv.systemprompt = options.CustomSystemPrompt;
+            
+            for (int iteration = 0; iteration < maxIterations; iteration++)
+            {
+                // 1. Reset tool response set for this iteration
+                ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
+                // 2. Make API call
+                var response = await makeApiCall(options);
+
+                // 3. Check for final answer (no tool calls)
+                if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
+                {
+                    // This is the final response with no tool calls - add it to branched conversation
+                    if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+                    {
+                        var message = options.BranchedConversation.AddOrUpdateMessage(
+                            v4BranchedConvMessageRole.Assistant,
+                            options.AssistantMessageId,
+                            response.ContentBlocks,
+                            options.ParentMessageId,
+                            response.Attachments);
+                        
+                        await options.OnAssistantMessageCreated(message);
+                    }
+                    
+                    return response; // We're done, return the final text response
+                }
+
+                // 4. Build complete content blocks including tool calls
+                var contentBlocks = new List<ContentBlock>();
+                
+                // Add any existing content blocks first
+                if (response.ContentBlocks != null)
+                {
+                    contentBlocks.AddRange(response.ContentBlocks);
+                }
+                
+                // Add tool call blocks
+                foreach (var toolCall in response.ToolResponseSet.Tools)
+                {
+                    contentBlocks.Add(new ContentBlock
+                    {
+                        ContentType = ContentType.Tool,
+                        Content = JsonConvert.SerializeObject(new
+                        {
+                            toolName = toolCall.ToolName,
+                            parameters = toolCall.ResponseText
+                        })
+                    });
+                }
+                
+                // Notify about assistant message with tool calls
+                if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+                {
+                    var message = options.BranchedConversation.AddOrUpdateMessage(
+                        v4BranchedConvMessageRole.Assistant,
+                        options.AssistantMessageId,
+                        contentBlocks,
+                        options.ParentMessageId,
+                        response.Attachments);
+                    
+                    await options.OnAssistantMessageCreated(message);
+                }
+
+                // 5. Notify about tool calls
+                if (options.OnToolCallsGenerated != null)
+                {
+                    await options.OnToolCallsGenerated(
+                        options.AssistantMessageId,
+                        contentBlocks,
+                        response.ToolResponseSet.Tools);
+                }
+
+                // 6. Add the AI's response with tool calls to conversation history
+                var assistantMessage = createAssistantMessage(response);
+                linearConv.messages.Add(assistantMessage);
+
+                // 7. Execute tools and collect results
+                var toolResultBlocks = new List<ContentBlock>();
+                var shouldStopLoop = false;
+
+                foreach (var toolCall in response.ToolResponseSet.Tools)
+                {
+                    var context = new Core.Interfaces.ToolExecutionContext
+                    {
+                        ClientId = options.ClientId ?? "",
+                        CancellationToken = options.CancellationToken,
+                        BranchedConversation = options.BranchedConversation,
+                        LinearConversation = linearConv,
+                        CurrentIteration = iteration,
+                        AssistantMessageId = options.AssistantMessageId,
+                        ParentMessageId = options.ParentMessageId
+                    };
+
+                    var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
+                    
+                    // Notify about tool execution
+                    if (options.OnToolExecuted != null)
+                    {
+                        await options.OnToolExecuted(options.AssistantMessageId, toolCall.ToolName, executionResult);
+                    }
+                    
+                    // Check if tool execution indicates we should stop the loop
+                    if (!executionResult.ContinueProcessing || executionResult.UserInterjection != null)
+                    {
+                        shouldStopLoop = true;
+                        
+                        // If there's a user interjection, add it to the conversation
+                        if (executionResult.UserInterjection != null)
+                        {
+                            var interjectionId = Guid.NewGuid().ToString();
+                            
+                            // Notify about interjection
+                            if (options.OnUserInterjection != null)
+                            {
+                                await options.OnUserInterjection(interjectionId, executionResult.UserInterjection);
+                            }
+                            
+                            // Add to linear conversation (provider-specific format)
+                            var interjectionMessage = CreateUserInterjectionMessage(executionResult.UserInterjection);
+                            linearConv.messages.Add(interjectionMessage);
+                            
+                            // Update parent for next iteration
+                            if (options.BranchedConversation != null)
+                            {
+                                options.ParentMessageId = interjectionId;
+                                options.AssistantMessageId = Guid.NewGuid().ToString();
+                            }
+                            
+                            break; // Don't execute remaining tools, process the interjection
+                        }
+                    }
+
+                    toolResultBlocks.Add(new ContentBlock
+                    {
+                        ContentType = ContentType.ToolResponse,
+                        Content = JsonConvert.SerializeObject(new
+                        {
+                            toolName = toolCall.ToolName,
+                            result = executionResult.ResultMessage,
+                            success = executionResult.WasProcessed
+                        })
+                    });
+                }
+                
+                // 8. Add tool results to conversations
+                if (toolResultBlocks.Any())
+                {
+                    // Add to linear conversation for API (provider-specific format)
+                    var toolResultMessage = createToolResultMessage(toolResultBlocks);
+                    linearConv.messages.Add(toolResultMessage);
+                    
+                    // Add to branched conversation as a user message containing tool results
+                    if (options.BranchedConversation != null)
+                    {
+                        var toolResultMessageId = Guid.NewGuid().ToString();
+                        
+                        var toolResultBranchedMessage = options.BranchedConversation.AddOrUpdateMessage(
+                            v4BranchedConvMessageRole.User,
+                            toolResultMessageId,
+                            toolResultBlocks,
+                            options.AssistantMessageId);
+
+                        // Notify client about the tool result message
+                        if (options.OnUserMessageCreated != null)
+                        {
+                            await options.OnUserMessageCreated(toolResultBranchedMessage);
+                        }
+                        
+                        // Update parent if we're not stopping the loop
+                        if (!shouldStopLoop)
+                        {
+                            options.ParentMessageId = toolResultMessageId;
+                        }
+                    }
+                }
+
+                // 9. Check if we should stop the loop
+                if (shouldStopLoop)
+                {
+                    return response;
+                }
+                
+                // 10. Prepare for next iteration - generate new assistant message ID
+                if (options.BranchedConversation != null)
+                {
+                    options.AssistantMessageId = Guid.NewGuid().ToString();
+                }
+            }
+
+            // If we've exceeded max iterations, create error response
+            var errorResponse = new AiResponse 
+            { 
+                Success = false, 
+                ContentBlocks = new List<ContentBlock> 
+                { 
+                    new ContentBlock 
+                    { 
+                        Content = $"Exceeded maximum tool iterations ({maxIterations}). The AI may be stuck in a tool loop.",
+                        ContentType = ContentType.Text 
+                    } 
+                } 
+            };
+            
+            // Add error message to branched conversation
+            if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+            {
+                var message = options.BranchedConversation.AddOrUpdateMessage(
+                    v4BranchedConvMessageRole.Assistant,
+                    options.AssistantMessageId,
+                    errorResponse.ContentBlocks,
+                    options.ParentMessageId,
+                    errorResponse.Attachments);
+                
+                await options.OnAssistantMessageCreated(message);
+            }
+            
+            return errorResponse;
+        }
+
+        /// <summary>
+        /// Creates a user interjection message in provider-specific format.
+        /// Override this in provider implementations to match their message format.
+        /// </summary>
+        protected virtual LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
+        {
+            return new LinearConvMessage
+            {
+                role = "user",
+                content = interjectionText
+            };
         }
 
         
@@ -239,6 +488,16 @@ namespace AiStudio4.AiServices
         protected virtual ToolFormat GetToolFormat()
         {
             return ToolFormat.OpenAI; 
+        }
+
+        protected virtual AiResponse HandleError(Exception ex, string additionalInfo = "")
+        {
+            string errorMessage = $"Error: {ex.Message}";
+            if (!string.IsNullOrEmpty(additionalInfo))
+            {
+                errorMessage += $" Additional info: {additionalInfo}";
+            }
+            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = ContentType.Text } } };
         }
     }
 }

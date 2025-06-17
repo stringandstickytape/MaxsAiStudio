@@ -18,8 +18,6 @@ namespace AiStudio4.AiServices
 {
     internal class Claude : AiServiceBase
     {
-        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
-
         private string oneOffPreFill;
         
         public void SetOneOffPreFill(string prefill) => oneOffPreFill = prefill;
@@ -207,349 +205,125 @@ namespace AiStudio4.AiServices
         {
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
-            var linearConv = options.Conv;
-            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
-                linearConv.systemprompt = options.CustomSystemPrompt;
+            return await ExecuteCommonToolLoop(
+                options,
+                toolExecutor,
+                makeApiCall: async (opts) => await MakeClaudeApiCall(opts),
+                createAssistantMessage: CreateClaudeAssistantMessage,
+                createToolResultMessage: CreateClaudeToolResultMessage,
+                options.MaxToolIterations ?? 10);
+        }
+
+        private async Task<AiResponse> MakeClaudeApiCall(AiRequestOptions options)
+        {
+            var req = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
             
-            var maxIterations = options.MaxToolIterations ?? 10;
-            
-            for (int iteration = 0; iteration < maxIterations; iteration++)
+            // Add TopP if supported
+            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
             {
-                // 1. Reset tool response set for this iteration
-                ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+                req["top_p"] = options.ApiSettings.TopP;
+            }
 
-                // 2. Prepare the request payload with all available tools
-                var req = CreateRequestPayload(ApiModel, linearConv, options.ApiSettings);
-                
-                // Add TopP if supported
-                if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            // Add tools to the request
+            await AddToolsToRequestAsync(req, options.ToolIds);
+            if (req["tools"] != null)
+                req["tool_choice"] = new JObject { ["type"] = "auto" };
+
+            // Add embeddings if required
+            if (options.AddEmbeddings)
+                await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
+
+            var json = JsonConvert.SerializeObject(req);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            // Handle potential caching errors
+            while (true)
+            {
+                try
                 {
-                    req["top_p"] = options.ApiSettings.TopP;
+                    return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
                 }
-
-                // Add all available tools to the request
-                var availableTools = await toolExecutor.GetAvailableToolsAsync(options.ToolIds);
-                if (availableTools.Any())
+                catch (NotEnoughTokensForCachingException)
                 {
-                    await AddToolsToRequestAsync(req, options.ToolIds);
-                    req["tool_choice"] = new JObject { ["type"] = "auto" };
-                }
-
-                // Add embeddings if required
-                if (options.AddEmbeddings)
-                    await AddEmbeddingsToRequest(req, linearConv, options.ApiSettings, options.MustNotUseEmbedding);
-
-
-                var json = JsonConvert.SerializeObject(req);
-                var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                AiResponse response = null;
-                while (true)
-                {
-                    try
+                    if (options.ApiSettings.UsePromptCaching)
                     {
-                        // 3. Call the Claude API
-                        response = await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
-                        break; // Success, exit retry loop
+                        json = RemoveCachingFromJson(json);
+                        options.ApiSettings.UsePromptCaching = false;
+                        content = new StringContent(json, Encoding.UTF8, "application/json");
                     }
-                    catch (NotEnoughTokensForCachingException)
-                    {
-                        if (options.ApiSettings.UsePromptCaching)
-                        {
-                            json = RemoveCachingFromJson(json);
-                            options.ApiSettings.UsePromptCaching = false;
-                            content = new StringContent(json, Encoding.UTF8, "application/json");
-                        }
-                        else
-                            throw;
-                    }
+                    else
+                        throw;
                 }
+            }
+        }
 
-                // 4. Check for final answer (no tool calls)
-                if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
-                {
-                    // This is the final response with no tool calls - add it to branched conversation
-                    if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
-                    {
-                        Debug.WriteLine($"🤖 CLAUDE: Creating FINAL ASSISTANT message (no tools) - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}, ContentBlocks: {response.ContentBlocks?.Count ?? 0}");
-                        
-                        var message = options.BranchedConversation.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.Assistant,
-                            options.AssistantMessageId,
-                            response.ContentBlocks,
-                            options.ParentMessageId,
-                            response.Attachments);
-                        
-                        await options.OnAssistantMessageCreated(message);
-                    }
-                    
-                    return response; // We're done, return the final text response
-                }
-
-                // 4a. Build complete content blocks including tool calls
-                var contentBlocks = new List<ContentBlock>();
-                
-                // Add any existing content blocks first
-                if (response.ContentBlocks != null)
-                {
-                    contentBlocks.AddRange(response.ContentBlocks);
-                }
-                
-                // Only add tool call blocks if they're not already in the content blocks
-                // Check if we already have tool blocks (from TryParseJsonArrayResponse)
-                var hasToolBlocks = contentBlocks.Any(cb => cb.ContentType == ContentType.Tool);
-                
-                if (!hasToolBlocks)
-                {
-                    // Add tool call blocks manually (for streaming responses that don't use JSON array format)
-                    foreach (var toolCall in response.ToolResponseSet.Tools)
-                    {
-                        contentBlocks.Add(new ContentBlock
-                        {
-                            ContentType = ContentType.Tool,
-                            Content = JsonConvert.SerializeObject(new
-                            {
-                                toolName = toolCall.ToolName,
-                                parameters = toolCall.ResponseText
-                            })
-                        });
-                    }
-                }
-                
-                // Notify about assistant message with tool calls
-                if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
-                {
-                    Debug.WriteLine($"🤖 CLAUDE: Creating ASSISTANT message - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}, ContentBlocks: {contentBlocks.Count}");
-                    
-                    var message = options.BranchedConversation.AddOrUpdateMessage(
-                        v4BranchedConvMessageRole.Assistant,
-                        options.AssistantMessageId,
-                        contentBlocks,
-                        options.ParentMessageId,
-                        response.Attachments);
-                    
-                    await options.OnAssistantMessageCreated(message);
-                }
-
-                // 4b. Notify about tool calls
-                if (options.OnToolCallsGenerated != null)
-                {
-                    await options.OnToolCallsGenerated(
-                        options.AssistantMessageId,
-                        contentBlocks,
-                        response.ToolResponseSet.Tools);
-                }
-
-                // 5. Add the AI's response with tool calls to conversation history
-                var assistantContent = new JArray();
-                
-                // Add any text content first
-                var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
-                if (!string.IsNullOrEmpty(textContent))
-                {
-                    assistantContent.Add(new JObject 
-                    { 
-                        ["type"] = "text", 
-                        ["text"] = textContent 
-                    });
-                }
-
-                // Add tool use blocks
-                foreach (var toolCall in response.ToolResponseSet.Tools)
-                {
-                    assistantContent.Add(new JObject
-                    {
-                        ["type"] = "tool_use",
-                        ["id"] = $"tool_{Guid.NewGuid():N}"[..15], // Generate short ID
-                        ["name"] = toolCall.ToolName,
-                        ["input"] = JObject.Parse(toolCall.ResponseText)
-                    });
-                }
-
-                linearConv.messages.Add(new LinearConvMessage
-                {
-                    role = "assistant",
-                    content = assistantContent.ToString()
+        private LinearConvMessage CreateClaudeAssistantMessage(AiResponse response)
+        {
+            var assistantContent = new JArray();
+            
+            // Add any text content first
+            var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
+            if (!string.IsNullOrEmpty(textContent))
+            {
+                assistantContent.Add(new JObject 
+                { 
+                    ["type"] = "text", 
+                    ["text"] = textContent 
                 });
+            }
 
-                // 6. Execute tools and collect results
-                var toolResults = new JArray();
-                var shouldStopLoop = false;
-
-                foreach (var toolCall in response.ToolResponseSet.Tools)
+            // Add tool use blocks
+            foreach (var toolCall in response.ToolResponseSet.Tools)
+            {
+                assistantContent.Add(new JObject
                 {
-                    var context = new Core.Interfaces.ToolExecutionContext
-                    {
-                        ClientId = clientId,
-                        CancellationToken = options.CancellationToken,
-                        BranchedConversation = options.BranchedConversation,
-                        LinearConversation = linearConv,
-                        CurrentIteration = iteration,
-                        AssistantMessageId = options.AssistantMessageId,
-                        ParentMessageId = options.ParentMessageId
-                    };
+                    ["type"] = "tool_use",
+                    ["id"] = $"tool_{Guid.NewGuid():N}"[..15], // Generate short ID
+                    ["name"] = toolCall.ToolName,
+                    ["input"] = JObject.Parse(toolCall.ResponseText)
+                });
+            }
 
-                    var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
-                    
-                    // Notify about tool execution
-                    if (options.OnToolExecuted != null)
-                    {
-                        await options.OnToolExecuted(options.AssistantMessageId, toolCall.ToolName, executionResult);
-                    }
-                    
-                    
-                    // Check if tool execution indicates we should stop the loop
-                    if (!executionResult.ContinueProcessing || executionResult.UserInterjection != null)
-                    {
-                        shouldStopLoop = true;
-                        
-                        // If there's a user interjection, add it to the conversation
-                        if (executionResult.UserInterjection != null)
-                        {
-                            var interjectionId = Guid.NewGuid().ToString();
-                            
-                            // Notify about interjection
-                            if (options.OnUserInterjection != null)
-                            {
-                                await options.OnUserInterjection(interjectionId, executionResult.UserInterjection);
-                            }
-                            
-                            // Add to linear conversation
-                            linearConv.messages.Add(new LinearConvMessage
-                            {
-                                role = "user",
-                                content = executionResult.UserInterjection
-                            });
-                            
-                            // Update parent for next iteration
-                            if (options.BranchedConversation != null)
-                            {
-                                options.ParentMessageId = interjectionId;
-                                options.AssistantMessageId = Guid.NewGuid().ToString();
-                            }
-                            
-                            break; // Don't execute remaining tools, process the interjection
-                        }
-                    }
+            return new LinearConvMessage
+            {
+                role = "assistant",
+                content = assistantContent.ToString()
+            };
+        }
 
-                    var toolId = assistantContent
-                        .Where(c => c["type"]?.ToString() == "tool_use" && c["name"]?.ToString() == toolCall.ToolName)
-                        .Select(c => c["id"]?.ToString())
-                        .FirstOrDefault() ?? $"tool_{Guid.NewGuid():N}"[..15];
-
+        private LinearConvMessage CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
+        {
+            var toolResults = new JArray();
+            
+            foreach (var block in toolResultBlocks)
+            {
+                if (block.ContentType == ContentType.ToolResponse)
+                {
+                    var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
                     toolResults.Add(new JObject
                     {
                         ["type"] = "tool_result",
-                        ["tool_use_id"] = toolId,
-                        ["content"] = executionResult.ResultMessage,
-                        ["is_error"] = !executionResult.WasProcessed
+                        ["tool_use_id"] = $"tool_{Guid.NewGuid():N}"[..15], // Generate ID
+                        ["content"] = toolData.result?.ToString(),
+                        ["is_error"] = !(bool)(toolData.success ?? false)
                     });
-                }
-                
-                // 7. Add tool results to both linear and branched conversations
-                if (toolResults.Any())
-                {
-                    // Add to linear conversation for API
-                    linearConv.messages.Add(new LinearConvMessage
-                    {
-                        role = "user",
-                        content = toolResults.ToString()
-                    });
-                    
-                    // Add to branched conversation as a user message containing tool results
-                    if (options.BranchedConversation != null)
-                    {
-                        var toolResultBlocks = new List<ContentBlock>();
-                        
-                        foreach (var toolResult in toolResults)
-                        {
-                            var toolName = response.ToolResponseSet.Tools
-                                .FirstOrDefault(t => 
-                                {
-                                    var toolId = assistantContent
-                                        .FirstOrDefault(c => c["type"]?.ToString() == "tool_use" && c["name"]?.ToString() == t.ToolName)?["id"]?.ToString();
-                                    return toolResult["tool_use_id"]?.ToString() == toolId;
-                                })?.ToolName ?? "Unknown Tool";
-                            
-                            toolResultBlocks.Add(new ContentBlock
-                            {
-                                ContentType = ContentType.ToolResponse,
-                                Content = JsonConvert.SerializeObject(new
-                                {
-                                    toolName = toolName,
-                                    result = toolResult["content"]?.ToString(),
-                                    success = !(bool)(toolResult["is_error"] ?? false)
-                                })
-                            });
-                        }
-                        
-                        // Create a user message with tool results
-                        var toolResultMessageId = Guid.NewGuid().ToString();
-                        Debug.WriteLine($"👤 CLAUDE: Creating USER message (tool results) - MessageId: {toolResultMessageId}, ParentId: {options.AssistantMessageId}, ToolResults: {toolResultBlocks.Count}");
-                        
-                        var toolResultMessage = options.BranchedConversation.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.User,
-                            toolResultMessageId,
-                            toolResultBlocks,
-                            options.AssistantMessageId); // Parent is the assistant message that made the tool calls
-
-                        // Notify client about the tool result message via the proper callback
-                        if (options.OnUserMessageCreated != null)
-                        {
-                            await options.OnUserMessageCreated(toolResultMessage);
-                        }
-                        
-                        // Store the tool result message ID to update parent for next iteration
-                        // We'll update these at the end of the loop iteration
-                        options.ParentMessageId = toolResultMessageId;
-                    }
-                }
-
-                // 8. Check if we should stop the loop
-                if (shouldStopLoop)
-                {
-                    // Continue the loop to let the AI respond to the interjection or tool stop
-                    return response;
-                }
-                
-                // 9. Prepare for next iteration - generate new assistant message ID
-                // Each iteration should create a new AI message for proper conversation flow
-                if (options.BranchedConversation != null)
-                {
-                    options.AssistantMessageId = Guid.NewGuid().ToString();
                 }
             }
-
-            // If we've exceeded max iterations, create error response and add to branched conversation
-            var errorResponse = new AiResponse 
-            { 
-                Success = false, 
-                ContentBlocks = new List<ContentBlock> 
-                { 
-                    new ContentBlock 
-                    { 
-                        Content = $"Exceeded maximum tool iterations ({maxIterations}). The AI may be stuck in a tool loop.",
-                        ContentType = Core.Models.ContentType.Text 
-                    } 
-                } 
-            };
             
-            // Add error message to branched conversation
-            if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+            return new LinearConvMessage
             {
-                Debug.WriteLine($"🤖 CLAUDE: Creating ERROR ASSISTANT message (max iterations) - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}");
-                
-                var message = options.BranchedConversation.AddOrUpdateMessage(
-                    v4BranchedConvMessageRole.Assistant,
-                    options.AssistantMessageId,
-                    errorResponse.ContentBlocks,
-                    options.ParentMessageId,
-                    errorResponse.Attachments);
-                
-                await options.OnAssistantMessageCreated(message);
-            }
-            
-            return errorResponse;
+                role = "user",
+                content = toolResults.ToString()
+            };
+        }
+
+        protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
+        {
+            return new LinearConvMessage
+            {
+                role = "user",
+                content = interjectionText
+            };
         }
 
         protected override async Task<AiResponse> HandleStreamingResponse(
@@ -642,15 +416,6 @@ namespace AiStudio4.AiServices
             return jObject.ToString();
         }
 
-        private AiResponse HandleError(Exception ex, string additionalInfo = "")
-        {
-            string errorMessage = $"Error: {ex.Message}";
-            if (!string.IsNullOrEmpty(additionalInfo))
-            {
-                errorMessage += $" Additional info: {additionalInfo}";
-            }
-            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = ContentType.Text } } };
-        }
         
         private string ExtractResponseTextFromCompletion(JObject completion)
         {

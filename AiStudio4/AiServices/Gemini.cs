@@ -25,7 +25,6 @@ namespace AiStudio4.AiServices
     internal class Gemini : AiServiceBase
     {
         private readonly List<GenImage> _generatedImages = new List<GenImage>();
-        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
 
         public Gemini()
         {
@@ -159,373 +158,164 @@ namespace AiStudio4.AiServices
                 return await HandleTtsRequestAsync(options);
             }
 
-            var linearConv = options.Conv;
-            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
-                linearConv.systemprompt = options.CustomSystemPrompt;
+            return await ExecuteCommonToolLoop(
+                options,
+                toolExecutor,
+                makeApiCall: async (opts) => await MakeGeminiApiCall(opts),
+                createAssistantMessage: CreateGeminiAssistantMessage,
+                createToolResultMessage: CreateGeminiToolResultMessage,
+                options.MaxToolIterations ?? 10);
+        }
+
+        private async Task<AiResponse> MakeGeminiApiCall(AiRequestOptions options)
+        {
+            _generatedImages.Clear();
             
-            var maxIterations = options.MaxToolIterations ?? 10;
+            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
             
-            for (int iteration = 0; iteration < maxIterations; iteration++)
+            // Special handling for GEMINI_INTERNAL_GOOGLE_SEARCH directive
+            bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
+            
+            if (hasGoogleSearchDirective)
             {
-                // 1. Reset tool response set for this iteration
-                ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
-                _generatedImages.Clear();
-
-                // 2. Prepare the request payload with all available tools
-                var requestPayload = CreateRequestPayload(ApiModel, linearConv, options.ApiSettings);
-                
-                // Special handling for GEMINI_INTERNAL_GOOGLE_SEARCH directive
-                bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
-                
-                // Add all available tools to the request
-                var availableTools = await toolExecutor.GetAvailableToolsAsync(options.ToolIds);
-                if (availableTools.Any() || hasGoogleSearchDirective)
+                // Add Google Search tool to the request
+                requestPayload["tools"] = new JArray
                 {
-                    if (hasGoogleSearchDirective)
+                    new JObject
                     {
-                        // Add Google Search tool to the request
-                        requestPayload["tools"] = new JArray
-                        {
-                            new JObject
-                            {
-                                ["google_search"] = new JObject()
-                            }
-                        };
+                        ["google_search"] = new JObject()
                     }
-                    else
+                };
+            }
+            else
+            {
+                await AddToolsToRequestAsync(requestPayload, options.ToolIds);
+            }
+
+            // Build contents array
+            var contentsArray = new JArray();
+            foreach (var message in options.Conv.messages)
+            {
+                var messageObj = CreateMessageObject(message);
+                contentsArray.Add(messageObj);
+            }
+
+            // Configure generation settings
+            if (ApiModel == "gemini-2.0-flash-exp-image-generation")
+            {
+                requestPayload["generationConfig"] = new JObject
+                {
+                    ["responseModalities"] = new JArray { "Text", "Image" },
+                    ["temperature"] = options.ApiSettings.Temperature
+                };
+                if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+                {
+                    ((JObject)requestPayload["generationConfig"])["topP"] = options.ApiSettings.TopP;
+                }
+            }
+            else
+            {
+                requestPayload["system_instruction"] = new JObject
+                {
+                    ["parts"] = new JObject
                     {
-                        await AddToolsToRequestAsync(requestPayload, options.ToolIds);
+                        ["text"] = options.Conv.SystemPromptWithDateTime()
                     }
+                };
+                requestPayload["generationConfig"] = new JObject
+                {
+                    ["temperature"] = options.ApiSettings.Temperature
+                };
+                if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+                {
+                    ((JObject)requestPayload["generationConfig"])["topP"] = options.ApiSettings.TopP;
                 }
+            }
 
-                // Build contents array
-                var contentsArray = new JArray();
-                foreach (var message in linearConv.messages)
-                {
-                    var messageObj = CreateMessageObject(message);
-                    contentsArray.Add(messageObj);
-                }
+            if (requestPayload["contents"] != null)
+            {
+                requestPayload.Remove("contents");
+            }
+            requestPayload.Add("contents", contentsArray);
 
-                // Configure generation settings
-                if (ApiModel == "gemini-2.0-flash-exp-image-generation")
-                {
-                    requestPayload["generationConfig"] = new JObject
-                    {
-                        ["responseModalities"] = new JArray { "Text", "Image" },
-                        ["temperature"] = options.ApiSettings.Temperature
-                    };
-                    if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
-                    {
-                        ((JObject)requestPayload["generationConfig"])["topP"] = options.ApiSettings.TopP;
-                    }
-                }
-                else
-                {
-                    requestPayload["system_instruction"] = new JObject
-                    {
-                        ["parts"] = new JObject
-                        {
-                            ["text"] = linearConv.SystemPromptWithDateTime()
-                        }
-                    };
-                    requestPayload["generationConfig"] = new JObject
-                    {
-                        ["temperature"] = options.ApiSettings.Temperature
-                    };
-                    if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
-                    {
-                        ((JObject)requestPayload["generationConfig"])["topP"] = options.ApiSettings.TopP;
-                    }
-                }
+            var jsonPayload = JsonConvert.SerializeObject(requestPayload);
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                if (requestPayload["contents"] != null)
-                {
-                    requestPayload.Remove("contents");
-                }
-                requestPayload.Add("contents", contentsArray);
+            return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+        }
 
-                var jsonPayload = JsonConvert.SerializeObject(requestPayload);
-                var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-                // 3. Call the Gemini API
-                var response = await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
-
-                // 4. Check for final answer (no tool calls)
-                if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
-                {
-                    // This is the final response with no tool calls - add it to branched conversation
-                    if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
-                    {
-                        Debug.WriteLine($"🤖 GEMINI: Creating FINAL ASSISTANT message (no tools) - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}, ContentBlocks: {response.ContentBlocks?.Count ?? 0}");
-                        
-                        var message = options.BranchedConversation.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.Assistant,
-                            options.AssistantMessageId,
-                            response.ContentBlocks,
-                            options.ParentMessageId,
-                            response.Attachments);
-                        
-                        await options.OnAssistantMessageCreated(message);
-                    }
-                    
-                    return response; // We're done, return the final text response
-                }
-
-                // 4a. Build complete content blocks including tool calls
-                var contentBlocks = new List<ContentBlock>();
-                
-                // Add any existing content blocks first
-                if (response.ContentBlocks != null)
-                {
-                    contentBlocks.AddRange(response.ContentBlocks);
-                }
-                
-                // Add tool call blocks for Gemini format
-                foreach (var toolCall in response.ToolResponseSet.Tools)
-                {
-                    contentBlocks.Add(new ContentBlock
-                    {
-                        ContentType = Core.Models.ContentType.Tool,
-                        Content = JsonConvert.SerializeObject(new
-                        {
-                            toolName = toolCall.ToolName,
-                            parameters = toolCall.ResponseText
-                        })
-                    });
-                }
-                
-                // Notify about assistant message with tool calls
-                if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
-                {
-                    Debug.WriteLine($"🤖 GEMINI: Creating ASSISTANT message - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}, ContentBlocks: {contentBlocks.Count}");
-                    
-                    var message = options.BranchedConversation.AddOrUpdateMessage(
-                        v4BranchedConvMessageRole.Assistant,
-                        options.AssistantMessageId,
-                        contentBlocks,
-                        options.ParentMessageId,
-                        response.Attachments);
-                    
-                    await options.OnAssistantMessageCreated(message);
-                }
-
-                // 4b. Notify about tool calls
-                if (options.OnToolCallsGenerated != null)
-                {
-                    await options.OnToolCallsGenerated(
-                        options.AssistantMessageId,
-                        contentBlocks,
-                        response.ToolResponseSet.Tools);
-                }
-
-                // 5. Add the AI's response with tool calls to conversation history in Gemini format
-                var assistantParts = new JArray();
-                
-                // Add any text content first
-                var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
-                if (!string.IsNullOrEmpty(textContent))
-                {
-                    assistantParts.Add(new JObject 
-                    { 
-                        ["text"] = textContent 
-                    });
-                }
-
-                // Add function call parts in Gemini format
-                foreach (var toolCall in response.ToolResponseSet.Tools)
-                {
-                    assistantParts.Add(new JObject
-                    {
-                        ["functionCall"] = new JObject
-                        {
-                            ["name"] = toolCall.ToolName,
-                            ["args"] = JObject.Parse(toolCall.ResponseText)
-                        }
-                    });
-                }
-
-                linearConv.messages.Add(new LinearConvMessage
-                {
-                    role = "model",
-                    content = assistantParts.ToString()
+        private LinearConvMessage CreateGeminiAssistantMessage(AiResponse response)
+        {
+            var assistantParts = new JArray();
+            
+            // Add any text content first
+            var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
+            if (!string.IsNullOrEmpty(textContent))
+            {
+                assistantParts.Add(new JObject 
+                { 
+                    ["text"] = textContent 
                 });
+            }
 
-                // 6. Execute tools and collect results
-                var functionResponseParts = new JArray();
-                var shouldStopLoop = false;
-
-                foreach (var toolCall in response.ToolResponseSet.Tools)
+            // Add function call parts in Gemini format
+            foreach (var toolCall in response.ToolResponseSet.Tools)
+            {
+                assistantParts.Add(new JObject
                 {
-                    var context = new Core.Interfaces.ToolExecutionContext
+                    ["functionCall"] = new JObject
                     {
-                        ClientId = clientId,
-                        CancellationToken = options.CancellationToken,
-                        BranchedConversation = options.BranchedConversation,
-                        LinearConversation = linearConv,
-                        CurrentIteration = iteration,
-                        AssistantMessageId = options.AssistantMessageId,
-                        ParentMessageId = options.ParentMessageId
-                    };
-
-                    var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
-
-                    // Notify about tool execution
-                    if (options.OnToolExecuted != null)
-                    {
-                        await options.OnToolExecuted(options.AssistantMessageId, toolCall.ToolName, executionResult);
+                        ["name"] = toolCall.ToolName,
+                        ["args"] = JObject.Parse(toolCall.ResponseText)
                     }
-                    
-                    // Check if tool execution indicates we should stop the loop
-                    if (!executionResult.ContinueProcessing || executionResult.UserInterjection != null)
-                    {
-                        shouldStopLoop = true;
-                        
-                        // If there's a user interjection, handle it but continue processing remaining tools
-                        if (executionResult.UserInterjection != null)
-                        {
-                            var interjectionId = Guid.NewGuid().ToString();
-                            
-                            // Notify about interjection
-                            if (options.OnUserInterjection != null)
-                            {
-                                await options.OnUserInterjection(interjectionId, executionResult.UserInterjection);
-                            }
-                            
-                            // Add to linear conversation in Gemini format
-                            linearConv.messages.Add(new LinearConvMessage
-                            {
-                                role = "user",
-                                content = new JArray { new JObject { ["text"] = executionResult.UserInterjection } }.ToString()
-                            });
-                            
-                            // Update parent for next iteration
-                            if (options.BranchedConversation != null)
-                            {
-                                options.ParentMessageId = interjectionId;
-                                options.AssistantMessageId = Guid.NewGuid().ToString();
-                            }
-                        }
-                        // Continue processing remaining tools - don't break here
-                    }
+                });
+            }
 
-                    // Add function response in Gemini format
+            return new LinearConvMessage
+            {
+                role = "model",
+                content = assistantParts.ToString()
+            };
+        }
+
+        private LinearConvMessage CreateGeminiToolResultMessage(List<ContentBlock> toolResultBlocks)
+        {
+            var functionResponseParts = new JArray();
+            
+            foreach (var block in toolResultBlocks)
+            {
+                if (block.ContentType == Core.Models.ContentType.ToolResponse)
+                {
+                    var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
                     functionResponseParts.Add(new JObject
                     {
                         ["functionResponse"] = new JObject
                         {
-                            ["name"] = toolCall.ToolName,
+                            ["name"] = toolData.toolName?.ToString(),
                             ["response"] = new JObject
                             {
-                                ["content"] = executionResult.ResultMessage,
-                                ["success"] = executionResult.WasProcessed
+                                ["content"] = toolData.result?.ToString(),
+                                ["success"] = (bool)(toolData.success ?? false)
                             }
                         }
                     });
                 }
-                
-                // 7. Add tool results to both linear and branched conversations
-                if (functionResponseParts.Any())
-                {
-                    // Add to linear conversation for API in Gemini format
-                    linearConv.messages.Add(new LinearConvMessage
-                    {
-                        role = "user",
-                        content = functionResponseParts.ToString()
-                    });
-                    
-                    // Add to branched conversation as a user message containing tool results
-                    if (options.BranchedConversation != null)
-                    {
-                        var toolResultBlocks = new List<ContentBlock>();
-                        
-                        foreach (var toolResult in functionResponseParts)
-                        {
-                            var functionResponse = toolResult["functionResponse"];
-                            var toolName = functionResponse["name"]?.ToString() ?? "Unknown Tool";
-                            var result = functionResponse["response"]["content"]?.ToString();
-                            var success = (bool)(functionResponse["response"]["success"] ?? false);
-                            
-                            toolResultBlocks.Add(new ContentBlock
-                            {
-                                ContentType = Core.Models.ContentType.ToolResponse,
-                                Content = JsonConvert.SerializeObject(new
-                                {
-                                    toolName = toolName,
-                                    result = result,
-                                    success = success
-                                })
-                            });
-                        }
-                        
-                        // Create a user message with tool results
-                        var toolResultMessageId = Guid.NewGuid().ToString();
-                        Debug.WriteLine($"👤 GEMINI: Creating USER message (tool results) - MessageId: {toolResultMessageId}, ParentId: {options.AssistantMessageId}, ToolResults: {toolResultBlocks.Count}");
-                        
-                        var toolResultMessage = options.BranchedConversation.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.User,
-                            toolResultMessageId,
-                            toolResultBlocks,
-                            options.AssistantMessageId); // Parent is the assistant message that made the tool calls
-
-                        // Notify client about the tool result message via the proper callback
-                        if (options.OnUserMessageCreated != null)
-                        {
-                            await options.OnUserMessageCreated(toolResultMessage);
-                        }
-                        
-                        // Only update parent if we're NOT stopping the loop due to user interjection
-                        // (user interjection already updated parent)
-                        if (!shouldStopLoop)
-                        {
-                            options.ParentMessageId = toolResultMessageId;
-                        }
-                    }
-                }
-
-                // 8. Check if we should stop the loop
-                if (shouldStopLoop)
-                {
-                    // Continue the loop to let the AI respond to the interjection or tool stop
-                    return response; // We're done, return the final text response
-                }
-                
-                // 9. Prepare for next iteration - generate new assistant message ID
-                if (options.BranchedConversation != null)
-                {
-                    options.AssistantMessageId = Guid.NewGuid().ToString();
-                }
             }
-
-            // If we've exceeded max iterations, create error response and add to branched conversation
-            var errorResponse = new AiResponse 
-            { 
-                Success = false, 
-                ContentBlocks = new List<ContentBlock> 
-                { 
-                    new ContentBlock 
-                    { 
-                        Content = $"Exceeded maximum tool iterations ({maxIterations}). The AI may be stuck in a tool loop.",
-                        ContentType = Core.Models.ContentType.Text 
-                    } 
-                } 
-            };
             
-            // Add error message to branched conversation
-            if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+            return new LinearConvMessage
             {
-                Debug.WriteLine($"🤖 GEMINI: Creating ERROR ASSISTANT message (max iterations) - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}");
-                
-                var message = options.BranchedConversation.AddOrUpdateMessage(
-                    v4BranchedConvMessageRole.Assistant,
-                    options.AssistantMessageId,
-                    errorResponse.ContentBlocks,
-                    options.ParentMessageId,
-                    errorResponse.Attachments);
-                
-                await options.OnAssistantMessageCreated(message);
-            }
-            
-            return errorResponse;
+                role = "user",
+                content = functionResponseParts.ToString()
+            };
+        }
+
+        protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
+        {
+            return new LinearConvMessage
+            {
+                role = "user",
+                content = new JArray { new JObject { ["text"] = interjectionText } }.ToString()
+            };
         }
 
         protected override JObject CreateRequestPayload(
@@ -861,15 +651,6 @@ namespace AiStudio4.AiServices
             }
         }
 
-        private AiResponse HandleError(Exception ex, string additionalInfo = "")
-        {
-            string errorMessage = $"Error: {ex.Message}";
-            if (!string.IsNullOrEmpty(additionalInfo))
-            {
-                errorMessage += $" Additional info: {additionalInfo}";
-            }
-            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = Core.Models.ContentType.Text } } };
-        }
         public static string ExtractTrailingJsonObject(string input)
         {
             if (string.IsNullOrEmpty(input))
