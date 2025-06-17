@@ -8,19 +8,12 @@ namespace AiStudio4.Core.Interfaces
 {
     /// <summary>
     /// Defines operations for processing tool/function calls within a chat context.
+    /// NOTE: Most tool processing is now handled by provider-managed tool loops.
+    /// This interface primarily exists for tool re-application functionality.
     /// </summary>
     public interface IToolProcessorService
     {
-        /// <summary>
-        /// Processes tools from an AI response and determines if further processing is needed
-        /// </summary>
-        /// <param name="response">The AI response containing potential tool calls</param>
-        /// <param name="conv">The current conversation state</param>
-        /// <param name="collatedResponse">Builder to accumulate tool execution outputs</param>
-        /// <returns>Whether to continue the tool processing loop</returns>
-        Task<ToolExecutionResult> ProcessToolsAsync(AiResponse response, LinearConv conv, CancellationToken cancellationToken = default, string clientId = null);
-
-        /// <summary>
+         /// <summary>
         /// Re-applies a built-in tool with its original parameters
         /// </summary>
         /// <param name="toolName">The name of the tool to re-apply</param>

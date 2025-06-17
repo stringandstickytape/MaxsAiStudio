@@ -26,7 +26,6 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly ISystemPromptService _systemPromptService;
-        private readonly IToolProcessorService _toolProcessorService;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly IGeneralSettingsService _generalSettingsService;
         private readonly IStatusMessageService _statusMessageService;
@@ -37,13 +36,12 @@ namespace AiStudio4.Services
         
         
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider, AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory strategyFactory)
+        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider, AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory strategyFactory)
         {
             _logger = logger;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _mcpService = mcpService;
-            _toolProcessorService = toolProcessorService;
             _notificationService = notificationService;
             _generalSettingsService = generalSettingsService;
             _statusMessageService = statusMessageService;
@@ -581,72 +579,4 @@ namespace AiStudio4.Services
         }
     }
 
-    public class CustomJsonParser
-    {
-        public static Dictionary<string, object> ParseJson(string json)
-        {
-            using (JsonDocument doc = JsonDocument.Parse(json))
-            {
-                return ProcessJsonElement(doc.RootElement) as Dictionary<string, object>;
-            }
-        }
-
-        private static object ProcessJsonElement(JsonElement element)
-        {
-            switch (element.ValueKind)
-            {
-                case JsonValueKind.Object:
-                    var dictionary = new Dictionary<string, object>();
-                    foreach (var property in element.EnumerateObject())
-                    {
-                        dictionary[property.Name] = ProcessJsonElement(property.Value);
-                    }
-                    return dictionary;
-
-                case JsonValueKind.Array:
-                    
-                    bool allNumbers = true;
-                    foreach (var item in element.EnumerateArray())
-                    {
-                        if (item.ValueKind != JsonValueKind.Number)
-                        {
-                            allNumbers = false;
-                            break;
-                        }
-                    }
-
-                    if (allNumbers)
-                    {
-                        return element.EnumerateArray()
-                            .Select(e => e.GetSingle())
-                            .ToArray();
-                    }
-                    else
-                    {
-                        return element.EnumerateArray()
-                            .Select(ProcessJsonElement)
-                            .ToArray();
-                    }
-
-                case JsonValueKind.String:
-                    return element.GetString();
-
-                case JsonValueKind.Number:
-                    
-                    return element.GetSingle();
-
-                case JsonValueKind.True:
-                    return true;
-
-                case JsonValueKind.False:
-                    return false;
-
-                case JsonValueKind.Null:
-                    return null;
-
-                default:
-                    return null;
-            }
-        }
-    }
 }
