@@ -143,18 +143,25 @@ namespace AiStudio4.AiServices
                     contentBlocks.AddRange(response.ContentBlocks);
                 }
                 
-                // Add tool call blocks
-                foreach (var toolCall in response.ToolResponseSet.Tools)
+                // Only add tool call blocks if they're not already in the content blocks
+                // Check if we already have tool blocks
+                var hasToolBlocks = contentBlocks.Any(cb => cb.ContentType == ContentType.Tool);
+                
+                if (!hasToolBlocks)
                 {
-                    contentBlocks.Add(new ContentBlock
+                    // Add tool call blocks
+                    foreach (var toolCall in response.ToolResponseSet.Tools)
                     {
-                        ContentType = ContentType.Tool,
-                        Content = JsonConvert.SerializeObject(new
+                        contentBlocks.Add(new ContentBlock
                         {
-                            toolName = toolCall.ToolName,
-                            parameters = toolCall.ResponseText
-                        })
-                    });
+                            ContentType = ContentType.Tool,
+                            Content = JsonConvert.SerializeObject(new
+                            {
+                                toolName = toolCall.ToolName,
+                                parameters = toolCall.ResponseText
+                            })
+                        });
+                    }
                 }
                 
                 // Notify about assistant message with tool calls
