@@ -11,7 +11,8 @@
       "Bash(pnpm run:*)",
       "Bash(pnpm add:*)",
       "Bash(ls:*)",
-      "WebFetch(domain:docs.anthropic.com)"
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:ai.google.dev)"
     ],
     "deny": []
   }
