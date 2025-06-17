@@ -531,6 +531,13 @@ namespace AiStudio4.AiServices
                 result = await streamProcessor.ProcessStream(stream, cancellationToken);
                 // Normal completion
                 onStreamingComplete?.Invoke(); // Use callback
+                // Check if response text contains JSON array with tool calls
+                var parsedResponse = TryParseJsonArrayResponse(result.ResponseText);
+                if (parsedResponse != null)
+                {
+                    return parsedResponse;
+                }
+
                 return new AiResponse
                 {
                     ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = result.ResponseText, ContentType = ContentType.Text } },
@@ -665,6 +672,77 @@ namespace AiStudio4.AiServices
         }
 
         protected override ToolFormat GetToolFormat() => ToolFormat.Claude;
+
+        private AiResponse TryParseJsonArrayResponse(string responseText)
+        {
+            try
+            {
+                // Check if response is a JSON array
+                if (!responseText.Trim().StartsWith("[") || !responseText.Trim().EndsWith("]"))
+                    return null;
+
+                var jsonArray = JArray.Parse(responseText);
+                var contentBlocks = new List<ContentBlock>();
+                var toolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
+                foreach (var item in jsonArray)
+                {
+                    var itemType = item["type"]?.ToString();
+                    
+                    if (itemType == "text")
+                    {
+                        // Add text content block
+                        var textContent = item["text"]?.ToString();
+                        if (!string.IsNullOrEmpty(textContent))
+                        {
+                            contentBlocks.Add(new ContentBlock
+                            {
+                                Content = textContent,
+                                ContentType = ContentType.Text
+                            });
+                        }
+                    }
+                    else if (itemType == "tool_use")
+                    {
+                        // Add tool call content block
+                        var toolName = item["name"]?.ToString();
+                        var toolInput = item["input"]?.ToString();
+                        
+                        if (!string.IsNullOrEmpty(toolName))
+                        {
+                            contentBlocks.Add(new ContentBlock
+                            {
+                                Content = JsonConvert.SerializeObject(new { toolName = toolName, parameters = toolInput }),
+                                ContentType = ContentType.Tool
+                            });
+
+                            // Add to tool response set for execution
+                            toolResponseSet.Tools.Add(new ToolResponseItem
+                            {
+                                ToolName = toolName,
+                                ResponseText = toolInput ?? "{}"
+                            });
+                        }
+                    }
+                }
+
+                Debug.WriteLine($"🔍 PARSED JSON ARRAY: {contentBlocks.Count} content blocks, {toolResponseSet.Tools.Count} tools");
+
+                return new AiResponse
+                {
+                    ContentBlocks = contentBlocks,
+                    Success = true,
+                    ToolResponseSet = toolResponseSet,
+                    TokenUsage = new TokenUsage("0", "0", "0", "0"), // Unknown from JSON format
+                    IsCancelled = false
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Failed to parse JSON array response: {ex.Message}");
+                return null;
+            }
+        }
     }
 
     internal class NotEnoughTokensForCachingException : Exception

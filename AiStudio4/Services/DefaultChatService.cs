@@ -341,6 +341,9 @@ namespace AiStudio4.Services
                         combinedContentBlocks.AddRange(response.ContentBlocks);
                     }
                     
+                    _logger.LogInformation("🏁 FINAL: Appending to existing message - Original blocks: {OriginalCount}, Adding: {AddingCount}, Total: {TotalCount}", 
+                        existingMessage.ContentBlocks?.Count ?? 0, response.ContentBlocks?.Count ?? 0, combinedContentBlocks.Count);
+                    
                     finalMessage = request.BranchedConv.AddOrUpdateMessage(
                         role: v4BranchedConvMessageRole.Assistant,
                         newMessageId: finalAssistantMessageId,
@@ -353,6 +356,8 @@ namespace AiStudio4.Services
                 else
                 {
                     // No existing message - create new one (fallback case)
+                    _logger.LogInformation("🏁 FINAL: Creating new final message - Blocks: {BlockCount}", response.ContentBlocks?.Count ?? 0);
+                    
                     finalMessage = request.BranchedConv.AddOrUpdateMessage(
                         role: v4BranchedConvMessageRole.Assistant,
                         newMessageId: finalAssistantMessageId,
