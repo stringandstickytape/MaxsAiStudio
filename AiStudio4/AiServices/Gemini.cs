@@ -380,7 +380,7 @@ namespace AiStudio4.AiServices
                     {
                         shouldStopLoop = true;
                         
-                        // If there's a user interjection, add it to the conversation
+                        // If there's a user interjection, handle it but continue processing remaining tools
                         if (executionResult.UserInterjection != null)
                         {
                             var interjectionId = Guid.NewGuid().ToString();
@@ -404,9 +404,8 @@ namespace AiStudio4.AiServices
                                 options.ParentMessageId = interjectionId;
                                 options.AssistantMessageId = Guid.NewGuid().ToString();
                             }
-                            
-                            break; // Don't execute remaining tools, process the interjection
                         }
+                        // Continue processing remaining tools - don't break here
                     }
 
                     // Add function response in Gemini format
@@ -474,8 +473,12 @@ namespace AiStudio4.AiServices
                             await options.OnUserMessageCreated(toolResultMessage);
                         }
                         
-                        // Store the tool result message ID to update parent for next iteration
-                        options.ParentMessageId = toolResultMessageId;
+                        // Only update parent if we're NOT stopping the loop due to user interjection
+                        // (user interjection already updated parent)
+                        if (!shouldStopLoop)
+                        {
+                            options.ParentMessageId = toolResultMessageId;
+                        }
                     }
                 }
 
