@@ -1,6 +1,7 @@
 using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
+using AiStudio4.Core.Models;
 
 
 using OpenAI;
@@ -161,6 +162,204 @@ namespace AiStudio4.AiServices
                     return HandleError(ex);
                 }
             }
+        }
+
+        public async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, string clientId)
+        {
+            // Initialize OpenAI clients
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
+            InitializeOpenAIClients(ApiModel);
+
+            var linearConv = options.Conv;
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
+                linearConv.systemprompt = options.CustomSystemPrompt;
+            
+            var maxIterations = options.MaxToolIterations ?? 10;
+            
+            for (int iteration = 0; iteration < maxIterations; iteration++)
+            {
+                // 1. Reset tool response set for this iteration
+                ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
+                // 2. Create list of messages for the chat completion
+                List<ChatMessage> messages = new List<ChatMessage>();
+
+                // Add system message if present
+                if (!string.IsNullOrEmpty(linearConv.systemprompt))
+                {
+                    messages.Add(new SystemChatMessage(linearConv.SystemPromptWithDateTime()));
+                }
+
+                // Add conversation messages
+                foreach (var message in linearConv.messages)
+                { 
+                    ChatMessage chatMessage = CreateChatMessage(message);
+                    messages.Add(chatMessage);
+                }
+
+                // 3. Configure chat completion options
+                float temp = options.Model.Requires1fTemp ? 1f : options.ApiSettings.Temperature;
+                
+                ChatCompletionOptions chatOptions = new ChatCompletionOptions
+                {
+                   Temperature = temp
+                };
+
+                // Add TopP if supported
+                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
+                {
+                    chatOptions.TopP = options.TopP.Value;
+                }
+
+                // Set reasoning effort level if applicable
+                if (!string.IsNullOrEmpty(options.Model.ReasoningEffort) && options.Model.ReasoningEffort != "none")
+                {
+                    switch (options.Model.ReasoningEffort)
+                    {
+                        case "low":
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Low;
+                            break;
+                        case "medium":
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
+                            break;
+                        case "high":
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.High;
+                            break;
+                        default:
+                            chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
+                            break;
+                    }
+                }
+
+                // 4. Add all available tools to the request
+                var availableTools = await toolExecutor.GetAvailableToolsAsync(options.ToolIds);
+                if (availableTools.Any())
+                {
+                    await AddToolsToChatOptions(chatOptions, options.ToolIds);
+                    chatOptions.ToolChoice = ChatToolChoice.CreateAutoChoice();
+                }
+
+                // Process embeddings if needed
+                if (options.AddEmbeddings)
+                {
+                    var lastMessage = linearConv.messages.Last();
+                    var newInput = await AddEmbeddingsIfRequired(
+                        linearConv,
+                        options.ApiSettings,
+                        options.MustNotUseEmbedding,
+                        options.AddEmbeddings,
+                        lastMessage.content);
+
+                    // Update the last message content with embeddings
+                    if (messages.Count > 0 && messages.Last() is UserChatMessage userMessage)
+                    {
+                        int lastIndex = messages.Count - 1;
+                        messages[lastIndex] = new UserChatMessage(newInput);
+                    }
+                }
+
+                // 5. Call OpenAI API
+                AiResponse response;
+                try
+                {
+                    response = await HandleStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+                }
+                catch (Exception ex)
+                {
+                    response = HandleError(ex);
+                    if (!response.Success)
+                        return response;
+                }
+
+                // 6. Check for final answer (no tool calls)
+                if (ToolResponseSet == null || !ToolResponseSet.Tools.Any())
+                {
+                    return response; // We're done, return the final text response
+                }
+
+                // 7. Add the AI's response with function calls to conversation history
+                var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
+                var assistantMessage = new LinearConvMessage
+                {
+                    role = "assistant",
+                    content = textContent ?? ""
+                };
+
+                // Add function call information if present
+                if (ToolResponseSet.Tools.Any())
+                {
+                    // For OpenAI, we need to track function calls differently
+                    var firstTool = ToolResponseSet.Tools.First();
+                    assistantMessage.function_call = JsonConvert.SerializeObject(new {
+                        name = firstTool.ToolName,
+                        arguments = firstTool.ResponseText
+                    });
+                }
+
+                linearConv.messages.Add(assistantMessage);
+
+                // 8. Execute tools and collect results
+                var shouldStopLoop = false;
+
+                foreach (var toolCall in ToolResponseSet.Tools)
+                {
+                    var context = new Core.Interfaces.ToolExecutionContext
+                    {
+                        ClientId = clientId,
+                        CancellationToken = options.CancellationToken,
+                        Conversation = null, // We don't have the branched conversation here
+                        CurrentIteration = iteration
+                    };
+
+                    var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
+                    
+                    // Check if tool execution indicates we should stop the loop
+                    if (!executionResult.ContinueProcessing || executionResult.UserInterjection != null)
+                    {
+                        shouldStopLoop = true;
+                        
+                        // If there's a user interjection, add it to the conversation
+                        if (executionResult.UserInterjection != null)
+                        {
+                            linearConv.messages.Add(new LinearConvMessage
+                            {
+                                role = "user",
+                                content = executionResult.UserInterjection
+                            });
+                            break; // Don't execute remaining tools, process the interjection
+                        }
+                    }
+
+                    // Add function result to conversation
+                    linearConv.messages.Add(new LinearConvMessage
+                    {
+                        role = "function",
+                        name = toolCall.ToolName,
+                        content = executionResult.ResultMessage
+                    });
+                }
+
+                // 9. Check if we should stop the loop
+                if (shouldStopLoop)
+                {
+                    // Continue the loop to let the AI respond to the interjection or tool stop
+                    continue;
+                }
+            }
+
+            // If we've exceeded max iterations, return an error response
+            return new AiResponse 
+            { 
+                Success = false, 
+                ContentBlocks = new List<ContentBlock> 
+                { 
+                    new ContentBlock 
+                    { 
+                        Content = $"Exceeded maximum tool iterations ({maxIterations}). The AI may be stuck in a tool loop.",
+                        ContentType = Core.Models.ContentType.Text 
+                    } 
+                } 
+            };
         }
 
         private ChatMessage CreateChatMessage(LinearConvMessage message)

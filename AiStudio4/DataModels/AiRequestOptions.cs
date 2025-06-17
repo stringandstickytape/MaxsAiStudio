@@ -37,6 +37,18 @@ namespace AiStudio4.DataModels
         // Custom system prompt override
         public string CustomSystemPrompt { get; set; }
 
+        /// <summary>
+        /// Maximum number of tool execution iterations before stopping the loop.
+        /// Default is 10 if not specified.
+        /// </summary>
+        public int? MaxToolIterations { get; set; }
+
+        /// <summary>
+        /// Whether to allow user interjections during tool execution.
+        /// Default is true.
+        /// </summary>
+        public bool AllowInterjections { get; set; } = true;
+
         // Callbacks for streaming updates
         public Action<string> OnStreamingUpdate { get; set; }
         public Action OnStreamingComplete { get; set; }

@@ -1,6 +1,7 @@
 using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
+using AiStudio4.Core.Models;
 
 
 using SharedClasses.Providers;
@@ -170,86 +171,8 @@ namespace AiStudio4.AiServices
             if (options.AddEmbeddings)
                 await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
 
-            // bodge for Everything MCP
-
-            if (req["tools"] != null && req["tools"][0]["description"].ToString().StartsWith("Universal file search tool"))
-            {
-                req["tools"][0]["input_schema"] = (JObject)(JsonConvert.DeserializeObject(@"
-                {
-                ""type"": ""object"",
-                ""$defs"": {
-                    ""WindowsSortOption"": {
-                        ""description"": ""Sort options for Windows Everything search."",
-                        ""enum"": [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14],
-                        ""title"": ""WindowsSortOption"",
-                        ""type"": ""integer""
-                    }
-                },
-                ""properties"": {
-                    ""base"": {
-                        ""description"": ""Base search parameters common to all platforms."",
-                        ""properties"": {
-                            ""query"": {
-                                ""description"": ""Search query string. See platform-specific documentation for syntax details."",
-                                ""title"": ""Query"",
-                                ""type"": ""string""
-                            },
-                            ""max_results"": {
-                                ""default"": 100,
-                                ""description"": ""Maximum number of results to return (1-1000)"",
-                                ""maximum"": 1000,
-                                ""minimum"": 1,
-                                ""title"": ""Max Results"",
-                                ""type"": ""integer""
-                            }
-                        },
-                        ""required"": [""query""],
-                        ""title"": ""BaseSearchQuery"",
-                        ""type"": ""object""
-                    },
-                    ""windows_params"": {
-                        ""description"": ""Windows-specific search parameters for Everything SDK."",
-                        ""properties"": {
-                            ""match_path"": {
-                                ""default"": false,
-                                ""description"": ""Match against full path instead of filename only"",
-                                ""title"": ""Match Path"",
-                                ""type"": ""boolean""
-                            },
-                            ""match_case"": {
-                                ""default"": false,
-                                ""description"": ""Enable case-sensitive search"",
-                                ""title"": ""Match Case"",
-                                ""type"": ""boolean""
-                            },
-                            ""match_whole_word"": {
-                                ""default"": false,
-                                ""description"": ""Match whole words only"",
-                                ""title"": ""Match Whole Word"",
-                                ""type"": ""boolean""
-                            },
-                            ""match_regex"": {
-                                ""default"": false,
-                                ""description"": ""Enable regex search"",
-                                ""title"": ""Match Regex"",
-                                ""type"": ""boolean""
-                            },
-                            ""sort_by"": {
-                                ""$ref"": ""#/$defs/WindowsSortOption"",
-                                ""default"": 1,
-                                ""description"": ""Sort order for results""
-                            }
-                        },
-                        ""title"": ""WindowsSpecificParams"",
-                        ""type"": ""object""
-                    }
-                },
-                ""required"": [""base""]
-            }"));
-            }
 
             var json = JsonConvert.SerializeObject(req);//, Formatting.Indented).Replace("\r\n","\n");
-            //File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
 
 
 
@@ -277,6 +200,186 @@ namespace AiStudio4.AiServices
                         throw;
                 }
             }
+        }
+
+        public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
+        {
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
+
+            var linearConv = options.Conv;
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
+                linearConv.systemprompt = options.CustomSystemPrompt;
+            
+            var maxIterations = options.MaxToolIterations ?? 10;
+            
+            for (int iteration = 0; iteration < maxIterations; iteration++)
+            {
+                // 1. Reset tool response set for this iteration
+                ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
+                // 2. Prepare the request payload with all available tools
+                var req = CreateRequestPayload(ApiModel, linearConv, options.ApiSettings);
+                
+                // Add TopP if supported
+                if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+                {
+                    req["top_p"] = options.ApiSettings.TopP;
+                }
+
+                // Add all available tools to the request
+                var availableTools = await toolExecutor.GetAvailableToolsAsync(options.ToolIds);
+                if (availableTools.Any())
+                {
+                    await AddToolsToRequestAsync(req, options.ToolIds);
+                    req["tool_choice"] = new JObject { ["type"] = "auto" };
+                }
+
+                // Add embeddings if required
+                if (options.AddEmbeddings)
+                    await AddEmbeddingsToRequest(req, linearConv, options.ApiSettings, options.MustNotUseEmbedding);
+
+
+                var json = JsonConvert.SerializeObject(req);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                AiResponse response = null;
+                while (true)
+                {
+                    try
+                    {
+                        // 3. Call the Claude API
+                        response = await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+                        break; // Success, exit retry loop
+                    }
+                    catch (NotEnoughTokensForCachingException)
+                    {
+                        if (options.ApiSettings.UsePromptCaching)
+                        {
+                            json = RemoveCachingFromJson(json);
+                            options.ApiSettings.UsePromptCaching = false;
+                            content = new StringContent(json, Encoding.UTF8, "application/json");
+                        }
+                        else
+                            throw;
+                    }
+                }
+
+                // 4. Check for final answer (no tool calls)
+                if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
+                {
+                    return response; // We're done, return the final text response
+                }
+
+                // 5. Add the AI's response with tool calls to conversation history
+                var assistantContent = new JArray();
+                
+                // Add any text content first
+                var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
+                if (!string.IsNullOrEmpty(textContent))
+                {
+                    assistantContent.Add(new JObject 
+                    { 
+                        ["type"] = "text", 
+                        ["text"] = textContent 
+                    });
+                }
+
+                // Add tool use blocks
+                foreach (var toolCall in response.ToolResponseSet.Tools)
+                {
+                    assistantContent.Add(new JObject
+                    {
+                        ["type"] = "tool_use",
+                        ["id"] = $"tool_{Guid.NewGuid():N}"[..15], // Generate short ID
+                        ["name"] = toolCall.ToolName,
+                        ["input"] = JObject.Parse(toolCall.ResponseText)
+                    });
+                }
+
+                linearConv.messages.Add(new LinearConvMessage
+                {
+                    role = "assistant",
+                    content = assistantContent.ToString()
+                });
+
+                // 6. Execute tools and collect results
+                var toolResults = new JArray();
+                var shouldStopLoop = false;
+
+                foreach (var toolCall in response.ToolResponseSet.Tools)
+                {
+                    var context = new Core.Interfaces.ToolExecutionContext
+                    {
+                        ClientId = clientId,
+                        CancellationToken = options.CancellationToken,
+                        Conversation = null, // We don't have the branched conversation here
+                        CurrentIteration = iteration
+                    };
+
+                    var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
+                    
+                    // Check if tool execution indicates we should stop the loop
+                    if (!executionResult.ContinueProcessing || executionResult.UserInterjection != null)
+                    {
+                        shouldStopLoop = true;
+                        
+                        // If there's a user interjection, add it to the conversation
+                        if (executionResult.UserInterjection != null)
+                        {
+                            linearConv.messages.Add(new LinearConvMessage
+                            {
+                                role = "user",
+                                content = executionResult.UserInterjection
+                            });
+                            break; // Don't execute remaining tools, process the interjection
+                        }
+                    }
+
+                    var toolId = assistantContent
+                        .Where(c => c["type"]?.ToString() == "tool_use" && c["name"]?.ToString() == toolCall.ToolName)
+                        .Select(c => c["id"]?.ToString())
+                        .FirstOrDefault() ?? $"tool_{Guid.NewGuid():N}"[..15];
+
+                    toolResults.Add(new JObject
+                    {
+                        ["type"] = "tool_result",
+                        ["tool_use_id"] = toolId,
+                        ["content"] = executionResult.ResultMessage,
+                        ["is_error"] = !executionResult.WasProcessed
+                    });
+                }
+                
+                // 7. Add tool results to conversation history
+                if (toolResults.Any())
+                {
+                    linearConv.messages.Add(new LinearConvMessage
+                    {
+                        role = "user",
+                        content = toolResults.ToString()
+                    });
+                }
+
+                // 8. Check if we should stop the loop
+                if (shouldStopLoop)
+                {
+                    // Continue the loop to let the AI respond to the interjection or tool stop
+                    continue;
+                }
+            }
+
+            // If we've exceeded max iterations, return an error response
+            return new AiResponse 
+            { 
+                Success = false, 
+                ContentBlocks = new List<ContentBlock> 
+                { 
+                    new ContentBlock 
+                    { 
+                        Content = $"Exceeded maximum tool iterations ({maxIterations}). The AI may be stuck in a tool loop.",
+                        ContentType = Core.Models.ContentType.Text 
+                    } 
+                } 
+            };
         }
 
         protected override async Task<AiResponse> HandleStreamingResponse(

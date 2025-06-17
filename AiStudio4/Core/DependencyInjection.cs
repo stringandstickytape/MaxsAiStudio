@@ -70,6 +70,9 @@ namespace AiStudio4.Core
             // BuiltinToolService: Manages the available tools and provides a centralized way to access them.
             services.AddTransient<IBuiltinToolService, BuiltinToolService>();
 
+            // Register the new ToolExecutor for provider-managed tool loops
+            services.AddScoped<Core.Interfaces.IToolExecutor, ToolExecutor>();
+
             return services;
         }
     }

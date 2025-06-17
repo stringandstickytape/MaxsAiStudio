@@ -79,6 +79,17 @@ namespace AiStudio4.AiServices
             return await FetchResponseInternal(options, forceNoTools);
         }
 
+        /// <summary>
+        /// Default implementation that falls back to legacy FetchResponse method.
+        /// Override this in provider-specific implementations for provider-managed tool loops.
+        /// </summary>
+        public virtual async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
+        {
+            // Fallback implementation - just use the legacy single-call method
+            // This will work for providers that don't implement tool loops yet
+            return await FetchResponse(options, forceNoTools: false);
+        }
+
         
         public Task<AiResponse> FetchResponse(
             ServiceProvider serviceProvider,

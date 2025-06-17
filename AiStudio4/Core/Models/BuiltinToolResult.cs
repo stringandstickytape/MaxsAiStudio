@@ -30,5 +30,10 @@ namespace AiStudio4.Core.Models
         /// </summary>
         public List<Attachment> Attachments { get; set; } = new List<Attachment>();
         public string StatusMessage { get;  set; } = string.Empty;
+
+        /// <summary>
+        /// User interjection content if one was received during tool execution
+        /// </summary>
+        public string UserInterjection { get; set; }
     }
 }
