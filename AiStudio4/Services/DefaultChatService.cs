@@ -354,25 +354,60 @@ namespace AiStudio4.Services
                 if (existingMessage != null)
                 {
                     // Assistant message already exists - check if we need to append final response content
-                    // Only append if there are actually new content blocks to add
-                    var hasNewContent = response.ContentBlocks != null && response.ContentBlocks.Any();
+                    // For tool loops, the final response often contains content that was already streamed/added
+                    // So we need to be careful not to duplicate content
                     
                     List<ContentBlock> finalContentBlocks;
-                    if (hasNewContent)
+                    
+                    // Check if the final response has any content that's not already in the existing message
+                    if (response.ContentBlocks != null && response.ContentBlocks.Any())
                     {
-                        // Append new content to existing content
-                        finalContentBlocks = new List<ContentBlock>(existingMessage.ContentBlocks);
-                        finalContentBlocks.AddRange(response.ContentBlocks);
+                        var newContentBlocks = new List<ContentBlock>();
+                        var existingTextContent = string.Join("", existingMessage.ContentBlocks?
+                            .Where(cb => cb.ContentType == ContentType.Text)
+                            .Select(cb => cb.Content) ?? new List<string>());
                         
-                        _logger.LogInformation("🏁 FINAL: Appending to existing message - Original blocks: {OriginalCount}, Adding: {AddingCount}, Total: {TotalCount}", 
-                            existingMessage.ContentBlocks?.Count ?? 0, response.ContentBlocks?.Count ?? 0, finalContentBlocks.Count);
+                        foreach (var newBlock in response.ContentBlocks)
+                        {
+                            // Only add text blocks that aren't already included in existing content
+                            if (newBlock.ContentType == ContentType.Text)
+                            {
+                                if (!existingTextContent.Contains(newBlock.Content ?? ""))
+                                {
+                                    newContentBlocks.Add(newBlock);
+                                }
+                            }
+                            else
+                            {
+                                // Always add non-text blocks (they should be unique)
+                                newContentBlocks.Add(newBlock);
+                            }
+                        }
+                        
+                        if (newContentBlocks.Any())
+                        {
+                            // Append only truly new content
+                            finalContentBlocks = new List<ContentBlock>(existingMessage.ContentBlocks);
+                            finalContentBlocks.AddRange(newContentBlocks);
+                            
+                            _logger.LogInformation("🏁 FINAL: Appending new content - Original blocks: {OriginalCount}, New blocks: {NewCount}, Total: {TotalCount}", 
+                                existingMessage.ContentBlocks?.Count ?? 0, newContentBlocks.Count, finalContentBlocks.Count);
+                        }
+                        else
+                        {
+                            // No truly new content, use existing
+                            finalContentBlocks = existingMessage.ContentBlocks;
+                            
+                            _logger.LogInformation("🏁 FINAL: No new content detected (likely duplicates) - Using existing blocks: {ExistingCount}", 
+                                existingMessage.ContentBlocks?.Count ?? 0);
+                        }
                     }
                     else
                     {
                         // No new content to add, just use existing content
                         finalContentBlocks = existingMessage.ContentBlocks;
                         
-                        _logger.LogInformation("🏁 FINAL: No new content to append - Using existing blocks: {ExistingCount}", 
+                        _logger.LogInformation("🏁 FINAL: No final response content - Using existing blocks: {ExistingCount}", 
                             existingMessage.ContentBlocks?.Count ?? 0);
                     }
                     
