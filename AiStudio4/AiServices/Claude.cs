@@ -509,7 +509,7 @@ namespace AiStudio4.AiServices
                 if (shouldStopLoop)
                 {
                     // Continue the loop to let the AI respond to the interjection or tool stop
-                    continue;
+                    return response;
                 }
                 
                 // 9. Prepare for next iteration - generate new assistant message ID

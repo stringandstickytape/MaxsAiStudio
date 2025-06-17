@@ -223,7 +223,7 @@ namespace AiStudio4.Services
                     TopP = _generalSettingsService.CurrentSettings.ToApiSettings().TopP,
                     MustNotUseEmbedding = true,
                     ToolIds = toolIds,
-                    MaxToolIterations = 10, // Could be configurable
+                    MaxToolIterations = 50, // Could be configurable
                     AllowInterjections = true,
                     // New properties for branched conversation updates
                     BranchedConversation = request.BranchedConv,

@@ -368,7 +368,7 @@ namespace AiStudio4.AiServices
                     };
 
                     var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
-                    
+
                     // Notify about tool execution
                     if (options.OnToolExecuted != null)
                     {
@@ -483,7 +483,7 @@ namespace AiStudio4.AiServices
                 if (shouldStopLoop)
                 {
                     // Continue the loop to let the AI respond to the interjection or tool stop
-                    continue;
+                    return response; // We're done, return the final text response
                 }
                 
                 // 9. Prepare for next iteration - generate new assistant message ID
