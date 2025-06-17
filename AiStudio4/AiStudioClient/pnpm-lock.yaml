@@ -125,6 +125,9 @@ importers:
       '@viz-js/viz':
         specifier: ^3.13.0
         version: 3.13.0
+      abcjs:
+        specifier: ^6.5.1
+        version: 6.5.1
       axios:
         specifier: ^1.10.0
         version: 1.10.0
@@ -2375,6 +2378,9 @@ packages:
 
   '@viz-js/viz@3.13.0':
     resolution: {integrity: sha512-ZFD6txox0OKd1otb1AUxpA4Vq8R/VtcFfNJpC1K5odjUgMAZqMwEYmztFr91dTGd4hQZCjkMd64ji1tWjeoxRQ==}
+
+  abcjs@6.5.1:
+    resolution: {integrity: sha512-kv/VEB8W0JyB1u9BmW4CXiQU225B/EeXXFhtTUtasHVJ+qDTvn3U6sEtnHzl8sRmrQiMRV/EgUTNUu7hXnm1pQ==}
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -8100,6 +8106,8 @@ snapshots:
       - supports-color
 
   '@viz-js/viz@3.13.0': {}
+
+  abcjs@6.5.1: {}
 
   acorn-jsx@5.3.2(acorn@8.15.0):
     dependencies:

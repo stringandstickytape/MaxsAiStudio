@@ -52,6 +52,7 @@
     "@types/styled-components": "^5.1.34",
     "@types/uuid": "^10.0.0",
     "@viz-js/viz": "^3.13.0",
+    "abcjs": "^6.5.1",
     "axios": "^1.10.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

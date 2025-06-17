@@ -353,7 +353,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
       >
         
         <div 
-          className={`ConvView message-container px-3 py-2 shadow-md inline-block ${
+          className={`ConvView message-container px-3 pt-2 shadow-md inline-block ${
             message.source === 'user' ? 'justify-self-end' : 'justify-self-start'
           }`}
           style={{
