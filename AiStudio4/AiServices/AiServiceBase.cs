@@ -475,8 +475,7 @@ namespace AiStudio4.AiServices
 
         protected virtual JObject CreateMessageObject(LinearConvMessage message)
         {
-            
-            return new JObject();
+            return MessageBuilder.CreateMessage(message, GetProviderFormat());
         }
 
         protected virtual async Task AddToolsToRequestAsync(JObject request, List<string> toolIDs)
@@ -495,6 +494,11 @@ namespace AiStudio4.AiServices
         protected virtual ToolFormat GetToolFormat()
         {
             return ToolFormat.OpenAI; 
+        }
+
+        protected virtual ProviderFormat GetProviderFormat()
+        {
+            return ProviderFormat.OpenAI;
         }
 
         protected virtual AiResponse HandleError(Exception ex, string additionalInfo = "")

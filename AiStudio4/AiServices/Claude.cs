@@ -19,8 +19,17 @@ namespace AiStudio4.AiServices
     internal class Claude : AiServiceBase
     {
         private string oneOffPreFill;
+        private readonly ClaudeToolResponseProcessor _toolResponseProcessor;
+        private readonly Queue<string> _toolIdQueue = new Queue<string>();
+        
+        public Claude()
+        {
+            _toolResponseProcessor = new ClaudeToolResponseProcessor();
+        }
         
         public void SetOneOffPreFill(string prefill) => oneOffPreFill = prefill;
+
+        protected override ProviderFormat GetProviderFormat() => ProviderFormat.Claude;
 
         protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
@@ -44,100 +53,16 @@ namespace AiStudio4.AiServices
 
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
         {
-            var req = new JObject
-            {
-                ["model"] = modelName,
-                ["max_tokens"] = (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest") ? 64000 : 8192,
-                ["stream"] = true,
-                ["temperature"] = apiSettings.Temperature,
-            };
-
-            if (!string.IsNullOrWhiteSpace(conv.systemprompt))
-                req["system"] = conv.systemprompt;
-
-            var messagesArray = new JArray();
-            int userMessageCount = 0;
-            int totalUserMessages = conv.messages.Count(m => m.role.ToLower() == "user");
-
-            foreach (var message in conv.messages)
-            {
-                var contentArray = new JArray();
-
-                // Handle legacy single image
-                if (message.base64image != null)
-                {
-                    contentArray.Add(new JObject
-                    {
-                        ["type"] = "image",
-                        ["source"] = new JObject
-                        {
-                            ["type"] = "base64",
-                            ["media_type"] = message.base64type,
-                            ["data"] = message.base64image
-                        }
-                    });
-                }
-                
-                // Handle multiple attachments
-                if (message.attachments != null && message.attachments.Any())
-                {
-                    foreach (var attachment in message.attachments)
-                    {
-                        if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
-                        {
-                            contentArray.Add(new JObject
-                            {
-                                ["type"] = attachment.Type == "application/pdf" ? "document" : "image",
-                                ["source"] = new JObject
-                                {
-                                    ["type"] = "base64",
-                                    ["media_type"] = attachment.Type,
-                                    ["data"] = attachment.Content
-                                }
-                            });
-                        }
-                        // Additional attachment types could be handled here
-                    }
-                }
-
-                contentArray.Add(new JObject
-                {
-                    ["type"] = "text",
-                    ["text"] = message.content.Replace("\r", "")
-                });
-
-                var messageObject = new JObject
-                {
-                    ["role"] = message.role,
-                    ["content"] = contentArray
-                };
-
-                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user")
-                {
-                    userMessageCount++;
-                }
-
-                // Add cache_control to the last 4 user messages
-                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user" && 
-                    (totalUserMessages - userMessageCount) < 4)
-                {
-                    messageObject["content"][0]["cache_control"] = new JObject { ["type"] = "ephemeral" };
-                }
-                
-                messagesArray.Add(messageObject);
-            }
-
-            if (oneOffPreFill != null)
-            {
-                messagesArray.Add(new JObject
-                {
-                    ["role"] = "assistant",
-                    ["content"] = new JArray { new JObject { ["type"] = "text", ["text"] = oneOffPreFill.Trim() } }
-                });
-            }
-
-            req["messages"] = messagesArray;
-            return req;
+            return RequestPayloadBuilder.Create(ProviderFormat.Claude)
+                .WithModel(modelName)
+                .WithConversation(conv)
+                .WithApiSettings(apiSettings)
+                .WithSystemPrompt(conv.systemprompt)
+                .WithGenerationConfig()
+                .WithMessages()
+                .WithPromptCaching(apiSettings.UsePromptCaching)
+                .WithOneOffPreFill(oneOffPreFill)
+                .Build();
         }
 
         // Override the FetchResponseInternal method to implement Claude-specific logic
@@ -260,6 +185,7 @@ namespace AiStudio4.AiServices
         private LinearConvMessage CreateClaudeAssistantMessage(AiResponse response)
         {
             var assistantContent = new JArray();
+            _toolIdQueue.Clear(); // Clear previous tool IDs
             
             // Add any text content first
             var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
@@ -275,20 +201,27 @@ namespace AiStudio4.AiServices
             // Add tool use blocks
             foreach (var toolCall in response.ToolResponseSet.Tools)
             {
+                var toolId = toolCall.ToolId ?? $"tool_{Guid.NewGuid():N}"[..15]; // Use Claude's ID or fallback
+                _toolIdQueue.Enqueue(toolId); // Store in order for later use
+                System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT: Creating tool_use with id: {toolId}, tool: {toolCall.ToolName}");
+                
                 assistantContent.Add(new JObject
                 {
                     ["type"] = "tool_use",
-                    ["id"] = $"tool_{Guid.NewGuid():N}"[..15], // Generate short ID
+                    ["id"] = toolId,
                     ["name"] = toolCall.ToolName,
                     ["input"] = JObject.Parse(toolCall.ResponseText)
                 });
             }
 
-            return new LinearConvMessage
+            var result = new LinearConvMessage
             {
                 role = "assistant",
                 content = assistantContent.ToString()
             };
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.content}");
+            return result;
         }
 
         private LinearConvMessage CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
@@ -300,21 +233,33 @@ namespace AiStudio4.AiServices
                 if (block.ContentType == ContentType.ToolResponse)
                 {
                     var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
+                    var toolName = toolData.toolName?.ToString();
+                    
+                    // Use the next tool ID from the queue (preserves order)
+                    var toolResultId = _toolIdQueue.Count > 0 
+                        ? _toolIdQueue.Dequeue() 
+                        : $"tool_{Guid.NewGuid():N}"[..15];
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}");
+                    
                     toolResults.Add(new JObject
                     {
                         ["type"] = "tool_result",
-                        ["tool_use_id"] = $"tool_{Guid.NewGuid():N}"[..15], // Generate ID
+                        ["tool_use_id"] = toolResultId,
                         ["content"] = toolData.result?.ToString(),
                         ["is_error"] = !(bool)(toolData.success ?? false)
                     });
                 }
             }
             
-            return new LinearConvMessage
+            var result = new LinearConvMessage
             {
                 role = "user",
                 content = toolResults.ToString()
             };
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.content}");
+            return result;
         }
 
         protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
@@ -676,12 +621,15 @@ namespace AiStudio4.AiServices
                         if (contentBlockType.ToString() == "tool_use")
                         {
                             ChosenTool = eventData["content_block"]?["name"].ToString();
+                            var claudeToolId = eventData["content_block"]?["id"]?.ToString();
+                            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE STREAMING: Received tool_use with id: {claudeToolId}, tool: {ChosenTool}");
 
                             // Create a new ToolResponseItem when a tool is chosen
                             var toolResponseItem = new ToolResponseItem
                             {
                                 ToolName = ChosenTool,
-                                ResponseText = ""
+                                ResponseText = "",
+                                ToolId = claudeToolId // Store Claude's actual tool ID
                             };
 
                             currentResponseItem = toolResponseItem;

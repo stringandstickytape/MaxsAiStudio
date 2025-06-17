@@ -7,7 +7,7 @@ import { RefreshCw } from 'lucide-react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useModalStore } from '@/stores/useModalStore';
 
-export const ToolContentRenderer: React.FC<ContentBlockRendererProps> = ({ block }) => {
+export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = ({ block }) => {
   const showDevContentView = useDebugStore((state) => state.showDevContentView);
   const { isLoading, executeApiCall } = useApiCallState();
   const { openModal } = useModalStore();

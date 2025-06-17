@@ -4,6 +4,7 @@ import { TextContentRenderer } from './TextContentRenderer';
 import { SystemContentRenderer } from './SystemContentRenderer';
 import { AiHiddenContentRenderer } from './AiHiddenContentRenderer';
 import { ToolContentRenderer } from './ToolContentRenderer';
+import { ToolResponseContentRenderer } from './ToolResponseContentRenderer';
 
 export interface ContentBlockRendererProps {
   block: ContentBlock;
@@ -20,7 +21,7 @@ class ContentBlockRendererRegistry {
     this.register('system', SystemContentRenderer);
     this.register('aihidden', AiHiddenContentRenderer);
     this.register('tool', ToolContentRenderer);
-    this.register('toolresponse', ToolContentRenderer); // Reuse for now, can create specific renderer later
+    this.register('toolresponse', ToolResponseContentRenderer); 
   }
 
   register(type: string, component: ContentBlockRendererComponent) {

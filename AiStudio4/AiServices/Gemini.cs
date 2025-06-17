@@ -25,10 +25,14 @@ namespace AiStudio4.AiServices
     internal class Gemini : AiServiceBase
     {
         private readonly List<GenImage> _generatedImages = new List<GenImage>();
+        private readonly GeminiToolResponseProcessor _toolResponseProcessor;
 
         public Gemini()
         {
+            _toolResponseProcessor = new GeminiToolResponseProcessor();
         }
+
+        protected override ProviderFormat GetProviderFormat() => ProviderFormat.Gemini;
 
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
@@ -54,18 +58,26 @@ namespace AiStudio4.AiServices
 
             var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
 
-            
+            // Add TopP if supported
+            if (options.Model.AllowsTopP && options.TopP.HasValue)
+            {
+                requestPayload = RequestPayloadBuilder.Create(ProviderFormat.Gemini)
+                    .WithModel(ApiModel)
+                    .WithConversation(options.Conv)
+                    .WithApiSettings(options.ApiSettings)
+                    .WithGenerationConfig()
+                    .WithMessages()
+                    .WithTopP(options.TopP)
+                    .Build();
+            }
+
             // Add tools to request if not forcing no tools
-            // Special handling for GEMINI_INTERNAL_GOOGLE_SEARCH directive
             bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
             
             if (!forceNoTools)
             {
                 if (hasGoogleSearchDirective)
                 {
-                    // When GEMINI_INTERNAL_GOOGLE_SEARCH is specified, add Google Search tool
-                    
-                    // Add Google Search tool to the request
                     requestPayload["tools"] = new JArray
                     {
                         new JObject
@@ -79,63 +91,6 @@ namespace AiStudio4.AiServices
                     await AddToolsToRequestAsync(requestPayload, options.ToolIds);
                 }
             }
-
-            
-            var contentsArray = new JArray();
-            foreach (var message in options.Conv.messages)
-            {
-                var messageObj = CreateMessageObject(message);
-                contentsArray.Add(messageObj);
-            }
-
-
-
-
-            
-            if (ApiModel == "gemini-2.0-flash-exp-image-generation")
-            {
-                requestPayload["generationConfig"] = new JObject
-                {
-                    ["responseModalities"] = new JArray { "Text", "Image" },
-                    ["temperature"] = options.ApiSettings.Temperature
-                };
-                // Add TopP from options.TopP (which was populated from ApiSettings)
-                // The value in options.TopP should be pre-validated (0.0 to 1.0).
-                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
-                {
-                    ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
-                }
-            }
-            else
-            {
-                requestPayload["system_instruction"] = new JObject
-                {
-                    ["parts"] = new JObject
-                    {
-                        ["text"] = options.Conv.SystemPromptWithDateTime()
-                    }
-                };
-                requestPayload["generationConfig"] = new JObject
-                {
-                    ["temperature"] = options.ApiSettings.Temperature
-                };
-                // Add TopP from options.TopP (which was populated from ApiSettings)
-                // The value in options.TopP should be pre-validated (0.0 to 1.0).
-                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
-                {
-                    ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
-                }
-            }
-
-
-
-            if (requestPayload["contents"] != null)
-            {
-                requestPayload.Remove("contents");
-            }
-
-            
-            requestPayload.Add("contents", contentsArray);
 
             
             
@@ -171,14 +126,25 @@ namespace AiStudio4.AiServices
         {
             _generatedImages.Clear();
             
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
+            var builder = RequestPayloadBuilder.Create(ProviderFormat.Gemini)
+                .WithModel(ApiModel)
+                .WithConversation(options.Conv)
+                .WithApiSettings(options.ApiSettings)
+                .WithGenerationConfig()
+                .WithMessages();
+
+            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            {
+                builder = builder.WithTopP(options.ApiSettings.TopP);
+            }
+
+            var requestPayload = builder.Build();
             
             // Special handling for GEMINI_INTERNAL_GOOGLE_SEARCH directive
             bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
             
             if (hasGoogleSearchDirective)
             {
-                // Add Google Search tool to the request
                 requestPayload["tools"] = new JArray
                 {
                     new JObject
@@ -192,52 +158,6 @@ namespace AiStudio4.AiServices
                 await AddToolsToRequestAsync(requestPayload, options.ToolIds);
             }
 
-            // Build contents array
-            var contentsArray = new JArray();
-            foreach (var message in options.Conv.messages)
-            {
-                var messageObj = CreateMessageObject(message);
-                contentsArray.Add(messageObj);
-            }
-
-            // Configure generation settings
-            if (ApiModel == "gemini-2.0-flash-exp-image-generation")
-            {
-                requestPayload["generationConfig"] = new JObject
-                {
-                    ["responseModalities"] = new JArray { "Text", "Image" },
-                    ["temperature"] = options.ApiSettings.Temperature
-                };
-                if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
-                {
-                    ((JObject)requestPayload["generationConfig"])["topP"] = options.ApiSettings.TopP;
-                }
-            }
-            else
-            {
-                requestPayload["system_instruction"] = new JObject
-                {
-                    ["parts"] = new JObject
-                    {
-                        ["text"] = options.Conv.SystemPromptWithDateTime()
-                    }
-                };
-                requestPayload["generationConfig"] = new JObject
-                {
-                    ["temperature"] = options.ApiSettings.Temperature
-                };
-                if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
-                {
-                    ((JObject)requestPayload["generationConfig"])["topP"] = options.ApiSettings.TopP;
-                }
-            }
-
-            if (requestPayload["contents"] != null)
-            {
-                requestPayload.Remove("contents");
-            }
-            requestPayload.Add("contents", contentsArray);
-
             var jsonPayload = JsonConvert.SerializeObject(requestPayload);
             var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
@@ -246,76 +166,17 @@ namespace AiStudio4.AiServices
 
         private LinearConvMessage CreateGeminiAssistantMessage(AiResponse response)
         {
-            var assistantParts = new JArray();
-            
-            // Add any text content first
-            var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
-            if (!string.IsNullOrEmpty(textContent))
-            {
-                assistantParts.Add(new JObject 
-                { 
-                    ["text"] = textContent 
-                });
-            }
-
-            // Add function call parts in Gemini format
-            foreach (var toolCall in response.ToolResponseSet.Tools)
-            {
-                assistantParts.Add(new JObject
-                {
-                    ["functionCall"] = new JObject
-                    {
-                        ["name"] = toolCall.ToolName,
-                        ["args"] = JObject.Parse(toolCall.ResponseText)
-                    }
-                });
-            }
-
-            return new LinearConvMessage
-            {
-                role = "model",
-                content = assistantParts.ToString()
-            };
+            return _toolResponseProcessor.CreateAssistantMessage(response);
         }
 
         private LinearConvMessage CreateGeminiToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
-            var functionResponseParts = new JArray();
-            
-            foreach (var block in toolResultBlocks)
-            {
-                if (block.ContentType == Core.Models.ContentType.ToolResponse)
-                {
-                    var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
-                    functionResponseParts.Add(new JObject
-                    {
-                        ["functionResponse"] = new JObject
-                        {
-                            ["name"] = toolData.toolName?.ToString(),
-                            ["response"] = new JObject
-                            {
-                                ["content"] = toolData.result?.ToString(),
-                                ["success"] = (bool)(toolData.success ?? false)
-                            }
-                        }
-                    });
-                }
-            }
-            
-            return new LinearConvMessage
-            {
-                role = "user",
-                content = functionResponseParts.ToString()
-            };
+            return _toolResponseProcessor.CreateToolResultMessage(toolResultBlocks);
         }
 
         protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
         {
-            return new LinearConvMessage
-            {
-                role = "user",
-                content = new JArray { new JObject { ["text"] = interjectionText } }.ToString()
-            };
+            return _toolResponseProcessor.CreateUserInterjectionMessage(interjectionText);
         }
 
         protected override JObject CreateRequestPayload(
@@ -323,65 +184,18 @@ namespace AiStudio4.AiServices
     LinearConv conv,
     ApiSettings apiSettings)
         {
-            return new JObject
-            {
-                ["contents"] = new JArray()
-            };
+            return RequestPayloadBuilder.Create(ProviderFormat.Gemini)
+                .WithModel(apiModel)
+                .WithConversation(conv)
+                .WithApiSettings(apiSettings)
+                .WithGenerationConfig()
+                .WithMessages()
+                .Build();
         }
 
         protected override JObject CreateMessageObject(LinearConvMessage message)
         {
-            var partArray = new JArray();
-
-            // Try to parse content as structured parts first (for tool calls/responses)
-            try
-            {
-                var parsedContent = JArray.Parse(message.content);
-                partArray = parsedContent;
-            }
-            catch
-            {
-                // If parsing fails, treat as plain text
-                partArray.Add(new JObject { ["text"] = message.content });
-            }
-
-            // Add legacy single image if present
-            if (!string.IsNullOrEmpty(message.base64image))
-            {
-                partArray.Add(new JObject
-                {
-                    ["inline_data"] = new JObject
-                    {
-                        ["mime_type"] = message.base64type,
-                        ["data"] = message.base64image
-                    }
-                });
-            }
-
-            // Add multiple attachments if present
-            if (message.attachments != null && message.attachments.Any())
-            {
-                foreach (var attachment in message.attachments)
-                {
-                    if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
-                    {
-                        partArray.Add(new JObject
-                        {
-                            ["inline_data"] = new JObject
-                            {
-                                ["mime_type"] = attachment.Type,
-                                ["data"] = attachment.Content
-                            }
-                        });
-                    }
-                }
-            }
-
-            return new JObject
-            {
-                ["role"] = message.role == "assistant" ? "model" : message.role,
-                ["parts"] = partArray
-            };
+            return MessageBuilder.CreateMessage(message, ProviderFormat.Gemini);
         }
 
 
