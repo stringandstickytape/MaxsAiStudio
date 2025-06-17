@@ -289,24 +289,31 @@ namespace AiStudio4.AiServices
                 // 4a. Build complete content blocks including tool calls
                 var contentBlocks = new List<ContentBlock>();
                 
-                // Add any text content first
+                // Add any existing content blocks first
                 if (response.ContentBlocks != null)
                 {
                     contentBlocks.AddRange(response.ContentBlocks);
                 }
                 
-                // Add tool call blocks
-                foreach (var toolCall in response.ToolResponseSet.Tools)
+                // Only add tool call blocks if they're not already in the content blocks
+                // Check if we already have tool blocks (from TryParseJsonArrayResponse)
+                var hasToolBlocks = contentBlocks.Any(cb => cb.ContentType == ContentType.Tool);
+                
+                if (!hasToolBlocks)
                 {
-                    contentBlocks.Add(new ContentBlock
+                    // Add tool call blocks manually (for streaming responses that don't use JSON array format)
+                    foreach (var toolCall in response.ToolResponseSet.Tools)
                     {
-                        ContentType = ContentType.Tool,
-                        Content = JsonConvert.SerializeObject(new
+                        contentBlocks.Add(new ContentBlock
                         {
-                            toolName = toolCall.ToolName,
-                            parameters = toolCall.ResponseText
-                        })
-                    });
+                            ContentType = ContentType.Tool,
+                            Content = JsonConvert.SerializeObject(new
+                            {
+                                toolName = toolCall.ToolName,
+                                parameters = toolCall.ResponseText
+                            })
+                        });
+                    }
                 }
                 
                 // Notify about assistant message with tool calls
