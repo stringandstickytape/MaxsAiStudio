@@ -34,73 +34,67 @@ namespace AiStudio4.AiServices
 
         protected override ProviderFormat GetProviderFormat() => ProviderFormat.Gemini;
 
-        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
+        protected override async Task AddTopPToRequest(JObject request, float topP)
         {
-            
-            _generatedImages.Clear();
-            
-            ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
-            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
+            // Gemini requires rebuilding the request with TopP
+            // This is handled in CustomizeRequest instead
+            await Task.CompletedTask;
+        }
 
-            
-            if (options.Model.IsTtsModel)
+        protected override async Task CustomizeRequest(JObject request, AiRequestOptions options)
+        {
+            // Handle TopP for Gemini (requires rebuilding request)
+            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
             {
-                return await HandleTtsRequestAsync(options);
-            }
-
-            var url = $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}";
-
-            
-            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
-            {
-                options.Conv.systemprompt = options.CustomSystemPrompt;
-            }
-
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
-
-            // Add TopP if supported
-            if (options.Model.AllowsTopP && options.TopP.HasValue)
-            {
-                requestPayload = RequestPayloadBuilder.Create(ProviderFormat.Gemini)
+                var newRequest = RequestPayloadBuilder.Create(ProviderFormat.Gemini)
                     .WithModel(ApiModel)
                     .WithConversation(options.Conv)
                     .WithApiSettings(options.ApiSettings)
                     .WithGenerationConfig()
                     .WithMessages()
-                    .WithTopP(options.TopP)
+                    .WithTopP(options.ApiSettings.TopP)
                     .Build();
+
+                // Copy all properties from new request to existing request
+                request.RemoveAll();
+                foreach (var property in newRequest.Properties())
+                {
+                    request[property.Name] = property.Value;
+                }
             }
 
-            // Add tools to request if not forcing no tools
+            // Handle special Google Search directive
             bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
-            
-            if (!forceNoTools)
+            if (hasGoogleSearchDirective)
             {
-                if (hasGoogleSearchDirective)
+                request["tools"] = new JArray
                 {
-                    requestPayload["tools"] = new JArray
+                    new JObject
                     {
-                        new JObject
-                        {
-                            ["google_search"] = new JObject()
-                        }
-                    };
-                }
-                else
-                {
-                    await AddToolsToRequestAsync(requestPayload, options.ToolIds);
-                }
+                        ["google_search"] = new JObject()
+                    }
+                };
             }
 
-            
-            
-            
-            
-            var jsonPayload = JsonConvert.SerializeObject(requestPayload);
-            using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
+            await base.CustomizeRequest(request, options);
+        }
+
+        protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
+        {
+            _generatedImages.Clear();
+            ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
+
+            // Handle TTS models specially
+            if (options.Model.IsTtsModel)
             {
-                return await HandleResponse(options, content); 
+                return await HandleTtsRequestAsync(options);
             }
+
+            return await MakeStandardApiCall(options, async (content) =>
+            {
+                return await HandleResponse(options, content);
+            }, forceNoTools);
         }
 
         public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
@@ -126,42 +120,10 @@ namespace AiStudio4.AiServices
         {
             _generatedImages.Clear();
             
-            var builder = RequestPayloadBuilder.Create(ProviderFormat.Gemini)
-                .WithModel(ApiModel)
-                .WithConversation(options.Conv)
-                .WithApiSettings(options.ApiSettings)
-                .WithGenerationConfig()
-                .WithMessages();
-
-            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            return await MakeStandardApiCall(options, async (content) =>
             {
-                builder = builder.WithTopP(options.ApiSettings.TopP);
-            }
-
-            var requestPayload = builder.Build();
-            
-            // Special handling for GEMINI_INTERNAL_GOOGLE_SEARCH directive
-            bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
-            
-            if (hasGoogleSearchDirective)
-            {
-                requestPayload["tools"] = new JArray
-                {
-                    new JObject
-                    {
-                        ["google_search"] = new JObject()
-                    }
-                };
-            }
-            else
-            {
-                await AddToolsToRequestAsync(requestPayload, options.ToolIds);
-            }
-
-            var jsonPayload = JsonConvert.SerializeObject(requestPayload);
-            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
-
-            return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+                return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+            });
         }
 
         private LinearConvMessage CreateGeminiAssistantMessage(AiResponse response)
@@ -386,7 +348,7 @@ namespace AiStudio4.AiServices
                         {
                             ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = toolArgs, ContentType = Core.Models.ContentType.Text } },
                             Success = true,
-                            TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
+                            TokenUsage = CreateTokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
                             ChosenTool = toolName,
                             ToolResponseSet = ToolResponseSet,
                             IsCancelled = false 
@@ -399,19 +361,7 @@ namespace AiStudio4.AiServices
                 }
 
                 
-                var attachments = new List<DataModels.Attachment>();
-                int imageIndex = 1;
-                foreach (var image in _generatedImages)
-                {
-                    attachments.Add(new DataModels.Attachment
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Name = $"generated_image_{imageIndex++}.png",
-                        Type = image.MimeType,
-                        Content = image.Base64Data,
-                        Size = image.Base64Data.Length * 3 / 4 
-                    });
-                }
+                var attachments = BuildImageAttachments();
                 currentResponseItem = null;
 
                 Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set: {string.Join(",", ToolResponseSet.Tools.Select(x => x.ToolName))}... (2)");
@@ -419,7 +369,7 @@ namespace AiStudio4.AiServices
                 {
                     ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = fullResponse.ToString(), ContentType = Core.Models.ContentType.Text } },
                     Success = true,
-                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount ?? "0"),
+                    TokenUsage = CreateTokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
                     ChosenTool = null,
                     Attachments = attachments.Count > 0 ? attachments : null,
                     ToolResponseSet = ToolResponseSet,
@@ -428,35 +378,19 @@ namespace AiStudio4.AiServices
             }
             catch (OperationCanceledException)
             {
-                
-                
-                
                 Debug.WriteLine("Cancelled. ");
-                var attachments = new List<DataModels.Attachment>();
-                int imageIndex = 1;
-                foreach (var image in _generatedImages)
-                {
-                    attachments.Add(new DataModels.Attachment
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Name = $"generated_image_{imageIndex++}.png",
-                        Type = image.MimeType,
-                        Content = image.Base64Data,
-                        Size = image.Base64Data.Length * 3 / 4 
-                    });
-                }
+                var attachments = BuildImageAttachments();
                 currentResponseItem = null;
                 
-                return new AiResponse
-                {
-                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = fullResponse.ToString(), ContentType = Core.Models.ContentType.Text } },
-                    Success = true, 
-                    TokenUsage = new TokenUsage(inputTokenCount ?? "0", outputTokenCount ?? "0", "0", cachedTokenCount ?? "0"),
-                    ChosenTool = chosenTool, 
-                    Attachments = attachments.Count > 0 ? attachments : null,
-                    ToolResponseSet = ToolResponseSet, 
-                    IsCancelled = true
-                };
+                var tokenUsage = CreateTokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount);
+                
+                return HandleCancellation(
+                    fullResponse.ToString(),
+                    tokenUsage,
+                    ToolResponseSet,
+                    chosenTool,
+                    attachments.Count > 0 ? attachments : null
+                );
             }
             catch (Exception ex)
             {
@@ -696,6 +630,24 @@ namespace AiStudio4.AiServices
             return ToolFormat.Gemini;
         }
 
+        private List<DataModels.Attachment> BuildImageAttachments()
+        {
+            var attachments = new List<DataModels.Attachment>();
+            int imageIndex = 1;
+            foreach (var image in _generatedImages)
+            {
+                attachments.Add(new DataModels.Attachment
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = $"generated_image_{imageIndex++}.png",
+                    Type = image.MimeType,
+                    Content = image.Base64Data,
+                    Size = image.Base64Data.Length * 3 / 4 
+                });
+            }
+            return attachments;
+        }
+
         private void RemoveAllOfAnyOfOneOf(JObject obj)
         {
             if (obj == null) return;
@@ -850,7 +802,7 @@ namespace AiStudio4.AiServices
                         Success = true,
                         ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = $"Audio generated for: \"{textToSynthesize.Substring(0, Math.Min(textToSynthesize.Length, 50))}...\"", ContentType = Core.Models.ContentType.Text } },
                         Attachments = new List<Attachment> { attachment },
-                        TokenUsage = new TokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), 
+                        TokenUsage = CreateTokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), 
                     };
                 }
                 catch (Exception ex)

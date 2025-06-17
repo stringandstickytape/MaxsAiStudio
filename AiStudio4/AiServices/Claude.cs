@@ -51,6 +51,12 @@ namespace AiStudio4.AiServices
                 client.DefaultRequestHeaders.Add("anthropic-beta", string.Join(", ", betaFeatures));
         }
 
+        protected override async Task AddEmbeddingsToRequest(JObject request, LinearConv conv, ApiSettings apiSettings, bool mustNotUseEmbedding)
+        {
+            // Claude-specific embeddings implementation (currently empty in original)
+            await Task.CompletedTask;
+        }
+
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
         {
             return RequestPayloadBuilder.Create(ProviderFormat.Claude)
@@ -73,57 +79,38 @@ namespace AiStudio4.AiServices
             
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
-            // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
-                options.Conv.systemprompt = options.CustomSystemPrompt;
-
-            var req = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
-
-            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            return await MakeStandardApiCall(options, async (content) =>
             {
-                req["top_p"] = options.ApiSettings.TopP;
-            }
-
-            if (!forceNoTools)
-            {
-                await AddToolsToRequestAsync(req, options.ToolIds);
-            }
-
-            if (req["tools"] != null)
-                req["tool_choice"] = new JObject { ["type"] = "any" };
-
-            if (options.AddEmbeddings)
-                await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
-
-
-            var json = JsonConvert.SerializeObject(req);//, Formatting.Indented).Replace("\r\n","\n");
-
-
-
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            while (true)
-            {
-                try
+                while (true)
                 {
-                    if (oneOffPreFill != null)
+                    try
                     {
-                        oneOffPreFill = null;
+                        if (oneOffPreFill != null)
+                        {
+                            oneOffPreFill = null;
+                        }
+                        return await HandleResponse(options, content);
                     }
-                    return await HandleResponse(options, content);
-                }
-                catch (NotEnoughTokensForCachingException)
-                {
-                    if (options.ApiSettings.UsePromptCaching)
+                    catch (NotEnoughTokensForCachingException)
                     {
-                        json = RemoveCachingFromJson(json);
-                        options.ApiSettings.UsePromptCaching = false;
-                        content = new StringContent(json, Encoding.UTF8, "application/json");
+                        if (options.ApiSettings.UsePromptCaching)
+                        {
+                            var json = await content.ReadAsStringAsync();
+                            json = RemoveCachingFromJson(json);
+                            options.ApiSettings.UsePromptCaching = false;
+                            content = new StringContent(json, Encoding.UTF8, "application/json");
+                        }
+                        else
+                            throw;
                     }
-                    else
-                        throw;
                 }
-            }
+            }, forceNoTools);
+        }
+
+        protected override async Task CustomizeRequest(JObject request, AiRequestOptions options)
+        {
+            // Claude-specific request customizations can go here
+            await base.CustomizeRequest(request, options);
         }
 
         public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
@@ -141,45 +128,36 @@ namespace AiStudio4.AiServices
 
         private async Task<AiResponse> MakeClaudeApiCall(AiRequestOptions options)
         {
-            var req = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
-            
-            // Add TopP if supported
-            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            return await MakeStandardApiCall(options, async (content) =>
             {
-                req["top_p"] = options.ApiSettings.TopP;
-            }
-
-            // Add tools to the request
-            await AddToolsToRequestAsync(req, options.ToolIds);
-            if (req["tools"] != null)
-                req["tool_choice"] = new JObject { ["type"] = "auto" };
-
-            // Add embeddings if required
-            if (options.AddEmbeddings)
-                await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
-
-            var json = JsonConvert.SerializeObject(req);
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            // Handle potential caching errors
-            while (true)
-            {
-                try
+                // Handle potential caching errors
+                while (true)
                 {
-                    return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
-                }
-                catch (NotEnoughTokensForCachingException)
-                {
-                    if (options.ApiSettings.UsePromptCaching)
+                    try
                     {
-                        json = RemoveCachingFromJson(json);
-                        options.ApiSettings.UsePromptCaching = false;
-                        content = new StringContent(json, Encoding.UTF8, "application/json");
+                        return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
                     }
-                    else
-                        throw;
+                    catch (NotEnoughTokensForCachingException)
+                    {
+                        if (options.ApiSettings.UsePromptCaching)
+                        {
+                            var json = await content.ReadAsStringAsync();
+                            json = RemoveCachingFromJson(json);
+                            options.ApiSettings.UsePromptCaching = false;
+                            content = new StringContent(json, Encoding.UTF8, "application/json");
+                        }
+                        else
+                            throw;
+                    }
                 }
-            }
+            });
+        }
+
+        protected override async Task ConfigureToolChoice(JObject request)
+        {
+            if (request["tools"] != null)
+                request["tool_choice"] = new JObject { ["type"] = "auto" };
+            await Task.CompletedTask;
         }
 
         private LinearConvMessage CreateClaudeAssistantMessage(AiResponse response)
@@ -300,7 +278,7 @@ namespace AiStudio4.AiServices
                 {
                     ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = result.ResponseText, ContentType = ContentType.Text } },
                     Success = true,
-                    TokenUsage = new TokenUsage(
+                    TokenUsage = CreateTokenUsage(
                         result.InputTokens?.ToString(),
                         result.OutputTokens?.ToString(),
                         result.CacheCreationInputTokens?.ToString(),
@@ -316,20 +294,20 @@ namespace AiStudio4.AiServices
                 System.Diagnostics.Debug.WriteLine("Claude streaming cancelled.");
                 // Cancellation happened, use the partial result from the processor
                 result = streamProcessor.GetPartialResult(); // Need to add this method to StreamProcessor
-                return new AiResponse
-                {
-                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = result.ResponseText, ContentType = ContentType.Text } },
-                    Success = true, // Indicate successful handling of cancellation
-                    TokenUsage = new TokenUsage(
-                        result.InputTokens?.ToString() ?? "0",
-                        result.OutputTokens?.ToString() ?? "0",
-                        result.CacheCreationInputTokens?.ToString() ?? "0",
-                        result.CacheReadInputTokens?.ToString() ?? "0"
-                    ),
-                    ChosenTool = streamProcessor.ChosenTool,
-                    ToolResponseSet = streamProcessor.ToolResponseSet,
-                    IsCancelled = true
-                };
+                
+                var tokenUsage = CreateTokenUsage(
+                    result.InputTokens?.ToString(),
+                    result.OutputTokens?.ToString(),
+                    result.CacheCreationInputTokens?.ToString(),
+                    result.CacheReadInputTokens?.ToString()
+                );
+                
+                return HandleCancellation(
+                    result.ResponseText,
+                    tokenUsage,
+                    streamProcessor.ToolResponseSet,
+                    streamProcessor.ChosenTool
+                );
             }
             catch (Exception ex)
             {
@@ -400,10 +378,6 @@ namespace AiStudio4.AiServices
             );
         }
 
-        private async Task AddEmbeddingsToRequest(JObject req, LinearConv conv, ApiSettings apiSettings, bool mustNotUseEmbedding)
-        {
-            // Implementation commented out in original code
-        }
 
         protected override async Task AddToolsToRequestAsync(JObject req, List<string> toolIDs)
         {

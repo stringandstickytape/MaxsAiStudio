@@ -510,5 +510,143 @@ namespace AiStudio4.AiServices
             }
             return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = ContentType.Text } } };
         }
+
+        /// <summary>
+        /// Common request building pattern used by most providers.
+        /// Handles system prompt, TopP, tools, and embeddings in a standardized way.
+        /// </summary>
+        protected virtual async Task<JObject> BuildCommonRequest(AiRequestOptions options, bool forceNoTools = false)
+        {
+            // Apply custom system prompt if provided
+            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
+                options.Conv.systemprompt = options.CustomSystemPrompt;
+
+            var request = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
+
+            // Add TopP if supported
+            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            {
+                await AddTopPToRequest(request, options.ApiSettings.TopP);
+            }
+
+            // Add tools if not forcing no tools
+            if (!forceNoTools)
+            {
+                await AddToolsToRequestAsync(request, options.ToolIds);
+                await ConfigureToolChoice(request);
+            }
+
+            // Add embeddings if required
+            if (options.AddEmbeddings)
+            {
+                await AddEmbeddingsToRequest(request, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
+            }
+
+            return request;
+        }
+
+        /// <summary>
+        /// Template method for making API calls with common patterns.
+        /// Providers can override specific steps while sharing the common flow.
+        /// </summary>
+        protected virtual async Task<AiResponse> MakeStandardApiCall(
+            AiRequestOptions options, 
+            Func<StringContent, Task<AiResponse>> handleResponse,
+            bool forceNoTools = false)
+        {
+            var request = await BuildCommonRequest(options, forceNoTools);
+            
+            // Allow provider-specific request modifications
+            await CustomizeRequest(request, options);
+
+            var json = JsonConvert.SerializeObject(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            return await handleResponse(content);
+        }
+
+        /// <summary>
+        /// Common cancellation response handler.
+        /// Providers can override to add provider-specific data (like attachments).
+        /// </summary>
+        protected virtual AiResponse HandleCancellation(
+            string responseText, 
+            TokenUsage tokenUsage, 
+            ToolResponse toolResponseSet, 
+            string chosenTool = null,
+            List<Attachment> attachments = null)
+        {
+            return new AiResponse
+            {
+                ContentBlocks = new List<ContentBlock> 
+                { 
+                    new ContentBlock 
+                    { 
+                        Content = responseText + "\n\n<Cancelled>\n", 
+                        ContentType = ContentType.Text 
+                    } 
+                },
+                Success = true, // Indicate successful handling of cancellation
+                TokenUsage = tokenUsage ?? new TokenUsage("0", "0", "0", "0"),
+                ChosenTool = chosenTool,
+                ToolResponseSet = toolResponseSet ?? new ToolResponse { Tools = new List<ToolResponseItem>() },
+                Attachments = attachments,
+                IsCancelled = true
+            };
+        }
+
+        /// <summary>
+        /// Provider-specific TopP addition. Override for custom TopP handling.
+        /// </summary>
+        protected virtual async Task AddTopPToRequest(JObject request, float topP)
+        {
+            request["top_p"] = topP;
+            await Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Provider-specific tool choice configuration. Override for custom tool choice logic.
+        /// </summary>
+        protected virtual async Task ConfigureToolChoice(JObject request)
+        {
+            if (request["tools"] != null)
+            {
+                // Default implementation - providers can override
+                await Task.CompletedTask;
+            }
+        }
+
+        /// <summary>
+        /// Provider-specific request customization hook. Override for provider-specific modifications.
+        /// </summary>
+        protected virtual async Task CustomizeRequest(JObject request, AiRequestOptions options)
+        {
+            await Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Provider-specific embeddings addition. Override for custom embeddings handling.
+        /// </summary>
+        protected virtual async Task AddEmbeddingsToRequest(JObject request, LinearConv conv, ApiSettings apiSettings, bool mustNotUseEmbedding)
+        {
+            await Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Common token usage creation with fallback handling for missing values.
+        /// </summary>
+        protected virtual TokenUsage CreateTokenUsage(
+            string inputTokens, 
+            string outputTokens, 
+            string cacheCreationTokens = "0", 
+            string cacheReadTokens = "0")
+        {
+            return new TokenUsage(
+                inputTokens ?? "0",
+                outputTokens ?? "0", 
+                cacheCreationTokens ?? "0",
+                cacheReadTokens ?? "0"
+            );
+        }
     }
 }
