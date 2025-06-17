@@ -268,6 +268,21 @@ namespace AiStudio4.AiServices
                 // 4. Check for final answer (no tool calls)
                 if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
                 {
+                    // This is the final response with no tool calls - add it to branched conversation
+                    if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+                    {
+                        Debug.WriteLine($"🤖 CLAUDE: Creating FINAL ASSISTANT message (no tools) - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}, ContentBlocks: {response.ContentBlocks?.Count ?? 0}");
+                        
+                        var message = options.BranchedConversation.AddOrUpdateMessage(
+                            v4BranchedConvMessageRole.Assistant,
+                            options.AssistantMessageId,
+                            response.ContentBlocks,
+                            options.ParentMessageId,
+                            response.Attachments);
+                        
+                        await options.OnAssistantMessageCreated(message);
+                    }
+                    
                     return response; // We're done, return the final text response
                 }
 
@@ -471,10 +486,10 @@ namespace AiStudio4.AiServices
                             toolResultBlocks,
                             options.AssistantMessageId); // Parent is the assistant message that made the tool calls
 
-                        // Notify client about the tool result message via callback
-                        if (options.OnAssistantMessageCreated != null)
+                        // Notify client about the tool result message via the proper callback
+                        if (options.OnUserMessageCreated != null)
                         {
-                            await options.OnAssistantMessageCreated(toolResultMessage);
+                            await options.OnUserMessageCreated(toolResultMessage);
                         }
                         
                         // Store the tool result message ID to update parent for next iteration
@@ -498,8 +513,8 @@ namespace AiStudio4.AiServices
                 }
             }
 
-            // If we've exceeded max iterations, return an error response
-            return new AiResponse 
+            // If we've exceeded max iterations, create error response and add to branched conversation
+            var errorResponse = new AiResponse 
             { 
                 Success = false, 
                 ContentBlocks = new List<ContentBlock> 
@@ -511,6 +526,23 @@ namespace AiStudio4.AiServices
                     } 
                 } 
             };
+            
+            // Add error message to branched conversation
+            if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+            {
+                Debug.WriteLine($"🤖 CLAUDE: Creating ERROR ASSISTANT message (max iterations) - MessageId: {options.AssistantMessageId}, ParentId: {options.ParentMessageId}");
+                
+                var message = options.BranchedConversation.AddOrUpdateMessage(
+                    v4BranchedConvMessageRole.Assistant,
+                    options.AssistantMessageId,
+                    errorResponse.ContentBlocks,
+                    options.ParentMessageId,
+                    errorResponse.Attachments);
+                
+                await options.OnAssistantMessageCreated(message);
+            }
+            
+            return errorResponse;
         }
 
         protected override async Task<AiResponse> HandleStreamingResponse(

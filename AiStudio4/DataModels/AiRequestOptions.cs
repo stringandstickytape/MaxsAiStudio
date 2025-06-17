@@ -53,6 +53,9 @@ namespace AiStudio4.DataModels
         // Callbacks for streaming updates
         public Action<string> OnStreamingUpdate { get; set; }
         public Action OnStreamingComplete { get; set; }
+        
+        // Function to get the current assistant message ID for streaming updates
+        public Func<string> GetCurrentAssistantMessageId { get; set; }
 
         // New callbacks for conversation updates during tool loop
         /// <summary>
@@ -75,6 +78,11 @@ namespace AiStudio4.DataModels
         /// Called when a user interjection occurs during tool execution
         /// </summary>
         public Func<string, string, Task> OnUserInterjection { get; set; }
+        
+        /// <summary>
+        /// Called when a user message (like tool results) is created during tool execution
+        /// </summary>
+        public Func<v4BranchedConvMessage, Task> OnUserMessageCreated { get; set; }
         
         // Branched conversation context for tool loop
         public v4BranchedConv BranchedConversation { get; set; }

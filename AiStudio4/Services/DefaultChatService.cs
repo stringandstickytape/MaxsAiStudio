@@ -225,92 +225,111 @@ namespace AiStudio4.Services
                     ToolIds = toolIds,
                     MaxToolIterations = 10, // Could be configurable
                     AllowInterjections = true,
-                    OnStreamingUpdate = (text) => _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto 
-                    { 
-                        MessageId = assistantMessageId, 
-                        MessageType = "cfrag", 
-                        Content = text 
-                    }),
-                    OnStreamingComplete = () => _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto 
-                    { 
-                        MessageId = assistantMessageId, 
-                        MessageType = "endstream", 
-                        Content = "" 
-                    }),
                     // New properties for branched conversation updates
                     BranchedConversation = request.BranchedConv,
                     ParentMessageId = request.MessageId,
                     AssistantMessageId = assistantMessageId,
-                    ClientId = request.ClientId,
-                    
-                    // Callbacks for conversation updates during tool loop
-                    OnAssistantMessageCreated = async (message) =>
+                    ClientId = request.ClientId
+                };
+
+                // Set up callbacks that reference requestOptions after it's created
+                requestOptions.GetCurrentAssistantMessageId = () => requestOptions.AssistantMessageId ?? assistantMessageId;
+                requestOptions.OnStreamingUpdate = (text) => _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto 
+                { 
+                    MessageId = requestOptions.GetCurrentAssistantMessageId?.Invoke() ?? assistantMessageId, 
+                    MessageType = "cfrag", 
+                    Content = text 
+                });
+                requestOptions.OnStreamingComplete = () => _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto 
+                { 
+                    MessageId = requestOptions.GetCurrentAssistantMessageId?.Invoke() ?? assistantMessageId, 
+                    MessageType = "endstream", 
+                    Content = "" 
+                });
+                
+                requestOptions.OnAssistantMessageCreated = async (message) =>
+                {
+                    // Message is already added to branched conversation by the callback
+                    // Just notify the client
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                     {
-                        // Message is already added to branched conversation by the callback
-                        // Just notify the client
-                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                        {
-                            ConvId = request.BranchedConv.ConvId,
-                            MessageId = message.Id,
-                            ContentBlocks = message.ContentBlocks,
-                            ParentId = message.ParentId,
-                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                            Source = "assistant",
-                            Attachments = message.Attachments,
-                            DurationMs = 0,
-                            TokenUsage = null, // Will be updated later with final usage
-                            Temperature = message.Temperature
-                        });
-                    },
-                    
-                    OnToolCallsGenerated = async (messageId, contentBlocks, toolCalls) =>
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = message.Id,
+                        ContentBlocks = message.ContentBlocks,
+                        ParentId = message.ParentId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "assistant",
+                        Attachments = message.Attachments,
+                        DurationMs = 0,
+                        TokenUsage = null, // Will be updated later with final usage
+                        Temperature = message.Temperature
+                    });
+                };
+                
+                requestOptions.OnToolCallsGenerated = async (messageId, contentBlocks, toolCalls) =>
+                {
+                    // Notify client about tool calls
+                    await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
                     {
-                        // Notify client about tool calls
-                        await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
-                        {
-                            MessageId = messageId,
-                            MessageType = "toolcalls",
-                            Content = JsonConvert.SerializeObject(toolCalls.Select(t => new { name = t.ToolName, status = "pending" }))
-                        });
-                    },
-                    
-                    OnToolExecuted = async (messageId, toolName, result) =>
+                        MessageId = messageId,
+                        MessageType = "toolcalls",
+                        Content = JsonConvert.SerializeObject(toolCalls.Select(t => new { name = t.ToolName, status = "pending" }))
+                    });
+                };
+                
+                requestOptions.OnToolExecuted = async (messageId, toolName, result) =>
+                {
+                    // Notify client about tool execution result
+                    await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
                     {
-                        // Notify client about tool execution result
-                        await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
-                        {
-                            MessageId = messageId,
-                            MessageType = "toolresult",
-                            Content = JsonConvert.SerializeObject(new 
-                            { 
-                                toolName = toolName,
-                                success = result.WasProcessed,
-                                result = result.ResultMessage
-                            })
-                        });
-                    },
+                        MessageId = messageId,
+                        MessageType = "toolresult",
+                        Content = JsonConvert.SerializeObject(new 
+                        { 
+                            toolName = toolName,
+                            success = result.WasProcessed,
+                            result = result.ResultMessage
+                        })
+                    });
+                };
+                
+                requestOptions.OnUserInterjection = async (interjectionId, content) =>
+                {
+                    // Add interjection to branched conversation
+                    var interjectionMessage = request.BranchedConv.AddOrUpdateMessage(
+                        v4BranchedConvMessageRole.User,
+                        interjectionId,
+                        content,
+                        assistantMessageId); // Parent is the current assistant message
                     
-                    OnUserInterjection = async (interjectionId, content) =>
+                    // Notify client
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                     {
-                        // Add interjection to branched conversation
-                        var interjectionMessage = request.BranchedConv.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.User,
-                            interjectionId,
-                            content,
-                            assistantMessageId); // Parent is the current assistant message
-                        
-                        // Notify client
-                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                        {
-                            ConvId = request.BranchedConv.ConvId,
-                            MessageId = interjectionId,
-                            ContentBlocks = interjectionMessage.ContentBlocks,
-                            ParentId = assistantMessageId,
-                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                            Source = "user",
-                            DurationMs = 0
-                        });
-                    }
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = interjectionId,
+                        ContentBlocks = interjectionMessage.ContentBlocks,
+                        ParentId = assistantMessageId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "user",
+                        DurationMs = 0
+                    });
+                };
+                
+                requestOptions.OnUserMessageCreated = async (message) =>
+                {
+                    // Message is already added to branched conversation by the callback
+                    // Just notify the client
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                    {
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = message.Id,
+                        ContentBlocks = message.ContentBlocks,
+                        ParentId = message.ParentId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "user",
+                        Attachments = message.Attachments,
+                        DurationMs = 0
+                    });
                 };
 
                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
@@ -334,20 +353,33 @@ namespace AiStudio4.Services
                 
                 if (existingMessage != null)
                 {
-                    // Assistant message already exists - append final response content
-                    var combinedContentBlocks = new List<ContentBlock>(existingMessage.ContentBlocks);
-                    if (response.ContentBlocks != null)
-                    {
-                        combinedContentBlocks.AddRange(response.ContentBlocks);
-                    }
+                    // Assistant message already exists - check if we need to append final response content
+                    // Only append if there are actually new content blocks to add
+                    var hasNewContent = response.ContentBlocks != null && response.ContentBlocks.Any();
                     
-                    _logger.LogInformation("🏁 FINAL: Appending to existing message - Original blocks: {OriginalCount}, Adding: {AddingCount}, Total: {TotalCount}", 
-                        existingMessage.ContentBlocks?.Count ?? 0, response.ContentBlocks?.Count ?? 0, combinedContentBlocks.Count);
+                    List<ContentBlock> finalContentBlocks;
+                    if (hasNewContent)
+                    {
+                        // Append new content to existing content
+                        finalContentBlocks = new List<ContentBlock>(existingMessage.ContentBlocks);
+                        finalContentBlocks.AddRange(response.ContentBlocks);
+                        
+                        _logger.LogInformation("🏁 FINAL: Appending to existing message - Original blocks: {OriginalCount}, Adding: {AddingCount}, Total: {TotalCount}", 
+                            existingMessage.ContentBlocks?.Count ?? 0, response.ContentBlocks?.Count ?? 0, finalContentBlocks.Count);
+                    }
+                    else
+                    {
+                        // No new content to add, just use existing content
+                        finalContentBlocks = existingMessage.ContentBlocks;
+                        
+                        _logger.LogInformation("🏁 FINAL: No new content to append - Using existing blocks: {ExistingCount}", 
+                            existingMessage.ContentBlocks?.Count ?? 0);
+                    }
                     
                     finalMessage = request.BranchedConv.AddOrUpdateMessage(
                         role: v4BranchedConvMessageRole.Assistant,
                         newMessageId: finalAssistantMessageId,
-                        contentBlocks: combinedContentBlocks,
+                        contentBlocks: finalContentBlocks,
                         parentMessageId: existingMessage.ParentId, // Keep original parent
                         attachments: (existingMessage.Attachments ?? new List<Attachment>()).Concat(response.Attachments ?? new List<Attachment>()).ToList(),
                         costInfo: costInfo
