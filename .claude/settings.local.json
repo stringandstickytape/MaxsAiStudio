@@ -14,7 +14,9 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:ai.google.dev)",
       "Bash(npx tsc:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(awk:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
