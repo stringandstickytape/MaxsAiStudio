@@ -170,7 +170,7 @@ namespace AiStudio4.Services
                     .Select(msg => new MessageHistoryItem
                     {
                         Role = msg.Role.ToString().ToLower(),
-                        Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text || x.ContentType == ContentType.AiHidden || x.ContentType == ContentType.Tool) ?? new List<ContentBlock>()).Select(cb => cb.Content)),
+                        Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text || x.ContentType == ContentType.AiHidden || x.ContentType == ContentType.Tool || x.ContentType == ContentType.ToolResponse) ?? new List<ContentBlock>()).Select(cb => cb.Content)),
                         Attachments = msg.Attachments
                     }).ToList();
 
