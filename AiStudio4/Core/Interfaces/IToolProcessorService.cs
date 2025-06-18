@@ -14,9 +14,9 @@ namespace AiStudio4.Core.Interfaces
     public interface IToolProcessorService
     {
          /// <summary>
-        /// Re-applies a built-in tool with its original parameters
+        /// Re-applies a built-in or MCP tool with its original parameters
         /// </summary>
-        /// <param name="toolName">The name of the tool to re-apply</param>
+        /// <param name="toolName">The name of the tool to re-apply (can be built-in or MCP tool name)</param>
         /// <param name="toolParameters">The JSON parameters for the tool</param>
         /// <param name="clientId">The client ID making the request</param>
         /// <returns>The result of the tool execution</returns>
