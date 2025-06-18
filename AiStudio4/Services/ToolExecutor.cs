@@ -96,6 +96,9 @@ public class ToolExecutor : IToolExecutor
                 tool.ExtraProperties, 
                 context.ClientId);
 
+            // Add task description to result
+            result.TaskDescription = taskDescription;
+
             // Notify UI of tool execution completion
             await _notificationService.NotifyStatusMessage(context.ClientId, $"Tool {toolName} completed");
             
@@ -111,7 +114,7 @@ public class ToolExecutor : IToolExecutor
             var serverId = toolName.Split('_')[0];
             var actualToolName = string.Join("_", toolName.Split('_').Skip(1));
             
-            return await ExecuteMcpTool(serverId, actualToolName, cleanedToolParameters, context, toolName);
+            return await ExecuteMcpTool(serverId, actualToolName, cleanedToolParameters, context, toolName, taskDescription);
         }
 
         // Check for tools without prefix (Claude sometimes drops the prefix)
@@ -122,7 +125,7 @@ public class ToolExecutor : IToolExecutor
 
             if (mcpTool != null)
             {
-                return await ExecuteMcpTool(serverDefinition.Id, toolName, cleanedToolParameters, context, toolName);
+                return await ExecuteMcpTool(serverDefinition.Id, toolName, cleanedToolParameters, context, toolName, taskDescription);
             }
         }
 
@@ -136,7 +139,7 @@ public class ToolExecutor : IToolExecutor
         };
     }
 
-    private async Task<BuiltinToolResult> ExecuteMcpTool(string serverId, string actualToolName, string cleanedToolParameters, ToolExecutionContext context, string displayToolName)
+    private async Task<BuiltinToolResult> ExecuteMcpTool(string serverId, string actualToolName, string cleanedToolParameters, ToolExecutionContext context, string displayToolName, string taskDescription = null)
     {
         try
         {
@@ -151,7 +154,8 @@ public class ToolExecutor : IToolExecutor
             { 
                 WasProcessed = true, 
                 ContinueProcessing = true, // Provider will decide when to stop
-                ResultMessage = JsonConvert.SerializeObject(mcpResult.Content) 
+                ResultMessage = JsonConvert.SerializeObject(mcpResult.Content),
+                TaskDescription = taskDescription
             };
 
             // Notify UI of MCP tool execution completion

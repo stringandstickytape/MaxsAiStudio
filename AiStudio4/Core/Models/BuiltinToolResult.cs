@@ -35,5 +35,10 @@ namespace AiStudio4.Core.Models
         /// User interjection content if one was received during tool execution
         /// </summary>
         public string UserInterjection { get; set; }
+
+        /// <summary>
+        /// Task description extracted from tool parameters for UI display
+        /// </summary>
+        public string TaskDescription { get; set; }
     }
 }

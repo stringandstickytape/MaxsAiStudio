@@ -12,9 +12,9 @@ export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = 
   const { isLoading, executeApiCall } = useApiCallState();
   const { openModal } = useModalStore();
 
-  //if (!showDevContentView) {
-  //  return null;
-  //}
+  if (!showDevContentView) {
+    return null;
+  }
 
   const handleReapply = async () => {
     try {

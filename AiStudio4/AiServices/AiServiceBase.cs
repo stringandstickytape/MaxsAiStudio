@@ -143,6 +143,31 @@ namespace AiStudio4.AiServices
                     contentBlocks.AddRange(response.ContentBlocks);
                 }
                 
+                // Extract task descriptions from tool calls and add System blocks
+                foreach (var toolCall in response.ToolResponseSet.Tools)
+                {
+                    string taskDescription = null;
+                    try
+                    {
+                        var toolCallArgs = JObject.Parse(toolCall.ResponseText);
+                        if (toolCallArgs.TryGetValue("task_description", out JToken taskDescriptionToken))
+                        {
+                            taskDescription = taskDescriptionToken.ToString();
+                            
+                            // Add task description as System content block
+                            contentBlocks.Add(new ContentBlock
+                            {
+                                ContentType = ContentType.System,
+                                Content = $"{toolCall.ToolName}: {taskDescription}\n\n"
+                            });
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        // The response might not be a JSON object, which is fine for some tools.
+                    }
+                }
+                
                 // Only add tool call blocks if they're not already in the content blocks
                 // Check if we already have tool blocks
                 var hasToolBlocks = contentBlocks.Any(cb => cb.ContentType == ContentType.Tool);
