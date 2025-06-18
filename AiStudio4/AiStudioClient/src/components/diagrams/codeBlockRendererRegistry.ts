@@ -9,6 +9,7 @@ import { CodeDiffRenderer } from '@/components/diagrams/codeDiff-renderer'; // A
 import { ModifyFilesRenderer } from '@/components/diagrams/modifyFiles-renderer'; // Add this line
 import { GitCommitRenderer } from '@/components/diagrams/gitCommit-renderer'; // Add this line
 import { AbcRenderer } from '@/components/diagrams/abc-renderer'; // Add this line
+import { ThinkAndAwaitUserInputRenderer } from '@/components/diagrams/thinkAndAwaitUserInput-renderer'; // Add this line
 class CodeBlockRendererRegistry {
     private renderers: Map<string, CodeBlockRenderer> = new Map();
 
@@ -91,4 +92,4 @@ class CodeBlockRendererRegistry {
 }
 
 export const codeBlockRendererRegistry = new CodeBlockRendererRegistry();
-[MermaidRenderer, JsonRenderer, HtmlRenderer, DotRenderer, TxtRenderer, CodeDiffRenderer, ModifyFilesRenderer, GitCommitRenderer, AbcRenderer].forEach((renderer) => codeBlockRendererRegistry.register(renderer)); // Update this line
+[MermaidRenderer, JsonRenderer, HtmlRenderer, DotRenderer, TxtRenderer, CodeDiffRenderer, ModifyFilesRenderer, GitCommitRenderer, AbcRenderer, ThinkAndAwaitUserInputRenderer].forEach((renderer) => codeBlockRendererRegistry.register(renderer)); // Update this line

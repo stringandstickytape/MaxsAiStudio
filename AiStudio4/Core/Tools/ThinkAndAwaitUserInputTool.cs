@@ -1,4 +1,4 @@
-// AiStudio4/Core/Tools/ThinkAndAwaitUserInputTool.cs
+﻿// AiStudio4/Core/Tools/ThinkAndAwaitUserInputTool.cs
 ﻿
 
 
@@ -17,9 +17,7 @@ namespace AiStudio4.Core.Tools
     {
         public ThinkAndAwaitUserInputTool(ILogger<ThinkAndAwaitUserInputTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
-        }
-
-        public string OutputFileType { get; } = "md";
+        }        public string OutputFileType { get; } = "thinkandawaituserinput";
 
         /// <summary>
         /// Gets the ThinkAndAwaitUserInput tool definition
@@ -45,9 +43,8 @@ namespace AiStudio4.Core.Tools
   }
 }
 """,
-                Categories = new List<string> { "MaxCode" },
-                OutputFileType = "",
-                Filetype = string.Empty,
+                Categories = new List<string> { "MaxCode" },                OutputFileType = "thinkandawaituserinput",
+                Filetype = "thinkandawaituserinput",
                 LastModified = DateTime.UtcNow
             };
         }
