@@ -32,6 +32,7 @@ export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = 
         'stopprocessing': 'text',
         'recordmistake': 'text',
         // Add other custom output types as needed (but NOT ones that have rich renderers)
+        // NOTE: modifyfiles, gitcommit, and codediff are NOT included here because they have rich renderers
       };
       
       if (languageMap[outputFileType]) {
