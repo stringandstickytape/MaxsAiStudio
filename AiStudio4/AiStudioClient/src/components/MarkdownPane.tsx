@@ -126,6 +126,8 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         }
     };
 
+    let codeBlockIndex = 0;
+
     const components = useMemo(() => ({
         code({ className, children }: any) {
             const match = /language-(\w+)/.exec(className || '');
@@ -133,15 +135,9 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             const language = match ? match[1] : 'txt';
             const content = String(children).replace(/\n$/, '');
             const diagramRenderer = codeBlockRendererRegistry.get(language);
-            const blockId = `${language}-${content.slice(0, 20)}`;
-            if (showRawContent[blockId] === undefined) {
-                setShowRawContent((prev) => ({ ...prev, [blockId]: false }));
-            }
-            if (isCodeCollapsed[blockId] === undefined) {
-                setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: true }));
-            }
-            const isRawView = showRawContent[blockId];
-            const isCollapsed = isCodeCollapsed[blockId];
+            const blockId = `code-block-${codeBlockIndex++}`;
+            const isRawView = showRawContent[blockId] ?? false;
+            const isCollapsed = isCodeCollapsed[blockId] ?? false;
             const handleToggleRaw = useCallback(() => {
                 setShowRawContent((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
                 setMermaidKey((prev) => prev + 1);
@@ -154,7 +150,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
                     behavior: 'auto'
                 });
                 setTimeout(() => {
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
+                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? false) }));
                     markdownPaneElement.scrollTo({
                         top: Math.max(0, currentScrollPosition + 1),
                         behavior: 'auto'
@@ -179,7 +175,12 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             );
         },
         hr: () => <hr className="my-2"/>,
-        pre: ({ children }: any) => <pre className="leading-snug whitespace-pre-wrap break-words">{children}</pre>,
+        pre: ({ children }: any) => <pre className="leading-snug whitespace-pre-wrap break-words" style={{
+            backgroundColor: 'var(--global-background-color, #000000)',
+            color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
+            borderRadius: 'var(--global-border-radius, inherit)',
+            lineBreak: 'anywhere'
+        }}>{children}</pre>,
         p: ({ children }: any) => <p className="leading-snug mb-1 whitespace-pre-wrap break-words">{children}</p>,
         h1: ({ children }: any) => <h1 className="mb-1 leading-relaxed text-3xl font-bold my-6">{children}</h1>,
         h2: ({ children }: any) => <h2 className="mb-1 leading-normal text-2xl font-bold my-5">{children}</h2>,
@@ -204,8 +205,8 @@ export const MarkdownPane = React.memo(function MarkdownPane({
 
     return (
         <div className={cn(
-            "prose-sm max-w-none prose-p:my-2 prose-headings:my-3 prose-li:my-0.5",
-            variant === 'system' && "border-l-4 border-destructive p-2 bg-destructive/10 rounded prose-headings:text-destructive-foreground prose-p:text-destructive-foreground/90 prose-li:text-destructive-foreground/90 prose-a:text-red-400 prose-a:hover:text-red-300 prose-strong:text-destructive-foreground prose-blockquote:border-destructive/50 prose-blockquote:text-destructive-foreground/80"
+            "text-sm",
+            variant === 'system' && "border-l-4 border-destructive p-2 bg-destructive/10 rounded prose-headings:text-destructive-foreground prose-p:text-destructive-foreground/90 prose-li:text-destructive-foreground/90 prose-a:text-red-400 prose-a:hover:text-red-300 prose-strong:text-destructive-foreground prose-blockquote:border-destructive/50 prose-blockquote:text-destructive-foreground/80",
         )}>
             <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
                 {markdownContent}

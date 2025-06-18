@@ -1,5 +1,6 @@
 ﻿// AiStudioClient\src\components\ConvView\ConvView.tsx
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
+import './ConvView.css';
 import { StickToBottom } from 'use-stick-to-bottom';
 import { MessageGraph } from '@/utils/messageGraph';
 import { useConvStore } from '@/stores/useConvStore';
@@ -24,6 +25,8 @@ export const ConvView = ({
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [isStickingEnabled, setIsStickingEnabled] = useState(true);
+    const [isScrolling, setIsScrolling] = useState(false);
+    const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     
     // Optimize store subscription - only get what we need
     const activeConvId = useConvStore(state => state.activeConvId);
@@ -42,53 +45,6 @@ export const ConvView = ({
         if (!conv || conv.messages.length === 0) return null;
         return conv.messages[conv.messages.length - 1];
     }, [activeConvId, convs]);
-
-    // Add scroll event listener to detect manual scrolling
-    useEffect(() => {
-        // Common handler function
-        const handleScrollEvent = (e: Event) => {
-            const target = e.target as HTMLElement;
-            // Check if this is a ConvView-related scroll
-            let isConvViewScroll = false;
-
-            // Check if the target is the ConvView or a child of it
-            if (scrollContainerRef.current && scrollContainerRef.current.contains(target)) {
-                isConvViewScroll = true;
-            }
-
-            // Only process if it's a ConvView scroll
-            if (isConvViewScroll) {
-                // If sticking was enabled, disable it upon manual scroll
-                if (isStickingEnabled) {
-                    setIsStickingEnabled(false);
-                }
-            }
-        };
-
-        // Add event listeners to all possible elements
-        if (scrollContainerRef.current) {
-            scrollContainerRef.current.addEventListener('scroll', handleScrollEvent, { capture: true });
-        }
-
-        // this doesn't work because race condition
-        const convViewElement2 = document.querySelector('.ConvViewMain');
-        if (convViewElement2) {
-            convViewElement2.addEventListener('scroll', handleScrollEvent, { capture: true });
-        }
-
-        document.addEventListener('scroll', handleScrollEvent, { capture: true });
-
-        return () => {
-            if (scrollContainerRef.current) {
-                scrollContainerRef.current.removeEventListener('scroll', handleScrollEvent, { capture: true });
-            }
-            if (convViewElement2) {
-                convViewElement2.removeEventListener('scroll', handleScrollEvent, { capture: true });
-            }
-            document.removeEventListener('scroll', handleScrollEvent, { capture: true });
-            window.removeEventListener('scroll', handleScrollEvent, { capture: true });
-        };
-    }, [isStickingEnabled]); // Re-run effect if isStickingEnabled changes
 
     // Calculate message chain based on selected message or latest message
     const messageChain = useMemo(() => {
@@ -109,10 +65,36 @@ export const ConvView = ({
     // No need to update visibleCount when conversation changes, always show all messages
 
 
-    // Removed stream:clear event handling - no longer needed with new streaming system
+    // Removed stream:clear event handling - no longer needed with new streaming system    // No need for handleLoadMore, always show all messages
 
-    // No need for handleLoadMore, always show all messages
+    // Handle scroll events for auto-hide scrollbar
+    const handleScroll = useCallback(() => {
+        setIsScrolling(true);
+        
+        // Clear existing timeout
+        if (scrollTimeoutRef.current) {
+            clearTimeout(scrollTimeoutRef.current);
+        }
+        
+        // Set timeout to hide scrollbar after scrolling stops
+        scrollTimeoutRef.current = setTimeout(() => {
+            setIsScrolling(false);
+        }, 1000);
+    }, []);
 
+    // Add scroll event listener
+    useEffect(() => {
+        const scrollContainer = scrollContainerRef.current;
+        if (scrollContainer) {
+            scrollContainer.addEventListener('scroll', handleScroll, { passive: true });
+            return () => {
+                scrollContainer.removeEventListener('scroll', handleScroll);
+                if (scrollTimeoutRef.current) {
+                    clearTimeout(scrollTimeoutRef.current);
+                }
+            };
+        }
+    }, [handleScroll]);
 
     if (!activeConvId) return null;
     if (!messageChain.length) return null;
@@ -128,12 +110,10 @@ export const ConvView = ({
         );
     }
 
-    return (
-        <StickToBottom 
-            className="ConvView ConvViewMain h-full relative overflow-y-auto"
+    return (        <StickToBottom 
+            className={`ConvView ConvViewMain h-full relative overflow-y-auto w-full ${isScrolling ? 'scrolling' : ''}`}
             ref={scrollContainerRef}
-            stickToBottom={isStickingEnabled}
-            style={{
+            stickToBottom={isStickingEnabled}            style={{
                 backgroundColor: 'var(--global-background-color, transparent)',
                 color: 'var(--global-text-color, #ffffff)',
                 borderColor: 'var(--global-border-color, rgba(55, 65, 81, 0.3))',
@@ -141,10 +121,12 @@ export const ConvView = ({
                 fontSize: 'var(--global-font-size, inherit)',
                 borderRadius: 'var(--global-border-radius, 0)',
                 boxShadow: 'var(--global-box-shadow, none)',
+                width: '100%',
+                minWidth: '100%',
                 ...(window?.theme?.ConvView?.style || {})
             }}
         >
-            <StickToBottom.Content className="ConvView flex flex-col gap-4 p-4">
+            <StickToBottom.Content className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
                 {/* ConversationControls removed: always show all messages */}
 
                 {visibleMessages.map((message) => {

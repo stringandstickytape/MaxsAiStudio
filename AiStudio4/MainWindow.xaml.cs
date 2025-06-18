@@ -1,4 +1,4 @@
-using AiStudio4.Dialogs; 
+﻿using AiStudio4.Dialogs; 
  
 using AiStudio4.Services;
 
@@ -103,6 +103,8 @@ public partial class WebViewWindow : Window
         UpdateWikiSyncMenuItems();
         webView.Initialize(_generalSettingsService.CurrentSettings.AllowConnectionsOutsideLocalhost);
         _generalSettingsService.SettingsChanged += OnGeneralSettingsChanged;
+
+        // if (System.Diagnostics.Debugger.IsAttached)
     }
 
     private async void ImportFromGoogleDriveMenuItem_Click(object sender, RoutedEventArgs e)
@@ -425,7 +427,8 @@ public partial class WebViewWindow : Window
         var projectPathDisplay = string.IsNullOrWhiteSpace(_generalSettingsService.CurrentSettings.ProjectPath)
             ? "[Project Path Not Set]"
             : _generalSettingsService.CurrentSettings.ProjectPath;
-        this.Title = $"AiStudio4 - {projectPathDisplay}";
+
+        this.Title = $"AiStudio4 - {projectPathDisplay}{(Debugger.IsAttached ? " - ⚠️⚠️⚠️ Debugger Attached ⚠️⚠️⚠️" : "")}";
     }
 
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e)

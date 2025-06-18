@@ -55,16 +55,16 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
     // Diagram block
     if (DiagramComponent) {
         return isRawView ? (
-            <div className="rounded-xl overflow-hidden  shadow-lg my-2">
+            <div className=" overflow-hidden my-2">
                 {header}
-                <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 rounded-b-lg`}>
+                <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 rounded-b-lg`}>
                     <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
                 </div>
             </div>
         ) : (
-            <div className="rounded-xl overflow-hidden  shadow-lg my-2" key={mermaidKey}>
+            <div className=" overflow-hidden my-2" key={mermaidKey}>
                 {header}
-                <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
+                <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
                     <DiagramComponent content={content} className="overflow-auto" />
                 </div>
             </div>
@@ -73,16 +73,16 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
 
     // Regular code block
     return isRawView ? (
-        <div className="rounded-xl overflow-hidden  shadow-lg my-2">
+        <div className=" overflow-hidden my-2">
             {header}
-            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl`}>
+            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl`}>
                 <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
             </div>
         </div>
     ) : (
-        <div className="rounded-xl overflow-hidden  shadow-lg my-2">
+        <div className=" overflow-hidden my-2">
             {header}
-            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-4 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200`}>
+            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200`}>
                 <SyntaxHighlighter
                     style={nightOwl as any}
                     language={language}

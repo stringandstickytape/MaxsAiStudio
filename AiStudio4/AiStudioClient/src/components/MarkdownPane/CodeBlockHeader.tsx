@@ -41,7 +41,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
 
     // --- ADD CONDITIONAL STYLING ---
     const headerClasses = cn(
-        "MarkdownPane flex items-center justify-between px-2 py-1 rounded-t-xl border-b text-sm",
+        "MarkdownPane flex items-center justify-between text-sm",
         variant === 'system' && "bg-destructive/20 border-destructive/50 text-destructive-foreground"
     );
 
@@ -63,8 +63,11 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
         // --- APPLY CONDITIONAL CLASSES ---
         <div
             className={headerClasses}
-            style={variant === 'system' ? {} : {
-                background: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+            style={variant === 'system' ? {
+                fontFamily: 'var(--global-font-family, sans-serif)', // Add this line
+            } : {
+                fontFamily: 'var(--global-font-family, sans-serif)', // Add this line
+                background: 'transparent',
                 color: 'var(--global-text-color, var(--markdownpane-codeheader-text, #bfc7d5))',
                 borderColor: 'var(--global-border-color, var(--markdownpane-codeheader-border, #283040))',
                 border: '0px',
@@ -75,7 +78,7 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                 <button
                     onClick={onToggleCollapse}
                     className={cn("transition-colors", iconButtonClasses)}
-                    style={variant === 'system' ? {} : { color: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))' }}
+                    style={variant === 'system' ? {} : { color: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))', backgroundColor: 'transparent' }}
                     title={isCollapsed ? "Expand code block" : "Collapse code block"}
                 >
                     {isCollapsed ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
@@ -88,8 +91,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                         onClick={() => window.chrome.webview.postMessage({ type: 'applyNewDiff', content: content.trim() })}
                         className={buttonClasses}
                         style={variant === 'system' ? {} : {
-                            background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
-                            color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                            background: 'transparent',
+                            color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
                         }}
                         title="Apply as Diff"
                     >
@@ -101,8 +104,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                         onClick={launchHtml}
                         className={cn(buttonClasses, "flex items-center gap-1")}
                         style={variant === 'system' ? {} : {
-                            background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
-                            color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                            background: 'transparent',
+                            color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
                         }}
                         title="Launch HTML in new tab"
                     >
@@ -138,8 +141,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                             }}
                             className={cn(buttonClasses, "mr-2")}
                             style={{
-                                background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
-                                color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                                background: 'transparent',
+                                color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
                             }}
                             title="Apply this theme"
                         >
@@ -193,8 +196,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                             }}
                             className={buttonClasses}
                             style={{
-                                background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
-                                color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                                background: 'transparent',
+                                color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
                             }}
                             title="Install this theme"
                         >
@@ -206,8 +209,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                     onClick={() => navigator.clipboard.writeText(content)}
                     className={cn(buttonClasses, "flex items-center justify-center")}
                     style={{
-                        background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
-                        color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                        background: 'transparent',
+                        color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
                     }}
                     title="Copy code block"
                 >
@@ -217,8 +220,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                     onClick={handleSaveToFile}
                     className={cn(buttonClasses, "flex items-center justify-center")}
                     style={{
-                        background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
-                        color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                        background: 'transparent',
+                        color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
                     }}
                     title="Save code block to file"
                 >
@@ -228,8 +231,8 @@ export const CodeBlockHeader: React.FC<CodeBlockHeaderProps> = ({
                     onClick={onToggleRaw}
                     className={buttonClasses}
                     style={{
-                        background: 'var(--global-primary-color, var(--markdownpane-codeheader-accent, #4f8cff))',
-                        color: 'var(--global-background-color, var(--markdownpane-codeheader-bg, #181c20))',
+                        background: 'transparent',
+                        color: 'var(--global-text-color, var(--markdownpane-codeheader-bg, #181c20))',
                     }}
                     title={isRawView ? "Show rendered content" : "Show raw content"}
                 >

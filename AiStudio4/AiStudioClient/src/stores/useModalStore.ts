@@ -47,6 +47,7 @@ export interface ModalRegistry {
     title: string;
     content: string;
   };
+  openRouterImporter: {};
   // Add other modal types here
 }
 

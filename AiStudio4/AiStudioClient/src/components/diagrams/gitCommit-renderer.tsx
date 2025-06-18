@@ -128,24 +128,6 @@ const GitCommitRendererComponent: FC<{ content: string; className?: string }> = 
         </div>
       )}
 
-      {/* Summary */}
-      {summary && (
-        <div className="mb-2">
-          <div className="text-xs font-medium mb-1" style={{ color: 'var(--global-muted-text-color)' }}>
-            Summary
-          </div>
-          <pre
-            className="whitespace-pre-wrap break-words p-2 rounded text-xs font-mono"
-            style={{
-              backgroundColor: 'var(--global-secondary-background-color)',
-              color: 'var(--global-text-color)',
-              border: '1px solid var(--global-border-color)',
-            }}
-          >
-            {summary}
-          </pre>
-        </div>
-      )}
     </div>
   );
 };

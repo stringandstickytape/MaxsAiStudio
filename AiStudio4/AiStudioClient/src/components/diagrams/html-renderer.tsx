@@ -3,7 +3,7 @@ import { CodeBlockRenderer } from '@/components/diagrams/types';
 import { useEffect, useRef } from 'react';
 
 export const HtmlRenderer: CodeBlockRenderer = {
-  type: ['html', 'htm', 'svg'],
+  type: ['svg'],
   initialize: () => {
     
   },
