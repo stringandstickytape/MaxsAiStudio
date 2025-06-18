@@ -177,9 +177,17 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     let codeBlockIndex = 0;
 
     const components = useMemo(() => ({
-        code({ className, children }: any) {
+        code({ className, children, ...props }: any) {
+            // Inline code typically has no className or a simple one without 'language-'
+            // Code blocks always get a className (even if empty) from ReactMarkdown
+            const isCodeBlock = className !== undefined || String(children).includes('\n');
+            
+            // If this is inline code, render it as a simple <code> element
+            if (!isCodeBlock) {
+                return <code className={className}>{children}</code>;
+            }
+            
             const match = /language-(\w+)/.exec(className || '');
-            if (!match) return <code className={className}>{children}</code>;
             const language = match ? match[1] : 'txt';
             const content = String(children).replace(/\n$/, '');
             const diagramRenderer = codeBlockRendererRegistry.get(language);
