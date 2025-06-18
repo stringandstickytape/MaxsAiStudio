@@ -30,5 +30,20 @@ namespace AiStudio4.Core.Models
         /// </summary>
         public List<Attachment> Attachments { get; set; } = new List<Attachment>();
         public string StatusMessage { get;  set; } = string.Empty;
+
+        /// <summary>
+        /// User interjection content if one was received during tool execution
+        /// </summary>
+        public string UserInterjection { get; set; }
+
+        /// <summary>
+        /// Task description extracted from tool parameters for UI display
+        /// </summary>
+        public string TaskDescription { get; set; }
+
+        /// <summary>
+        /// Output file type for formatting the result content (e.g., "json", "xml", "bash")
+        /// </summary>
+        public string OutputFileType { get; set; }
     }
 }

@@ -29,7 +29,15 @@ namespace AiStudio4.Services
             try
             {
                 {
-                    Debug.WriteLine($"{update.ConvId} {update.Source}: {update.ParentId} -> {update.MessageId}");
+                    _logger.LogInformation("🔔 SENDING TO FRONTEND - Conv: {ConvId}, MessageId: {MessageId}, ParentId: {ParentId}, Source: {Source}, ContentBlocks: {BlockCount}", 
+                        update.ConvId, update.MessageId, update.ParentId, update.Source, update.ContentBlocks?.Count ?? 0);
+                    
+                    // Log content block types for debugging
+                    if (update.ContentBlocks != null && update.ContentBlocks.Any())
+                    {
+                        var blockTypes = string.Join(", ", update.ContentBlocks.Select(b => $"{b.ContentType}({b.Content?.Length ?? 0} chars)"));
+                        _logger.LogInformation("🔔 Content Block Types: {BlockTypes}", blockTypes);
+                    }
                 }
 
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
@@ -88,7 +96,6 @@ namespace AiStudio4.Services
                     _logger.LogDebug("Conversation update error for {ClientId}", clientId);
                 }
 
-                _logger.LogDebug("Sent conv update to client {ClientId}", clientId);
             }
             catch (Exception ex)
             {
@@ -112,7 +119,6 @@ namespace AiStudio4.Services
                 };
 
                 await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
-                _logger.LogTrace("Sent streaming update to client {ClientId}", clientId);
             }
             catch (Exception ex)
             {
@@ -191,7 +197,6 @@ namespace AiStudio4.Services
                 };
 
                 await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(messageObj));
-                _logger.LogDebug("Sent status message to client {ClientId}: {Message}", clientId, message);
             }
             catch (Exception ex)
             {

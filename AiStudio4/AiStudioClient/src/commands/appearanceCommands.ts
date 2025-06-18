@@ -1,6 +1,6 @@
 ﻿import React from 'react';
 import { useCommandStore } from '@/stores/useCommandStore';
-import { ZoomIn, ZoomOut, RotateCcw, Settings, Palette } from 'lucide-react';
+import { ZoomIn, ZoomOut, RotateCcw, Settings, Palette, ArrowDown, ArrowDownCircle } from 'lucide-react';
 import { useAppearanceStore, fontSizeUtils } from '@/stores/useAppearanceStore';
 import { useModalStore } from '@/stores/useModalStore';
 
@@ -71,6 +71,45 @@ export function initializeAppearanceCommands() {
         () => {
           fontSizeUtils.set(16);
           setTimeout(() => fontSizeUtils.saveSettings(), 500);
+        },
+      ],
+      [
+        'toggle-stick-to-bottom',
+        'Toggle Auto-Scroll to Bottom',
+        'Toggle automatic scrolling to bottom during conversations',
+        '',
+        ['stick', 'bottom', 'scroll', 'auto', 'toggle', 'chat', 'conversation'],
+        React.createElement(ArrowDownCircle, { size: 16 }),
+        () => {
+          const { toggleStickToBottom, saveAppearanceSettings } = useAppearanceStore.getState();
+          toggleStickToBottom();
+          setTimeout(() => saveAppearanceSettings().catch(console.error), 500);
+        },
+      ],
+      [
+        'enable-stick-to-bottom',
+        'Enable Auto-Scroll to Bottom',
+        'Enable automatic scrolling to bottom during conversations',
+        '',
+        ['stick', 'bottom', 'scroll', 'auto', 'enable', 'on', 'chat', 'conversation'],
+        React.createElement(ArrowDown, { size: 16 }),
+        () => {
+          const { setStickToBottom, saveAppearanceSettings } = useAppearanceStore.getState();
+          setStickToBottom(true);
+          setTimeout(() => saveAppearanceSettings().catch(console.error), 500);
+        },
+      ],
+      [
+        'disable-stick-to-bottom',
+        'Disable Auto-Scroll to Bottom',
+        'Disable automatic scrolling to bottom during conversations',
+        '',
+        ['stick', 'bottom', 'scroll', 'auto', 'disable', 'off', 'chat', 'conversation'],
+        React.createElement(ArrowDown, { size: 16 }),
+        () => {
+          const { setStickToBottom, saveAppearanceSettings } = useAppearanceStore.getState();
+          setStickToBottom(false);
+          setTimeout(() => saveAppearanceSettings().catch(console.error), 500);
         },
       ],
     ].map(([id, name, description, shortcut, keywords, icon, fn]) => ({

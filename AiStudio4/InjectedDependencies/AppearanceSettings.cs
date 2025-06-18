@@ -24,5 +24,10 @@
         /// InputBar panel size as percentage (0-100)
         /// </summary>
         public int InputBarPanelSize { get; set; } = 30;
+
+        /// <summary>
+        /// Whether to enable automatic stick-to-bottom behavior in chat
+        /// </summary>
+        public bool StickToBottomEnabled { get; set; } = true;
     }
 }

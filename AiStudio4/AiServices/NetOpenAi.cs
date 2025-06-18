@@ -1,6 +1,7 @@
 using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
+using AiStudio4.Core.Models;
 
 
 using OpenAI;
@@ -34,8 +35,7 @@ namespace AiStudio4.AiServices
         private ImageClient _imageClient;
         private EmbeddingClient _embeddingClient;
         private readonly List<GeneratedImage> _generatedImages = new List<GeneratedImage>();
-
-        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
+        private readonly Queue<string> _toolCallIdQueue = new Queue<string>();
 
         public NetOpenAi() { }
 
@@ -95,11 +95,10 @@ namespace AiStudio4.AiServices
                    Temperature = temp
                 };
 
-                // Add TopP from options.TopP (which was populated from ApiSettings)
-                // The value in options.TopP should be pre-validated (0.0 to 1.0).
-                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
+                // Add TopP if supported
+                if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
                 {
-                    chatOptions.TopP = options.TopP.Value;
+                    chatOptions.TopP = options.ApiSettings.TopP;
                 }
 
                 // Set ReasoningEffortLevel if Model.ReasoningEffort is not 'none'
@@ -149,7 +148,7 @@ namespace AiStudio4.AiServices
                 }
                 if (chatOptions.Tools.Any())
                 {
-                    chatOptions.ToolChoice = ChatToolChoice.CreateRequiredChoice();
+                    chatOptions.ToolChoice = ChatToolChoice.CreateAutoChoice();
                 }
                 try
                 {
@@ -158,13 +157,311 @@ namespace AiStudio4.AiServices
                 }
                 catch (Exception ex)
                 {
-                    return HandleError(ex);
+                    return HandleError(ex, "Error during OpenAI API call");
                 }
             }
         }
 
+        public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
+        {
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
+            InitializeOpenAIClients(ApiModel);
+
+            return await ExecuteCommonToolLoop(
+                options,
+                toolExecutor,
+                makeApiCall: async (opts) => await MakeOpenAIApiCall(opts),
+                createAssistantMessage: CreateOpenAIAssistantMessage,
+                createToolResultMessage: CreateOpenAIToolResultMessage,
+                options.MaxToolIterations ?? 10);
+        }
+
+        private async Task<AiResponse> MakeOpenAIApiCall(AiRequestOptions options)
+        {
+            ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+            
+            // Create list of messages for the chat completion
+            List<ChatMessage> messages = new List<ChatMessage>();
+
+            // Add system message if present
+            if (!string.IsNullOrEmpty(options.Conv.systemprompt))
+            {
+                messages.Add(new SystemChatMessage(options.Conv.SystemPromptWithDateTime()));
+            }
+
+            // Add conversation messages
+            foreach (var message in options.Conv.messages)
+            { 
+                ChatMessage chatMessage = CreateChatMessage(message);
+                messages.Add(chatMessage);
+                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Added message to API call: Type={chatMessage.GetType().Name}");
+            }
+
+            // Configure chat completion options
+            float temp = options.Model.Requires1fTemp ? 1f : options.ApiSettings.Temperature;
+            
+            ChatCompletionOptions chatOptions = new ChatCompletionOptions
+            {
+               Temperature = temp
+            };
+
+            // Add TopP if supported
+            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            {
+                chatOptions.TopP = options.ApiSettings.TopP;
+            }
+
+            // Set reasoning effort level if applicable
+            if (!string.IsNullOrEmpty(options.Model.ReasoningEffort) && options.Model.ReasoningEffort != "none")
+            {
+                switch (options.Model.ReasoningEffort)
+                {
+                    case "low":
+                        chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Low;
+                        break;
+                    case "medium":
+                        chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
+                        break;
+                    case "high":
+                        chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.High;
+                        break;
+                    default:
+                        chatOptions.ReasoningEffortLevel = ChatReasoningEffortLevel.Medium;
+                        break;
+                }
+            }
+
+            // Add tools if present
+            if (options.ToolIds?.Any() == true)
+            {
+                await AddToolsToChatOptions(chatOptions, options.ToolIds);
+                chatOptions.ToolChoice = ChatToolChoice.CreateAutoChoice();
+            }
+
+            // Process embeddings if needed
+            if (options.AddEmbeddings)
+            {
+                var lastMessage = options.Conv.messages.Last();
+                var newInput = await AddEmbeddingsIfRequired(
+                    options.Conv,
+                    options.ApiSettings,
+                    options.MustNotUseEmbedding,
+                    options.AddEmbeddings,
+                    lastMessage.content);
+
+                // Update the last message content with embeddings
+                if (messages.Count > 0 && messages.Last() is UserChatMessage userMessage)
+                {
+                    int lastIndex = messages.Count - 1;
+                    messages[lastIndex] = new UserChatMessage(newInput);
+                }
+            }
+
+            return await HandleStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+        }
+
+        private LinearConvMessage CreateOpenAIAssistantMessage(AiResponse response)
+        {
+            _toolCallIdQueue.Clear(); // Clear previous tool IDs
+            
+            // Build content similar to Claude - as a JSON array
+            var contentArray = new JArray();
+            
+            // Add text content if any
+            var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
+            if (!string.IsNullOrEmpty(textContent))
+            {
+                contentArray.Add(new JObject
+                {
+                    ["type"] = "text",
+                    ["text"] = textContent
+                });
+            }
+
+            // Add tool calls if present
+            if (response.ToolResponseSet?.Tools?.Any() == true)
+            {
+                foreach (var tool in response.ToolResponseSet.Tools)
+                {
+                    var toolCallId = $"call_{Guid.NewGuid():N}".Substring(0, 24); // Generate a unique ID
+                    _toolCallIdQueue.Enqueue(toolCallId); // Store in order for later use
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT: Creating tool_call with id: {toolCallId}, tool: {tool.ToolName}");
+                    
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "tool_call",
+                        ["id"] = toolCallId,
+                        ["function"] = new JObject
+                        {
+                            ["name"] = tool.ToolName,
+                            ["arguments"] = tool.ResponseText
+                        }
+                    });
+                }
+            }
+
+            var assistantMessage = new LinearConvMessage
+            {
+                role = "assistant",
+                content = contentArray.ToString()
+            };
+
+            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT MESSAGE: {assistantMessage.content}");
+            return assistantMessage;
+        }
+
+        private LinearConvMessage CreateOpenAIToolResultMessage(List<ContentBlock> toolResultBlocks)
+        {
+            // Build content similar to Claude - as a JSON array
+            var contentArray = new JArray();
+            
+            foreach (var block in toolResultBlocks)
+            {
+                if (block.ContentType == Core.Models.ContentType.ToolResponse)
+                {
+                    var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
+                    var toolName = toolData.toolName?.ToString();
+                    var result = toolData.result?.ToString();
+                    
+                    // Use the next tool call ID from the queue (preserves order)
+                    var toolCallId = _toolCallIdQueue.Count > 0 
+                        ? _toolCallIdQueue.Dequeue() 
+                        : $"call_{Guid.NewGuid():N}".Substring(0, 24);
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Creating tool result with tool_call_id: {toolCallId}, tool: {toolName}");
+                    
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "tool_result",
+                        ["tool_call_id"] = toolCallId,
+                        ["content"] = result ?? ""
+                    });
+                }
+            }
+            
+            var toolResultMessage = new LinearConvMessage
+            {
+                role = "user", // Tool results go in user messages for OpenAI
+                content = contentArray.ToString()
+            };
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT MESSAGE: {toolResultMessage.content}");
+            return toolResultMessage;
+        }
+
+        protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
+        {
+            return new LinearConvMessage
+            {
+                role = "user",
+                content = interjectionText
+            };
+        }
+
         private ChatMessage CreateChatMessage(LinearConvMessage message)
         {
+            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI CreateChatMessage: role={message.role}, content length={message.content?.Length ?? 0}");
+            if (!string.IsNullOrEmpty(message.content) && message.content.Length < 500)
+            {
+                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Message content: {message.content}");
+            }
+            
+            // Try to parse content as JSON array to detect structured messages
+            if (!string.IsNullOrEmpty(message.content) && message.content.Trim().StartsWith("["))
+            {
+                try
+                {
+                    var contentArray = JArray.Parse(message.content);
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Parsed JSON array with {contentArray.Count} items");
+                    
+                    // Handle assistant messages with tool calls
+                    if (message.role.ToLower() == "assistant")
+                    {
+                        // Extract text content and tool calls
+                        var textContent = "";
+                        var toolCalls = new List<ChatToolCall>();
+                        
+                        foreach (var item in contentArray)
+                        {
+                            var itemType = item["type"]?.ToString();
+                            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Assistant message item type: {itemType}");
+                            
+                            if (itemType == "text")
+                            {
+                                textContent = item["text"]?.ToString() ?? "";
+                            }
+                            else if (itemType == "tool_call")
+                            {
+                                var toolCallId = item["id"]?.ToString();
+                                var functionName = item["function"]?["name"]?.ToString();
+                                var functionArgs = item["function"]?["arguments"]?.ToString();
+                                
+                                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_call: id={toolCallId}, name={functionName}");
+                                
+                                if (!string.IsNullOrEmpty(toolCallId) && !string.IsNullOrEmpty(functionName))
+                                {
+                                    toolCalls.Add(ChatToolCall.CreateFunctionToolCall(
+                                        toolCallId,
+                                        functionName,
+                                        BinaryData.FromString(functionArgs ?? "{}")
+                                    ));
+                                }
+                            }
+                        }
+                        
+                        // Create assistant message with tool calls if any
+                        if (toolCalls.Any())
+                        {
+                            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Creating AssistantChatMessage with {toolCalls.Count} tool calls");
+                            // OpenAI .NET SDK requires creating the message first, then adding tool calls
+                            var assistantMsg = new AssistantChatMessage(textContent);
+                            foreach (var toolCall in toolCalls)
+                            {
+                                assistantMsg.ToolCalls.Add(toolCall);
+                            }
+                            return assistantMsg;
+                        }
+                        else
+                        {
+                            return new AssistantChatMessage(textContent);
+                        }
+                    }
+                    
+                    // Handle user messages with tool results
+                    if (message.role.ToLower() == "user")
+                    {
+                        // Check if this is a tool result message
+                        var firstItem = contentArray.FirstOrDefault();
+                        if (firstItem?["type"]?.ToString() == "tool_result")
+                        {
+                            var toolCallId = firstItem["tool_call_id"]?.ToString() ?? "unknown";
+                            var content = firstItem["content"]?.ToString() ?? "";
+                            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_result: tool_call_id={toolCallId}");
+                            return new ToolChatMessage(toolCallId, ChatMessageContentPart.CreateTextPart(content));
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"Failed to parse message content as JSON: {ex.Message}");
+                }
+            }
+            
+            // Handle old function role messages for backward compatibility
+            if (message.role.ToLower() == "function")
+            {
+                // Function messages have a special format - convert to tool message
+                return new ToolChatMessage($"call_{message.name ?? "unknown"}", ChatMessageContentPart.CreateTextPart(message.content ?? ""));
+            }
+            
+            // Handle old assistant messages with function_call (backward compatibility)
+            if (message.role.ToLower() == "assistant" && !string.IsNullOrEmpty(message.function_call))
+            {
+                var assistantMsg = new AssistantChatMessage(message.content ?? "");
+                return assistantMsg;
+            }
+
             List<ChatMessageContentPart> contentParts = new List<ChatMessageContentPart>();
 
             // Handle multiple attachments (images only, as OpenAI supports only images for now)
@@ -200,6 +497,12 @@ namespace AiStudio4.AiServices
                 contentParts.Add(ChatMessageContentPart.CreateTextPart(message.content));
             }
 
+            // For assistant messages without content parts, add empty string
+            if (contentParts.Count == 0)
+            {
+                contentParts.Add(ChatMessageContentPart.CreateTextPart(""));
+            }
+
             // Create appropriate message type based on role
             switch (message.role.ToLower())
             {
@@ -211,7 +514,7 @@ namespace AiStudio4.AiServices
                     return new AssistantChatMessage(contentParts);
                 case "tool":
                     // Tool messages require additional parameters
-                    return new ToolChatMessage("tool_id", message.content);
+                    return new ToolChatMessage("tool_id", ChatMessageContentPart.CreateTextPart(message.content ?? ""));
                 default:
                     return new UserChatMessage(contentParts);
             }
@@ -302,9 +605,10 @@ namespace AiStudio4.AiServices
                                             {
                                                 ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                                                 Success = true,
-                                                TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
+                                                TokenUsage = CreateTokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                                                 ChosenTool = chosenTool,
-                                                ToolResponseSet = ToolResponseSet
+                                                ToolResponseSet = ToolResponseSet,
+                                                IsCancelled = false
                                             };
                                         }
                                     }
@@ -347,16 +651,16 @@ namespace AiStudio4.AiServices
                 {
                     ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
                     Success = true,
-                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
+                    TokenUsage = CreateTokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
                     ChosenTool = chosenTool,
                     ToolResponseSet = ToolResponseSet,
+                    IsCancelled = false
                 };
             }
             catch (OperationCanceledException)
             {
-                // Return partial results when cancellation occurs
-                onStreamingComplete?.Invoke(); // Still invoke completion callback
-
+                System.Diagnostics.Debug.WriteLine("OpenAI streaming cancelled.");
+                
                 // Trim any tool response text
                 if (ToolResponseSet.Tools.Count > 0 && !string.IsNullOrEmpty(chosenTool))
                 {
@@ -367,46 +671,27 @@ namespace AiStudio4.AiServices
                     }
                 }
 
-                responseBuilder.AppendLine("\n\n<Cancelled>\n");
-
-                return new AiResponse
-                {
-                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd(), ContentType = Core.Models.ContentType.Text } },
-                    Success = true, // Still consider it a success, just partial
-                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString(), "0", cachedTokens.ToString()),
-                    ChosenTool = chosenTool,
-                    ToolResponseSet = ToolResponseSet,
-                };
+                var tokenUsage = CreateTokenUsage(
+                    inputTokens.ToString(),
+                    outputTokens.ToString(),
+                    "0",
+                    cachedTokens.ToString()
+                );
+                
+                return HandleCancellation(
+                    responseBuilder.ToString(),
+                    tokenUsage,
+                    ToolResponseSet,
+                    chosenTool
+                );
             }
             catch (ClientResultException ex)
             {
-                // Return partial results when cancellation occurs
-                onStreamingComplete?.Invoke(); // Still invoke completion callback
-
-                // Trim any tool response text
-                if (ToolResponseSet.Tools.Count > 0 && !string.IsNullOrEmpty(chosenTool))
-                {
-                    var lastToolResponse = ToolResponseSet.Tools.LastOrDefault(t => t.ToolName == chosenTool);
-                    if (lastToolResponse != null)
-                    {
-                        lastToolResponse.ResponseText = lastToolResponse.ResponseText.Trim();
-                    }
-                }
-
-                responseBuilder.AppendLine("\n\n<Error>\n");
-
-                return new AiResponse
-                {
-                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = responseBuilder.ToString().TrimEnd() + "\n" + ex.ToString(), ContentType = Core.Models.ContentType.Text } },
-                    Success = true, // Still consider it a success, just partial
-                    TokenUsage = new TokenUsage(inputTokens.ToString(), outputTokens.ToString()),
-                    ChosenTool = chosenTool,
-                    ToolResponseSet = ToolResponseSet,
-                };
+                return HandleError(ex, "OpenAI API client error");
             }
             catch (Exception ex)
             {
-                return HandleError(ex);
+                return HandleError(ex, "Error during streaming response");
             }
         }
 
@@ -500,16 +785,6 @@ namespace AiStudio4.AiServices
             return ToolFormat.OpenAI;
         }
 
-        // Helper method for handling errors
-        private AiResponse HandleError(Exception ex, string additionalInfo = "")
-        {
-            string errorMessage = $"Error: {ex.Message}";
-            if (!string.IsNullOrEmpty(additionalInfo))
-            {
-                errorMessage += $" Additional info: {additionalInfo}";
-            }
-            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = Core.Models.ContentType.Text } }};
-        }
 
     }
 

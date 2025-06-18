@@ -45,7 +45,6 @@ namespace AiStudio4.InjectedDependencies.WebSocket
                         WebSocketMessageType.Text,
                         true,
                         _cancellationTokenSource.Token);
-                    _logger.LogTrace("Sent message to client {ClientId}", clientId);
                 }
             }
             catch (Exception ex)

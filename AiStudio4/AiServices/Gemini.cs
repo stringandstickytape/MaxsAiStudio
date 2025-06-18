@@ -1,6 +1,8 @@
 using AiStudio4.Convs;
-
+using AiStudio4.Core.Models;
+using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
+using AiStudio4.InjectedDependencies;
 using Azure.Core;
 
 
@@ -23,128 +25,120 @@ namespace AiStudio4.AiServices
     internal class Gemini : AiServiceBase
     {
         private readonly List<GenImage> _generatedImages = new List<GenImage>();
-        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
+        private readonly GeminiToolResponseProcessor _toolResponseProcessor;
 
         public Gemini()
         {
+            _toolResponseProcessor = new GeminiToolResponseProcessor();
+        }
+
+        protected override ProviderFormat GetProviderFormat() => ProviderFormat.Gemini;
+
+        protected override async Task AddTopPToRequest(JObject request, float topP)
+        {
+            // Gemini requires rebuilding the request with TopP
+            // This is handled in CustomizeRequest instead
+            await Task.CompletedTask;
+        }
+
+        protected override async Task CustomizeRequest(JObject request, AiRequestOptions options)
+        {
+            // Handle TopP for Gemini (requires rebuilding request)
+            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            {
+                var newRequest = RequestPayloadBuilder.Create(ProviderFormat.Gemini)
+                    .WithModel(ApiModel)
+                    .WithConversation(options.Conv)
+                    .WithApiSettings(options.ApiSettings)
+                    .WithGenerationConfig()
+                    .WithMessages()
+                    .WithTopP(options.ApiSettings.TopP)
+                    .Build();
+
+                // Copy all properties from new request to existing request
+                request.RemoveAll();
+                foreach (var property in newRequest.Properties())
+                {
+                    request[property.Name] = property.Value;
+                }
+            }
+
+            // Handle special Google Search directive
+            bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
+            if (hasGoogleSearchDirective)
+            {
+                request["tools"] = new JArray
+                {
+                    new JObject
+                    {
+                        ["google_search"] = new JObject()
+                    }
+                };
+            }
+
+            await base.CustomizeRequest(request, options);
         }
 
         protected override async Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false)
         {
-            
             _generatedImages.Clear();
-            
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
 
-            
+            // Handle TTS models specially
             if (options.Model.IsTtsModel)
             {
                 return await HandleTtsRequestAsync(options);
             }
 
-            var url = $"{ApiUrl}{ApiModel}:streamGenerateContent?key={ApiKey}";
-
-            
-            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
+            return await MakeStandardApiCall(options, async (content) =>
             {
-                options.Conv.systemprompt = options.CustomSystemPrompt;
+                return await HandleResponse(options, content);
+            }, forceNoTools);
+        }
+
+        public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
+        {
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings, 1800);
+
+            // Handle TTS models
+            if (options.Model.IsTtsModel)
+            {
+                return await HandleTtsRequestAsync(options);
             }
 
-            var requestPayload = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
+            return await ExecuteCommonToolLoop(
+                options,
+                toolExecutor,
+                makeApiCall: async (opts) => await MakeGeminiApiCall(opts),
+                createAssistantMessage: CreateGeminiAssistantMessage,
+                createToolResultMessage: CreateGeminiToolResultMessage,
+                options.MaxToolIterations ?? 10);
+        }
 
+        private async Task<AiResponse> MakeGeminiApiCall(AiRequestOptions options)
+        {
+            _generatedImages.Clear();
             
-            // Add tools to request if not forcing no tools
-            // Special handling for GEMINI_INTERNAL_GOOGLE_SEARCH directive
-            bool hasGoogleSearchDirective = options.ToolIds?.Contains("GEMINI_INTERNAL_GOOGLE_SEARCH") == true;
-            
-            if (!forceNoTools)
+            return await MakeStandardApiCall(options, async (content) =>
             {
-                if (hasGoogleSearchDirective)
-                {
-                    // When GEMINI_INTERNAL_GOOGLE_SEARCH is specified, add Google Search tool
-                    
-                    // Add Google Search tool to the request
-                    requestPayload["tools"] = new JArray
-                    {
-                        new JObject
-                        {
-                            ["google_search"] = new JObject()
-                        }
-                    };
-                }
-                else
-                {
-                    await AddToolsToRequestAsync(requestPayload, options.ToolIds);
-                }
-            }
+                return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+            });
+        }
 
-            
-            var contentsArray = new JArray();
-            foreach (var message in options.Conv.messages)
-            {
-                var messageObj = CreateMessageObject(message);
-                contentsArray.Add(messageObj);
-            }
+        private LinearConvMessage CreateGeminiAssistantMessage(AiResponse response)
+        {
+            return _toolResponseProcessor.CreateAssistantMessage(response);
+        }
 
+        private LinearConvMessage CreateGeminiToolResultMessage(List<ContentBlock> toolResultBlocks)
+        {
+            return _toolResponseProcessor.CreateToolResultMessage(toolResultBlocks);
+        }
 
-
-
-            
-            if (ApiModel == "gemini-2.0-flash-exp-image-generation")
-            {
-                requestPayload["generationConfig"] = new JObject
-                {
-                    ["responseModalities"] = new JArray { "Text", "Image" },
-                    ["temperature"] = options.ApiSettings.Temperature
-                };
-                // Add TopP from options.TopP (which was populated from ApiSettings)
-                // The value in options.TopP should be pre-validated (0.0 to 1.0).
-                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
-                {
-                    ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
-                }
-            }
-            else
-            {
-                requestPayload["system_instruction"] = new JObject
-                {
-                    ["parts"] = new JObject
-                    {
-                        ["text"] = options.Conv.SystemPromptWithDateTime()
-                    }
-                };
-                requestPayload["generationConfig"] = new JObject
-                {
-                    ["temperature"] = options.ApiSettings.Temperature
-                };
-                // Add TopP from options.TopP (which was populated from ApiSettings)
-                // The value in options.TopP should be pre-validated (0.0 to 1.0).
-                if (options.Model.AllowsTopP && options.TopP.HasValue && options.TopP.Value > 0.0f && options.TopP.Value <= 1.0f)
-                {
-                    ((JObject)requestPayload["generationConfig"])["topP"] = options.TopP.Value;
-                }
-            }
-
-
-
-            if (requestPayload["contents"] != null)
-            {
-                requestPayload.Remove("contents");
-            }
-
-            
-            requestPayload.Add("contents", contentsArray);
-
-            
-            
-            
-            
-            var jsonPayload = JsonConvert.SerializeObject(requestPayload);
-            using (var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json"))
-            {
-                return await HandleResponse(options, content); 
-            }
+        protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
+        {
+            return _toolResponseProcessor.CreateUserInterjectionMessage(interjectionText);
         }
 
         protected override JObject CreateRequestPayload(
@@ -152,55 +146,18 @@ namespace AiStudio4.AiServices
     LinearConv conv,
     ApiSettings apiSettings)
         {
-            return new JObject
-            {
-                ["contents"] = new JArray()
-            };
+            return RequestPayloadBuilder.Create(ProviderFormat.Gemini)
+                .WithModel(apiModel)
+                .WithConversation(conv)
+                .WithApiSettings(apiSettings)
+                .WithGenerationConfig()
+                .WithMessages()
+                .Build();
         }
 
         protected override JObject CreateMessageObject(LinearConvMessage message)
         {
-            var partArray = new JArray();
-            partArray.Add(new JObject { ["text"] = message.content });
-
-            
-            if (!string.IsNullOrEmpty(message.base64image))
-            {
-                partArray.Add(new JObject
-                {
-                    ["inline_data"] = new JObject
-                    {
-                        ["mime_type"] = message.base64type,
-                        ["data"] = message.base64image
-                    }
-                });
-            }
-
-            
-            if (message.attachments != null && message.attachments.Any())
-            {
-                foreach (var attachment in message.attachments)
-                {
-                    if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
-                    {
-                        partArray.Add(new JObject
-                        {
-                            ["inline_data"] = new JObject
-                            {
-                                ["mime_type"] = attachment.Type,
-                                ["data"] = attachment.Content
-                            }
-                        });
-                    }
-                    
-                }
-            }
-
-            return new JObject
-            {
-                ["role"] = message.role == "assistant" ? "model" : message.role,
-                ["parts"] = partArray
-            };
+            return MessageBuilder.CreateMessage(message, ProviderFormat.Gemini);
         }
 
 
@@ -391,7 +348,7 @@ namespace AiStudio4.AiServices
                         {
                             ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = toolArgs, ContentType = Core.Models.ContentType.Text } },
                             Success = true,
-                            TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
+                            TokenUsage = CreateTokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
                             ChosenTool = toolName,
                             ToolResponseSet = ToolResponseSet,
                             IsCancelled = false 
@@ -404,19 +361,7 @@ namespace AiStudio4.AiServices
                 }
 
                 
-                var attachments = new List<DataModels.Attachment>();
-                int imageIndex = 1;
-                foreach (var image in _generatedImages)
-                {
-                    attachments.Add(new DataModels.Attachment
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Name = $"generated_image_{imageIndex++}.png",
-                        Type = image.MimeType,
-                        Content = image.Base64Data,
-                        Size = image.Base64Data.Length * 3 / 4 
-                    });
-                }
+                var attachments = BuildImageAttachments();
                 currentResponseItem = null;
 
                 Debug.WriteLine($"Returning with {ToolResponseSet.Tools.Count} tools in the tool response set: {string.Join(",", ToolResponseSet.Tools.Select(x => x.ToolName))}... (2)");
@@ -424,7 +369,7 @@ namespace AiStudio4.AiServices
                 {
                     ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = fullResponse.ToString(), ContentType = Core.Models.ContentType.Text } },
                     Success = true,
-                    TokenUsage = new TokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount ?? "0"),
+                    TokenUsage = CreateTokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount),
                     ChosenTool = null,
                     Attachments = attachments.Count > 0 ? attachments : null,
                     ToolResponseSet = ToolResponseSet,
@@ -433,35 +378,19 @@ namespace AiStudio4.AiServices
             }
             catch (OperationCanceledException)
             {
-                
-                
-                
                 Debug.WriteLine("Cancelled. ");
-                var attachments = new List<DataModels.Attachment>();
-                int imageIndex = 1;
-                foreach (var image in _generatedImages)
-                {
-                    attachments.Add(new DataModels.Attachment
-                    {
-                        Id = Guid.NewGuid().ToString(),
-                        Name = $"generated_image_{imageIndex++}.png",
-                        Type = image.MimeType,
-                        Content = image.Base64Data,
-                        Size = image.Base64Data.Length * 3 / 4 
-                    });
-                }
+                var attachments = BuildImageAttachments();
                 currentResponseItem = null;
                 
-                return new AiResponse
-                {
-                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = fullResponse.ToString(), ContentType = Core.Models.ContentType.Text } },
-                    Success = true, 
-                    TokenUsage = new TokenUsage(inputTokenCount ?? "0", outputTokenCount ?? "0", "0", cachedTokenCount ?? "0"),
-                    ChosenTool = chosenTool, 
-                    Attachments = attachments.Count > 0 ? attachments : null,
-                    ToolResponseSet = ToolResponseSet, 
-                    IsCancelled = true
-                };
+                var tokenUsage = CreateTokenUsage(inputTokenCount, outputTokenCount, "0", cachedTokenCount);
+                
+                return HandleCancellation(
+                    fullResponse.ToString(),
+                    tokenUsage,
+                    ToolResponseSet,
+                    chosenTool,
+                    attachments.Count > 0 ? attachments : null
+                );
             }
             catch (Exception ex)
             {
@@ -470,15 +399,6 @@ namespace AiStudio4.AiServices
             }
         }
 
-        private AiResponse HandleError(Exception ex, string additionalInfo = "")
-        {
-            string errorMessage = $"Error: {ex.Message}";
-            if (!string.IsNullOrEmpty(additionalInfo))
-            {
-                errorMessage += $" Additional info: {additionalInfo}";
-            }
-            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = Core.Models.ContentType.Text } } };
-        }
         public static string ExtractTrailingJsonObject(string input)
         {
             if (string.IsNullOrEmpty(input))
@@ -710,6 +630,24 @@ namespace AiStudio4.AiServices
             return ToolFormat.Gemini;
         }
 
+        private List<DataModels.Attachment> BuildImageAttachments()
+        {
+            var attachments = new List<DataModels.Attachment>();
+            int imageIndex = 1;
+            foreach (var image in _generatedImages)
+            {
+                attachments.Add(new DataModels.Attachment
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    Name = $"generated_image_{imageIndex++}.png",
+                    Type = image.MimeType,
+                    Content = image.Base64Data,
+                    Size = image.Base64Data.Length * 3 / 4 
+                });
+            }
+            return attachments;
+        }
+
         private void RemoveAllOfAnyOfOneOf(JObject obj)
         {
             if (obj == null) return;
@@ -864,7 +802,7 @@ namespace AiStudio4.AiServices
                         Success = true,
                         ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = $"Audio generated for: \"{textToSynthesize.Substring(0, Math.Min(textToSynthesize.Length, 50))}...\"", ContentType = Core.Models.ContentType.Text } },
                         Attachments = new List<Attachment> { attachment },
-                        TokenUsage = new TokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), 
+                        TokenUsage = CreateTokenUsage(inputTokenCount.ToString(), outputTokenCount.ToString()), 
                     };
                 }
                 catch (Exception ex)

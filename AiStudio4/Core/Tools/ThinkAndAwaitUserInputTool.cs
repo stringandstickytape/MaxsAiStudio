@@ -1,4 +1,4 @@
-// AiStudio4/Core/Tools/ThinkAndAwaitUserInputTool.cs
+﻿// AiStudio4/Core/Tools/ThinkAndAwaitUserInputTool.cs
 ﻿
 
 
@@ -17,9 +17,7 @@ namespace AiStudio4.Core.Tools
     {
         public ThinkAndAwaitUserInputTool(ILogger<ThinkAndAwaitUserInputTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
         {
-        }
-
-        public string OutputFileType { get; } = "md";
+        }        public string OutputFileType { get; } = "thinkandawaituserinput";
 
         /// <summary>
         /// Gets the ThinkAndAwaitUserInput tool definition
@@ -45,9 +43,8 @@ namespace AiStudio4.Core.Tools
   }
 }
 """,
-                Categories = new List<string> { "MaxCode" },
-                OutputFileType = "",
-                Filetype = string.Empty,
+                Categories = new List<string> { "MaxCode" },                OutputFileType = "thinkandawaituserinput",
+                Filetype = "thinkandawaituserinput",
                 LastModified = DateTime.UtcNow
             };
         }
@@ -64,9 +61,16 @@ namespace AiStudio4.Core.Tools
             var thought = parameters?["thought"]?.ToString() ?? "";
             var continueProcessing = false; // Always stop processing to await user input
 
+            // Format result as JSON for the rich renderer
+            var resultJson = JsonConvert.SerializeObject(new { 
+                thought = thought, 
+                timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                status = "awaiting_user_input"
+            });
+
             _logger.LogInformation("ThinkAndAwaitUserInput tool called with parameters: {Parameters}, continueProcessing: {ContinueProcessing}", thought, continueProcessing);
             SendStatusUpdate("ThinkAndAwaitUserInput tool completed - awaiting user input.");
-            return Task.FromResult(CreateResult(true, continueProcessing, thought));
+            return Task.FromResult(CreateResult(true, continueProcessing, resultJson));
         }
     }
 }

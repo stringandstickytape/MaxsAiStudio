@@ -10,6 +10,7 @@ namespace AiStudio4.Core.Models
         Text = 0,
         System = 1,
         AiHidden = 2,
-        Tool = 3
+        Tool = 3,
+        ToolResponse = 4
     }
 }

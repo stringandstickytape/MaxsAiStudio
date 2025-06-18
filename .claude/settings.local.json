@@ -9,7 +9,14 @@
       "Bash(rm:*)",
       "Bash(grep:*)",
       "Bash(pnpm run:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(ls:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:ai.google.dev)",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(awk:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }

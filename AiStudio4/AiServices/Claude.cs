@@ -1,6 +1,8 @@
 using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
+using AiStudio4.Core.Models;
+using AiStudio4.InjectedDependencies;
 
 
 using SharedClasses.Providers;
@@ -16,11 +18,18 @@ namespace AiStudio4.AiServices
 {
     internal class Claude : AiServiceBase
     {
-        public ToolResponse ToolResponseSet { get; set; } = new ToolResponse { Tools = new List<ToolResponseItem>() };
-
         private string oneOffPreFill;
+        private readonly ClaudeToolResponseProcessor _toolResponseProcessor;
+        private readonly Queue<string> _toolIdQueue = new Queue<string>();
+        
+        public Claude()
+        {
+            _toolResponseProcessor = new ClaudeToolResponseProcessor();
+        }
         
         public void SetOneOffPreFill(string prefill) => oneOffPreFill = prefill;
+
+        protected override ProviderFormat GetProviderFormat() => ProviderFormat.Claude;
 
         protected override void ConfigureHttpClientHeaders(ApiSettings apiSettings)
         {
@@ -42,102 +51,24 @@ namespace AiStudio4.AiServices
                 client.DefaultRequestHeaders.Add("anthropic-beta", string.Join(", ", betaFeatures));
         }
 
+        protected override async Task AddEmbeddingsToRequest(JObject request, LinearConv conv, ApiSettings apiSettings, bool mustNotUseEmbedding)
+        {
+            // Claude-specific embeddings implementation (currently empty in original)
+            await Task.CompletedTask;
+        }
+
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
         {
-            var req = new JObject
-            {
-                ["model"] = modelName,
-                ["max_tokens"] = (ApiModel == "claude-3-7-sonnet-20250219" || ApiModel == "claude-3-7-sonnet-latest") ? 64000 : 8192,
-                ["stream"] = true,
-                ["temperature"] = apiSettings.Temperature,
-            };
-
-            if (!string.IsNullOrWhiteSpace(conv.systemprompt))
-                req["system"] = conv.systemprompt;
-
-            var messagesArray = new JArray();
-            int userMessageCount = 0;
-            int totalUserMessages = conv.messages.Count(m => m.role.ToLower() == "user");
-
-            foreach (var message in conv.messages)
-            {
-                var contentArray = new JArray();
-
-                // Handle legacy single image
-                if (message.base64image != null)
-                {
-                    contentArray.Add(new JObject
-                    {
-                        ["type"] = "image",
-                        ["source"] = new JObject
-                        {
-                            ["type"] = "base64",
-                            ["media_type"] = message.base64type,
-                            ["data"] = message.base64image
-                        }
-                    });
-                }
-                
-                // Handle multiple attachments
-                if (message.attachments != null && message.attachments.Any())
-                {
-                    foreach (var attachment in message.attachments)
-                    {
-                        if (attachment.Type.StartsWith("image/") || attachment.Type == "application/pdf")
-                        {
-                            contentArray.Add(new JObject
-                            {
-                                ["type"] = attachment.Type == "application/pdf" ? "document" : "image",
-                                ["source"] = new JObject
-                                {
-                                    ["type"] = "base64",
-                                    ["media_type"] = attachment.Type,
-                                    ["data"] = attachment.Content
-                                }
-                            });
-                        }
-                        // Additional attachment types could be handled here
-                    }
-                }
-
-                contentArray.Add(new JObject
-                {
-                    ["type"] = "text",
-                    ["text"] = message.content.Replace("\r", "")
-                });
-
-                var messageObject = new JObject
-                {
-                    ["role"] = message.role,
-                    ["content"] = contentArray
-                };
-
-                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user")
-                {
-                    userMessageCount++;
-                }
-
-                // Add cache_control to the last 4 user messages
-                if (apiSettings.UsePromptCaching && message.role.ToLower() == "user" && 
-                    (totalUserMessages - userMessageCount) < 4)
-                {
-                    messageObject["content"][0]["cache_control"] = new JObject { ["type"] = "ephemeral" };
-                }
-                
-                messagesArray.Add(messageObject);
-            }
-
-            if (oneOffPreFill != null)
-            {
-                messagesArray.Add(new JObject
-                {
-                    ["role"] = "assistant",
-                    ["content"] = new JArray { new JObject { ["type"] = "text", ["text"] = oneOffPreFill.Trim() } }
-                });
-            }
-
-            req["messages"] = messagesArray;
-            return req;
+            return RequestPayloadBuilder.Create(ProviderFormat.Claude)
+                .WithModel(modelName)
+                .WithConversation(conv)
+                .WithApiSettings(apiSettings)
+                .WithSystemPrompt(conv.systemprompt)
+                .WithGenerationConfig()
+                .WithMessages()
+                .WithPromptCaching(apiSettings.UsePromptCaching)
+                .WithOneOffPreFill(oneOffPreFill)
+                .Build();
         }
 
         // Override the FetchResponseInternal method to implement Claude-specific logic
@@ -148,135 +79,174 @@ namespace AiStudio4.AiServices
             
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
-            // Apply custom system prompt if provided
-            if (!string.IsNullOrEmpty(options.CustomSystemPrompt))
-                options.Conv.systemprompt = options.CustomSystemPrompt;
-
-            var req = CreateRequestPayload(ApiModel, options.Conv, options.ApiSettings);
-
-            if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
+            return await MakeStandardApiCall(options, async (content) =>
             {
-                req["top_p"] = options.ApiSettings.TopP;
-            }
-
-            if (!forceNoTools)
-            {
-                await AddToolsToRequestAsync(req, options.ToolIds);
-            }
-
-            if (req["tools"] != null)
-                req["tool_choice"] = new JObject { ["type"] = "any" };
-
-            if (options.AddEmbeddings)
-                await AddEmbeddingsToRequest(req, options.Conv, options.ApiSettings, options.MustNotUseEmbedding);
-
-            // bodge for Everything MCP
-
-            if (req["tools"] != null && req["tools"][0]["description"].ToString().StartsWith("Universal file search tool"))
-            {
-                req["tools"][0]["input_schema"] = (JObject)(JsonConvert.DeserializeObject(@"
+                while (true)
                 {
-                ""type"": ""object"",
-                ""$defs"": {
-                    ""WindowsSortOption"": {
-                        ""description"": ""Sort options for Windows Everything search."",
-                        ""enum"": [1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 13, 14],
-                        ""title"": ""WindowsSortOption"",
-                        ""type"": ""integer""
-                    }
-                },
-                ""properties"": {
-                    ""base"": {
-                        ""description"": ""Base search parameters common to all platforms."",
-                        ""properties"": {
-                            ""query"": {
-                                ""description"": ""Search query string. See platform-specific documentation for syntax details."",
-                                ""title"": ""Query"",
-                                ""type"": ""string""
-                            },
-                            ""max_results"": {
-                                ""default"": 100,
-                                ""description"": ""Maximum number of results to return (1-1000)"",
-                                ""maximum"": 1000,
-                                ""minimum"": 1,
-                                ""title"": ""Max Results"",
-                                ""type"": ""integer""
-                            }
-                        },
-                        ""required"": [""query""],
-                        ""title"": ""BaseSearchQuery"",
-                        ""type"": ""object""
-                    },
-                    ""windows_params"": {
-                        ""description"": ""Windows-specific search parameters for Everything SDK."",
-                        ""properties"": {
-                            ""match_path"": {
-                                ""default"": false,
-                                ""description"": ""Match against full path instead of filename only"",
-                                ""title"": ""Match Path"",
-                                ""type"": ""boolean""
-                            },
-                            ""match_case"": {
-                                ""default"": false,
-                                ""description"": ""Enable case-sensitive search"",
-                                ""title"": ""Match Case"",
-                                ""type"": ""boolean""
-                            },
-                            ""match_whole_word"": {
-                                ""default"": false,
-                                ""description"": ""Match whole words only"",
-                                ""title"": ""Match Whole Word"",
-                                ""type"": ""boolean""
-                            },
-                            ""match_regex"": {
-                                ""default"": false,
-                                ""description"": ""Enable regex search"",
-                                ""title"": ""Match Regex"",
-                                ""type"": ""boolean""
-                            },
-                            ""sort_by"": {
-                                ""$ref"": ""#/$defs/WindowsSortOption"",
-                                ""default"": 1,
-                                ""description"": ""Sort order for results""
-                            }
-                        },
-                        ""title"": ""WindowsSpecificParams"",
-                        ""type"": ""object""
-                    }
-                },
-                ""required"": [""base""]
-            }"));
-            }
-
-            var json = JsonConvert.SerializeObject(req);//, Formatting.Indented).Replace("\r\n","\n");
-            //File.WriteAllText($"request_{DateTime.Now:yyyyMMddHHmmss}.json", json);
-
-
-
-            var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-            while (true)
-            {
-                try
-                {
-                    if (oneOffPreFill != null)
+                    try
                     {
-                        oneOffPreFill = null;
+                        if (oneOffPreFill != null)
+                        {
+                            oneOffPreFill = null;
+                        }
+                        return await HandleResponse(options, content);
                     }
-                    return await HandleResponse(options, content);
-                }
-                catch (NotEnoughTokensForCachingException)
-                {
-                    if (options.ApiSettings.UsePromptCaching)
+                    catch (NotEnoughTokensForCachingException)
                     {
-                        json = RemoveCachingFromJson(json);
-                        options.ApiSettings.UsePromptCaching = false;
-                        content = new StringContent(json, Encoding.UTF8, "application/json");
+                        if (options.ApiSettings.UsePromptCaching)
+                        {
+                            var json = await content.ReadAsStringAsync();
+                            json = RemoveCachingFromJson(json);
+                            options.ApiSettings.UsePromptCaching = false;
+                            content = new StringContent(json, Encoding.UTF8, "application/json");
+                        }
+                        else
+                            throw;
                     }
-                    else
-                        throw;
+                }
+            }, forceNoTools);
+        }
+
+        protected override async Task CustomizeRequest(JObject request, AiRequestOptions options)
+        {
+            // Claude-specific request customizations can go here
+            await base.CustomizeRequest(request, options);
+        }
+
+        public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
+        {
+            InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
+
+            return await ExecuteCommonToolLoop(
+                options,
+                toolExecutor,
+                makeApiCall: async (opts) => await MakeClaudeApiCall(opts),
+                createAssistantMessage: CreateClaudeAssistantMessage,
+                createToolResultMessage: CreateClaudeToolResultMessage,
+                options.MaxToolIterations ?? 10);
+        }
+
+        private async Task<AiResponse> MakeClaudeApiCall(AiRequestOptions options)
+        {
+            return await MakeStandardApiCall(options, async (content) =>
+            {
+                // Handle potential caching errors
+                while (true)
+                {
+                    try
+                    {
+                        return await HandleStreamingResponse(content, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
+                    }
+                    catch (NotEnoughTokensForCachingException)
+                    {
+                        if (options.ApiSettings.UsePromptCaching)
+                        {
+                            var json = await content.ReadAsStringAsync();
+                            json = RemoveCachingFromJson(json);
+                            options.ApiSettings.UsePromptCaching = false;
+                            content = new StringContent(json, Encoding.UTF8, "application/json");
+                        }
+                        else
+                            throw;
+                    }
+                }
+            });
+        }
+
+        protected override async Task ConfigureToolChoice(JObject request)
+        {
+            if (request["tools"] != null)
+                request["tool_choice"] = new JObject { ["type"] = "auto" };
+            await Task.CompletedTask;
+        }
+
+        private LinearConvMessage CreateClaudeAssistantMessage(AiResponse response)
+        {
+            var assistantContent = new JArray();
+            _toolIdQueue.Clear(); // Clear previous tool IDs
+            
+            // Add any text content first
+            var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
+            if (!string.IsNullOrEmpty(textContent))
+            {
+                assistantContent.Add(new JObject 
+                { 
+                    ["type"] = "text", 
+                    ["text"] = textContent 
+                });
+            }
+
+            // Add tool use blocks
+            foreach (var toolCall in response.ToolResponseSet.Tools)
+            {
+                var toolId = toolCall.ToolId ?? $"tool_{Guid.NewGuid():N}"[..15]; // Use Claude's ID or fallback
+                _toolIdQueue.Enqueue(toolId); // Store in order for later use
+                System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT: Creating tool_use with id: {toolId}, tool: {toolCall.ToolName}");
+                
+                assistantContent.Add(new JObject
+                {
+                    ["type"] = "tool_use",
+                    ["id"] = toolId,
+                    ["name"] = toolCall.ToolName,
+                    ["input"] = JObject.Parse(toolCall.ResponseText)
+                });
+            }
+
+            var result = new LinearConvMessage
+            {
+                role = "assistant",
+                content = assistantContent.ToString()
+            };
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.content}");
+            return result;
+        }
+
+        private LinearConvMessage CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
+        {
+            var toolResults = new JArray();
+            
+            foreach (var block in toolResultBlocks)
+            {
+                if (block.ContentType == ContentType.ToolResponse)
+                {
+                    var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
+                    var toolName = toolData.toolName?.ToString();
+                    
+                    // Use the next tool ID from the queue (preserves order)
+                    var toolResultId = _toolIdQueue.Count > 0 
+                        ? _toolIdQueue.Dequeue() 
+                        : $"tool_{Guid.NewGuid():N}"[..15];
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}");
+                    
+                    toolResults.Add(new JObject
+                    {
+                        ["type"] = "tool_result",
+                        ["tool_use_id"] = toolResultId,
+                        ["content"] = toolData.result?.ToString(),
+                        ["is_error"] = !(bool)(toolData.success ?? false)
+                    });
                 }
             }
+            
+            var result = new LinearConvMessage
+            {
+                role = "user",
+                content = toolResults.ToString()
+            };
+            
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.content}");
+            return result;
+        }
+
+        protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
+        {
+            return new LinearConvMessage
+            {
+                role = "user",
+                content = interjectionText
+            };
         }
 
         protected override async Task<AiResponse> HandleStreamingResponse(
@@ -297,11 +267,18 @@ namespace AiStudio4.AiServices
                 result = await streamProcessor.ProcessStream(stream, cancellationToken);
                 // Normal completion
                 onStreamingComplete?.Invoke(); // Use callback
+                // Check if response text contains JSON array with tool calls
+                var parsedResponse = TryParseJsonArrayResponse(result.ResponseText);
+                if (parsedResponse != null)
+                {
+                    return parsedResponse;
+                }
+
                 return new AiResponse
                 {
                     ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = result.ResponseText, ContentType = ContentType.Text } },
                     Success = true,
-                    TokenUsage = new TokenUsage(
+                    TokenUsage = CreateTokenUsage(
                         result.InputTokens?.ToString(),
                         result.OutputTokens?.ToString(),
                         result.CacheCreationInputTokens?.ToString(),
@@ -317,20 +294,20 @@ namespace AiStudio4.AiServices
                 System.Diagnostics.Debug.WriteLine("Claude streaming cancelled.");
                 // Cancellation happened, use the partial result from the processor
                 result = streamProcessor.GetPartialResult(); // Need to add this method to StreamProcessor
-                return new AiResponse
-                {
-                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = result.ResponseText, ContentType = ContentType.Text } },
-                    Success = true, // Indicate successful handling of cancellation
-                    TokenUsage = new TokenUsage(
-                        result.InputTokens?.ToString() ?? "0",
-                        result.OutputTokens?.ToString() ?? "0",
-                        result.CacheCreationInputTokens?.ToString() ?? "0",
-                        result.CacheReadInputTokens?.ToString() ?? "0"
-                    ),
-                    ChosenTool = streamProcessor.ChosenTool,
-                    ToolResponseSet = streamProcessor.ToolResponseSet,
-                    IsCancelled = true
-                };
+                
+                var tokenUsage = CreateTokenUsage(
+                    result.InputTokens?.ToString(),
+                    result.OutputTokens?.ToString(),
+                    result.CacheCreationInputTokens?.ToString(),
+                    result.CacheReadInputTokens?.ToString()
+                );
+                
+                return HandleCancellation(
+                    result.ResponseText,
+                    tokenUsage,
+                    streamProcessor.ToolResponseSet,
+                    streamProcessor.ChosenTool
+                );
             }
             catch (Exception ex)
             {
@@ -362,15 +339,6 @@ namespace AiStudio4.AiServices
             return jObject.ToString();
         }
 
-        private AiResponse HandleError(Exception ex, string additionalInfo = "")
-        {
-            string errorMessage = $"Error: {ex.Message}";
-            if (!string.IsNullOrEmpty(additionalInfo))
-            {
-                errorMessage += $" Additional info: {additionalInfo}";
-            }
-            return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = errorMessage, ContentType = ContentType.Text } } };
-        }
         
         private string ExtractResponseTextFromCompletion(JObject completion)
         {
@@ -410,10 +378,6 @@ namespace AiStudio4.AiServices
             );
         }
 
-        private async Task AddEmbeddingsToRequest(JObject req, LinearConv conv, ApiSettings apiSettings, bool mustNotUseEmbedding)
-        {
-            // Implementation commented out in original code
-        }
 
         protected override async Task AddToolsToRequestAsync(JObject req, List<string> toolIDs)
         {
@@ -431,6 +395,77 @@ namespace AiStudio4.AiServices
         }
 
         protected override ToolFormat GetToolFormat() => ToolFormat.Claude;
+
+        private AiResponse TryParseJsonArrayResponse(string responseText)
+        {
+            try
+            {
+                // Check if response is a JSON array
+                if (!responseText.Trim().StartsWith("[") || !responseText.Trim().EndsWith("]"))
+                    return null;
+
+                var jsonArray = JArray.Parse(responseText);
+                var contentBlocks = new List<ContentBlock>();
+                var toolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
+                foreach (var item in jsonArray)
+                {
+                    var itemType = item["type"]?.ToString();
+                    
+                    if (itemType == "text")
+                    {
+                        // Add text content block
+                        var textContent = item["text"]?.ToString();
+                        if (!string.IsNullOrEmpty(textContent))
+                        {
+                            contentBlocks.Add(new ContentBlock
+                            {
+                                Content = textContent,
+                                ContentType = ContentType.Text
+                            });
+                        }
+                    }
+                    else if (itemType == "tool_use")
+                    {
+                        // Add tool call content block
+                        var toolName = item["name"]?.ToString();
+                        var toolInput = item["input"]?.ToString();
+                        
+                        if (!string.IsNullOrEmpty(toolName))
+                        {
+                            contentBlocks.Add(new ContentBlock
+                            {
+                                Content = JsonConvert.SerializeObject(new { toolName = toolName, parameters = toolInput }),
+                                ContentType = ContentType.Tool
+                            });
+
+                            // Add to tool response set for execution
+                            toolResponseSet.Tools.Add(new ToolResponseItem
+                            {
+                                ToolName = toolName,
+                                ResponseText = toolInput ?? "{}"
+                            });
+                        }
+                    }
+                }
+
+                Debug.WriteLine($"🔍 PARSED JSON ARRAY: {contentBlocks.Count} content blocks, {toolResponseSet.Tools.Count} tools");
+
+                return new AiResponse
+                {
+                    ContentBlocks = contentBlocks,
+                    Success = true,
+                    ToolResponseSet = toolResponseSet,
+                    TokenUsage = new TokenUsage("0", "0", "0", "0"), // Unknown from JSON format
+                    IsCancelled = false
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Failed to parse JSON array response: {ex.Message}");
+                return null;
+            }
+        }
     }
 
     internal class NotEnoughTokensForCachingException : Exception
@@ -560,12 +595,15 @@ namespace AiStudio4.AiServices
                         if (contentBlockType.ToString() == "tool_use")
                         {
                             ChosenTool = eventData["content_block"]?["name"].ToString();
+                            var claudeToolId = eventData["content_block"]?["id"]?.ToString();
+                            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE STREAMING: Received tool_use with id: {claudeToolId}, tool: {ChosenTool}");
 
                             // Create a new ToolResponseItem when a tool is chosen
                             var toolResponseItem = new ToolResponseItem
                             {
                                 ToolName = ChosenTool,
-                                ResponseText = ""
+                                ResponseText = "",
+                                ToolId = claudeToolId // Store Claude's actual tool ID
                             };
 
                             currentResponseItem = toolResponseItem;
@@ -629,7 +667,7 @@ namespace AiStudio4.AiServices
             }
             catch (JsonException ex)
             {
-                Console.WriteLine($"Error parsing JSON: {ex.Message}");
+                Debug.WriteLine($"Error parsing JSON: {ex.Message}");
             }
         }
 

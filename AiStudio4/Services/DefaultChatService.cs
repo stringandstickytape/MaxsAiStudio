@@ -9,6 +9,7 @@ using AiStudio4.AiServices;
 using AiStudio4.DataModels;
 using AiStudio4.Convs;
 
+using System.Linq;
 using System.Text.Json;
 
 
@@ -25,7 +26,6 @@ namespace AiStudio4.Services
         private readonly IToolService _toolService;
         private readonly IMcpService _mcpService;
         private readonly ISystemPromptService _systemPromptService;
-        private readonly IToolProcessorService _toolProcessorService;
         private readonly IWebSocketNotificationService _notificationService;
         private readonly IGeneralSettingsService _generalSettingsService;
         private readonly IStatusMessageService _statusMessageService;
@@ -36,13 +36,12 @@ namespace AiStudio4.Services
         
         
 
-        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IToolProcessorService toolProcessorService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider, AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory strategyFactory)
+        public DefaultChatService(ILogger<DefaultChatService> logger, IToolService toolService, ISystemPromptService systemPromptService, IMcpService mcpService, IWebSocketNotificationService notificationService, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IServiceProvider serviceProvider, AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory strategyFactory)
         {
             _logger = logger;
             _toolService = toolService;
             _systemPromptService = systemPromptService;
             _mcpService = mcpService;
-            _toolProcessorService = toolProcessorService;
             _notificationService = notificationService;
             _generalSettingsService = generalSettingsService;
             _statusMessageService = statusMessageService;
@@ -55,7 +54,6 @@ namespace AiStudio4.Services
             var startTime = DateTime.UtcNow;
             try
             {
-                _logger.LogInformation("Processing simple chat request");
                 
                 
                 var secondaryModelName = _generalSettingsService.CurrentSettings.SecondaryModel;
@@ -156,278 +154,311 @@ namespace AiStudio4.Services
 
                 string systemPromptContent = await GetSystemPrompt(request);
 
-                const int MAX_ITERATIONS = 50; 
+                // Get the tool executor service for provider-managed tool loop
+                var toolExecutor = _serviceProvider.GetRequiredService<Core.Interfaces.IToolExecutor>();
+                
+                // Create linear conversation from branched conversation
+                var linearConversation = new LinearConv(DateTime.Now)
+                {
+                    systemprompt = systemPromptContent,
+                    messages = new List<LinearConvMessage>()
+                };
 
+                // Convert branched conversation to linear format
+                var history = request.BranchedConv.GetMessageHistory(request.MessageId);
+                var messageHistory = history
+                    .Select(msg => new MessageHistoryItem
+                    {
+                        Role = msg.Role.ToString().ToLower(),
+                        Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text || x.ContentType == ContentType.AiHidden || x.ContentType == ContentType.Tool) ?? new List<ContentBlock>()).Select(cb => cb.Content)),
+                        Attachments = msg.Attachments
+                    }).ToList();
 
-                int currentIteration = 0;
-                bool continueLoop = true;
-                AiResponse response = null; 
-                AiStudio4.Core.Models.TokenCost accumulatedCostInfo = null;
-                List<Attachment> finalAttachments = new List<Attachment>(); 
+                foreach (var historyItem in messageHistory.Where(x => x.Role != "system"))
+                {
+                    var message = new LinearConvMessage
+                    {
+                        role = historyItem.Role,
+                        content = historyItem.Content,
+                        attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
+                    };
+                    linearConversation.messages.Add(message);
+                }
 
+                // Ensure the last user message is included
+                var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");
+                if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content))
+                {
+                    linearConversation.messages.Add(new LinearConvMessage
+                    {
+                        role = "user",
+                        content = lastUserMessage.Content,
+                        attachments = lastUserMessage.Attachments?.ToList() ?? new List<Attachment>()
+                    });
+                }
 
+                // Add default tools if any tools are specified
+                var toolIds = request.ToolIds ?? new List<string>();
+                if (toolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
+                {
+                    var stopTool = (await _toolService.GetToolByToolNameAsync("PresentResultsAndAwaitUserInput")).Guid;
+                    if (!toolIds.Contains(stopTool))
+                        toolIds.Add(stopTool);
 
+                    stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
+                    if (!toolIds.Contains(stopTool))
+                        toolIds.Add(stopTool);
+                }
+
+                // Create request options for provider-managed tool loop
+                var requestOptions = new AiRequestOptions
+                {
+                    ServiceProvider = service,
+                    Model = model,
+                    Conv = linearConversation,
+                    CancellationToken = request.CancellationToken,
+                    ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
+                    TopP = _generalSettingsService.CurrentSettings.ToApiSettings().TopP,
+                    MustNotUseEmbedding = true,
+                    ToolIds = toolIds,
+                    MaxToolIterations = 50, // Could be configurable
+                    AllowInterjections = true,
+                    // New properties for branched conversation updates
+                    BranchedConversation = request.BranchedConv,
+                    ParentMessageId = request.MessageId,
+                    AssistantMessageId = assistantMessageId,
+                    ClientId = request.ClientId
+                };
+
+                // Set up callbacks that reference requestOptions after it's created
+                requestOptions.GetCurrentAssistantMessageId = () => requestOptions.AssistantMessageId ?? assistantMessageId;
+                requestOptions.OnStreamingUpdate = (text) => _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto 
+                { 
+                    MessageId = requestOptions.GetCurrentAssistantMessageId?.Invoke() ?? assistantMessageId, 
+                    MessageType = "cfrag", 
+                    Content = text 
+                });
+                requestOptions.OnStreamingComplete = () => _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto 
+                { 
+                    MessageId = requestOptions.GetCurrentAssistantMessageId?.Invoke() ?? assistantMessageId, 
+                    MessageType = "endstream", 
+                    Content = "" 
+                });
+                
 
                 
-                string previousToolRequested = null; 
-                while (continueLoop && currentIteration < MAX_ITERATIONS)
+                requestOptions.OnToolCallsGenerated = async (messageId, contentBlocks, toolCalls) =>
                 {
+                    // Notify client about tool calls
+                    await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
+                    {
+                        MessageId = messageId,
+                        MessageType = "toolcalls",
+                        Content = JsonConvert.SerializeObject(toolCalls.Select(t => new { name = t.ToolName, status = "pending" }))
+                    });
+                };
+                
+                requestOptions.OnToolExecuted = async (messageId, toolName, result) =>
+                {
+                    // Notify client about tool execution result
+                    await _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto
+                    {
+                        MessageId = messageId,
+                        MessageType = "toolresult",
+                        Content = JsonConvert.SerializeObject(new 
+                        { 
+                            toolName = toolName,
+                            success = result.WasProcessed,
+                            result = result.ResultMessage
+                        })
+                    });
+                };
+                
+                requestOptions.OnUserInterjection = async (interjectionId, content) =>
+                {
+                    // Add interjection to branched conversation
+                    var interjectionMessage = request.BranchedConv.AddOrUpdateMessage(
+                        v4BranchedConvMessageRole.User,
+                        interjectionId,
+                        content,
+                        assistantMessageId); // Parent is the current assistant message
+                    
+                    // Notify client
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                    {
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = interjectionId,
+                        ContentBlocks = interjectionMessage.ContentBlocks,
+                        ParentId = assistantMessageId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "user",
+                        DurationMs = 0
+                    });
+                };
 
-                    request.OnStreamingUpdate =
-                        (text) =>
-                        _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "cfrag", Content = text });
-                    request.OnStreamingComplete = () =>
-                        _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto { MessageId = assistantMessageId, MessageType = "endstream", Content = "" }); 
+                requestOptions.OnAssistantMessageCreated = async (message) =>
+                {
+                    // Message is already added to branched conversation by the callback
+                    // Just notify the client
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                    {
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = message.Id,
+                        ContentBlocks = message.ContentBlocks,
+                        ParentId = message.ParentId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "assistant",
+                        Attachments = message.Attachments,
+                        DurationMs = 0,
+                        TokenUsage = null, // Will be updated later with final usage
+                        Temperature = message.Temperature
+                    });
+                };
 
+                requestOptions.OnUserMessageCreated = async (message) =>
+                {
+                    // Message is already added to branched conversation by the callback
+                    // Just notify the client
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                    {
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = message.Id,
+                        ContentBlocks = message.ContentBlocks,
+                        ParentId = message.ParentId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "user",
+                        Attachments = message.Attachments,
+                        DurationMs = 0
+                    });
+                };
 
-                    if (currentIteration != 0)
-                        await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Looping...");
+                await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
+
+                // *** THE BIG CHANGE: Single call replaces entire tool loop ***
+                AiResponse response = await aiService.FetchResponseWithToolLoop(requestOptions, toolExecutor, request.BranchedConv, request.MessageId, assistantMessageId, request.ClientId);
+
+                // Process the final response
+                var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
+                var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
+                
+                // Handle final message - use the CURRENT assistant message ID from the loop
+                // The assistantMessageId may have been updated during the tool loop
+                var finalAssistantMessageId = requestOptions.AssistantMessageId ?? assistantMessageId;
+                var existingMessage = request.BranchedConv.Messages.FirstOrDefault(m => m.Id == finalAssistantMessageId);
+                
+                _logger.LogInformation("🏁 DEFAULTCHATSERVICE: Final message processing - OriginalId: {OriginalId}, FinalId: {FinalId}, ExistingMessage: {Exists}, FinalParent: {FinalParent}", 
+                    assistantMessageId, finalAssistantMessageId, existingMessage != null, requestOptions.ParentMessageId);
+                
+                v4BranchedConvMessage finalMessage;
+                
+                if (existingMessage != null)
+                {
+                    // Assistant message already exists - check if we need to append final response content
+                    // For tool loops, the final response often contains content that was already streamed/added
+                    // So we need to be careful not to duplicate content
+                    
+                    List<ContentBlock> finalContentBlocks;
+                    
+                    // Check if the final response has any content that's not already in the existing message
+                    if (response.ContentBlocks != null && response.ContentBlocks.Any())
+                    {
+                        var newContentBlocks = new List<ContentBlock>();
+                        var existingTextContent = string.Join("", existingMessage.ContentBlocks?
+                            .Where(cb => cb.ContentType == ContentType.Text)
+                            .Select(cb => cb.Content) ?? new List<string>());
                         
-
-                    
-                    if (request.CancellationToken.IsCancellationRequested)
-                    {
-                        _logger.LogInformation("Cancellation requested during tool loop. Exiting loop.");
-                        break;
-                    }
-
-                    currentIteration++;
-
-                    
-                    var linearConversation = new LinearConv(DateTime.Now)
-                    {
-                        systemprompt = systemPromptContent,
-                        messages = new List<LinearConvMessage>()
-                    };
-
-                    // This is where we select the content blocks to send to AI, into combined text message
-                    var history = request.BranchedConv.GetMessageHistory(request.MessageId);
-                    var messageHistory = history
-                        .Select(msg => new MessageHistoryItem
-                        {                            Role = msg.Role.ToString().ToLower(),
-                            Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text || x.ContentType == ContentType.AiHidden || x.ContentType == ContentType.Tool) ?? new List<ContentBlock>()).Select(cb => cb.Content)),
-                            Attachments = msg.Attachments
-                        }).ToList();
-
-
-                    
-                    foreach (var historyItem in messageHistory.Where(x => x.Role != "system"))
-                    {
-                        var message = new LinearConvMessage
+                        foreach (var newBlock in response.ContentBlocks)
                         {
-                            role = historyItem.Role,                            content = historyItem.Content,
-                            attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
-                            
-                            
-                        };
-                        linearConversation.messages.Add(message);
-                    }
-
-                    
-                    var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");                    if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content))                    {
-                        linearConversation.messages.Add(new LinearConvMessage
-                        {
-                            role = "user",
-                            content = lastUserMessage.Content,
-                            attachments = lastUserMessage.Attachments?.ToList() ?? new List<Attachment>()
-                        });
-                    }
-
-                    _logger.LogInformation("Processing chat request - Iteration {Iteration}", currentIteration);
-                    
-                    var requestOptions = new AiRequestOptions
-                    {
-                        ServiceProvider = service,
-                        Model = model,
-                        Conv = linearConversation, 
-                        CancellationToken = request.CancellationToken,
-                        ApiSettings = _generalSettingsService.CurrentSettings.ToApiSettings(),
-                        TopP = _generalSettingsService.CurrentSettings.ToApiSettings().TopP, // Added TopP
-                        MustNotUseEmbedding = true,
-                        ToolIds = request.ToolIds ?? new List<string>(), 
-                        OnStreamingUpdate = request.OnStreamingUpdate,
-                        OnStreamingComplete = request.OnStreamingComplete
-                    };
-
-                    await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
-
-                    
-                    if (request.ToolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
-                    {
-                        var stopTool = (await _toolService.GetToolByToolNameAsync("PresentResultsAndAwaitUserInput")).Guid;
-                        if (!request.ToolIds.Contains(stopTool))
-                            request.ToolIds.Add(stopTool);
-
-                        stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
-                        if (!request.ToolIds.Contains(stopTool))
-                            request.ToolIds.Add(stopTool);
-                    }
-
-                    ////// FETCH RESPONSE
-
-                    response = await aiService.FetchResponse(requestOptions);
-
-                    ////// PROCESS RESPONSE
-
-                    await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Response received...");
-
-                    if (response.Attachments != null && response.Attachments.Any())
-                    {
-                        finalAttachments.AddRange(response.Attachments); 
-                    }
-
-
-                    //////// PROCESS TOOLS
-
-                    var toolResult = await _toolProcessorService.ProcessToolsAsync(response, linearConversation, request.CancellationToken, request.ClientId);
-
-                    var toolsResponseBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.ResponseBlocks).ToList();
-
-                    var toolsRequestBlocks = toolResult.ToolsOutputContentBlocks.SelectMany(x => x.RequestBlocks).ToList();
-
-                    var allRequestBlocks = new List<ContentBlock>();
-                    allRequestBlocks.AddRange(response.ContentBlocks);
-                    allRequestBlocks.AddRange(toolsRequestBlocks);
-                    /////// PROCESS TOOL RESULTS
-
-
-                    bool duplicateDetection = false;
-
-                    
-                    //if (previousToolRequested != null && toolResult.RequestedToolsSummary != null && toolResult.RequestedToolsSummary.Trim() == previousToolRequested.Trim())
-                    //{
-                    //    _logger.LogError("Detected identical consecutive tool requests: {ToolRequested}. Aborting tool loop as AI is stuck.", toolResult.RequestedToolsSummary);
-                    //    await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Error: AI requested the same tool(s) twice in a row with identical parameters. Tool loop aborted.");
-                    //    duplicateDetection = true;
-                    //}
-                    //previousToolRequested = toolResult.RequestedToolsSummary;
-                    
-
-                    continueLoop = toolResult.ShouldContinueToolLoop;
-
-                    if (toolResult.Attachments?.Count > 0)
-                    {
-                        if (finalAttachments == null) finalAttachments = new List<Attachment>();
-                        finalAttachments.AddRange(toolResult.Attachments);
-                    }
-
-                    continueLoop = continueLoop && currentIteration < MAX_ITERATIONS && !duplicateDetection;
-
-                    var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
-                    var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
-
-                    if (continueLoop)
-                    {
-                        
-                        var interjectionService = _serviceProvider.GetService<IInterjectionService>();
-                        if (interjectionService != null && await interjectionService.HasInterjectionAsync(request.ClientId))
-                        {
-                            string interjection = await interjectionService.GetAndClearInterjectionAsync(request.ClientId);
-                            if (!string.IsNullOrEmpty(interjection))
+                            // Only add text blocks that aren't already included in existing content
+                            if (newBlock.ContentType == ContentType.Text)
                             {
-                                
-                                toolsResponseBlocks.Add(new ContentBlock { Content = $"User interjection: {interjection}\n\n" });
-                                
-                                await _statusMessageService.SendStatusMessageAsync(request.ClientId, "Your interjection has been added to the conversation.");
+                                if (!existingTextContent.Contains(newBlock.Content ?? ""))
+                                {
+                                    newContentBlocks.Add(newBlock);
+                                }
+                            }
+                            else
+                            {
+                                // Always add non-text blocks (they should be unique)
+                                newContentBlocks.Add(newBlock);
                             }
                         }
-
-                        var msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            contentBlocks: allRequestBlocks, parentMessageId: request.MessageId,
-                            attachments: response.Attachments, costInfo: costInfo);
-                        msg.Temperature = requestOptions.ApiSettings.Temperature;
-
-                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                        {
-                            ConvId = request.BranchedConv.ConvId,
-                            MessageId = assistantMessageId,
-                            ContentBlocks = allRequestBlocks,
-                            ParentId = request.MessageId,
-                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                            Source = "assistant",
-                            Attachments = response.Attachments,
-                            DurationMs = 0,
-                            CostInfo = costInfo,
-                            CumulativeCost = msg.CumulativeCost,
-                            TokenUsage = response.TokenUsage,
-                            Temperature = msg.Temperature
-                        });
-
-                        var newUserMessageId = $"msg_{Guid.NewGuid()}";
                         
-
-                        request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.User, newMessageId: newUserMessageId,
-                            contentBlocks: toolsResponseBlocks, parentMessageId: assistantMessageId, attachments: response.Attachments);
-                        request.MessageId = newUserMessageId;
-
-                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                        if (newContentBlocks.Any())
                         {
-                            ConvId = request.BranchedConv.ConvId,
-                            MessageId = newUserMessageId,
-                            ContentBlocks = toolsResponseBlocks,
-                            ParentId = assistantMessageId,
-                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                            Source = "user",
-                            Attachments = response.Attachments,
-                            DurationMs = 0 
-                        });
-                        assistantMessageId = $"msg_{Guid.NewGuid()}";
-
-
-
-
-                        var placeholderMessage = request.BranchedConv.CreatePlaceholder(assistantMessageId, newUserMessageId);
-
-                        // Notify client to create the placeholder AI MessageItem
-                        await _notificationService.NotifyConvPlaceholderUpdate(request.ClientId, request.BranchedConv, placeholderMessage);
-
-                        request.BranchedConv.Save();
-
+                            // Append only truly new content
+                            finalContentBlocks = new List<ContentBlock>(existingMessage.ContentBlocks);
+                            finalContentBlocks.AddRange(newContentBlocks);
+                            
+                            _logger.LogInformation("🏁 FINAL: Appending new content - Original blocks: {OriginalCount}, New blocks: {NewCount}, Total: {TotalCount}", 
+                                existingMessage.ContentBlocks?.Count ?? 0, newContentBlocks.Count, finalContentBlocks.Count);
+                        }
+                        else
+                        {
+                            // No truly new content, use existing
+                            finalContentBlocks = existingMessage.ContentBlocks;
+                            
+                            _logger.LogInformation("🏁 FINAL: No new content detected (likely duplicates) - Using existing blocks: {ExistingCount}", 
+                                existingMessage.ContentBlocks?.Count ?? 0);
+                        }
                     }
-                    else 
-                    { 
-                        // We aren't looping.  So we need to send the final response back to the user and update the UI.
-                        List<ContentBlock> contentBlocks = new();
-                        //string duplicateDetectionText = "";
-                        //if(duplicateDetection)
-                        //{
-                        //    duplicateDetectionText = $"AI requested the same tool(s) twice in a row with identical parameters: {toolResult.RequestedToolsSummary}. Tool loop aborted.\n\n";
-                        //    contentBlocks.Add(new ContentBlock { Content = duplicateDetectionText, ContentType = ContentType.Text });
-                        //}
+                    else
+                    {
+                        // No new content to add, just use existing content
+                        finalContentBlocks = existingMessage.ContentBlocks;
                         
-                        contentBlocks.AddRange(allRequestBlocks);
-                        contentBlocks.AddRange(toolsResponseBlocks);
+                        _logger.LogInformation("🏁 FINAL: No final response content - Using existing blocks: {ExistingCount}", 
+                            existingMessage.ContentBlocks?.Count ?? 0);
+                    }
+                    
+                    finalMessage = request.BranchedConv.AddOrUpdateMessage(
+                        role: v4BranchedConvMessageRole.Assistant,
+                        newMessageId: finalAssistantMessageId,
+                        contentBlocks: finalContentBlocks,
+                        parentMessageId: existingMessage.ParentId, // Keep original parent
+                        attachments: (existingMessage.Attachments ?? new List<Attachment>()).Concat(response.Attachments ?? new List<Attachment>()).ToList(),
+                        costInfo: costInfo
+                    );
+                }
+                else
+                {
+                    // No existing message - create new one (fallback case)
+                    _logger.LogInformation("🏁 FINAL: Creating new final message - Blocks: {BlockCount}", response.ContentBlocks?.Count ?? 0);
+                    
+                    finalMessage = request.BranchedConv.AddOrUpdateMessage(
+                        role: v4BranchedConvMessageRole.Assistant,
+                        newMessageId: finalAssistantMessageId,
+                        contentBlocks: response.ContentBlocks,
+                        parentMessageId: requestOptions.ParentMessageId ?? request.MessageId,
+                        attachments: response.Attachments,
+                        costInfo: costInfo
+                    );
+                }
 
-                        v4BranchedConvMessage msg = request.BranchedConv.AddOrUpdateMessage(role: v4BranchedConvMessageRole.Assistant, newMessageId: assistantMessageId,
-                            contentBlocks: contentBlocks.ToList(), parentMessageId: request.MessageId,
-                            attachments: response.Attachments, costInfo: costInfo);
+                finalMessage.Temperature = requestOptions.ApiSettings.Temperature;
 
-                        msg.Temperature = requestOptions.ApiSettings.Temperature;
+                
+                // Always send final update with complete cost information
+                await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                {
+                    ConvId = request.BranchedConv.ConvId,
+                    MessageId = finalAssistantMessageId,
+                    ContentBlocks = finalMessage.ContentBlocks, // Use the complete content blocks
+                    ParentId = finalMessage.ParentId,
+                    Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                    Source = "assistant",
+                    Attachments = finalMessage.Attachments,
+                    DurationMs = 0,
+                    CostInfo = costInfo,
+                    CumulativeCost = finalMessage.CumulativeCost,
+                    TokenUsage = response.TokenUsage,
+                    Temperature = finalMessage.Temperature
+                });
 
-                        await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                        {
-                            ConvId = request.BranchedConv.ConvId,
-                            MessageId = assistantMessageId,
-                            ContentBlocks = contentBlocks,
-                            //Content = userMessage,
-                            ParentId = request.MessageId,
-                            Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                            Source = "assistant",
-                            Attachments = response.Attachments,
-                            DurationMs = 0,
-                            CostInfo = costInfo,
-                            CumulativeCost = msg.CumulativeCost,
-                            TokenUsage = response.TokenUsage,
-                            Temperature = msg.Temperature
-                        });
+                _logger.LogInformation("Successfully processed chat request using provider-managed tool loop.");
 
-                   }
-
-                    //
-
-                } 
-
-                _logger.LogInformation("Successfully processed chat request after {Iterations} iterations.", currentIteration);
+                // DEBUG: Dump final conversation structure
+                DumpConversationStructure(request.BranchedConv);
 
                 return new ChatResponse
                 {
@@ -506,74 +537,48 @@ namespace AiStudio4.Services
 
             return systemPromptContent;
         }
-    }
 
-    public class CustomJsonParser
-    {
-        public static Dictionary<string, object> ParseJson(string json)
+        private void DumpConversationStructure(v4BranchedConv conversation)
         {
-            using (JsonDocument doc = JsonDocument.Parse(json))
+            System.Diagnostics.Debug.WriteLine("📊 ===== FINAL CONVERSATION STRUCTURE =====");
+            System.Diagnostics.Debug.WriteLine($"📊 Conversation ID: {conversation.ConvId}");
+            System.Diagnostics.Debug.WriteLine($"📊 Total Messages: {conversation.Messages.Count}");
+            System.Diagnostics.Debug.WriteLine("📊");
+
+            // Sort messages by creation order (or try to build tree)
+            var rootMessages = conversation.Messages.Where(m => string.IsNullOrEmpty(m.ParentId) || m.Role == v4BranchedConvMessageRole.System).ToList();
+            
+            foreach (var root in rootMessages)
             {
-                return ProcessJsonElement(doc.RootElement) as Dictionary<string, object>;
+                DumpMessageAndChildren(conversation, root, 0);
             }
+
+            System.Diagnostics.Debug.WriteLine("📊 ===== END CONVERSATION STRUCTURE =====");
         }
 
-        private static object ProcessJsonElement(JsonElement element)
+        private void DumpMessageAndChildren(v4BranchedConv conversation, v4BranchedConvMessage message, int depth)
         {
-            switch (element.ValueKind)
+            var indent = new string(' ', depth * 2);
+            var roleIcon = message.Role switch
             {
-                case JsonValueKind.Object:
-                    var dictionary = new Dictionary<string, object>();
-                    foreach (var property in element.EnumerateObject())
-                    {
-                        dictionary[property.Name] = ProcessJsonElement(property.Value);
-                    }
-                    return dictionary;
+                v4BranchedConvMessageRole.User => "👤",
+                v4BranchedConvMessageRole.Assistant => "🤖",
+                v4BranchedConvMessageRole.System => "⚙️",
+                _ => "❓"
+            };
 
-                case JsonValueKind.Array:
-                    
-                    bool allNumbers = true;
-                    foreach (var item in element.EnumerateArray())
-                    {
-                        if (item.ValueKind != JsonValueKind.Number)
-                        {
-                            allNumbers = false;
-                            break;
-                        }
-                    }
+            var contentPreview = message.ContentBlocks?.FirstOrDefault()?.Content?.Substring(0, Math.Min(50, message.ContentBlocks.FirstOrDefault()?.Content?.Length ?? 0)) ?? "";
+            if (contentPreview.Length == 50) contentPreview += "...";
 
-                    if (allNumbers)
-                    {
-                        return element.EnumerateArray()
-                            .Select(e => e.GetSingle())
-                            .ToArray();
-                    }
-                    else
-                    {
-                        return element.EnumerateArray()
-                            .Select(ProcessJsonElement)
-                            .ToArray();
-                    }
+            System.Diagnostics.Debug.WriteLine($"📊 {indent}{roleIcon} {message.Role} | ID: {message.Id} | Parent: {message.ParentId ?? "null"} | Blocks: {message.ContentBlocks?.Count ?? 0} | \"{contentPreview}\"");
 
-                case JsonValueKind.String:
-                    return element.GetString();
-
-                case JsonValueKind.Number:
-                    
-                    return element.GetSingle();
-
-                case JsonValueKind.True:
-                    return true;
-
-                case JsonValueKind.False:
-                    return false;
-
-                case JsonValueKind.Null:
-                    return null;
-
-                default:
-                    return null;
+            // Find and dump children
+            var children = conversation.Messages.Where(m => m.ParentId == message.Id).ToList();
+            foreach (var child in children)
+            {
+                DumpMessageAndChildren(conversation, child, depth + 1);
             }
         }
     }
+
 }

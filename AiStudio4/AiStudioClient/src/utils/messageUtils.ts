@@ -1,6 +1,11 @@
 import { Message, ContentBlock } from '../types/conv';
 
 export const MessageUtils = {
+  // Helper to check if a block is text content
+  isVisibleToUser(block: ContentBlock): boolean {
+        return block.contentType === 'text' || block.contentType === 'system' || block.contentType === 'toolresponse';
+  },
+
   // Primary method: Get content as string when needed
   getContent(message: Message): string {
     return message.contentBlocks?.map(cb => cb.content).join('\n\n') ?? '';
@@ -49,12 +54,12 @@ export const MessageUtils = {
 
   // Helper to check if message has text content
   hasTextContent(message: Message): boolean {
-    return message.contentBlocks?.some(block => block.contentType === 'text' && block.content.trim().length > 0) ?? false;
+    return message.contentBlocks?.some(block => this.isVisibleToUser(block) && block.content.trim().length > 0) ?? false;
   },
 
   // Helper to get only text content blocks
   getTextBlocks(message: Message): ContentBlock[] {
-    return message.contentBlocks?.filter(block => block.contentType === 'text') ?? [];
+    return message.contentBlocks?.filter(block => this.isVisibleToUser(block)) ?? [];
   },
 
   // Helper to get content of specific type

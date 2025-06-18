@@ -1,5 +1,5 @@
 ﻿// AiStudioClient\src\components\MarkdownPane.tsx
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRendererRegistry';
@@ -52,25 +52,73 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({});
     const [isCodeCollapsed, setIsCodeCollapsed] = useState<Record<string, boolean>>({});
     const [isVisualStudio, setIsVisualStudio] = useState(false);
+    
+    // Track completed portions and only render changes
+    const [completedSegments, setCompletedSegments] = useState<Array<{ content: string; type: 'completed' | 'incomplete' }>>([]);
+    const lastProcessedLength = useRef<number>(0);
+    
+    // Parse the markdown into segments (completed code blocks and other content)
+    const parseMarkdownSegments = useCallback((markdown: string) => {
+        const segments: Array<{ content: string; type: 'completed' | 'incomplete' }> = [];
+        const codeBlockRegex = /```[\s\S]*?```/g;
+        let lastIndex = 0;
+        let match;
+        
+        while ((match = codeBlockRegex.exec(markdown)) !== null) {
+            // Add content before the code block
+            if (match.index > lastIndex) {
+                const beforeContent = markdown.slice(lastIndex, match.index);
+                if (beforeContent.trim()) {
+                    segments.push({ content: beforeContent, type: 'completed' });
+                }
+            }
+            
+            // Add the completed code block
+            segments.push({ content: match[0], type: 'completed' });
+            lastIndex = match.index + match[0].length;
+        }
+        
+        // Add remaining content (might be incomplete)
+        if (lastIndex < markdown.length) {
+            const remainingContent = markdown.slice(lastIndex);
+            if (remainingContent.trim()) {
+                // Check if there's an incomplete code block at the end
+                const hasIncompleteCodeBlock = /```[^`]*$/.test(remainingContent);
+                segments.push({ 
+                    content: remainingContent, 
+                    type: hasIncompleteCodeBlock ? 'incomplete' : 'completed' 
+                });
+            }
+        }
+        
+        return segments;
+    }, []);
 
     useEffect(() => {
         if (message !== markdownContent) {
+            // Only process if content has actually grown (streaming case)
+            if (message.length > lastProcessedLength.current && message.startsWith(markdownContent)) {
+                // This is a streaming update - only update the segments
+                const newSegments = parseMarkdownSegments(message);
+                setCompletedSegments(newSegments);
+                lastProcessedLength.current = message.length;
+            } else {
+                // This is a completely new message - reset everything
+                const newSegments = parseMarkdownSegments(message);
+                setCompletedSegments(newSegments);
+                lastProcessedLength.current = message.length;
+                setMermaidKey((prev) => prev + 1);
+            }
             setMarkdownContent(message);
-            setMermaidKey((prev) => prev + 1);
         }
-    }, [message, markdownContent]);
+    }, [message, markdownContent, parseMarkdownSegments]);
 
     useEffect(() => {
         const isVS = localStorage.getItem('isVisualStudio') === 'true';
         setIsVisualStudio(isVS);
     }, []);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            codeBlockRendererRegistry.renderAll();
-        }, 50);
-        return () => clearTimeout(timer);
-    }, [markdownContent, mermaidKey]);
+    // Removed renderAll call since React components handle their own rendering
 
     // Add CSS to handle li > p display
     useEffect(() => {
@@ -129,33 +177,53 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     let codeBlockIndex = 0;
 
     const components = useMemo(() => ({
-        code({ className, children }: any) {
+        code({ className, children, ...props }: any) {
+            // Inline code typically has no className or a simple one without 'language-'
+            // Code blocks always get a className (even if empty) from ReactMarkdown
+            const isCodeBlock = className !== undefined || String(children).includes('\n');
+            
+            // If this is inline code, render it as a simple <code> element
+            if (!isCodeBlock) {
+                return <code className={className}>{children}</code>;
+            }
+            
             const match = /language-(\w+)/.exec(className || '');
-            if (!match) return <code className={className}>{children}</code>;
             const language = match ? match[1] : 'txt';
             const content = String(children).replace(/\n$/, '');
             const diagramRenderer = codeBlockRendererRegistry.get(language);
             const blockId = `code-block-${codeBlockIndex++}`;
             const isRawView = showRawContent[blockId] ?? false;
-            const isCollapsed = isCodeCollapsed[blockId] ?? false;
+            const isCollapsed = isCodeCollapsed[blockId] ?? true;
             const handleToggleRaw = useCallback(() => {
                 setShowRawContent((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
                 setMermaidKey((prev) => prev + 1);
             }, [blockId]);
             const handleToggleCollapse = useCallback(() => {
-                const markdownPaneElement = document.querySelector('.markdown-pane')?.parentElement?.parentElement || document.documentElement;
-                const currentScrollPosition = markdownPaneElement.scrollTop;
-                markdownPaneElement.scrollTo({
-                    top: Math.max(0, currentScrollPosition - 1),
-                    behavior: 'auto'
-                });
-                setTimeout(() => {
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? false) }));
-                    markdownPaneElement.scrollTo({
-                        top: Math.max(0, currentScrollPosition + 1),
-                        behavior: 'auto'
-                    });
-                }, 10);
+                // Find the scrollable container - try multiple selectors
+                let scrollContainer = document.querySelector('.markdown-pane')?.parentElement?.parentElement;
+                
+                // If that doesn't work, try finding a container with scroll
+                if (!scrollContainer || scrollContainer === document.documentElement) {
+                    const containers = [
+                        document.querySelector('[data-testid="chat-container"]'),
+                        document.querySelector('.chat-container'),
+                        document.querySelector('.overflow-auto'),
+                        document.querySelector('.scroll-container')
+                    ].filter(Boolean);
+                    
+                    scrollContainer = containers.find(container => 
+                        container && container.scrollHeight > container.clientHeight
+                    ) || null;
+                }
+                
+                // Only proceed if we found a valid scroll container (not document.documentElement)
+                if (scrollContainer && scrollContainer !== document.documentElement) {
+                    const currentScrollPosition = scrollContainer.scrollTop;
+                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
+                } else {
+                    // Just toggle without scroll manipulation if we can't find proper container
+                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
+                }
             }, [blockId]);
             return (
                 <CodeBlock
@@ -170,7 +238,8 @@ export const MarkdownPane = React.memo(function MarkdownPane({
                     onToggleRaw={handleToggleRaw}
                     onToggleCollapse={handleToggleCollapse}
                     launchHtml={launchHtml}
-                    variant={variant} // <-- PASS VARIANT DOWN
+                    variant={variant}
+                    fullMarkdown={markdownContent}
                 />
             );
         },
@@ -201,16 +270,41 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         tr: ({ children }: any) => <tr>{children}</tr>,
         th: ({ children }: any) => <th className="px-4 py-2 text-left font-medium">{children}</th>,
         td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,
-    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio, variant]); // <-- ADD 'variant' to dependency array
+    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio, variant]); // <-- Simplified dependencies
+
+    // Track completed segments separately for better memoization
+    const completedSegmentsOnly = useMemo(() => {
+        return completedSegments.filter(segment => segment.type === 'completed');
+    }, [completedSegments]);
+
+    // Memoized completed segments to prevent re-rendering
+    const memoizedCompletedSegments = useMemo(() => {
+        return completedSegmentsOnly.map((segment, index) => (
+            <div key={`completed-${index}-${segment.content.slice(0, 50)}`}>
+                <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+                    {segment.content}
+                </ReactMarkdown>
+            </div>
+        ));
+    }, [completedSegmentsOnly, components]);
+
+    // Current incomplete segment that should re-render
+    const incompleteSegment = completedSegments.find(segment => segment.type === 'incomplete');
 
     return (
         <div className={cn(
             "text-sm",
             variant === 'system' && "border-l-4 border-destructive p-2 bg-destructive/10 rounded prose-headings:text-destructive-foreground prose-p:text-destructive-foreground/90 prose-li:text-destructive-foreground/90 prose-a:text-red-400 prose-a:hover:text-red-300 prose-strong:text-destructive-foreground prose-blockquote:border-destructive/50 prose-blockquote:text-destructive-foreground/80",
         )}>
-            <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
-                {markdownContent}
-            </ReactMarkdown>
+            {/* Render memoized completed segments */}
+            {memoizedCompletedSegments}
+            
+            {/* Render incomplete segment that can change */}
+            {incompleteSegment && (
+                <ReactMarkdown components={components} remarkPlugins={[remarkGfm]}>
+                    {incompleteSegment.content}
+                </ReactMarkdown>
+            )}
         </div>
     );
 });

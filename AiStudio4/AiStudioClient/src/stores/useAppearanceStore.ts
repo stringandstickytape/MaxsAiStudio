@@ -8,6 +8,7 @@ interface AppearanceState {
   isDarkMode: boolean;
   chatPanelSize: number;
   inputBarPanelSize: number;
+  stickToBottomEnabled: boolean;
   isLoading: boolean;
   error: string | null;
 
@@ -19,6 +20,8 @@ interface AppearanceState {
   setChatPanelSize: (size: number) => void;
   setInputBarPanelSize: (size: number) => void;
   setPanelSizes: (chatSize: number, inputBarSize: number) => void;
+  toggleStickToBottom: () => void;
+  setStickToBottom: (enabled: boolean) => void;
   saveAppearanceSettings: () => Promise<void>;
   loadAppearanceSettings: () => Promise<void>;
   setError: (error: string | null) => void;
@@ -36,6 +39,7 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
   isDarkMode: true,
   chatPanelSize: 70,
   inputBarPanelSize: 30,
+  stickToBottomEnabled: true,
   isLoading: false,
   error: null,
 
@@ -82,8 +86,18 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
       inputBarPanelSize: Math.max(10, Math.min(50, inputBarSize)),
     })),
 
+  toggleStickToBottom: () =>
+    set((state) => ({
+      stickToBottomEnabled: !state.stickToBottomEnabled,
+    })),
+
+  setStickToBottom: (enabled) =>
+    set((state) => ({
+      stickToBottomEnabled: enabled,
+    })),
+
   saveAppearanceSettings: async () => {
-    const { fontSize, isDarkMode, chatPanelSize, inputBarPanelSize } = get();
+    const { fontSize, isDarkMode, chatPanelSize, inputBarPanelSize, stickToBottomEnabled } = get();
     set({ isLoading: true, error: null });
 
     try {
@@ -92,6 +106,7 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         isDarkMode,
         chatPanelSize,
         inputBarPanelSize,
+        stickToBottomEnabled,
       });
 
       const data = response.data;
@@ -129,6 +144,7 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         isDarkMode: data.isDarkMode ?? true,
         chatPanelSize,
         inputBarPanelSize,
+        stickToBottomEnabled: data.stickToBottomEnabled ?? true,
       });
 
       

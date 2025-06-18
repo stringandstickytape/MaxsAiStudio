@@ -13,5 +13,9 @@ namespace AiStudio4.DataModels
 
         // New multi-attachment support
         public List<Attachment> attachments { get; set; } = new List<Attachment>();
+
+        // For OpenAI function calling compatibility
+        public string? function_call { get; set; }
+        public string? name { get; set; } // For function result messages
     }
 }

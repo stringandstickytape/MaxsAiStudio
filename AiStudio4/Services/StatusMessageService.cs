@@ -39,7 +39,6 @@ namespace AiStudio4.Services
                 }
 
                 await _webSocketNotificationService.NotifyStatusMessage(clientId, message);
-                _logger.LogDebug("Sent status message to client {ClientId}: {Message}", clientId, message);
             }
             catch (Exception ex)
             {

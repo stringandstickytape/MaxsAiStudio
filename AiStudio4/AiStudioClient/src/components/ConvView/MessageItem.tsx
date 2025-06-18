@@ -254,8 +254,12 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
   
   // --- NEW RENDER FUNCTION ---
   const renderContent = () => {
-    // Handle live streaming content
+      // Handle live streaming content
+
+      
     if (isStreamingTarget) {
+
+      // get a text renderer, which renders a markdown pane
       const Renderer = contentBlockRendererRegistry.get('text'); // Stream is always text
       return <Renderer block={{ content: streamedContent, contentType: 'text' }} />;
     }
