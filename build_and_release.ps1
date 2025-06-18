@@ -30,11 +30,11 @@ $newContent = $content | ForEach-Object {
         # Extract current version number
         $version = [decimal]$matches[1]
 
-        # Increment by 0.01
-        $newVersion = [decimal]::Round($version + 0.01, 2)
+        # Increment by 0.00 (!)
+        $newVersion = [decimal]::Round($version + 0.00, 2)
 
         # Format the line with new version
-        "public const decimal VersionNumber = {0}m;" -f $newVersion
+        # "public const decimal VersionNumber = {0}m;" -f $newVersion
     }
     else {
         $_
@@ -42,51 +42,7 @@ $newContent = $content | ForEach-Object {
 }
 
 # Save updated content back to the file
-$newContent | Set-Content $filePath
-
-# Git operations
-if ($newVersion -ne $null) {
-    Write-Host "New version: $newVersion" -ForegroundColor Green
-    
-    try {
-        # Change to the directory containing the file
-        $repoPath = Split-Path $filePath -Parent
-        Push-Location $repoPath
-        
-        # Add the modified file to staging
-        git add $filePath
-        Write-Host "Added file to staging area" -ForegroundColor Yellow
-        
-        # Commit the changes
-        $commitMessage = "Bump version to $newVersion"
-        git commit -m $commitMessage
-        Write-Host "Committed changes: $commitMessage" -ForegroundColor Yellow
-        
-        # Create a tag with the version number
-        $tagName = $newVersion.ToString()
-        git tag $tagName
-        Write-Host "Created tag: $tagName" -ForegroundColor Yellow
-        
-        # Push the commit and tag
-        git push
-        Write-Host "Pushed commits to remote" -ForegroundColor Yellow
-        
-        git push origin $tagName
-        Write-Host "Pushed tag '$tagName' to remote" -ForegroundColor Green
-        
-        Write-Host "Version bump and Git operations completed successfully!" -ForegroundColor Green
-    }
-    catch {
-        Write-Error "Git operation failed: $($_.Exception.Message)"
-    }
-    finally {
-        # Return to original location
-        Pop-Location
-    }
-}
-else {
-    Write-Warning "No version number found or updated in the file"
-}
+#$newContent | Set-Content $filePath
 
 cd .\AiStudio4\AiStudioClient
 
