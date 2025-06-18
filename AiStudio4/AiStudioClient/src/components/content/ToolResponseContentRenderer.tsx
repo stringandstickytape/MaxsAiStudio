@@ -12,12 +12,57 @@ export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = 
   const { isLoading, executeApiCall } = useApiCallState();
   const { openModal } = useModalStore();
 
+  // Parse the tool response JSON to get formatting information
+  let toolData: any = {};
+  let formattedContent = block.content;
+  
+  try {
+    toolData = JSON.parse(block.content);
+    const { result, statusMessage, outputFileType } = toolData;
+    
+    // Format the result based on outputFileType
+    let resultContent = result || '';
+    
+    if (outputFileType && outputFileType.trim() !== '') {
+      // Map unrecognized languages to appropriate ones for syntax highlighting
+      let mappedLanguage = outputFileType;
+      
+      // Map custom tool output types to recognized languages (only for tools without rich renderers)
+      const languageMap: Record<string, string> = {
+        'stopprocessing': 'text',
+        'recordmistake': 'text',
+        // Add other custom output types as needed (but NOT ones that have rich renderers)
+      };
+      
+      if (languageMap[outputFileType]) {
+        mappedLanguage = languageMap[outputFileType];
+      }
+      
+      // Wrap in code block with mapped language
+      resultContent = `\`\`\`${mappedLanguage}\n${result || ''}\n\`\`\``;
+    } else {
+      // Plain text display
+      resultContent = result || '';
+    }
+    
+    // Add status message if present
+    if (statusMessage && statusMessage.trim() !== '') {
+      if (resultContent) {
+        formattedContent = `${resultContent}\n\n${statusMessage}`;
+      } else {
+        formattedContent = statusMessage;
+      }
+    } else {
+      formattedContent = resultContent;
+    }
+  } catch (e) {
+    // If JSON parsing fails, fall back to showing as JSON
+    formattedContent = `\`\`\`json\n${block.content}\n\`\`\``;
+  }
+
   const handleReapply = async () => {
     try {
-      // The tool content is already JSON, but wrapped in a markdown block.
-      // We need to extract the raw JSON from the `block.content` property.
-      const toolParameters = block.content;
-      const toolData = JSON.parse(toolParameters);
+      // Use the already parsed toolData if available
       const toolName = toolData.toolName;
 
       if (!toolName) {
@@ -66,7 +111,7 @@ export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = 
           Reapply
         </Button>
       </div>
-      <MarkdownPane message={`\`\`\`json\n${block.content}\n\`\`\``} />
+      <MarkdownPane message={formattedContent} />
     </div>
   );
 };

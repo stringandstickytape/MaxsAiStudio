@@ -278,7 +278,9 @@ namespace AiStudio4.AiServices
                         {
                             toolName = toolCall.ToolName,
                             result = executionResult.ResultMessage,
-                            success = executionResult.WasProcessed
+                            success = executionResult.WasProcessed,
+                            statusMessage = executionResult.StatusMessage,
+                            outputFileType = executionResult.OutputFileType
                         })
                     });
                 }

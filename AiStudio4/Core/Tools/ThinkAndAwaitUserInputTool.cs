@@ -61,9 +61,16 @@ namespace AiStudio4.Core.Tools
             var thought = parameters?["thought"]?.ToString() ?? "";
             var continueProcessing = false; // Always stop processing to await user input
 
+            // Format result as JSON for the rich renderer
+            var resultJson = JsonConvert.SerializeObject(new { 
+                thought = thought, 
+                timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                status = "awaiting_user_input"
+            });
+
             _logger.LogInformation("ThinkAndAwaitUserInput tool called with parameters: {Parameters}, continueProcessing: {ContinueProcessing}", thought, continueProcessing);
             SendStatusUpdate("ThinkAndAwaitUserInput tool completed - awaiting user input.");
-            return Task.FromResult(CreateResult(true, continueProcessing, thought));
+            return Task.FromResult(CreateResult(true, continueProcessing, resultJson));
         }
     }
 }

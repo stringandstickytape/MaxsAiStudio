@@ -96,8 +96,9 @@ public class ToolExecutor : IToolExecutor
                 tool.ExtraProperties, 
                 context.ClientId);
 
-            // Add task description to result
+            // Add task description and output file type to result
             result.TaskDescription = taskDescription;
+            result.OutputFileType = tool.OutputFileType;
 
             // Notify UI of tool execution completion
             await _notificationService.NotifyStatusMessage(context.ClientId, $"Tool {toolName} completed");
@@ -155,7 +156,8 @@ public class ToolExecutor : IToolExecutor
                 WasProcessed = true, 
                 ContinueProcessing = true, // Provider will decide when to stop
                 ResultMessage = JsonConvert.SerializeObject(mcpResult.Content),
-                TaskDescription = taskDescription
+                TaskDescription = taskDescription,
+                OutputFileType = "json" // MCP tools always return JSON
             };
 
             // Notify UI of MCP tool execution completion

@@ -40,5 +40,10 @@ namespace AiStudio4.Core.Models
         /// Task description extracted from tool parameters for UI display
         /// </summary>
         public string TaskDescription { get; set; }
+
+        /// <summary>
+        /// Output file type for formatting the result content (e.g., "json", "xml", "bash")
+        /// </summary>
+        public string OutputFileType { get; set; }
     }
 }
