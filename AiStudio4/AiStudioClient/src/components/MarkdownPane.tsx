@@ -193,7 +193,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             const diagramRenderer = codeBlockRendererRegistry.get(language);
             const blockId = `code-block-${codeBlockIndex++}`;
             const isRawView = showRawContent[blockId] ?? false;
-            const isCollapsed = isCodeCollapsed[blockId] ?? false;
+            const isCollapsed = isCodeCollapsed[blockId] ?? true;
             const handleToggleRaw = useCallback(() => {
                 setShowRawContent((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
                 setMermaidKey((prev) => prev + 1);
@@ -219,10 +219,10 @@ export const MarkdownPane = React.memo(function MarkdownPane({
                 // Only proceed if we found a valid scroll container (not document.documentElement)
                 if (scrollContainer && scrollContainer !== document.documentElement) {
                     const currentScrollPosition = scrollContainer.scrollTop;
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? false) }));
+                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
                 } else {
                     // Just toggle without scroll manipulation if we can't find proper container
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? false) }));
+                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
                 }
             }, [blockId]);
             return (
