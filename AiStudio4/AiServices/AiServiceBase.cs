@@ -290,26 +290,53 @@ namespace AiStudio4.AiServices
                     var toolResultMessage = createToolResultMessage(toolResultBlocks);
                     linearConv.messages.Add(toolResultMessage);
                     
-                    // Add to branched conversation as a user message containing tool results
-                    if (options.BranchedConversation != null)
+                    if (shouldStopLoop)
                     {
-                        var toolResultMessageId = Guid.NewGuid().ToString();
-                        
-                        var toolResultBranchedMessage = options.BranchedConversation.AddOrUpdateMessage(
-                            v4BranchedConvMessageRole.User,
-                            toolResultMessageId,
-                            toolResultBlocks,
-                            options.AssistantMessageId);
+                        // If stopping the loop, append tool results to the final AI message
+                        if (options.BranchedConversation != null)
+                        {
+                            // Get the current assistant message and append tool results to it
+                            var existingMessage = options.BranchedConversation.Messages.FirstOrDefault(m => m.Id == options.AssistantMessageId);
+                            if (existingMessage != null)
+                            {
+                                // Combine existing content blocks with tool result blocks
+                                var updatedContentBlocks = new List<ContentBlock>(existingMessage.ContentBlocks);
+                                updatedContentBlocks.AddRange(toolResultBlocks);
+                                
+                                var updatedMessage = options.BranchedConversation.AddOrUpdateMessage(
+                                    v4BranchedConvMessageRole.Assistant,
+                                    options.AssistantMessageId,
+                                    updatedContentBlocks,
+                                    options.ParentMessageId,
+                                    response.Attachments);
 
-                        // Notify client about the tool result message
-                        if (options.OnUserMessageCreated != null)
-                        {
-                            await options.OnUserMessageCreated(toolResultBranchedMessage);
+                                // Notify about the updated assistant message
+                                if (options.OnAssistantMessageCreated != null)
+                                {
+                                    await options.OnAssistantMessageCreated(updatedMessage);
+                                }
+                            }
                         }
-                        
-                        // Update parent if we're not stopping the loop
-                        if (!shouldStopLoop)
+                    }
+                    else
+                    {
+                        // If continuing the loop, add tool results as a user message
+                        if (options.BranchedConversation != null)
                         {
+                            var toolResultMessageId = Guid.NewGuid().ToString();
+                            
+                            var toolResultBranchedMessage = options.BranchedConversation.AddOrUpdateMessage(
+                                v4BranchedConvMessageRole.User,
+                                toolResultMessageId,
+                                toolResultBlocks,
+                                options.AssistantMessageId);
+
+                            // Notify client about the tool result message
+                            if (options.OnUserMessageCreated != null)
+                            {
+                                await options.OnUserMessageCreated(toolResultBranchedMessage);
+                            }
+                            
                             options.ParentMessageId = toolResultMessageId;
                         }
                     }

@@ -12,10 +12,6 @@ export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = 
   const { isLoading, executeApiCall } = useApiCallState();
   const { openModal } = useModalStore();
 
-  if (!showDevContentView) {
-    return null;
-  }
-
   const handleReapply = async () => {
     try {
       // The tool content is already JSON, but wrapped in a markdown block.
@@ -57,7 +53,7 @@ export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = 
     <div className="my-2 border-2 border-dashed border-blue-500/50 bg-blue-900/10 p-3 rounded-lg opacity-80 group">
       <div className="flex justify-between items-center mb-1">
         <div className="text-xs font-bold text-blue-400">
-          Tool Use
+          Tool Result
         </div>
         <Button
           variant="ghost"
