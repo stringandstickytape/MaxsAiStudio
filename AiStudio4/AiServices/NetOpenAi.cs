@@ -498,7 +498,7 @@ namespace AiStudio4.AiServices
             }
 
             // For assistant messages without content parts, add empty string
-            if (message.role.ToLower() == "assistant" && contentParts.Count == 0)
+            if (contentParts.Count == 0)
             {
                 contentParts.Add(ChatMessageContentPart.CreateTextPart(""));
             }
