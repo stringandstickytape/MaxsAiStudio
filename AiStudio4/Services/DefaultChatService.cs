@@ -245,24 +245,7 @@ namespace AiStudio4.Services
                     Content = "" 
                 });
                 
-                requestOptions.OnAssistantMessageCreated = async (message) =>
-                {
-                    // Message is already added to branched conversation by the callback
-                    // Just notify the client
-                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
-                    {
-                        ConvId = request.BranchedConv.ConvId,
-                        MessageId = message.Id,
-                        ContentBlocks = message.ContentBlocks,
-                        ParentId = message.ParentId,
-                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
-                        Source = "assistant",
-                        Attachments = message.Attachments,
-                        DurationMs = 0,
-                        TokenUsage = null, // Will be updated later with final usage
-                        Temperature = message.Temperature
-                    });
-                };
+
                 
                 requestOptions.OnToolCallsGenerated = async (messageId, contentBlocks, toolCalls) =>
                 {
@@ -312,7 +295,26 @@ namespace AiStudio4.Services
                         DurationMs = 0
                     });
                 };
-                
+
+                requestOptions.OnAssistantMessageCreated = async (message) =>
+                {
+                    // Message is already added to branched conversation by the callback
+                    // Just notify the client
+                    await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
+                    {
+                        ConvId = request.BranchedConv.ConvId,
+                        MessageId = message.Id,
+                        ContentBlocks = message.ContentBlocks,
+                        ParentId = message.ParentId,
+                        Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
+                        Source = "assistant",
+                        Attachments = message.Attachments,
+                        DurationMs = 0,
+                        TokenUsage = null, // Will be updated later with final usage
+                        Temperature = message.Temperature
+                    });
+                };
+
                 requestOptions.OnUserMessageCreated = async (message) =>
                 {
                     // Message is already added to branched conversation by the callback

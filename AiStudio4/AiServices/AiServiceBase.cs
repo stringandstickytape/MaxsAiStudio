@@ -112,6 +112,19 @@ namespace AiStudio4.AiServices
                 // 1. Reset tool response set for this iteration
                 ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
 
+                // Notify about assistant message with tool calls
+                if (options.OnAssistantMessageCreated != null && options.BranchedConversation != null)
+                {
+                    var message = options.BranchedConversation.AddOrUpdateMessage(
+                        v4BranchedConvMessageRole.Assistant,
+                        options.AssistantMessageId,
+                        new List<ContentBlock> { new ContentBlock { Content = "", ContentType = ContentType.Text } },
+                        options.ParentMessageId,
+                        new List<Attachment> { });
+
+                    await options.OnAssistantMessageCreated(message);
+                }
+
                 // 2. Make API call
                 var response = await makeApiCall(options);
 
