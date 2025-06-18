@@ -12,45 +12,15 @@ catch {
     exit 1
 }
 
-# Path to the file
-$filePath = ".\AiStudio4\app.xaml.cs"
-
-# Read all lines
-$content = Get-Content $filePath
-
-# Regex pattern to match the version line
-$pattern = 'public const decimal VersionNumber = ([0-9]*\.?[0-9]+)m;'
-
-# Variable to store the new version
-$newVersion = $null
-
-# Process lines
-$newContent = $content | ForEach-Object {
-    if ($_ -match $pattern) {
-        # Extract current version number
-        $version = [decimal]$matches[1]
-
-        # Increment by 0.00 (!)
-        $newVersion = [decimal]::Round($version + 0.00, 2)
-
-        # Format the line with new version
-        # "public const decimal VersionNumber = {0}m;" -f $newVersion
-    }
-    else {
-        $_
-    }
-}
-
-# Save updated content back to the file
-#$newContent | Set-Content $filePath
-
 cd .\AiStudio4\AiStudioClient
+
+Remove-Item ".\bin\Debug\net9.0-windows\assets\*" -Recurse -Force
+
 
 pnpm run build
 
 cd ..
 
-Remove-Item ".\bin\Debug\net9.0-windows\assets\*" -Recurse -Force
 
 taskkill /f /im aistudio4.exe
 

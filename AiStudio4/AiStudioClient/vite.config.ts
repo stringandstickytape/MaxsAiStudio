@@ -22,7 +22,10 @@ export default defineConfig({
   },
   build: {
     sourcemap: true,
-    minify: false,
+    reportCompressedSize: false,
+    minify: 'esbuild', // Faster and less memory intensive than terser
+    rollupOptions: {
+      maxParallelFileOps: 2, // Reduce concurrent operations
+    }
   },
 });
- 
