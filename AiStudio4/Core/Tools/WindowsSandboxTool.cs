@@ -295,8 +295,14 @@ namespace AiStudio4.Core.Tools
         private async Task<BuiltinToolResult> ExecuteCommand(string sandboxId, string command, string runAs, string workingDirectory)
         {
             SendStatusUpdate($"Executing command in sandbox {sandboxId}...");
-            
-            var args = $"exec --id {sandboxId} -c \"{command}\" -r {runAs}";
+            return null;
+
+            command = $"'{command.Substring(1,command.Length-2)}'";
+            command = command.Replace("\\\"", "\"");
+
+            command = "\"start \\\"\\\" \\\"C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe\\\"\"";
+
+            var args = $"exec --id {sandboxId} -c {command} -r {runAs}";
             if (!string.IsNullOrEmpty(workingDirectory))
             {
                 args += $" -d \"{workingDirectory}\"";
@@ -395,13 +401,11 @@ namespace AiStudio4.Core.Tools
                 LogOperation("share", $"Sandbox ID: {sandboxId}", result.ErrorMessage);
                 return CreateResult(true, false, output, $"Failed to configure folder sharing: {result.ErrorMessage}");
             }
-        }
-
-        private async Task<BuiltinToolResult> ConnectToSandbox(string sandboxId)
+        }        private async Task<BuiltinToolResult> ConnectToSandbox(string sandboxId)
         {
             SendStatusUpdate($"Connecting to sandbox {sandboxId}...");
             
-            var result = await ExecuteWsbCommand($"connect --id {sandboxId}");
+            var result = await ExecuteWsbCommandNonBlocking($"connect --id {sandboxId}");
             
             if (result.Success)
             {
@@ -493,12 +497,12 @@ namespace AiStudio4.Core.Tools
                 var output = CreateErrorOutput("workflow", $"Workflow failed: {ex.Message}");
                 return CreateResult(true, false, output, $"Workflow failed: {ex.Message}");
             }
-        }
-
-        private async Task<WsbCommandResult> ExecuteWsbCommand(string arguments)
+        }        private async Task<WsbCommandResult> ExecuteWsbCommand(string arguments)
         {
             try
             {
+                // works: wsb exec --id cd7b32ef-6de3-4494-87a0-4e1f679d80eb -c "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" -r ExistingLogin
+
                 var processInfo = new ProcessStartInfo
                 {
                     FileName = "wsb",
@@ -544,6 +548,80 @@ namespace AiStudio4.Core.Tools
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to execute wsb command: {Arguments}", arguments);
+                return new WsbCommandResult
+                {
+                    Success = false,
+                    ErrorMessage = $"Failed to execute wsb command: {ex.Message}",
+                    ExitCode = -1
+                };
+            }
+        }
+
+        private async Task<WsbCommandResult> ExecuteWsbCommandNonBlocking(string arguments)
+        {
+            try
+            {
+                var processInfo = new ProcessStartInfo
+                {
+                    FileName = "wsb",
+                    Arguments = arguments,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    CreateNoWindow = true
+                };
+
+                using var process = new Process { StartInfo = processInfo };
+                var outputBuilder = new StringBuilder();
+                var errorBuilder = new StringBuilder();
+
+                process.OutputDataReceived += (sender, e) => {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        outputBuilder.AppendLine(e.Data);
+                };
+
+                process.ErrorDataReceived += (sender, e) => {
+                    if (!string.IsNullOrEmpty(e.Data))
+                        errorBuilder.AppendLine(e.Data);
+                };
+
+                process.Start();
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+
+                // Give the process a moment to start and capture any immediate errors
+                await Task.Delay(1000);
+
+                // Check if the process has already exited (indicating an error)
+                if (process.HasExited)
+                {
+                    var output = outputBuilder.ToString();
+                    var error = errorBuilder.ToString();
+                    var exitCode = process.ExitCode;
+
+                    return new WsbCommandResult
+                    {
+                        Success = exitCode == 0,
+                        Output = output,
+                        ErrorMessage = string.IsNullOrEmpty(error) ? null : error,
+                        ExitCode = exitCode
+                    };
+                }
+                else
+                {
+                    // Process is still running, return success immediately
+                    return new WsbCommandResult
+                    {
+                        Success = true,
+                        Output = "Process started successfully and is running",
+                        ErrorMessage = null,
+                        ExitCode = 0
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to execute wsb command non-blocking: {Arguments}", arguments);
                 return new WsbCommandResult
                 {
                     Success = false,

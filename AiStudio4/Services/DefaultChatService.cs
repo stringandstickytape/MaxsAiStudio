@@ -201,13 +201,13 @@ namespace AiStudio4.Services
                 var toolIds = request.ToolIds ?? new List<string>();
                 if (toolIds.Any() || (await _mcpService.GetAllServerDefinitionsAsync()).Any(x => x.IsEnabled))
                 {
-                    var stopTool = (await _toolService.GetToolByToolNameAsync("PresentResultsAndAwaitUserInput")).Guid;
-                    if (!toolIds.Contains(stopTool))
-                        toolIds.Add(stopTool);
-
-                    stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
-                    if (!toolIds.Contains(stopTool))
-                        toolIds.Add(stopTool);
+                    //var stopTool = (await _toolService.GetToolByToolNameAsync("PresentResultsAndAwaitUserInput")).Guid;
+                    //if (!toolIds.Contains(stopTool))
+                    //    toolIds.Add(stopTool);
+                    //
+                    //stopTool = (await _toolService.GetToolByToolNameAsync("Stop")).Guid;
+                    //if (!toolIds.Contains(stopTool))
+                    //    toolIds.Add(stopTool);
                 }
 
                 // Create request options for provider-managed tool loop
