@@ -232,11 +232,8 @@ namespace AiStudio4.AiServices
             }
 
             // Add tools if present
-            if (options.ToolIds?.Any() == true)
-            {
                 await AddToolsToChatOptions(chatOptions, options.ToolIds);
                 chatOptions.ToolChoice = ChatToolChoice.CreateAutoChoice();
-            }
 
             // Process embeddings if needed
             if (options.AddEmbeddings)
@@ -709,14 +706,16 @@ namespace AiStudio4.AiServices
         {
             // Create a ToolRequestBuilder to handle tool construction
             var toolRequestBuilder = new ToolRequestBuilder(ToolService, McpService);
-            
+
+
+
             // Create a JObject that will mimic the request structure expected by ToolRequestBuilder
             JObject requestObj = new JObject
             {
                 ["tools"] = new JArray()
             };
 
-
+            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(requestObj, ToolFormat.OpenAI);
 
             // Add user-selected tools
             if (toolIDs?.Any() == true)
@@ -728,7 +727,7 @@ namespace AiStudio4.AiServices
             }
             
             // Add MCP service tools
-            await toolRequestBuilder.AddMcpServiceToolsToRequestAsync(requestObj, ToolFormat.OpenAI);
+            
             
             // Convert the JArray of tools to ChatTool objects
             if (requestObj["tools"] is JArray toolsArray && toolsArray.Count > 0)

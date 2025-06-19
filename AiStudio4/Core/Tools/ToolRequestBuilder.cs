@@ -347,7 +347,7 @@ namespace AiStudio4.Core.Tools
             {
                 ["function_calling_config"] = new JObject
                 {
-                    ["mode"] = "ANY"
+                    ["mode"] = "AUTO"
                 }
             };
 
