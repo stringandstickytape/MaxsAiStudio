@@ -253,5 +253,18 @@ namespace AiStudio4.AiServices
                 _payload["generationConfig"] = new JObject();
             }
         }
+
+        public RequestPayloadBuilder WithTools(List<string> ToolIds)
+        {
+            if (_payload["tools"] == null)
+            {
+                _payload["tools"] = new JArray();
+            }
+
+            foreach (var toolId in ToolIds)
+                ((JArray)_payload["tools"]).Add(toolId);
+
+            return this;
+        }
     }
 }

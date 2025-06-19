@@ -46,21 +46,7 @@ namespace AiStudio4.AiServices
             // Handle TopP for Gemini (requires rebuilding request)
             if (options.Model.AllowsTopP && options.ApiSettings.TopP > 0.0f && options.ApiSettings.TopP <= 1.0f)
             {
-                var newRequest = RequestPayloadBuilder.Create(ProviderFormat.Gemini)
-                    .WithModel(ApiModel)
-                    .WithConversation(options.Conv)
-                    .WithApiSettings(options.ApiSettings)
-                    .WithGenerationConfig()
-                    .WithMessages()
-                    .WithTopP(options.ApiSettings.TopP)
-                    .Build();
-
-                // Copy all properties from new request to existing request
-                request.RemoveAll();
-                foreach (var property in newRequest.Properties())
-                {
-                    request[property.Name] = property.Value;
-                }
+                ((JObject)request["generationConfig"])["topP"] = options.ApiSettings.TopP;
             }
 
             // Handle special Google Search directive
