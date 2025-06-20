@@ -8,6 +8,7 @@ using AiStudio4.InjectedDependencies;
 using SharedClasses.Providers;
 
 
+using System.Linq;
 using System.Net.Http;
 
 using System.Text.RegularExpressions;
@@ -21,12 +22,12 @@ namespace AiStudio4.AiServices
         private string oneOffPreFill;
         private readonly ClaudeToolResponseProcessor _toolResponseProcessor;
         private readonly Queue<string> _toolIdQueue = new Queue<string>();
-        
+
         public Claude()
         {
             _toolResponseProcessor = new ClaudeToolResponseProcessor();
         }
-        
+
         public void SetOneOffPreFill(string prefill) => oneOffPreFill = prefill;
 
         protected override ProviderFormat GetProviderFormat() => ProviderFormat.Claude;
@@ -76,7 +77,7 @@ namespace AiStudio4.AiServices
         {
             // Reset ToolResponseSet for each new request
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
-            
+
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
             return await MakeStandardApiCall(options, async (content) =>
@@ -164,15 +165,15 @@ namespace AiStudio4.AiServices
         {
             var assistantContent = new JArray();
             _toolIdQueue.Clear(); // Clear previous tool IDs
-            
+
             // Add any text content first
             var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
             if (!string.IsNullOrEmpty(textContent))
             {
-                assistantContent.Add(new JObject 
-                { 
-                    ["type"] = "text", 
-                    ["text"] = textContent 
+                assistantContent.Add(new JObject
+                {
+                    ["type"] = "text",
+                    ["text"] = textContent
                 });
             }
 
@@ -182,7 +183,7 @@ namespace AiStudio4.AiServices
                 var toolId = toolCall.ToolId ?? $"tool_{Guid.NewGuid():N}"[..15]; // Use Claude's ID or fallback
                 _toolIdQueue.Enqueue(toolId); // Store in order for later use
                 System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT: Creating tool_use with id: {toolId}, tool: {toolCall.ToolName}");
-                
+
                 assistantContent.Add(new JObject
                 {
                     ["type"] = "tool_use",
@@ -197,7 +198,7 @@ namespace AiStudio4.AiServices
                 role = "assistant",
                 content = assistantContent.ToString()
             };
-            
+
             System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.content}");
             return result;
         }
@@ -205,21 +206,21 @@ namespace AiStudio4.AiServices
         private LinearConvMessage CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
             var toolResults = new JArray();
-            
+
             foreach (var block in toolResultBlocks)
             {
                 if (block.ContentType == ContentType.ToolResponse)
                 {
                     var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
                     var toolName = toolData.toolName?.ToString();
-                    
+
                     // Use the next tool ID from the queue (preserves order)
-                    var toolResultId = _toolIdQueue.Count > 0 
-                        ? _toolIdQueue.Dequeue() 
+                    var toolResultId = _toolIdQueue.Count > 0
+                        ? _toolIdQueue.Dequeue()
                         : $"tool_{Guid.NewGuid():N}"[..15];
-                    
+
                     System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}");
-                    
+
                     toolResults.Add(new JObject
                     {
                         ["type"] = "tool_result",
@@ -229,13 +230,13 @@ namespace AiStudio4.AiServices
                     });
                 }
             }
-            
+
             var result = new LinearConvMessage
             {
                 role = "user",
                 content = toolResults.ToString()
             };
-            
+
             System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.content}");
             return result;
         }
@@ -250,9 +251,9 @@ namespace AiStudio4.AiServices
         }
 
         protected override async Task<AiResponse> HandleStreamingResponse(
-            HttpContent content, 
+            HttpContent content,
             CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, 
+            Action<string> onStreamingUpdate,
             Action onStreamingComplete)
         {
             using var response = await SendRequest(content, cancellationToken);
@@ -272,6 +273,13 @@ namespace AiStudio4.AiServices
                 if (parsedResponse != null)
                 {
                     return parsedResponse;
+                }
+
+                // Check if response contains malformed tool calls as JSON blocks in text
+                var malformedToolCallResponse = TryProcessMalformedToolCalls(result.ResponseText);
+                if (malformedToolCallResponse != null)
+                {
+                    return malformedToolCallResponse;
                 }
 
                 return new AiResponse
@@ -294,14 +302,14 @@ namespace AiStudio4.AiServices
                 System.Diagnostics.Debug.WriteLine("Claude streaming cancelled.");
                 // Cancellation happened, use the partial result from the processor
                 result = streamProcessor.GetPartialResult(); // Need to add this method to StreamProcessor
-                
+
                 var tokenUsage = CreateTokenUsage(
                     result.InputTokens?.ToString(),
                     result.OutputTokens?.ToString(),
                     result.CacheCreationInputTokens?.ToString(),
                     result.CacheReadInputTokens?.ToString()
                 );
-                
+
                 return HandleCancellation(
                     result.ResponseText,
                     tokenUsage,
@@ -339,7 +347,7 @@ namespace AiStudio4.AiServices
             return jObject.ToString();
         }
 
-        
+
         private string ExtractResponseTextFromCompletion(JObject completion)
         {
             if (completion["content"] != null)
@@ -411,7 +419,7 @@ namespace AiStudio4.AiServices
                 foreach (var item in jsonArray)
                 {
                     var itemType = item["type"]?.ToString();
-                    
+
                     if (itemType == "text")
                     {
                         // Add text content block
@@ -430,7 +438,7 @@ namespace AiStudio4.AiServices
                         // Add tool call content block
                         var toolName = item["name"]?.ToString();
                         var toolInput = item["input"]?.ToString();
-                        
+
                         if (!string.IsNullOrEmpty(toolName))
                         {
                             contentBlocks.Add(new ContentBlock
@@ -466,7 +474,165 @@ namespace AiStudio4.AiServices
                 return null;
             }
         }
-    }
+
+        /// <summary>
+        /// Post-processes Claude responses that contain malformed tool calls as JSON blocks in text.
+        /// Extracts tool call JSON blocks, removes them from plain text, and converts to proper tool calls.
+        /// </summary>
+        /// <param name="responseText">The raw response text from Claude</param>
+        /// <summary>
+        /// Post-processes Claude responses that contain malformed tool calls as JSON blocks in text.
+        /// Extracts tool call JSON blocks, removes them from plain text, and converts to proper tool calls.
+        /// </summary>
+        /// <param name="responseText">The raw response text from Claude</param>
+        /// <returns>Processed AiResponse with cleaned text and extracted tool calls, or null if no malformed tool calls found</returns>
+        private AiResponse TryProcessMalformedToolCalls(string responseText)
+        {
+            try
+            {
+                var extractedCalls = ExtractMalformedToolCalls(responseText);
+
+                if (extractedCalls.Count == 0)
+                    return null; // No malformed tool calls found
+
+                Debug.WriteLine($"🔧 FOUND {extractedCalls.Count} MALFORMED TOOL CALLS in response");
+
+                var contentBlocks = new List<ContentBlock>();
+                var toolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
+
+                // Remove all tool call JSON blocks from the text
+                var cleanText = responseText;
+
+                // Apply all patterns to remove matched text
+                var allPatterns = new[]
+                {
+                                            @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}",
+                                            @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*(\{[^}]*\})\s*\}",
+                                            @"\{""tool""\s*:\s*""([^""]+)""\s*,\s*""args""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}"
+                                        };
+
+                foreach (var pattern in allPatterns)
+                {
+                    var matches = Regex.Matches(cleanText, pattern, RegexOptions.Multiline);
+                    foreach (Match match in matches.Cast<Match>().Reverse()) // Reverse to maintain string positions
+                    {
+                        cleanText = cleanText.Remove(match.Index, match.Length);
+                    }
+                }
+
+                // Clean up extra whitespace and newlines
+                cleanText = Regex.Replace(cleanText.Trim(), @"\s*\n\s*\n\s*", "\n\n");
+                cleanText = Regex.Replace(cleanText, @"[ \t]+", " ");
+
+                // Add cleaned text as content block if not empty
+                if (!string.IsNullOrWhiteSpace(cleanText))
+                {
+                    contentBlocks.Add(new ContentBlock
+                    {
+                        Content = cleanText,
+                        ContentType = ContentType.Text
+                    });
+                }
+
+                // Process each extracted tool call
+                foreach (var (toolName, parametersJson) in extractedCalls)
+                {
+                    Debug.WriteLine($"🔧 EXTRACTED TOOL: {toolName} with parameters: {parametersJson}");
+
+                    if (!string.IsNullOrEmpty(toolName))
+                    {
+                        // Validate that parameters is valid JSON or empty
+                        var validatedParameters = "{}";
+                        if (!string.IsNullOrEmpty(parametersJson))
+                        {
+                            try
+                            {
+                                // Try to parse to validate JSON
+                                JObject.Parse(parametersJson);
+                                validatedParameters = parametersJson;
+                            }
+                            catch (JsonException)
+                            {
+                                Debug.WriteLine($"⚠️ Invalid JSON parameters for tool {toolName}, using empty object");
+                                validatedParameters = "{}";
+                            }
+                        }
+
+                        // Add tool call content block
+                        contentBlocks.Add(new ContentBlock
+                        {
+                            Content = JsonConvert.SerializeObject(new { toolName = toolName, parameters = validatedParameters }),
+                            ContentType = ContentType.Tool
+                        });
+
+                        // Add to tool response set for execution
+                        toolResponseSet.Tools.Add(new ToolResponseItem
+                        {
+                            ToolName = toolName,
+                            ResponseText = validatedParameters
+                        });
+                    }
+                }
+
+                Debug.WriteLine($"🔧 PROCESSED MALFORMED TOOL CALLS: {contentBlocks.Count} content blocks, {toolResponseSet.Tools.Count} tools extracted");
+
+                return new AiResponse
+                {
+                    ContentBlocks = contentBlocks,
+                    Success = true,
+                    ToolResponseSet = toolResponseSet,
+                    TokenUsage = new TokenUsage("0", "0", "0", "0"), // Unknown from malformed format
+                    IsCancelled = false
+                };
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Failed to process malformed tool calls: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to extract tool calls from various malformed JSON patterns that Claude might produce.
+        /// This method handles multiple potential formats and patterns.
+        /// </summary>
+        /// <param name="responseText">The response text to analyze</param>
+        /// <returns>List of extracted tool call information</returns>
+        private List<(string toolName, string parameters)> ExtractMalformedToolCalls(string responseText)
+        {
+            var extractedCalls = new List<(string toolName, string parameters)>();
+
+            // Pattern 1: {"toolName":"name","parameters":"params"}
+            var pattern1 = @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}";
+            var matches1 = Regex.Matches(responseText, pattern1, RegexOptions.Multiline);
+
+            foreach (Match match in matches1)
+            {
+                extractedCalls.Add((match.Groups[1].Value, match.Groups[2].Value.Replace("\\\"", "\"")));
+            }
+
+            // Pattern 2: {"toolName":"name","parameters":{...}} (unescaped JSON object)
+            var pattern2 = @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*(\{[^}]*\})\s*\}";
+            var matches2 = Regex.Matches(responseText, pattern2, RegexOptions.Multiline);
+
+            foreach (Match match in matches2)
+            {
+                extractedCalls.Add((match.Groups[1].Value, match.Groups[2].Value));
+            }
+
+            // Pattern 3: {"tool":"name","args":"params"} (alternative field names)
+            var pattern3 = @"\{""tool""\s*:\s*""([^""]+)""\s*,\s*""args""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}";
+            var matches3 = Regex.Matches(responseText, pattern3, RegexOptions.Multiline);
+
+            foreach (Match match in matches3)
+            {
+                extractedCalls.Add((match.Groups[1].Value, match.Groups[2].Value.Replace("\\\"", "\"")));
+            }
+
+            return extractedCalls;
+        }
+    };
+
 
     internal class NotEnoughTokensForCachingException : Exception
     {
@@ -688,7 +854,9 @@ namespace AiStudio4.AiServices
 
     internal class StreamProcessingResult
     {
+
         public string ResponseText { get; set; }
+
         public int? InputTokens { get; set; }
         public int? OutputTokens { get; set; }
         public int? CacheCreationInputTokens { get; set; }
