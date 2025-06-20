@@ -279,19 +279,6 @@ namespace AiStudio4.AiServices
                     });
                 }
 
-                // Add image attachments
-                foreach (var attachment in message.attachments.Where(a => a.Type.StartsWith("image/")))
-                {
-                    contentArray.Add(new JObject
-                    {
-                        ["type"] = "image_url",
-                        ["image_url"] = new JObject
-                        {
-                            ["url"] = $"data:{attachment.Type};base64,{attachment.Content}"
-                        }
-                    });
-                }
-
                 messageObj["content"] = contentArray;
             }
 
