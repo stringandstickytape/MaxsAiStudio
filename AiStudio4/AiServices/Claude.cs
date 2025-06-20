@@ -487,110 +487,11 @@ namespace AiStudio4.AiServices
         /// <param name="responseText">The raw response text from Claude</param>
         /// <returns>Processed AiResponse with cleaned text and extracted tool calls, or null if no malformed tool calls found</returns>
         private AiResponse TryProcessMalformedToolCalls(string responseText)
-        {
-            try
-            {
-                var extractedCalls = ExtractMalformedToolCalls(responseText);
-
-                if (extractedCalls.Count == 0)
-                    return null; // No malformed tool calls found
-
-                Debug.WriteLine($"🔧 FOUND {extractedCalls.Count} MALFORMED TOOL CALLS in response");
-
-                var contentBlocks = new List<ContentBlock>();
-                var toolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
-
-                // Remove all tool call JSON blocks from the text
-                var cleanText = responseText;
-
-                // Apply all patterns to remove matched text
-                var allPatterns = new[]
                 {
-                                            @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}",
-                                            @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*(\{[^}]*\})\s*\}",
-                                            @"\{""tool""\s*:\s*""([^""]+)""\s*,\s*""args""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}"
-                                        };
-
-                foreach (var pattern in allPatterns)
-                {
-                    var matches = Regex.Matches(cleanText, pattern, RegexOptions.Multiline);
-                    foreach (Match match in matches.Cast<Match>().Reverse()) // Reverse to maintain string positions
-                    {
-                        cleanText = cleanText.Remove(match.Index, match.Length);
-                    }
+                    // Use the shared implementation from base class
+                    return base.TryProcessMalformedToolCalls(responseText);
                 }
 
-                // Clean up extra whitespace and newlines
-                cleanText = Regex.Replace(cleanText.Trim(), @"\s*\n\s*\n\s*", "\n\n");
-                cleanText = Regex.Replace(cleanText, @"[ \t]+", " ");
-
-                // Add cleaned text as content block if not empty
-                if (!string.IsNullOrWhiteSpace(cleanText))
-                {
-                    contentBlocks.Add(new ContentBlock
-                    {
-                        Content = cleanText,
-                        ContentType = ContentType.Text
-                    });
-                }
-
-                // Process each extracted tool call
-                foreach (var (toolName, parametersJson) in extractedCalls)
-                {
-                    Debug.WriteLine($"🔧 EXTRACTED TOOL: {toolName} with parameters: {parametersJson}");
-
-                    if (!string.IsNullOrEmpty(toolName))
-                    {
-                        // Validate that parameters is valid JSON or empty
-                        var validatedParameters = "{}";
-                        if (!string.IsNullOrEmpty(parametersJson))
-                        {
-                            try
-                            {
-                                // Try to parse to validate JSON
-                                JObject.Parse(parametersJson);
-                                validatedParameters = parametersJson;
-                            }
-                            catch (JsonException)
-                            {
-                                Debug.WriteLine($"⚠️ Invalid JSON parameters for tool {toolName}, using empty object");
-                                validatedParameters = "{}";
-                            }
-                        }
-
-                        // Add tool call content block
-                        contentBlocks.Add(new ContentBlock
-                        {
-                            Content = JsonConvert.SerializeObject(new { toolName = toolName, parameters = validatedParameters }),
-                            ContentType = ContentType.Tool
-                        });
-
-                        // Add to tool response set for execution
-                        toolResponseSet.Tools.Add(new ToolResponseItem
-                        {
-                            ToolName = toolName,
-                            ResponseText = validatedParameters
-                        });
-                    }
-                }
-
-                Debug.WriteLine($"🔧 PROCESSED MALFORMED TOOL CALLS: {contentBlocks.Count} content blocks, {toolResponseSet.Tools.Count} tools extracted");
-
-                return new AiResponse
-                {
-                    ContentBlocks = contentBlocks,
-                    Success = true,
-                    ToolResponseSet = toolResponseSet,
-                    TokenUsage = new TokenUsage("0", "0", "0", "0"), // Unknown from malformed format
-                    IsCancelled = false
-                };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"❌ Failed to process malformed tool calls: {ex.Message}");
-                return null;
-            }
-        }
 
         /// <summary>
         /// Attempts to extract tool calls from various malformed JSON patterns that Claude might produce.
@@ -599,38 +500,11 @@ namespace AiStudio4.AiServices
         /// <param name="responseText">The response text to analyze</param>
         /// <returns>List of extracted tool call information</returns>
         private List<(string toolName, string parameters)> ExtractMalformedToolCalls(string responseText)
-        {
-            var extractedCalls = new List<(string toolName, string parameters)>();
+                {
+                    // Use the shared implementation from base class
+                    return base.ExtractMalformedToolCalls(responseText);
+                }
 
-            // Pattern 1: {"toolName":"name","parameters":"params"}
-            var pattern1 = @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}";
-            var matches1 = Regex.Matches(responseText, pattern1, RegexOptions.Multiline);
-
-            foreach (Match match in matches1)
-            {
-                extractedCalls.Add((match.Groups[1].Value, match.Groups[2].Value.Replace("\\\"", "\"")));
-            }
-
-            // Pattern 2: {"toolName":"name","parameters":{...}} (unescaped JSON object)
-            var pattern2 = @"\{""toolName""\s*:\s*""([^""]+)""\s*,\s*""parameters""\s*:\s*(\{[^}]*\})\s*\}";
-            var matches2 = Regex.Matches(responseText, pattern2, RegexOptions.Multiline);
-
-            foreach (Match match in matches2)
-            {
-                extractedCalls.Add((match.Groups[1].Value, match.Groups[2].Value));
-            }
-
-            // Pattern 3: {"tool":"name","args":"params"} (alternative field names)
-            var pattern3 = @"\{""tool""\s*:\s*""([^""]+)""\s*,\s*""args""\s*:\s*""([^""]*(?:\\.[^""]*)*)""\s*\}";
-            var matches3 = Regex.Matches(responseText, pattern3, RegexOptions.Multiline);
-
-            foreach (Match match in matches3)
-            {
-                extractedCalls.Add((match.Groups[1].Value, match.Groups[2].Value.Replace("\\\"", "\"")));
-            }
-
-            return extractedCalls;
-        }
     };
 
 
