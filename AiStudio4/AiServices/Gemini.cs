@@ -347,7 +347,7 @@ namespace AiStudio4.AiServices
                 }
 
                 // Check if response contains malformed tool calls as JSON blocks in text
-                var malformedToolCallResponse = TryProcessMalformedToolCalls(fullResponse.ToString());
+                var malformedToolCallResponse = await TryProcessMalformedToolCallsAsync(fullResponse.ToString());
                 if (malformedToolCallResponse != null)
                 {
                     return malformedToolCallResponse;

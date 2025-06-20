@@ -709,7 +709,7 @@ namespace AiStudio4.AiServices
                 /// </summary>
                 /// <param name="responseText">The raw response text from the AI service</param>
                 /// <returns>Processed AiResponse with cleaned text and extracted tool calls, or null if no malformed tool calls found</returns>
-                protected AiResponse TryProcessMalformedToolCalls(string responseText)
+                protected async Task<AiResponse> TryProcessMalformedToolCallsAsync(string responseText)
                 {
                     try
                     {
@@ -747,6 +747,8 @@ namespace AiStudio4.AiServices
                         cleanText = Regex.Replace(cleanText.Trim(), @"\s*\n\s*\n\s*", "\n\n");
                         cleanText = Regex.Replace(cleanText, @"[ \t]+", " ");
         
+
+
                         // Add cleaned text as content block if not empty
                         if (!string.IsNullOrWhiteSpace(cleanText))
                         {
@@ -764,6 +766,15 @@ namespace AiStudio4.AiServices
         
                             if (!string.IsNullOrEmpty(toolName))
                             {
+                                // Validate that this is a known tool name
+                                bool isValidTool = await IsValidToolNameAsync(toolName);
+                                
+                                if (!isValidTool)
+                                {
+                                    Debug.WriteLine($"⚠️ Skipping unknown tool name: {toolName}");
+                                    continue; // Skip this tool as it's not recognized
+                                }
+                                
                                 // Validate that parameters is valid JSON or empty
                                 var validatedParameters = "{}";
                                 if (!string.IsNullOrEmpty(parametersJson))
@@ -771,7 +782,7 @@ namespace AiStudio4.AiServices
                                     try
                                     {
                                         // Try to parse to validate JSON
-                                        JObject.Parse(parametersJson);
+                                        JObject.Parse(parametersJson.Replace("\r",""));
                                         validatedParameters = parametersJson;
                                     }
                                     catch (JsonException)
@@ -867,6 +878,57 @@ namespace AiStudio4.AiServices
                 cacheCreationTokens ?? "0",
                 cacheReadTokens ?? "0"
             );
+        }
+
+        /// <summary>
+        /// Validates if a tool name is a valid tool or MCP tool
+        /// </summary>
+        /// <param name="toolName">The tool name to validate</param>
+        /// <returns>True if the tool name is valid, false otherwise</returns>
+        protected virtual async Task<bool> IsValidToolNameAsync(string toolName)
+        {
+            try
+            {
+                // Check if it's a built-in tool
+                if (ToolService != null)
+                {
+                    var tool = await ToolService.GetToolByToolNameAsync(toolName);
+                    if (tool != null)
+                    {
+                        return true;
+                    }
+                }
+
+                // Check if it's an MCP tool
+                if (McpService != null)
+                {
+                    // Check all enabled MCP servers for this tool
+                    var allServers = await McpService.GetAllServerDefinitionsAsync();
+                    foreach (var server in allServers.Where(s => s.IsEnabled))
+                    {
+                        try
+                        {
+                            var tools = await McpService.ListToolsAsync(server.Id);
+                            if (tools.Any(t => t.Name == toolName))
+                            {
+                                return true;
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Error checking MCP server {server.Id} for tool {toolName}: {ex.Message}");
+                            // Continue checking other servers
+                        }
+                    }
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error validating tool name {toolName}: {ex.Message}");
+                return false; // On error, assume invalid to be safe
+            }
         }
     }
 }

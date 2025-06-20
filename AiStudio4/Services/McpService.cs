@@ -1,4 +1,4 @@
-
+﻿
 
 
 using ModelContextProtocol.Client;
@@ -238,6 +238,7 @@ namespace AiStudio4.Services
             }
         }
 
+
         public async Task<bool> IsServerRunningAsync(string serverId)
         {
             await EnsureInitialized();
@@ -245,8 +246,7 @@ namespace AiStudio4.Services
             // A more robust check might involve pinging the client if the library supports it.
             return await Task.FromResult(_activeClients.ContainsKey(serverId));
         }
-
-        public async Task StopServerAsync(string serverId)
+public async Task StopServerAsync(string serverId)
         {
             await EnsureInitialized();
             if (_activeClients.TryRemove(serverId, out var clientToStop))

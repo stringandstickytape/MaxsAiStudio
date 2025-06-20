@@ -49,6 +49,9 @@ namespace AiStudio4.InjectedDependencies
 
             // Persist the full structured blocks
             msg.ContentBlocks = contentBlocks ?? new List<ContentBlock>();
+
+            Save();
+
             return msg;
         }
 

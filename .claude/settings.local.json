@@ -16,7 +16,8 @@
       "Bash(npx tsc:*)",
       "WebFetch(domain:github.com)",
       "Bash(awk:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "mcp__serena__find_symbol"
     ],
     "deny": []
   }

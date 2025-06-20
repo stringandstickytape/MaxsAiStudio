@@ -276,7 +276,7 @@ namespace AiStudio4.AiServices
                 }
 
                 // Check if response contains malformed tool calls as JSON blocks in text
-                var malformedToolCallResponse = TryProcessMalformedToolCalls(result.ResponseText);
+                var malformedToolCallResponse = await TryProcessMalformedToolCallsAsync(result.ResponseText);
                 if (malformedToolCallResponse != null)
                 {
                     return malformedToolCallResponse;
@@ -486,10 +486,10 @@ namespace AiStudio4.AiServices
         /// </summary>
         /// <param name="responseText">The raw response text from Claude</param>
         /// <returns>Processed AiResponse with cleaned text and extracted tool calls, or null if no malformed tool calls found</returns>
-        private AiResponse TryProcessMalformedToolCalls(string responseText)
+        private async Task<AiResponse> TryProcessMalformedToolCallsAsync(string responseText)
                 {
                     // Use the shared implementation from base class
-                    return base.TryProcessMalformedToolCalls(responseText);
+                    return await base.TryProcessMalformedToolCallsAsync(responseText);
                 }
 
 
