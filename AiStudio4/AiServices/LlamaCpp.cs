@@ -2,12 +2,13 @@
 using AiStudio4.Convs;
 using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
+using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.DataModels;
 using AiStudio4.InjectedDependencies;
+using AiStudio4.Services;
+using AiStudio4.Services.Interfaces;
 using Newtonsoft.Json;
 using SharedClasses.Providers;
-using System.Diagnostics;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Text;
 
@@ -15,22 +16,17 @@ namespace AiStudio4.AiServices
 {
     public class LlamaCpp : AiServiceBase
     {
-        private Process _llamaServerProcess;
-        private readonly int _serverPort;
+        private readonly ILlamaServerService _llamaServerService;
         private readonly LlamaCppSettings _settings;
-        private readonly string _binaryDirectory;
-        private readonly string _llamaServerPath;
-        private bool _serverReady = false;
 
         public LlamaCpp()
         {
-            _serverPort = GetAvailablePort();
-            _binaryDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "LlamaCpp");
-            _llamaServerPath = Path.Combine(_binaryDirectory, "llama-server.exe");
+            var app = Application.Current as App;
+            _llamaServerService = app.Services.GetService(typeof(ILlamaServerService)) as ILlamaServerService;
+
             _settings = new LlamaCppSettings();
             
-            // Configure HTTP client for llama-server communication
-            client.BaseAddress = new Uri($"http://127.0.0.1:{_serverPort}");
+            // Configure HTTP client timeout
             client.Timeout = TimeSpan.FromMinutes(10);
         }
 
@@ -45,9 +41,6 @@ namespace AiStudio4.AiServices
         {
             try
             {
-                // Ensure llama-server binary is available
-                await EnsureLlamaServerBinary();
-                
                 // Ensure server is running with the correct model
                 await EnsureServerRunning(options);
                 
@@ -65,7 +58,6 @@ namespace AiStudio4.AiServices
 
         public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
         {
-            await EnsureLlamaServerBinary();
             await EnsureServerRunning(options);
 
             return await ExecuteCommonToolLoop(
@@ -168,171 +160,18 @@ namespace AiStudio4.AiServices
             };
         }
 
-        private async Task EnsureLlamaServerBinary()
-        {
-            if (File.Exists(_llamaServerPath))
-            {
-                System.Diagnostics.Debug.WriteLine($"LlamaCpp: Binary already exists at {_llamaServerPath}");
-                return;
-            }
-
-            System.Diagnostics.Debug.WriteLine("LlamaCpp: Downloading llama-server binary...");
-            await DownloadLatestLlamaServer();
-        }
-
-        private async Task DownloadLatestLlamaServer()
-        {
-            try
-            {
-                Directory.CreateDirectory(_binaryDirectory);
-
-                using var httpClient = new HttpClient();
-                httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4-LlamaCpp");
-
-                // Get latest release info
-                var releaseUrl = "https://api.github.com/repos/ggerganov/llama.cpp/releases/latest";
-                var releaseJson = await httpClient.GetStringAsync(releaseUrl);
-                var release = JsonConvert.DeserializeObject<GitHubRelease>(releaseJson);
-
-                // Find both main binary and CUDA runtime assets
-                var mainAsset = FindMainBinaryAsset(release.Assets);
-                var cudaRuntimeAsset = FindCudaRuntimeAsset(release.Assets);
-
-                if (mainAsset == null)
-                {
-                    throw new Exception("No compatible llama.cpp main binary found in latest release");
-                }
-
-                System.Diagnostics.Debug.WriteLine($"LlamaCpp: Downloading main binary {mainAsset.Name} ({mainAsset.Size / 1024 / 1024} MB)");
-
-                // Download and extract main binary
-                await DownloadAndExtractAsset(httpClient, mainAsset, "main binary");
-
-                // Download and extract CUDA runtime if available
-                if (cudaRuntimeAsset != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"LlamaCpp: Downloading CUDA runtime {cudaRuntimeAsset.Name} ({cudaRuntimeAsset.Size / 1024 / 1024} MB)");
-                    await DownloadAndExtractAsset(httpClient, cudaRuntimeAsset, "CUDA runtime");
-                }
-                else
-                {
-                    System.Diagnostics.Debug.WriteLine("LlamaCpp: No CUDA runtime package found, using CPU-only version");
-                }
-
-                // Verify llama-server.exe exists
-                if (!File.Exists(_llamaServerPath))
-                {
-                    throw new Exception("llama-server.exe not found after extraction");
-                }
-
-                System.Diagnostics.Debug.WriteLine($"LlamaCpp: Successfully set up llama-server at {_llamaServerPath}");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to download llama-server: {ex.Message}", ex);
-            }
-        }
-
-        private async Task DownloadAndExtractAsset(HttpClient httpClient, ReleaseAsset asset, string description)
-        {
-            var zipPath = Path.Combine(_binaryDirectory, asset.Name);
-            
-            try
-            {
-                // Download the archive
-                using (var response = await httpClient.GetAsync(asset.BrowserDownloadUrl))
-                {
-                    response.EnsureSuccessStatusCode();
-                    using var fileStream = File.Create(zipPath);
-                    await response.Content.CopyToAsync(fileStream);
-                }
-
-                // Extract all files to the binary directory
-                using (var archive = ZipFile.OpenRead(zipPath))
-                {
-                    foreach (var entry in archive.Entries)
-                    {
-                        if (!string.IsNullOrEmpty(entry.Name)) // Skip directories
-                        {
-                            var extractPath = Path.Combine(_binaryDirectory, entry.Name);
-                            
-                            // Create directory if needed
-                            var directory = Path.GetDirectoryName(extractPath);
-                            if (!Directory.Exists(directory))
-                            {
-                                Directory.CreateDirectory(directory);
-                            }
-                            
-                            entry.ExtractToFile(extractPath, true);
-                            System.Diagnostics.Debug.WriteLine($"LlamaCpp: Extracted {entry.Name} from {description}");
-                        }
-                    }
-                }
-
-                System.Diagnostics.Debug.WriteLine($"LlamaCpp: Successfully extracted {description}");
-            }
-            finally
-            {
-                // Clean up zip file
-                if (File.Exists(zipPath))
-                {
-                    File.Delete(zipPath);
-                }
-            }
-        }
-
-        private ReleaseAsset FindMainBinaryAsset(ReleaseAsset[] assets)
-        {
-            // Look for main binary packages in priority order
-            var candidates = new[]
-            {
-                "-bin-win-cuda-12", // Current naming pattern: llama-b5711-bin-win-cuda-12.4-x64.zip
-                "win-cuda-cu12", // Legacy pattern
-                "win-cuda-cu11", 
-                "win-avx2-x64",
-                "win-x64"
-            };
-
-            foreach (var candidate in candidates)
-            {
-                var asset = assets.FirstOrDefault(a => 
-                    a.Name.Contains(candidate, StringComparison.OrdinalIgnoreCase) && 
-                    a.Name.Contains("bin", StringComparison.OrdinalIgnoreCase) &&
-                    !a.Name.Contains("cudart", StringComparison.OrdinalIgnoreCase) && // Exclude CUDA runtime
-                    a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
-                if (asset != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"LlamaCpp: Selected main binary: {asset.Name}");
-                    return asset;
-                }
-            }
-
-            return null;
-        }
-
-        private ReleaseAsset FindCudaRuntimeAsset(ReleaseAsset[] assets)
-        {
-            // Look for CUDA runtime package
-            var asset = assets.FirstOrDefault(a => 
-                a.Name.Contains("cudart", StringComparison.OrdinalIgnoreCase) && 
-                a.Name.Contains("win", StringComparison.OrdinalIgnoreCase) &&
-                a.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase));
-            
-            if (asset != null)
-            {
-                System.Diagnostics.Debug.WriteLine($"LlamaCpp: Found CUDA runtime: {asset.Name}");
-            }
-            
-            return asset;
-        }
-
         private async Task EnsureServerRunning(AiRequestOptions options)
         {
             var modelPath = GetModelPath(options);
+            var serverSettings = GetServerSettings(options);
             
-            if (_llamaServerProcess?.HasExited != false || !_serverReady)
+            // Use the service to ensure server is running
+            var baseUrl = await _llamaServerService.EnsureServerRunningAsync(modelPath, serverSettings);
+            
+            // Update client base address if needed
+            if (client.BaseAddress?.ToString() != baseUrl)
             {
-                await StartLlamaServer(modelPath);
+                client.BaseAddress = new Uri(baseUrl);
             }
         }
 
@@ -361,134 +200,30 @@ namespace AiStudio4.AiServices
             throw new Exception("Model path not specified or file not found. Please provide a valid GGUF model path in the model configuration.");
         }
 
-        private async Task StartLlamaServer(string modelPath)
+        private LlamaServerSettings GetServerSettings(AiRequestOptions options)
         {
-            try
-            {
-                // Kill existing process if any
-                if (_llamaServerProcess?.HasExited == false)
-                {
-                    _llamaServerProcess.Kill();
-                    await Task.Delay(1000);
-                }
+            var settings = new LlamaServerSettings();
 
-                var args = BuildServerArguments(modelPath);
-                
-                System.Diagnostics.Debug.WriteLine($"LlamaCpp: Starting server with args: {args}");
-
-                _llamaServerProcess = new Process
-                {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = _llamaServerPath,
-                        Arguments = args,
-                        UseShellExecute = false,
-                        CreateNoWindow = true,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        WorkingDirectory = _binaryDirectory
-                    }
-                };
-
-                // Log server output for debugging
-                _llamaServerProcess.OutputDataReceived += (sender, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
-                        System.Diagnostics.Debug.WriteLine($"LlamaCpp Server: {e.Data}");
-                };
-
-                _llamaServerProcess.ErrorDataReceived += (sender, e) =>
-                {
-                    if (!string.IsNullOrEmpty(e.Data))
-                        System.Diagnostics.Debug.WriteLine($"LlamaCpp Server Error: {e.Data}");
-                };
-
-                _llamaServerProcess.Start();
-                _llamaServerProcess.BeginOutputReadLine();
-                _llamaServerProcess.BeginErrorReadLine();
-
-                // Wait for server to be ready
-                await WaitForServerReady();
-                _serverReady = true;
-
-                System.Diagnostics.Debug.WriteLine($"LlamaCpp: Server started successfully on port {_serverPort}");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to start llama-server: {ex.Message}", ex);
-            }
-        }
-
-        private string BuildServerArguments(string modelPath)
-        {
-            var args = new List<string>
-            {
-                $"--model \"{modelPath}\"",
-                "--jinja",  // Enable tool calling support
-                "-fa",      // Flash attention
-                $"--host 127.0.0.1",
-                $"--port {_serverPort}",
-                $"--ctx-size {_settings.ContextSize}",
-                $"--batch-size {_settings.BatchSize}",
-                $"--threads {_settings.Threads}"
-            };
-
-            // Auto-detect GPU layers if not specified
-            if (_settings.GpuLayerCount == -1)
-            {
-                args.Add("--n-gpu-layers 999"); // Let llama.cpp auto-detect
-            }
-            else if (_settings.GpuLayerCount > 0)
-            {
-                args.Add($"--n-gpu-layers {_settings.GpuLayerCount}");
-            }
-
-            if (_settings.FlashAttention)
-            {
-                args.Add("-fa");
-            }
-
-            if (!string.IsNullOrEmpty(_settings.AdditionalArgs))
-            {
-                args.Add(_settings.AdditionalArgs);
-            }
-
-            return string.Join(" ", args);
-        }
-
-        private async Task WaitForServerReady()
-        {
-            var timeout = TimeSpan.FromSeconds(60);
-            var start = DateTime.Now;
-
-            while (DateTime.Now - start < timeout)
+            // Try to get settings from model additional params
+            if (!string.IsNullOrEmpty(options.Model?.AdditionalParams))
             {
                 try
                 {
-                    var response = await client.GetAsync("/health");
-                    if (response.IsSuccessStatusCode)
+                    var llamaCppSettings = JsonConvert.DeserializeObject<LlamaCppSettings>(options.Model.AdditionalParams);
+                    if (llamaCppSettings != null)
                     {
-                        return;
+                        settings.ContextSize = llamaCppSettings.ContextSize;
+                        settings.GpuLayerCount = llamaCppSettings.GpuLayerCount;
+                        settings.Threads = llamaCppSettings.Threads;
+                        settings.BatchSize = llamaCppSettings.BatchSize;
+                        settings.FlashAttention = llamaCppSettings.FlashAttention;
+                        settings.AdditionalArgs = llamaCppSettings.AdditionalArgs;
                     }
                 }
-                catch
-                {
-                    // Server not ready yet
-                }
-
-                await Task.Delay(1000);
+                catch { }
             }
 
-            throw new Exception($"llama-server failed to start within {timeout.TotalSeconds} seconds");
-        }
-
-        private static int GetAvailablePort()
-        {
-            var listener = new System.Net.Sockets.TcpListener(System.Net.IPAddress.Loopback, 0);
-            listener.Start();
-            var port = ((System.Net.IPEndPoint)listener.LocalEndpoint).Port;
-            listener.Stop();
-            return port;
+            return settings;
         }
 
         protected override JObject CreateRequestPayload(string modelName, LinearConv conv, ApiSettings apiSettings)
@@ -715,21 +450,6 @@ namespace AiStudio4.AiServices
             );
         }
 
-        //public override void Dispose()
-        //{
-        //    try
-        //    {
-        //        if (_llamaServerProcess?.HasExited == false)
-        //        {
-        //            _llamaServerProcess.Kill();
-        //            _llamaServerProcess.WaitForExit(5000);
-        //        }
-        //        _llamaServerProcess?.Dispose();
-        //    }
-        //    catch { }
-        //    
-        //    base.Dispose();
-        //}
     }
 
     public class LlamaCppSettings
@@ -741,23 +461,5 @@ namespace AiStudio4.AiServices
         public int BatchSize { get; set; } = 2048;
         public bool FlashAttention { get; set; } = true;
         public string AdditionalArgs { get; set; } = "";
-    }
-
-    public class GitHubRelease
-    {
-        [JsonProperty("assets")]
-        public ReleaseAsset[] Assets { get; set; }
-    }
-
-    public class ReleaseAsset
-    {
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("browser_download_url")]
-        public string BrowserDownloadUrl { get; set; }
-
-        [JsonProperty("size")]
-        public long Size { get; set; }
     }
 }

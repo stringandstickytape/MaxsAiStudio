@@ -1,4 +1,4 @@
-// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
+﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
@@ -70,11 +70,10 @@ public const decimal VersionNumber = 1.05m;
             // Register configuration
             services.AddSingleton<IConfiguration>(configuration);
 
-            services.AddToolServices();
-
-            // Register core services
+            services.AddToolServices();            // Register core services
             services.AddSingleton<HttpClient>(); // Added for GitHubReleaseService
             services.AddSingleton<IGoogleDriveService, GoogleDriveService>();
+            services.AddSingleton<ILlamaServerService, LlamaServerService>(); // Add LlamaServerService
 
             services.AddSingleton<FileSystemChangeHandler>();
             services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
