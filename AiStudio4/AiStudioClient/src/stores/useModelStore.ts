@@ -15,12 +15,15 @@ interface ModelStore {
   selectedSecondaryModel: string; // Keep for backward compatibility
   loading: boolean;
   error: string | null;
+  // API handler for model selection
+  modelSelectHandler?: (modelType: 'primary' | 'secondary', modelGuid: string, isGuid?: boolean) => Promise<boolean>;
 
   
   setModels: (models: Model[]) => void;
   setProviders: (providers: ServiceProvider[]) => void;
   selectPrimaryModel: (modelGuid: string) => void;
   selectSecondaryModel: (modelGuid: string) => void;
+  registerModelSelectHandler: (handler: (modelType: 'primary' | 'secondary', modelGuid: string, isGuid?: boolean) => Promise<boolean>) => void;
 
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
@@ -36,16 +39,18 @@ export const useModelStore = create<ModelStore>((set, get) => ({
   selectedSecondaryModel: 'Select Model', // Keep for backward compatibility
   loading: false,
   error: null,
+  modelSelectHandler: undefined,
 
   
   setModels: (models) => {
     set({ models });
     if (models.length > 0) {
-      const { selectPrimaryModel, selectSecondaryModel } = useModelStore.getState();
+      const { selectPrimaryModel, selectSecondaryModel, modelSelectHandler } = useModelStore.getState();
       initializeModelCommands({
         getAvailableModels: () => models,
         selectPrimaryModel: (guid) => selectPrimaryModel(guid),
         selectSecondaryModel: (guid) => selectSecondaryModel(guid),
+        handleModelSelect: modelSelectHandler,
       });
       registerModelCommands(models);
     }
@@ -78,6 +83,20 @@ export const useModelStore = create<ModelStore>((set, get) => ({
           selectedSecondaryModel: model ? model.friendlyName : modelGuid // Fallback to using the GUID as name
       });
 
+  },
+
+  registerModelSelectHandler: (handler) => {
+    set({ modelSelectHandler: handler });
+    // Re-initialize commands with the new handler
+    const { models, selectPrimaryModel, selectSecondaryModel } = get();
+    if (models.length > 0) {
+      initializeModelCommands({
+        getAvailableModels: () => models,
+        selectPrimaryModel: (guid) => selectPrimaryModel(guid),
+        selectSecondaryModel: (guid) => selectSecondaryModel(guid),
+        handleModelSelect: handler,
+      });
+    }
   },
 
   setLoading: (loading) => set({ loading }),

@@ -19,6 +19,8 @@ import { useFileSystemManagement } from '@/hooks/useFileSystemManagement';
 import { useMcpServerStore } from '@/stores/useMcpServerStore';
 import useProjectStore from '@/stores/useProjectStore';
 import { registerMcpServersAsCommands, initializeMcpServerManagementCommand } from '@/commands/mcpServerCommands';
+import { useModelStore } from '@/stores/useModelStore';
+import { useModelManagement } from '@/hooks/useResourceManagement';
 
 export function CommandInitializer() {
   // Panel and UI management
@@ -45,6 +47,10 @@ export function CommandInitializer() {
     setServerEnabled: toggleMcpServerEnabled,
     fetchServers: fetchMcpServers,
   } = useMcpServerStore();
+  
+  // Model management
+  const { registerModelSelectHandler } = useModelStore();
+  const { handleModelSelect } = useModelManagement();
 
   // UI event handlers
   const handleOpenNewWindow = () => {
@@ -103,6 +109,11 @@ export function CommandInitializer() {
     }
   }, [mcpServers, toggleMcpServerEnabled]);
 
+
+  // Register model select handler
+  useEffect(() => {
+    registerModelSelectHandler(handleModelSelect);
+  }, [registerModelSelectHandler, handleModelSelect]);
 
   // Initialize static commands once
   useEffect(() => {
