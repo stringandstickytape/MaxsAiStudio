@@ -17,12 +17,12 @@ using Microsoft.Extensions.Hosting;
 using AiStudio4.InjectedDependencies.RequestHandlers;
 
 using Newtonsoft.Json.Serialization;
+using AiStudio4.Core.Models;
 using AiStudio4.Core;
 
 
 using AiStudio4.Services.Interfaces;
 using System.Net.Http; 
-
 namespace AiStudio4
 {
     public partial class App : Application
@@ -149,11 +149,10 @@ public const decimal VersionNumber = 1.05m;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
-
-            // Check for testing profile parameter
+            base.OnStartup(e);            // Check for testing profile parameter
             if (e.Args.Contains("--testing-profile"))
             {
+                PathHelper.IsTestingProfile = true;
                 MessageBox.Show("TestingProfile configuration is active!\n\nCommand line parameter '--testing-profile' was detected.", 
                     "Debug: TestingProfile Active", 
                     MessageBoxButton.OK, 

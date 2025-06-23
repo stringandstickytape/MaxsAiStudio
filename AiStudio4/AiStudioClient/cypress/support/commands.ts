@@ -97,7 +97,7 @@ Cypress.Commands.add('deleteItemInModal', (itemName: string, itemType: 'model' |
         });
 
       cy.get('[role="dialog"]').contains('h2', 'Confirm Deletion').should('be.visible');
-      cy.contains('button', 'Delete').click();
+      cy.contains('button', 'Confirm').click();
       cy.get(gridSelector, { timeout: 10000 }).should('not.contain', itemName);
     }
   });

@@ -1,4 +1,5 @@
-﻿using System;
+﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\Core\Models\PathHelper.cs
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,11 +9,14 @@ namespace AiStudio4.Core.Models
 {
     public static class PathHelper
     {
+        public static bool IsTestingProfile { get; set; } = false;
+
         public static string ProfileRootPath
         {
             get
             {
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4");
+                var folder = IsTestingProfile ? "AiStudio4_Test" : "AiStudio4";
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), folder);
             }
         }
 
