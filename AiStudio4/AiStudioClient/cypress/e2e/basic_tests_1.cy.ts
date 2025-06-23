@@ -35,49 +35,17 @@ describe('Command Bar Functionality', () => {
     cy.closeModal();
 
     // --- TEST: PINNING ---
-    cy.openCommandBar();
-    cy.get('#command-input').type('primary');
-    cy.get('.command-dropdown-menu').contains('.font-medium', `${modelName} [Primary]`)
-      .parents('.px-2.py-1').within(() => {
-        cy.get('.command-pin-button').click();
-      });
-    // Re-query the element after the pin action to avoid stale reference
-    cy.get('.command-dropdown-menu').contains('.font-medium', `${modelName} [Primary]`)
-      .parents('.px-2.py-1').within(() => {
-        cy.get('.command-pin-button.text-blue-400').should('exist');
-      });
-    // Close the command bar dropdown by clicking outside
-    cy.get('body').click();
-    cy.get('.command-dropdown-menu', { timeout: 3000 }).should('not.exist');
+    cy.searchCommand('primary');
+    cy.pinCommand(`${modelName} [Primary]`);
+    cy.closeCommandDropdown();
 
     // --- TEST: SELECTING PINNED SHORTCUT ---
-    cy.get('[class*="PinnedShortcuts"]', { timeout: 5000 })
-      .should('be.visible')
-      .contains(`${modelName} [Primary]`)
-      .click();
-
-    // ROBUST: Assert on the outcome of the click, don't just wait.
-    // Check the primary model button shows the selected model name
-    cy.get('button').contains('span', modelName, { timeout: 10000 })
-      .should('be.visible');
+    cy.clickPinnedShortcut(`${modelName} [Primary]`);
+    cy.verifyPrimaryModelSelected(modelName);
 
     // --- TEST: UNPINNING ---
-    cy.openCommandBar();
-    cy.get('#command-input').type('primary');
-    cy.get('.command-dropdown-menu')
-      .contains('.font-medium', `${modelName} [Primary]`)
-      .parents('.px-2.py-1')
-      .within(() => {
-        cy.get('.command-pin-button').click();
-      });
-    cy.get('.command-dropdown-menu')
-      .contains('.font-medium', `${modelName} [Primary]`)
-      .parents('.px-2.py-1')
-      .within(() => {
-        cy.get('.command-pin-button.text-gray-500').should('exist');
-      });
-    // Close the command bar dropdown by clicking outside
-    cy.get('body').click();
-    cy.get('.command-dropdown-menu', { timeout: 3000 }).should('not.exist');
+    cy.searchCommand('primary');
+    cy.unpinCommand(`${modelName} [Primary]`);
+    cy.closeCommandDropdown();
   });
 });
