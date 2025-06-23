@@ -32,7 +32,7 @@ namespace AiStudio4.Services
         public GoogleDriveService(ILogger<GoogleDriveService> logger)
         {
             _logger = logger;
-            string appDataFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4");
+            string appDataFolder = PathHelper.ProfileRootPath;
             Directory.CreateDirectory(appDataFolder);
 
             _credentialsPath = Path.Combine(appDataFolder, "Config", CredentialsFileName);

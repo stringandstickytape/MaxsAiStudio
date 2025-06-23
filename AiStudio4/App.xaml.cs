@@ -151,6 +151,15 @@ public const decimal VersionNumber = 1.05m;
         {
             base.OnStartup(e);
 
+            // Check for testing profile parameter
+            if (e.Args.Contains("--testing-profile"))
+            {
+                MessageBox.Show("TestingProfile configuration is active!\n\nCommand line parameter '--testing-profile' was detected.", 
+                    "Debug: TestingProfile Active", 
+                    MessageBoxButton.OK, 
+                    MessageBoxImage.Information);
+            }
+
             // Initialize services directly since we're getting an error with IHost
             var startupService = _serviceProvider.GetRequiredService<StartupService>();
             await startupService.StartAsync(default);

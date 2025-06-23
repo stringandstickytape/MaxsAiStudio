@@ -30,7 +30,7 @@ namespace AiStudio4.Services
             _logger = logger;
             _httpClient = httpClient;
             _serverPort = GetAvailablePort();
-            _binaryDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "LlamaCpp");
+            _binaryDirectory = PathHelper.GetProfileSubPath("llama-cpp");
             _llamaServerPath = Path.Combine(_binaryDirectory, "llama-server.exe");
             
             _logger.LogInformation("LlamaServerService initialized with port {Port}", _serverPort);

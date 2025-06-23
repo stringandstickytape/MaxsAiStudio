@@ -7,6 +7,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Icon\icon.ico</ApplicationIcon>
+    <Configurations>Debug;Release;TestingProfile</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)' == 'TestingProfile'">
+    <StartArguments>--testing-profile</StartArguments>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
   </PropertyGroup>
 
 	<ItemGroup>
@@ -66,6 +74,7 @@
 	  <Folder Include="AiStudioClient\dist\" />
 	  <Folder Include="AiStudioClient\src\services\websocket\" />
 	  <Folder Include="AiStudioClient\src\store\" />
+	  <Folder Include="Core\Helpers\" />
 	  <Folder Include="Licenses\" />
 	  <Folder Include="ReadMeDocs\" />
 	</ItemGroup>

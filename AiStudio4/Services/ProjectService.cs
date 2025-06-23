@@ -24,11 +24,7 @@ namespace AiStudio4.Services
         {
             _logger = logger;
             _generalSettingsService = generalSettingsService;
-            _projectsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "Config",
-                "projects.json");
+            _projectsPath = PathHelper.GetProfileSubPath("Config","projects.json");
 
             Directory.CreateDirectory(Path.GetDirectoryName(_projectsPath));
             _logger.LogInformation("Initialized project storage at {ProjectsPath}", _projectsPath);

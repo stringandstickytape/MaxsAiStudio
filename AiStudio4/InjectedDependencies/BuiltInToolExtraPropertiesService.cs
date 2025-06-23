@@ -21,8 +21,7 @@ namespace AiStudio4.InjectedDependencies
         /// </summary>
         public BuiltInToolExtraPropertiesService()
         {
-            var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            var directory = Path.Combine(appData, "AiStudio4");
+            var directory = PathHelper.ProfileRootPath;
             _filePath = Path.Combine(directory, "builtinToolExtraProps.json");
 
             Directory.CreateDirectory(directory);

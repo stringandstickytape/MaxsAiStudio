@@ -17,7 +17,8 @@
       "WebFetch(domain:github.com)",
       "Bash(awk:*)",
       "Bash(cat:*)",
-      "mcp__serena__find_symbol"
+      "mcp__serena__find_symbol",
+      "Bash(pnpm cypress run:*)"
     ],
     "deny": []
   }

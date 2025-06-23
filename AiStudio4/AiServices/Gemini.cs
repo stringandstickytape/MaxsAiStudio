@@ -729,8 +729,9 @@ namespace AiStudio4.AiServices
 
                     var audioBytes = Convert.FromBase64String(base64Audio);
 
-                    
-                    string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "DebugLogs", "AudioFiles");
+
+                    string debugDir = PathHelper.GetProfileSubPath("DebugLogs", "AudioFiles");
+
                     try
                     {
                         

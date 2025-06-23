@@ -140,6 +140,9 @@ importers:
       cmdk:
         specifier: 1.0.0
         version: 1.0.0(@types/react-dom@19.1.6(@types/react@19.1.8))(@types/react@19.1.8)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      cross-env:
+        specifier: ^7.0.3
+        version: 7.0.3
       d3:
         specifier: ^7.9.0
         version: 7.9.0
@@ -214,7 +217,7 @@ importers:
         version: 4.0.1
       root:
         specifier: git+https://github.com/tanstack/react-virtual.git
-        version: git+https://github.com/tanstack/react-virtual.git#545c3c464d9224a8f690fe0ccf71c955edc207b3
+        version: git+https://github.com/tanstack/react-virtual.git#2c703821d6f80295fc4da948716c514e9a92c43f
       sonner:
         specifier: ^2.0.5
         version: 2.0.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -2805,6 +2808,11 @@ packages:
     resolution: {integrity: sha512-AdmX6xUzdNASswsFtmwSt7Vj8po9IuqXm0UXz7QKPuEUmPB4XyjGfaAr2PSuELMwkRMVH1EpIkX5bTZGRB3eCA==}
     engines: {node: '>=10'}
 
+  cross-env@7.0.3:
+    resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
+    engines: {node: '>=10.14', npm: '>=6', yarn: '>=1'}
+    hasBin: true
+
   cross-spawn@7.0.6:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
@@ -5050,8 +5058,8 @@ packages:
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
-  root@git+https://github.com/tanstack/react-virtual.git#545c3c464d9224a8f690fe0ccf71c955edc207b3:
-    resolution: {commit: 545c3c464d9224a8f690fe0ccf71c955edc207b3, repo: https://github.com/tanstack/react-virtual.git, type: git}
+  root@git+https://github.com/tanstack/react-virtual.git#2c703821d6f80295fc4da948716c514e9a92c43f:
+    resolution: {commit: 2c703821d6f80295fc4da948716c514e9a92c43f, repo: https://github.com/tanstack/react-virtual.git, type: git}
     version: 0.0.0
 
   roughjs@4.6.6:
@@ -8637,6 +8645,10 @@ snapshots:
       path-type: 4.0.0
       yaml: 1.10.2
 
+  cross-env@7.0.3:
+    dependencies:
+      cross-spawn: 7.0.6
+
   cross-spawn@7.0.6:
     dependencies:
       path-key: 3.1.1
@@ -11580,7 +11592,7 @@ snapshots:
       '@rollup/rollup-win32-x64-msvc': 4.44.0
       fsevents: 2.3.3
 
-  root@git+https://github.com/tanstack/react-virtual.git#545c3c464d9224a8f690fe0ccf71c955edc207b3: {}
+  root@git+https://github.com/tanstack/react-virtual.git#2c703821d6f80295fc4da948716c514e9a92c43f: {}
 
   roughjs@4.6.6:
     dependencies:

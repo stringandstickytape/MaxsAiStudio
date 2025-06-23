@@ -203,11 +203,8 @@ namespace AiStudio4.Services
                                 convGuid = conv.ConvId,
                                 summary = summary.Length > 150 ? summary.Substring(0, 150) + "..." : summary,
                                 fileName = $"conv_{conv.ConvId}.json",
-                                lastModified = File.GetLastWriteTimeUtc(Path.Combine(
-                                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                                    "AiStudio4",
-                                    "convs",
-                                    $"{conv.ConvId}.json")).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
+                                lastModified = File.GetLastWriteTimeUtc(
+                                    PathHelper.GetProfileSubPath("convs",$"{conv.ConvId}.json")).ToString("yyyy-MM-ddTHH:mm:ss.fffZ")
                             });
                         }
                     }

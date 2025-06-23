@@ -28,7 +28,7 @@ namespace AiStudio4.Services
         public McpService(ILogger<McpService> logger)
         {
             _logger = logger;
-            _configDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "Config");
+            _configDirectory = PathHelper.GetProfileSubPath("Config");
             _definitionsFilePath = Path.Combine(_configDirectory, DEFINITIONS_FILENAME);
 
             Directory.CreateDirectory(_configDirectory);

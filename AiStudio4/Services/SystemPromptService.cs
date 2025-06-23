@@ -27,14 +27,8 @@ namespace AiStudio4.Services
         {
             _logger = logger;
             _userPromptService = userPromptService;
-            _promptsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "systemPrompts");
-            _convPromptsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "convPrompts");
+            _promptsPath = PathHelper.GetProfileSubPath("systemPrompts");
+            _convPromptsPath = PathHelper.GetProfileSubPath("convPrompts");
 
             Directory.CreateDirectory(_promptsPath);
             Directory.CreateDirectory(_convPromptsPath);

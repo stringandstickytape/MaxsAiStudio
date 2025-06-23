@@ -25,7 +25,7 @@ namespace AiStudio4.Services
         {
             _logger = logger;
             _generalSettingsService = generalSettingsService;
-            _convsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "convs");
+            _convsPath = PathHelper.GetProfileSubPath("convs");
             _archivePath = Path.Combine(_convsPath, _archiveSubDirName);
         }
 

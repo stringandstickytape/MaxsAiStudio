@@ -27,7 +27,7 @@ namespace AiStudio4.Services
 
         public ThemeService(IConfiguration configuration)
         {
-            _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "themes.json");
+            _settingsFilePath = PathHelper.GetProfileSubPath("themes.json");
             Directory.CreateDirectory(Path.GetDirectoryName(_settingsFilePath));
 
             // Deserialize the built-in themes once – we will use them when loading/merging the user settings
