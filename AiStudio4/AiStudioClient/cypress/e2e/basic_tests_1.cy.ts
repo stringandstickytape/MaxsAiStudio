@@ -57,9 +57,9 @@ describe('Command Bar Functionality', () => {
       .click();
 
     // ROBUST: Assert on the outcome of the click, don't just wait.
-    // Replace '[data-testid="active-model-display"]' with your app's actual selector.
-    cy.get('[data-testid="active-model-display"]', { timeout: 10000 })
-      .should('contain.text', modelName);
+    // Check the primary model button shows the selected model name
+    cy.get('button').contains('span', modelName, { timeout: 10000 })
+      .should('be.visible');
 
     // --- TEST: UNPINNING ---
     cy.openCommandBar();
