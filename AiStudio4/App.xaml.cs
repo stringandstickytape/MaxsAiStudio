@@ -153,10 +153,21 @@ public const decimal VersionNumber = 1.05m;
             if (e.Args.Contains("--testing-profile"))
             {
                 PathHelper.IsTestingProfile = true;
-                MessageBox.Show("TestingProfile configuration is active!\n\nCommand line parameter '--testing-profile' was detected.", 
-                    "Debug: TestingProfile Active", 
-                    MessageBoxButton.OK, 
-                    MessageBoxImage.Information);
+                
+                // Empty the testing profile folder
+                string testingProfilePath = PathHelper.ProfileRootPath;
+                if (Directory.Exists(testingProfilePath))
+                {
+                    try
+                    {
+                        Directory.Delete(testingProfilePath, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        // If deletion fails, log the error but continue startup
+                        System.Diagnostics.Debug.WriteLine($"Failed to delete testing profile folder: {ex.Message}");
+                    }
+                }
             }
 
             // Initialize services directly since we're getting an error with IHost

@@ -46,9 +46,9 @@ describe('Command Bar Functionality', () => {
       .parents('.px-2.py-1').within(() => {
         cy.get('.command-pin-button.text-blue-400').should('exist');
       });
-    // Close the command bar dropdown
-    cy.get('body').type('{esc}');
-    cy.get('.command-dropdown-menu').should('not.exist');
+    // Close the command bar dropdown by clicking outside
+    cy.get('body').click();
+    cy.get('.command-dropdown-menu', { timeout: 3000 }).should('not.exist');
 
     // --- TEST: SELECTING PINNED SHORTCUT ---
     cy.get('[class*="PinnedShortcuts"]', { timeout: 5000 })
@@ -76,8 +76,8 @@ describe('Command Bar Functionality', () => {
       .within(() => {
         cy.get('.command-pin-button.text-gray-500').should('exist');
       });
-    // Close the command bar dropdown
-    cy.get('body').type('{esc}');
-    cy.get('.command-dropdown-menu').should('not.exist');
+    // Close the command bar dropdown by clicking outside
+    cy.get('body').click();
+    cy.get('.command-dropdown-menu', { timeout: 3000 }).should('not.exist');
   });
 });

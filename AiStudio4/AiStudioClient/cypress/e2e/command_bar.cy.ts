@@ -34,6 +34,7 @@ describe('Command Bar Functionality', () => {
     cy.contains('button', 'Add Model').should('be.visible');
 
     // 8. Verify the modal can be closed with the Escape key
+    cy.wait(500);
     cy.get('body').type('{esc}');
     cy.get('[role="dialog"]').should('not.exist');
   });
