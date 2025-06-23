@@ -49,6 +49,8 @@ describe('Command Bar Functionality', () => {
     cy.closeModal();
 
     // --- TEST: SELECTING PINNED SHORTCUT ---
+    // Ensure command dropdown is fully closed before clicking pinned shortcut
+    cy.get('.command-dropdown-menu').should('not.exist');
     cy.get('[class*="PinnedShortcuts"]', { timeout: 5000 })
       .should('be.visible')
       .contains(`${modelName} [Primary]`)
