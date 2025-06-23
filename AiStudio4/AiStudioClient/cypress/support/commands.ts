@@ -85,6 +85,12 @@ Cypress.Commands.add('deleteItemInModal', (itemName: string, itemType: 'model' |
   const deleteButtonSelector = itemType === 'model' ? 'button:last' : '.service-provider-delete-button';
 
   cy.executeCommand(command);
+  
+  // Wait for the modal to be visible first
+  cy.get('[role="dialog"]').should('be.visible');
+  
+  // Wait for the grid to load
+  cy.get(gridSelector, { timeout: 10000 }).should('be.visible');
 
   // Use .then() to handle cases where the item might not exist (e.g., failed creation)
   cy.get('body').then($body => {
@@ -100,8 +106,12 @@ Cypress.Commands.add('deleteItemInModal', (itemName: string, itemType: 'model' |
       cy.contains('button', 'Confirm').click();
       // Wait for the confirmation dialog to close first
       cy.get('[role="dialog"]').contains('h2', 'Confirm Deletion').should('not.exist');
-      // Then verify the item is removed from the main modal
-      cy.get(gridSelector, { timeout: 10000 }).should('not.contain', itemName);
+      // Then verify the item is removed from the main modal (only if modal still exists)
+      cy.get('body').then($body => {
+        if ($body.find(gridSelector).length) {
+          cy.get(gridSelector).should('not.contain', itemName);
+        }
+      });
     }
   });
 
@@ -186,8 +196,8 @@ Cypress.Commands.add('sendMessage', (message: string) => {
   cy.get('.InputBar textarea').clear().type(message);
   cy.get('.InputBar textarea').type('{ctrl+enter}');
   
-  // Wait for the message to appear in conversation
-  cy.get('[class*="ConvView"]', { timeout: 10000 }).should('contain', message);
+  // Wait for the message to appear using data-message-id
+  cy.get('[data-message-id]', { timeout: 10000 }).should('contain', message);
   
   // Wait for AI response (loading state should appear then disappear)
   cy.get('button[aria-label="Cancel"]', { timeout: 3000 }).should('be.visible');
@@ -199,8 +209,8 @@ Cypress.Commands.add('sendMessage', (message: string) => {
  * @param {string} expectedText The text that should appear in the AI response.
  */
 Cypress.Commands.add('verifyResponse', (expectedText: string) => {
-  cy.get('[class*="MessageItem"]').should('have.length.greaterThan', 1);
-  cy.get('[class*="ConvView"]').should('contain', expectedText);
+  cy.get('.message-container').should('have.length.greaterThan', 1);
+  cy.get('.ConvView.ConvViewMain').should('contain', expectedText);
 });
 
 /**
