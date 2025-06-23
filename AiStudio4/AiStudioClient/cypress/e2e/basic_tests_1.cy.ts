@@ -37,13 +37,15 @@ describe('Command Bar Functionality', () => {
     // --- TEST: PINNING ---
     cy.openCommandBar();
     cy.get('#command-input').type('primary');
-    const modelCommandRow = cy.get('.command-dropdown-menu').contains('.font-medium', `${modelName} [Primary]`);
-    modelCommandRow.parents('.px-2.py-1').within(() => {
-      cy.get('.command-pin-button').click();
-    });
-    modelCommandRow.parents('.px-2.py-1').within(() => {
-      cy.get('.command-pin-button.text-blue-400').should('exist');
-    });
+    cy.get('.command-dropdown-menu').contains('.font-medium', `${modelName} [Primary]`)
+      .parents('.px-2.py-1').within(() => {
+        cy.get('.command-pin-button').click();
+      });
+    // Re-query the element after the pin action to avoid stale reference
+    cy.get('.command-dropdown-menu').contains('.font-medium', `${modelName} [Primary]`)
+      .parents('.px-2.py-1').within(() => {
+        cy.get('.command-pin-button.text-blue-400').should('exist');
+      });
     cy.closeModal();
 
     // --- TEST: SELECTING PINNED SHORTCUT ---
