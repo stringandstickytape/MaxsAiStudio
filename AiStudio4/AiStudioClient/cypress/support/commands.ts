@@ -98,6 +98,9 @@ Cypress.Commands.add('deleteItemInModal', (itemName: string, itemType: 'model' |
 
       cy.get('[role="dialog"]').contains('h2', 'Confirm Deletion').should('be.visible');
       cy.contains('button', 'Confirm').click();
+      // Wait for the confirmation dialog to close first
+      cy.get('[role="dialog"]').contains('h2', 'Confirm Deletion').should('not.exist');
+      // Then verify the item is removed from the main modal
       cy.get(gridSelector, { timeout: 10000 }).should('not.contain', itemName);
     }
   });
