@@ -39,10 +39,10 @@ describe('Command Bar Functionality', () => {
     cy.get('#command-input').type('primary');
     const modelCommandRow = cy.get('.command-dropdown-menu').contains('.font-medium', `${modelName} [Primary]`);
     modelCommandRow.parents('.px-2.py-1').within(() => {
-      cy.get('svg.text-gray-500').click();
+      cy.get('.command-pin-button').click();
     });
     modelCommandRow.parents('.px-2.py-1').within(() => {
-      cy.get('svg.text-blue-400').should('exist');
+      cy.get('.command-pin-button.text-blue-400').should('exist');
     });
     cy.closeModal();
 
@@ -64,13 +64,13 @@ describe('Command Bar Functionality', () => {
       .contains('.font-medium', `${modelName} [Primary]`)
       .parents('.px-2.py-1')
       .within(() => {
-        cy.get('svg.text-blue-400').click();
+        cy.get('.command-pin-button').click();
       });
     cy.get('.command-dropdown-menu')
       .contains('.font-medium', `${modelName} [Primary]`)
       .parents('.px-2.py-1')
       .within(() => {
-        cy.get('svg.text-gray-500').should('exist');
+        cy.get('.command-pin-button.text-gray-500').should('exist');
       });
     cy.closeModal();
   });
