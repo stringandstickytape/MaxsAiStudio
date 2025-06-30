@@ -1,11 +1,9 @@
-﻿
-
-
-
-
-
 namespace AiStudio4.Core.Tools
 {
+    /// <summary>
+    /// Contains unique GUID constants for all tools in the AI Studio application.
+    /// These GUIDs are used to identify and reference specific tools throughout the system.
+    /// </summary>
     static class ToolGuids
     {
         public const string AZURE_DEV_OPS_GET_COMMIT_DIFFS_TOOL_GUID = "c4d8e7f6-5a3b-2c1d-9e8f-7a6b5c4d3e2f";
@@ -80,7 +78,8 @@ namespace AiStudio4.Core.Tools
         public const string RETRIEVE_TEXT_FROM_URL_TOOL_GUID = "c3d4e5f6-a7b8-9012-3456-7890abcdef08";
         public const string RUN_DUCK_DUCK_GO_SEARCH_TOOL_GUID = "d4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9";
         public const string STOP_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef01";
-        public const string THINK_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef04";        public const string THINK_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef03";
+        public const string THINK_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef04";
+        public const string THINK_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef03";
         public const string GEMINI_GOOGLE_SEARCH_TOOL_GUID = "g3m1n1s3-a4r5-c6h7-8901-234567890abc";
         public const string GOOGLE_CUSTOM_SEARCH_API_TOOL_GUID = "g00g1e5e-a7c8-4d1f-9b2e-3c5d7f9a1b3c";
         public const string WINDOWS_SANDBOX_TOOL_GUID = "w1nd0w55-4nd8-0x7o-o15a-nd80x70015ab";
