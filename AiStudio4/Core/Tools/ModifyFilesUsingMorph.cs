@@ -58,7 +58,7 @@ You should specify the following arguments before the others: [target_file]",
                   }
                 }
                 """,
-                Categories = new List<string> { "MaxCode-Alt" },
+                Categories = new List<string> { "MaxCode" },
                 OutputFileType = "txt",
                 ExtraProperties = new Dictionary<string, string>
                 {
