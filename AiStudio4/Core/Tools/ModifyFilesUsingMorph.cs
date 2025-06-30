@@ -36,6 +36,8 @@ namespace AiStudio4.Core.Tools
 
 This will be read by a less intelligent model, which will quickly apply the edit. You should make it clear what the edit is, while also minimizing the unchanged code you write.
 
+You must not submit the original content, only its filename.
+
 When writing the edit, you should specify each edit in sequence, with the special comment // ... existing
 You should specify the following arguments before the others: [target_file]",
                 Schema = """

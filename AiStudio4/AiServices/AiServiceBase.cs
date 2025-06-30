@@ -130,6 +130,18 @@ namespace AiStudio4.AiServices
                 // 2. Make API call
                 var response = await makeApiCall(options);
 
+                // Calculate cost info if calculator is provided
+                TokenCost costInfo = null;
+                if (options.CalculateCost != null && response.TokenUsage != null)
+                {
+                    costInfo = options.CalculateCost(response.TokenUsage, options.Model);
+                    Console.WriteLine($"🔢 TOOL LOOP: Calculated cost for iteration {iteration} - InputTokens: {response.TokenUsage.InputTokens}, OutputTokens: {response.TokenUsage.OutputTokens}, TotalCost: {costInfo?.TotalCost}");
+                }
+                else
+                {
+                    Console.WriteLine($"🔢 TOOL LOOP: No cost calculated for iteration {iteration} - CalculateCost: {options.CalculateCost != null}, TokenUsage: {response.TokenUsage != null}");
+                }
+
                 // 3. Check for final answer (no tool calls)
                 if (response.ToolResponseSet == null || !response.ToolResponseSet.Tools.Any())
                 {
@@ -141,7 +153,8 @@ namespace AiStudio4.AiServices
                             options.AssistantMessageId,
                             response.ContentBlocks,
                             options.ParentMessageId,
-                            response.Attachments);
+                            response.Attachments,
+                            costInfo);
                         
                         await options.OnAssistantMessageCreated(message);
                     }
@@ -212,7 +225,10 @@ namespace AiStudio4.AiServices
                         options.AssistantMessageId,
                         contentBlocks,
                         options.ParentMessageId,
-                        response.Attachments);
+                        response.Attachments,
+                        costInfo);
+                    
+                    Console.WriteLine($"🔢 TOOL LOOP: Created assistant message {options.AssistantMessageId} with cost info: {message.CostInfo?.TotalCost}");
                     
                     await options.OnAssistantMessageCreated(message);
                 }
@@ -325,7 +341,8 @@ namespace AiStudio4.AiServices
                                     options.AssistantMessageId,
                                     updatedContentBlocks,
                                     options.ParentMessageId,
-                                    response.Attachments);
+                                    response.Attachments,
+                                    costInfo);
 
                                 // Notify about the updated assistant message
                                 if (options.OnAssistantMessageCreated != null)
@@ -394,7 +411,8 @@ namespace AiStudio4.AiServices
                     options.AssistantMessageId,
                     errorResponse.ContentBlocks,
                     options.ParentMessageId,
-                    errorResponse.Attachments);
+                    errorResponse.Attachments,
+                    null); // No cost info for error messages
                 
                 await options.OnAssistantMessageCreated(message);
             }

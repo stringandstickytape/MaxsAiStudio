@@ -144,13 +144,17 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
 
     // Token and Cost Info
 
-    
+    metadataItems.push(
+        <span key="cost" className="flex items-center">
+            ${message.costInfo?.totalCost?.toFixed(2)}  Σ {message.cumulativeCost?.toFixed(2)}
+        </span>
+    );
 
     if (message.costInfo && (message.costInfo.tokenUsage.cacheCreationInputTokens > 0 || message.costInfo.tokenUsage.cacheReadInputTokens > 0)) {
         metadataItems.push(
             <span key="cache">
                 <span title="Input tokens">{message.costInfo.tokenUsage.inputTokens} ⬆️</span>{' '}
-                <span title="Output tokens">{message.costInfo.tokenUsage.outputTokens} ⬇️</span> { ' '}
+                <span title="Output tokens">{message.costInfo.tokenUsage.outputTokens} ⬇️</span> { '!! '}
                 <span title="Cache creation input tokens">{message.costInfo.tokenUsage.cacheCreationInputTokens}🌟</span> {' '}
                 <span title="Cache read input tokens">{message.costInfo.tokenUsage.cacheReadInputTokens}📖</span>
             </span>
@@ -162,11 +166,7 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
             </span>
         );
 
-    metadataItems.push(
-        <span key="cost" className="flex items-center">
-            ${message.costInfo.totalCost.toFixed(2)}  Σ${message.cumulativeCost?.toFixed(2)}
-        </span>
-    );
+
 
 
 
