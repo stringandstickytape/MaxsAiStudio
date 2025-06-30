@@ -84,5 +84,10 @@ namespace AiStudio4.Core.Tools
         public const string GEMINI_GOOGLE_SEARCH_TOOL_GUID = "g3m1n1s3-a4r5-c6h7-8901-234567890abc";
         public const string GOOGLE_CUSTOM_SEARCH_API_TOOL_GUID = "g00g1e5e-a7c8-4d1f-9b2e-3c5d7f9a1b3c";
         public const string WINDOWS_SANDBOX_TOOL_GUID = "w1nd0w55-4nd8-0x7o-o15a-nd80x70015ab";
+
+        public static string AZURE_DEV_OPS_GET_PIPELINE_DEFINITIONS_TOOL_GUID = "3d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
+        public static string AZURE_DEV_OPS_GET_PIPELINE_RESOURCES_TOOL_GUID = "4d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
+
+        public static string AZURE_DEV_OPS_GET_PIPELINE_RUNS_TOOL_GUID = "5d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
     }
 }
