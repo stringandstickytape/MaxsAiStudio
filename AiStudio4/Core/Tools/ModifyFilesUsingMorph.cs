@@ -1,4 +1,4 @@
-// AiStudio4/Core/Tools/ModifyFilesUsingMorph.cs
+// AiStudio4/Core/Tools/ModifyFileUsingMorph.cs
 using AiStudio4.AiServices;
 using AiStudio4.Convs;
 using AiStudio4.DataModels;
@@ -15,10 +15,10 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
 {
-    public class ModifyFilesUsingMorph : BaseToolImplementation
+    public class ModifyFileUsingMorph : BaseToolImplementation
     {
-        public ModifyFilesUsingMorph(
-            ILogger<ModifyFilesUsingMorph> logger,
+        public ModifyFileUsingMorph(
+            ILogger<ModifyFileUsingMorph> logger,
             IGeneralSettingsService generalSettingsService,
             IStatusMessageService statusMessageService
             )
@@ -31,7 +31,7 @@ namespace AiStudio4.Core.Tools
             return new Tool
             {
                 Guid = "f4b3b3b3-f4b3-f4b3-f4b3-f4b3f4b3f4b3", // This will be replaced by the ToolManager
-                Name = "ModifyFilesUsingMorph",
+                Name = "ModifyFileUsingMorph",
                 Description = @"Use this tool to propose an edit to an existing file.
 
 This will be read by a less intelligent model, which will quickly apply the edit. You should make it clear what the edit is, while also minimizing the unchanged code you write.
@@ -40,7 +40,7 @@ When writing the edit, you should specify each edit in sequence, with the specia
 You should specify the following arguments before the others: [target_file]",
                 Schema = """
                 {
-                  "name": "ModifyFilesUsingMorph",
+                  "name": "ModifyFileUsingMorph",
                   "description": "Use this tool to propose an edit to an existing file. This will be read by a less intelligent model, which will quickly apply the edit. You should make it clear what the edit is, while also minimizing the unchanged code you write. When writing the edit, you should specify each edit in sequence, with the special comment // ... existing. You should specify the following arguments before the others: [target_file]",
                   "input_schema": {
                     "type": "object",
@@ -69,7 +69,7 @@ You should specify the following arguments before the others: [target_file]",
 
         public override async Task<BuiltinToolResult> ProcessAsync(string toolParameters, Dictionary<string, string> extraProperties)
         {
-            SendStatusUpdate("Initializing ModifyFilesUsingMorph tool...");
+            SendStatusUpdate("Initializing ModifyFileUsingMorph tool...");
             var parameters = JsonConvert.DeserializeObject<Dictionary<string, object>>(toolParameters);
 
             if (parameters == null || !parameters.TryGetValue("target_file", out var targetFileObj) || !(targetFileObj is string targetFile) || string.IsNullOrWhiteSpace(targetFile))
