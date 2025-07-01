@@ -1,8 +1,11 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Web;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
@@ -43,16 +46,17 @@ If the page exists, its content will be overwritten with the provided content; i
 
 Important:
 - Before updating a page, this tool will:
-  1. Retrieve the current content.
+  1. Retrieve the current content and eTag.
   2. Generate and present a git-style diff (git diff --no-index) between the current and new content.
   3. Require user approval before proceeding.
 - If git is not found on the system, the update will be aborted and a warning shown.
 - Never overwrite a page without reviewing the proposed changes.
+- For updates, the tool automatically handles eTag versioning to prevent conflicts.
 """,
                 Schema = """
 {
   "name": "AzureDevOpsCreateOrUpdateWikiPage",
-  "description": "Creates or updates a wiki page at the specified path in Azure DevOps. Shows a diff and requires approval before updating existing pages.",
+  "description": "Creates or updates a wiki page at the specified path in Azure DevOps. Shows a diff and requires approval before updating existing pages. Automatically handles eTag versioning for updates.",
   "input_schema": {
     "properties": {
       "organization": { "title": "Organization", "type": "string", "description": "The Azure DevOps organization name" },
@@ -157,16 +161,16 @@ Important:
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, wiki_id={wikiId}, path={path}\n\nError: Git is not installed or not found in PATH. Wiki page update requires git for generating diffs. Please install git and ensure it's in your PATH.");
                 }
 
-                // Try to get existing content
+                // Try to get existing content and eTag
                 SendStatusUpdate($"Checking if wiki page '{path}' exists...");
-                var existingContent = await GetExistingWikiPageContent(organization, project, wikiId, path, version);
+                var existingPageInfo = await GetExistingWikiPageInfo(organization, project, wikiId, path, version);
                 
-                if (existingContent != null)
+                if (existingPageInfo.Content != null)
                 {
                     // Page exists, show diff and get confirmation
                     SendStatusUpdate("Page exists. Generating diff...");
                     
-                    var diffResult = await GenerateGitDiff(existingContent, newContent, path);
+                    var diffResult = await GenerateGitDiff(existingPageInfo.Content, newContent, path);
                     if (!diffResult.Success)
                     {
                         return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, wiki_id={wikiId}, path={path}\n\nError generating diff: {diffResult.Error}");
@@ -198,7 +202,7 @@ Important:
                 }
 
                 // Proceed with the update/creation
-                SendStatusUpdate($"Updating wiki page '{path}'...");
+                SendStatusUpdate($"{(existingPageInfo.Content != null ? "Updating" : "Creating")} wiki page '{path}'...");
                 
                 var queryParams = new List<string>();
                 queryParams.Add($"path={HttpUtility.UrlEncode(path)}");
@@ -220,6 +224,12 @@ Important:
 
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
                 
+                // For updates, include the eTag in the If-Match header
+                if (existingPageInfo.Content != null && !string.IsNullOrWhiteSpace(existingPageInfo.ETag))
+                {
+                    jsonContent.Headers.Add("If-Match", existingPageInfo.ETag);
+                }
+                
                 // Use PUT for create or update
                 var response = await _httpClient.PutAsync(url, jsonContent);
                 var responseContent = await response.Content.ReadAsStringAsync();
@@ -236,9 +246,9 @@ Important:
                     return CreateResult(true, true, $"Parameters: organization={organization}, project={project}, wiki_id={wikiId}, path={path}\n\nAzure DevOps API Error: {errorMessage} (Status code: {response.StatusCode})");
                 }
 
-                SendStatusUpdate($"Successfully {(existingContent != null ? "updated" : "created")} wiki page '{path}'.");
+                SendStatusUpdate($"Successfully {(existingPageInfo.Content != null ? "updated" : "created")} wiki page '{path}'.");
                 
-                var resultMessage = existingContent != null 
+                var resultMessage = existingPageInfo.Content != null 
                     ? $"Successfully updated wiki page '{path}' in {organization}/{project}/{wikiId}"
                     : $"Successfully created new wiki page '{path}' in {organization}/{project}/{wikiId}";
                     
@@ -256,13 +266,14 @@ Important:
             }
         }
 
-        private async Task<string> GetExistingWikiPageContent(string organization, string project, string wikiId, string path, string version)
+        private async Task<(string Content, string ETag)> GetExistingWikiPageInfo(string organization, string project, string wikiId, string path, string version)
         {
             try
             {
                 var queryParams = new List<string>();
                 queryParams.Add($"path={HttpUtility.UrlEncode(path)}");
                 queryParams.Add("includeContent=true");
+                queryParams.Add("api-version=6.0");
                 
                 if (!string.IsNullOrWhiteSpace(version))
                 {
@@ -277,25 +288,36 @@ Important:
                 if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     // Page doesn't exist
-                    return null;
+                    return (null, null);
                 }
 
                 if (!response.IsSuccessStatusCode)
                 {
                     // Other error, log but continue (treat as new page)
                     _logger.LogWarning($"Error checking existing wiki page: {response.StatusCode}");
-                    return null;
+                    return (null, null);
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var pageData = JObject.Parse(responseContent);
-                return pageData?["content"]?.ToString();
+                
+                // Extract content
+                string content = pageData?["content"]?.ToString();
+                
+                // Extract eTag from response headers
+                string eTag = null;
+                if (response.Headers.ETag != null)
+                {
+                    eTag = response.Headers.ETag.Tag;
+                }
+                
+                return (content, eTag);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving existing wiki page content");
+                _logger.LogError(ex, "Error retrieving existing wiki page content and eTag");
                 // Treat as new page if we can't get existing content
-                return null;
+                return (null, null);
             }
         }
 
