@@ -159,12 +159,12 @@ You should specify the following arguments before the others: [target_file]",
                 await File.WriteAllTextAsync(targetFile, modifiedContent);
                 var successMessage = $"Successfully modified file: {targetFile}";
                 SendStatusUpdate(successMessage);
-                return CreateResult(true, false, successMessage);
+                return CreateResult(true, true, successMessage);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error writing file: {FilePath}", targetFile);
-                return CreateResult(true, true, $"Error writing file: {ex.Message}");
+                return CreateResult(true, false, $"Error writing file: {ex.Message}");
             }
         }
 
