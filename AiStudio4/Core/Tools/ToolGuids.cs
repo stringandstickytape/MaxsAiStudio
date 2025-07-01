@@ -18,6 +18,7 @@ namespace AiStudio4.Core.Tools
         public const string AZURE_DEV_OPS_GET_WIKI_PAGE_CONTENT_TOOL_GUID = "e2f3a4b5-c6d7-e8f9-a0b1-c2d3e4f5a6b7";
         public const string AZURE_DEV_OPS_GET_WIKI_PAGES_TOOL_GUID = "f3a4b5c6-d7e8-9f0a-1b2c-3d4e5f6a7b8c";
         public const string AZURE_DEV_OPS_CREATE_OR_UPDATE_WIKI_PAGE_TOOL_GUID = "d5e6f7a8-b9c0-1234-5678-90abcdef5678";
+        public const string AZURE_DEV_OPS_SEARCH_WIKI_TOOL_GUID = "a8b9c0d1-e2f3-4567-8901-23456789abcd";
         public const string AZURE_DEV_OPS_GET_WORK_ITEM_COMMENTS_TOOL_GUID = "4d7e6c5b-9a8f-4e3d-2c1b-7a6b5c4d3e2f";
         public const string AZURE_DEV_OPS_GET_WORK_ITEMS_TOOL_GUID = "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d";
         public const string AZURE_DEV_OPS_GET_WORK_ITEM_UPDATES_TOOL_GUID = "3a7b9c5d-2e4f-8g6h-1i2j-3k4l5m6n7o8p";
