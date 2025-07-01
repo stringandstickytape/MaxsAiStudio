@@ -224,14 +224,20 @@ Important:
 
                 var jsonContent = new StringContent(JsonConvert.SerializeObject(requestBody), Encoding.UTF8, "application/json");
                 
+                // Create HttpRequestMessage to properly set headers
+                var request = new HttpRequestMessage(HttpMethod.Put, url)
+                {
+                    Content = jsonContent
+                };
+
                 // For updates, include the eTag in the If-Match header
                 if (existingPageInfo.Content != null && !string.IsNullOrWhiteSpace(existingPageInfo.ETag))
                 {
-                    jsonContent.Headers.Add("If-Match", existingPageInfo.ETag);
+                    request.Headers.Add("If-Match", existingPageInfo.ETag);
                 }
-                
-                // Use PUT for create or update
-                var response = await _httpClient.PutAsync(url, jsonContent);
+
+                // Send the request
+                var response = await _httpClient.SendAsync(request);
                 var responseContent = await response.Content.ReadAsStringAsync();
 
                 if (!response.IsSuccessStatusCode)
