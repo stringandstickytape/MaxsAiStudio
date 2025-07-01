@@ -368,3 +368,4 @@ ASALocalRun/
 /CommonAiMistakes.md
 /AiStudio4/AiStudioClient/.claude/settings.local.json
 .serena
+/package-lock.json
