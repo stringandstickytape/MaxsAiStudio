@@ -1,4 +1,4 @@
-﻿// C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/Core/Tools/AzureDevOps/AzureDevOpsSearchWikiTool.cs
+// C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/Core/Tools/AzureDevOps/AzureDevOpsSearchWikiTool.cs
 
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -158,14 +158,16 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 SendStatusUpdate($"Searching wiki content for '{searchText}' in {organization}...");
 
                 // Build the search request body
-                var searchRequest = new
+                var searchRequest = new Dictionary<string, object>
                 {
-                    searchText = searchText,
-                    @top = top,
-                    @skip = skip,
-                    includeFacets = includeFacets,
-                    filters = BuildFilters(projectFilters),
-                    @orderBy = BuildOrderBy(sortBy, sortOrder)
+                    ["searchText"] = searchText,
+                    ["$top"] = top,
+                    ["$skip"] = skip,
+                    ["includeFacets"] = includeFacets,
+                    ["filters"] = BuildFilters(projectFilters),
+                    ["$orderBy"] = BuildOrderBy(sortBy, sortOrder),
+                    ["includeSnippet"] = true,
+                    ["$searchFilters"] = new { }
                 };
 
                 var requestJson = JsonConvert.SerializeObject(searchRequest, Formatting.None, new JsonSerializerSettings
@@ -177,11 +179,11 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 string url;
                 if (!string.IsNullOrWhiteSpace(project))
                 {
-                    url = $"https://almsearch.dev.azure.com/{HttpUtility.UrlEncode(organization)}/{HttpUtility.UrlEncode(project)}/_apis/search/wikisearchresults?api-version=7.1";
+                    url = $"https://almsearch.dev.azure.com/{HttpUtility.UrlEncode(organization)}/{HttpUtility.UrlEncode(project)}/_apis/search/wikisearchresults?api-version=6.0";
                 }
                 else
                 {
-                    url = $"https://almsearch.dev.azure.com/{HttpUtility.UrlEncode(organization)}/_apis/search/wikisearchresults?api-version=7.1";
+                    url = $"https://almsearch.dev.azure.com/{HttpUtility.UrlEncode(organization)}/_apis/search/wikisearchresults?api-version=6.0";
                 }
 
                 var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
@@ -201,6 +203,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 }
 
                 var searchResults = JObject.Parse(responseContent);
+
                 var formattedContent = FormatSearchResults(searchResults, searchText, organization, project);
 
                 SendStatusUpdate("Successfully retrieved wiki search results.");
@@ -277,9 +280,11 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             sb.AppendLine();
 
             var results = searchResults["results"] as JArray;
+
             if (results == null || results.Count == 0)
             {
                 sb.AppendLine("No wiki pages found matching the search criteria.");
+
                 return sb.ToString();
             }
 
@@ -352,7 +357,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 {
                     var fieldName = hit["fieldReferenceName"]?.ToString();
                     var highlights = hit["highlights"] as JArray;
-                    
+
                     if (highlights != null && highlights.Count > 0)
                     {
                         var fieldDisplayName = GetFieldDisplayName(fieldName);
