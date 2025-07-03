@@ -7,10 +7,12 @@ using AiStudio4.DataModels;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Services;
 using AiStudio4.Services.Interfaces;
+using ModelContextProtocol.Protocol;
 using Newtonsoft.Json;
 using SharedClasses.Providers;
 using System.Net.Http;
 using System.Text;
+using System.Windows.Shapes;
 
 namespace AiStudio4.AiServices
 {
@@ -58,9 +60,20 @@ namespace AiStudio4.AiServices
 
         public override async Task<AiResponse> FetchResponseWithToolLoop(AiRequestOptions options, Core.Interfaces.IToolExecutor toolExecutor, v4BranchedConv branchedConv, string parentMessageId, string assistantMessageId, string clientId)
         {
-            await EnsureServerRunning(options);
+            try
+            {
+                await EnsureServerRunning(options);
+            }
+            catch(Exception e)
+            {
+                return new AiResponse
+                {
+                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = e.Message, ContentType = ContentType.Text } }
+                };
 
-            return await ExecuteCommonToolLoop(
+            }
+
+             return await ExecuteCommonToolLoop(
                 options,
                 toolExecutor,
                 makeApiCall: async (opts) => await MakeLlamaCppApiCall(opts),
@@ -294,7 +307,7 @@ namespace AiStudio4.AiServices
             try
             {
                 using var response = await SendRequest(content, cancellationToken);
-                response.EnsureSuccessStatusCode();
+                //response.EnsureSuccessStatusCode();
 
                 using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
                 return await ProcessLlamaCppStream(stream, cancellationToken, onStreamingUpdate, onStreamingComplete);
@@ -328,7 +341,24 @@ namespace AiStudio4.AiServices
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (line.StartsWith("data: "))
+                    if ( line.StartsWith("error: "))
+                    {
+                        var data = line.Substring(7);
+
+                        try
+                        {
+                            var chunk = JsonConvert.DeserializeObject<JObject>(data);
+                            var msg = $"{chunk["code"]} {chunk["type"]}: {chunk["message"]}";
+                            responseBuilder.Append(msg);
+                            onStreamingUpdate?.Invoke(msg);
+                        }
+                        catch (JsonException)
+                        {
+                            // Skip malformed JSON chunks
+                        }
+
+                    }
+                    else if (line.StartsWith("data: "))
                     {
                         var data = line.Substring(6);
                         if (data == "[DONE]")
@@ -338,7 +368,7 @@ namespace AiStudio4.AiServices
                         {
                             var chunk = JsonConvert.DeserializeObject<JObject>(data);
                             var choices = chunk["choices"] as JArray;
-                            
+
                             if (choices?.Count > 0)
                             {
                                 var choice = choices[0] as JObject;

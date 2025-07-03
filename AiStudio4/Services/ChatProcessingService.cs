@@ -334,7 +334,7 @@ namespace AiStudio4.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error handling chat request");
-                return JsonConvert.SerializeObject(new { success = false, error = ex.Message });
+                return JsonConvert.SerializeObject(new { success = false, error = ex.Message, response = ex.Message });
             }
         }
 

@@ -457,7 +457,7 @@ namespace AiStudio4.Services
 
     public class LlamaServerSettings
     {
-        public int ContextSize { get; set; } = 4096;
+        public int ContextSize { get; set; } = 32768;
         public int GpuLayerCount { get; set; } = -1; // Auto-detect
         public int Threads { get; set; } = -1; // Auto-detect
         public int BatchSize { get; set; } = 2048;
