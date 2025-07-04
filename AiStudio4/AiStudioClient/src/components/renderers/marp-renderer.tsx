@@ -66,29 +66,38 @@ export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatte
     }
   }, [markdown, marp]);
 
-  // Handle keyboard navigation
+  // Handle keyboard navigation - only when focused or hovered
+  const [isFocused, setIsFocused] = useState(false);
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle keyboard events if the Marp container is focused/hovered or in fullscreen mode
+      if (!isFocused && !isFullscreen) return;
       if (presenterMode) return; // Let presenter view handle its own navigation
       
       switch (e.key) {
         case 'ArrowLeft':
           if (currentSlide > 0) setCurrentSlide(currentSlide - 1);
+          e.preventDefault();
           break;
         case 'ArrowRight':
         case ' ':
           if (currentSlide < slides.length - 1) setCurrentSlide(currentSlide + 1);
+          e.preventDefault();
           break;
         case 'Home':
           setCurrentSlide(0);
+          e.preventDefault();
           break;
         case 'End':
           setCurrentSlide(slides.length - 1);
+          e.preventDefault();
           break;
         case 'Escape':
           if (isFullscreen) {
             document.exitFullscreen();
             setIsFullscreen(false);
+            e.preventDefault();
           }
           break;
         case 'f':
@@ -96,6 +105,7 @@ export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatte
           if (!isFullscreen) {
             containerRef.current?.requestFullscreen();
             setIsFullscreen(true);
+            e.preventDefault();
           }
           break;
       }
@@ -103,7 +113,7 @@ export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatte
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSlide, slides.length, presenterMode, isFullscreen]);
+  }, [currentSlide, slides.length, presenterMode, isFullscreen, isFocused]);
 
   // Handle fullscreen changes
   useEffect(() => {
@@ -124,8 +134,23 @@ export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatte
   }
 
   return (
-    <div className="marp-container relative" ref={containerRef}>
+    <div 
+      className={`marp-container relative transition-all ${isFocused ? 'ring-2 ring-primary/20' : ''}`}
+      ref={containerRef}
+      tabIndex={0}
+      onMouseEnter={() => setIsFocused(true)}
+      onMouseLeave={() => setIsFocused(false)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+    >
       <MarpStyles css={css} scopeId={`marp-${Date.now()}`} />
+      
+      {/* Focus hint */}
+      {!isFocused && !isFullscreen && (
+        <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm px-2 py-1 rounded text-xs text-muted-foreground opacity-70 pointer-events-none">
+          Hover to interact
+        </div>
+      )}
       
       {presenterMode ? (
         <MarpPresenterView

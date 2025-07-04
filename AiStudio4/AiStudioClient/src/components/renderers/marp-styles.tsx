@@ -41,17 +41,21 @@ export const MarpStyles: React.FC<MarpStylesProps> = ({ css, scopeId }) => {
         justify-content: center;
         background: #000;
         padding: 2rem;
+        height: 400px; /* Fixed height to prevent jumping */
+        min-height: 400px;
       }
       
       .marp-container[data-scope="${scopeId}"] .marp-slide {
-        max-width: 100%;
-        max-height: 100%;
-        width: auto;
-        height: auto;
+        width: 100%;
+        max-width: 600px; /* Maximum slide width */
+        height: 100%;
+        max-height: 337px; /* 600 * 9/16 for 16:9 aspect ratio */
         aspect-ratio: 16/9;
         background: white;
         box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
         overflow: hidden;
+        display: flex;
+        flex-direction: column;
       }
       
       .marp-container[data-scope="${scopeId}"] .marp-slide section {
@@ -59,6 +63,10 @@ export const MarpStyles: React.FC<MarpStylesProps> = ({ css, scopeId }) => {
         height: 100%;
         padding: 40px;
         box-sizing: border-box;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
       }
       
       /* Fullscreen styles */
@@ -68,13 +76,23 @@ export const MarpStyles: React.FC<MarpStylesProps> = ({ css, scopeId }) => {
       
       .marp-container[data-scope="${scopeId}"]:fullscreen .marp-slide-container {
         padding: 0;
+        height: 100vh;
+        min-height: 100vh;
       }
       
       .marp-container[data-scope="${scopeId}"]:fullscreen .marp-slide {
-        width: 100vw;
+        width: calc(100vh * 16/9); /* Maintain 16:9 aspect ratio */
         height: 100vh;
-        max-width: 100vw;
+        max-width: 100vw; /* Don't exceed viewport width */
         max-height: 100vh;
+      }
+      
+      /* If screen is wider than 16:9, fit to height. If taller, fit to width */
+      @media (max-aspect-ratio: 16/9) {
+        .marp-container[data-scope="${scopeId}"]:fullscreen .marp-slide {
+          width: 100vw;
+          height: calc(100vw * 9/16);
+        }
       }
       
       /* Progress bar */
