@@ -1,10 +1,12 @@
 ﻿import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { FontSizeControl } from './FontSizeControl';
 import { useAppearanceManagement } from '@/hooks/useAppearanceManagement';
 import { RefreshCw } from 'lucide-react';
-import { fontSizeUtils } from '@/stores/useAppearanceStore';
+import { fontSizeUtils, useAppearanceStore } from '@/stores/useAppearanceStore';
 import { useModalStore } from '@/stores/useModalStore';
 import { useConfirmationDialog } from '@/hooks/useConfirmationDialog';
 
@@ -12,6 +14,7 @@ export function AppearanceTab() {
     const [successMessage, setSuccessMessage] = useState<string | null>(null);
     const { confirm } = useConfirmationDialog();
     const { error } = useAppearanceManagement();
+    const { chatSpaceWidth, setChatSpaceWidth, saveAppearanceSettings } = useAppearanceStore();
 
     const showSuccessMessage = (message: string) => {
         setSuccessMessage(message);
@@ -54,6 +57,45 @@ export function AppearanceTab() {
                 </CardContent>
             </Card>
 
+            <Card className="card-base">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-title text-lg">Chat Width</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-3">
+                        <p className="text-body">Configure the maximum width of the chat area.</p>
+                        
+                        <div className="space-y-2">
+                            <Label htmlFor="chat-width-select">Width Setting</Label>
+                            <Select 
+                                value={chatSpaceWidth} 
+                                onValueChange={async (value) => {
+                                    setChatSpaceWidth(value);
+                                    await saveAppearanceSettings();
+                                    showSuccessMessage('Chat width saved successfully');
+                                }}
+                            >
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select width" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="sm">Small (24rem)</SelectItem>
+                                    <SelectItem value="md">Medium (28rem)</SelectItem>
+                                    <SelectItem value="lg">Large (32rem)</SelectItem>
+                                    <SelectItem value="xl">Extra Large (36rem)</SelectItem>
+                                    <SelectItem value="2xl">2X Large (42rem)</SelectItem>
+                                    <SelectItem value="3xl">3X Large (48rem)</SelectItem>
+                                    <SelectItem value="4xl">4X Large (56rem)</SelectItem>
+                                    <SelectItem value="5xl">5X Large (64rem)</SelectItem>
+                                    <SelectItem value="6xl">6X Large (72rem)</SelectItem>
+                                    <SelectItem value="7xl">7X Large (80rem)</SelectItem>
+                                    <SelectItem value="full">Full Width</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
 
             <Card className="card-base">
                 <CardHeader className="pb-2">

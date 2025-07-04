@@ -12,6 +12,7 @@ import { CommandBar } from './CommandBar';
 import { useConvStore } from '@/stores/useConvStore';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
 import { usePanelStore } from '@/stores/usePanelStore';
+import { useAppearanceStore } from '@/stores/useAppearanceStore';
 import { setupPromptUtils } from '@/utils/promptUtils';
 
 // AiStudioClient/src/components/ChatSpace.tsx
@@ -24,6 +25,24 @@ export function ChatSpace() {
   const activeConvId = useConvStore(state => state.activeConvId);
   const { isCancelling } = useWebSocketStore();
   const { panels } = usePanelStore();
+  const { chatSpaceWidth } = useAppearanceStore();
+  
+  const getWidthClass = (width: string) => {
+    switch (width) {
+      case 'sm': return 'max-w-sm';
+      case 'md': return 'max-w-md';
+      case 'lg': return 'max-w-lg';
+      case 'xl': return 'max-w-xl';
+      case '2xl': return 'max-w-2xl';
+      case '3xl': return 'max-w-3xl';
+      case '4xl': return 'max-w-4xl';
+      case '5xl': return 'max-w-5xl';
+      case '6xl': return 'max-w-6xl';
+      case '7xl': return 'max-w-7xl';
+      case 'full': return 'max-w-full';
+      default: return 'max-w-3xl';
+    }
+  };
   
   // Setup window prompt utilities
   useEffect(() => {
@@ -103,13 +122,13 @@ export function ChatSpace() {
       </div>
       
       <div className="flex-1 overflow-auto min-h-0 w-full" style={{width: '100%'}}>
-        <div className="w-full max-w-3xl mx-auto">
+        <div className={`w-full ${getWidthClass(chatSpaceWidth)} mx-auto`}>
           {memoizedChatContainer}
         </div>
       </div>
       
       <div className="flex-shrink-0 w-full overflow-auto pr-4">
-        <div className="w-full max-w-3xl mx-auto">
+        <div className={`w-full ${getWidthClass(chatSpaceWidth)} mx-auto`}>
           <InputBar
             onManageTools={openToolLibrary}
             disabled={isCancelling}

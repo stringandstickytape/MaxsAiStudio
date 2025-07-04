@@ -55,6 +55,8 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     isDarkMode = settings.IsDarkMode,
                     chatPanelSize = settings.ChatPanelSize,
                     inputBarPanelSize = settings.InputBarPanelSize,
+                    stickToBottomEnabled = settings.StickToBottomEnabled,
+                    chatSpaceWidth = settings.ChatSpaceWidth,
                 });
             }
             catch (Exception ex)
@@ -67,15 +69,18 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
         {
             try
             {
-                var fontSize = requestObject["fontSize"]?.Value<int>() ?? 16;
-                var isDarkMode = requestObject["isDarkMode"]?.Value<bool>() ?? true;
-
+                // Get current settings first to preserve existing values
+                var currentSettings = _appearanceSettingsService.GetAppearanceSettings();
+                
+                // Update only the properties that are provided in the request
                 var settings = new AppearanceSettings
                 {
-                    FontSize = fontSize,
-                    IsDarkMode = isDarkMode,
-                    ChatPanelSize = requestObject["chatPanelSize"]?.Value<int>() ?? 30,
-                    InputBarPanelSize = requestObject["inputBarPanelSize"]?.Value<int>() ?? 30,
+                    FontSize = requestObject["fontSize"]?.Value<int>() ?? currentSettings.FontSize,
+                    IsDarkMode = requestObject["isDarkMode"]?.Value<bool>() ?? currentSettings.IsDarkMode,
+                    ChatPanelSize = requestObject["chatPanelSize"]?.Value<int>() ?? currentSettings.ChatPanelSize,
+                    InputBarPanelSize = requestObject["inputBarPanelSize"]?.Value<int>() ?? currentSettings.InputBarPanelSize,
+                    StickToBottomEnabled = requestObject["stickToBottomEnabled"]?.Value<bool>() ?? currentSettings.StickToBottomEnabled,
+                    ChatSpaceWidth = requestObject["chatSpaceWidth"]?.Value<string>() ?? currentSettings.ChatSpaceWidth,
                 };
 
                 _appearanceSettingsService.UpdateAppearanceSettings(settings);

@@ -9,6 +9,7 @@ interface AppearanceState {
   chatPanelSize: number;
   inputBarPanelSize: number;
   stickToBottomEnabled: boolean;
+  chatSpaceWidth: string;
   isLoading: boolean;
   error: string | null;
 
@@ -22,6 +23,7 @@ interface AppearanceState {
   setPanelSizes: (chatSize: number, inputBarSize: number) => void;
   toggleStickToBottom: () => void;
   setStickToBottom: (enabled: boolean) => void;
+  setChatSpaceWidth: (width: string) => void;
   saveAppearanceSettings: () => Promise<void>;
   loadAppearanceSettings: () => Promise<void>;
   setError: (error: string | null) => void;
@@ -40,6 +42,7 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
   chatPanelSize: 70,
   inputBarPanelSize: 30,
   stickToBottomEnabled: true,
+  chatSpaceWidth: '3xl',
   isLoading: false,
   error: null,
 
@@ -96,8 +99,13 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
       stickToBottomEnabled: enabled,
     })),
 
+  setChatSpaceWidth: (width) =>
+    set((state) => ({
+      chatSpaceWidth: width,
+    })),
+
   saveAppearanceSettings: async () => {
-    const { fontSize, isDarkMode, chatPanelSize, inputBarPanelSize, stickToBottomEnabled } = get();
+    const { fontSize, isDarkMode, chatPanelSize, inputBarPanelSize, stickToBottomEnabled, chatSpaceWidth } = get();
     set({ isLoading: true, error: null });
 
     try {
@@ -107,6 +115,7 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         chatPanelSize,
         inputBarPanelSize,
         stickToBottomEnabled,
+        chatSpaceWidth,
       });
 
       const data = response.data;
@@ -145,6 +154,7 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         chatPanelSize,
         inputBarPanelSize,
         stickToBottomEnabled: data.stickToBottomEnabled ?? true,
+        chatSpaceWidth: data.chatSpaceWidth ?? '3xl',
       });
 
       
