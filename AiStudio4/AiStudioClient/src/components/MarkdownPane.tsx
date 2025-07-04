@@ -365,7 +365,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         tr: ({ children }: any) => <tr>{children}</tr>,
         th: ({ children }: any) => <th className="px-4 py-2 text-left font-medium">{children}</th>,
         td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,
-    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio, variant]); // <-- Simplified dependencies
+    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio, variant]); // <-- Restored isCodeCollapsed
 
     // Track completed segments separately for better memoization
     const completedSegmentsOnly = useMemo(() => {
