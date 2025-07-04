@@ -117,7 +117,6 @@ export function NavigationContainer({ children }: NavigationContainerProps) {
           fontFamily: 'var(--global-font-family)',
           fontSize: 'var(--global-font-size)',
           borderRadius: 'var(--global-border-radius)',
-          width: '95%',
           marginLeft: 'auto',
           marginRight: 'auto',
           ...(window?.theme?.NavigationContainer?.style || {})
