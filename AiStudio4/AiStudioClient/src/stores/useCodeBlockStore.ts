@@ -11,6 +11,7 @@ interface CodeBlockState {
   setCollapsed: (blockId: string, collapsed: boolean) => void;
   setRawView: (blockId: string, isRaw: boolean) => void;
   clearBlockStates: () => void;
+  clearMessageBlocks: (messageId: string) => void;
   
   // Bulk actions
   expandAll: () => void;
@@ -65,6 +66,31 @@ export const useCodeBlockStore = create<CodeBlockState>((set, get) => ({
   
   clearBlockStates: () => {
     set({ collapsedBlocks: {}, rawViewBlocks: {} });
+  },
+  
+  clearMessageBlocks: (messageId: string) => {
+    set((state) => {
+      const newCollapsedBlocks = { ...state.collapsedBlocks };
+      const newRawViewBlocks = { ...state.rawViewBlocks };
+      
+      // Remove all blocks that start with the messageId
+      Object.keys(newCollapsedBlocks).forEach(blockId => {
+        if (blockId.startsWith(`${messageId}-`)) {
+          delete newCollapsedBlocks[blockId];
+        }
+      });
+      
+      Object.keys(newRawViewBlocks).forEach(blockId => {
+        if (blockId.startsWith(`${messageId}-`)) {
+          delete newRawViewBlocks[blockId];
+        }
+      });
+      
+      return {
+        collapsedBlocks: newCollapsedBlocks,
+        rawViewBlocks: newRawViewBlocks
+      };
+    });
   },
   
   expandAll: () => {

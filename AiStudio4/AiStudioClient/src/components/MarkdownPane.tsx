@@ -56,8 +56,6 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     const [mermaidKey, setMermaidKey] = useState(0);
     const [isVisualStudio, setIsVisualStudio] = useState(false);
     
-    // Zustand store for code block state management
-    const clearBlockStates = useCodeBlockStore(state => state.clearBlockStates);
     
     // Track completed portions and only render changes
     const [completedSegments, setCompletedSegments] = useState<Array<{ content: string; type: 'completed' | 'incomplete' }>>([]);
@@ -217,16 +215,6 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         setIsVisualStudio(isVS);
     }, []);
 
-    // Track the previous messageId to only clear when it actually changes
-    const prevMessageIdRef = useRef<string | undefined>();
-    
-    useEffect(() => {
-        if (messageId && messageId !== prevMessageIdRef.current) {
-            // Only clear if this is a different message, not just a re-render
-            clearBlockStates();
-            prevMessageIdRef.current = messageId;
-        }
-    }, [messageId, clearBlockStates]);
 
     // Removed renderAll call since React components handle their own rendering
 
