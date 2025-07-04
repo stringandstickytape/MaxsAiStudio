@@ -87,6 +87,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
                     {header}
                     <div style={{ maxHeight: '500px', overflow: 'auto' }}>
                 <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
+                    {console.log(`[CodeRenderer] Rendering ${diagramRenderer.type[0]} diagram with ${content.length} chars`)}
                     <DiagramComponent content={content} className="overflow-auto" />
                         </div>
                 </div>
