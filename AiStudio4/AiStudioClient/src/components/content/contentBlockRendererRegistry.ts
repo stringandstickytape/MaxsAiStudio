@@ -8,6 +8,7 @@ import { ToolResponseContentRenderer } from './ToolResponseContentRenderer';
 
 export interface ContentBlockRendererProps {
   block: ContentBlock;
+  messageId?: string; // Optional message ID for state management
 }
 
 export type ContentBlockRendererComponent = React.FC<ContentBlockRendererProps>;

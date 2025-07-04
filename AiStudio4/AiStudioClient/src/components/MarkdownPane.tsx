@@ -8,6 +8,7 @@ import { CodeBlock } from './MarkdownPane/CodeBlock';
 import { cn } from '@/lib/utils';
 import matter from 'gray-matter';
 import { MarpRenderer } from './renderers/marp-renderer';
+import { useCodeBlockStore } from '@/stores/useCodeBlockStore';
 
 // Themeable properties for MarkdownPane code headers
 export const themeableProps = {
@@ -42,18 +43,21 @@ export type MarkdownVariant = 'default' | 'system';
 
 interface MarkdownPaneProps {
     message: string;
+    messageId?: string; // Message ID for state management
     variant?: MarkdownVariant; // <-- ADD PROP
 }
 
 export const MarkdownPane = React.memo(function MarkdownPane({ 
     message, 
+    messageId,
     variant = 'default' // <-- ADD PROP
 }: MarkdownPaneProps) {
     const [markdownContent, setMarkdownContent] = useState<string>('');
     const [mermaidKey, setMermaidKey] = useState(0);
-    const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({});
-    const [isCodeCollapsed, setIsCodeCollapsed] = useState<Record<string, boolean>>({});
     const [isVisualStudio, setIsVisualStudio] = useState(false);
+    
+    // Zustand store for code block state management
+    const clearBlockStates = useCodeBlockStore(state => state.clearBlockStates);
     
     // Track completed portions and only render changes
     const [completedSegments, setCompletedSegments] = useState<Array<{ content: string; type: 'completed' | 'incomplete' }>>([]);
@@ -213,6 +217,13 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         setIsVisualStudio(isVS);
     }, []);
 
+    // Clear code block states when message ID changes
+    useEffect(() => {
+        if (messageId) {
+            clearBlockStates();
+        }
+    }, [messageId, clearBlockStates]);
+
     // Removed renderAll call since React components handle their own rendering
 
     // Add CSS to handle li > p display
@@ -286,52 +297,18 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             const language = match ? match[1] : 'txt';
             const content = String(children).replace(/\n$/, '');
             const diagramRenderer = codeBlockRendererRegistry.get(language);
-            const blockId = `code-block-${codeBlockIndex++}`;
-            const isRawView = showRawContent[blockId] ?? false;
-            const isCollapsed = isCodeCollapsed[blockId] ?? true;
-            const handleToggleRaw = useCallback(() => {
-                setShowRawContent((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
-                setMermaidKey((prev) => prev + 1);
-            }, [blockId]);
-            const handleToggleCollapse = useCallback(() => {
-                // Find the scrollable container - try multiple selectors
-                let scrollContainer = document.querySelector('.markdown-pane')?.parentElement?.parentElement;
-                
-                // If that doesn't work, try finding a container with scroll
-                if (!scrollContainer || scrollContainer === document.documentElement) {
-                    const containers = [
-                        document.querySelector('[data-testid="chat-container"]'),
-                        document.querySelector('.chat-container'),
-                        document.querySelector('.overflow-auto'),
-                        document.querySelector('.scroll-container')
-                    ].filter(Boolean);
-                    
-                    scrollContainer = containers.find(container => 
-                        container && container.scrollHeight > container.clientHeight
-                    ) || null;
-                }
-                
-                // Only proceed if we found a valid scroll container (not document.documentElement)
-                if (scrollContainer && scrollContainer !== document.documentElement) {
-                    const currentScrollPosition = scrollContainer.scrollTop;
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
-                } else {
-                    // Just toggle without scroll manipulation if we can't find proper container
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
-                }
-            }, [blockId]);
+            
+            // Create stable blockId that includes message ID and index
+            const blockId = `${messageId || 'unknown'}-code-block-${codeBlockIndex++}`;
             return (
                 <CodeBlock
+                    key={blockId}
+                    blockId={blockId}
                     language={language}
                     content={content}
                     diagramRenderer={diagramRenderer}
                     isVisualStudio={isVisualStudio}
-                    blockId={blockId}
-                    isRawView={isRawView}
-                    isCollapsed={isCollapsed}
                     mermaidKey={mermaidKey}
-                    onToggleRaw={handleToggleRaw}
-                    onToggleCollapse={handleToggleCollapse}
                     launchHtml={launchHtml}
                     variant={variant}
                     fullMarkdown={markdownContent}
@@ -365,7 +342,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         tr: ({ children }: any) => <tr>{children}</tr>,
         th: ({ children }: any) => <th className="px-4 py-2 text-left font-medium">{children}</th>,
         td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,
-    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio, variant]); // <-- Restored isCodeCollapsed
+    }), [mermaidKey, isVisualStudio, variant, messageId]); // Removed state dependencies
 
     // Track completed segments separately for better memoization
     const completedSegmentsOnly = useMemo(() => {

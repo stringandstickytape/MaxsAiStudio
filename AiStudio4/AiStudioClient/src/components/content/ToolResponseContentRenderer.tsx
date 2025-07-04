@@ -7,7 +7,7 @@ import { RefreshCw } from 'lucide-react';
 import { useApiCallState, createApiRequest } from '@/utils/apiUtils';
 import { useModalStore } from '@/stores/useModalStore';
 
-export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = ({ block }) => {
+export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = ({ block, messageId }) => {
   const showDevContentView = useDebugStore((state) => state.showDevContentView);
   const { isLoading, executeApiCall } = useApiCallState();
   const { openModal } = useModalStore();
@@ -62,6 +62,6 @@ export const ToolResponseContentRenderer: React.FC<ContentBlockRendererProps> = 
   }
 
   return (
-      <MarkdownPane message={formattedContent} />
+      <MarkdownPane message={formattedContent} messageId={messageId} />
   );
 };

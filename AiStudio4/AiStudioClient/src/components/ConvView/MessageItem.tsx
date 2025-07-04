@@ -261,7 +261,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
 
       // get a text renderer, which renders a markdown pane
       const Renderer = contentBlockRendererRegistry.get('text'); // Stream is always text
-      return <Renderer block={{ content: streamedContent, contentType: 'text' }} />;
+      return <Renderer block={{ content: streamedContent, contentType: 'text' }} messageId={message.id} />;
     }
 
     // Render all stored content blocks for the message
@@ -316,7 +316,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
             }
           }}
         >
-          <Renderer block={block} />
+          <Renderer block={block} messageId={message.id} />
         </div>
       );
     });
