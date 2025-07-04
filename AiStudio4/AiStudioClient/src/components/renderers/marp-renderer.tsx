@@ -22,8 +22,8 @@ export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatte
     return new Marp({
       html: true,
       emoji: { 
-        shortcode: 'twemoji', 
-        unicode: 'twemoji' 
+        shortcode: false, 
+        unicode: false 
       },
       math: 'mathjax',
       script: { source: 'cdn' },
