@@ -50,3 +50,13 @@
     *   **"Project path not set or does not exist" Error:** The active project path is invalid. Go to `Project > Manage Projects...`, select a valid project, and click "Set Active". Or, edit the project to correct its path.
     *   **Project Switch Fails:** If selecting a System Prompt doesn't switch the active project, ensure the prompt is correctly associated with a project in the System Prompt editor. Verify the project exists in the `Project > Manage Projects...` dialog.
     *   **Cannot Add/Edit Project:** Ensure you have write permissions to the `%APPDATA%/AiStudio4/Config/` directory where `projects.json` is stored.
+
+*   **Llama.cpp Issues:**
+    *   **Server Fails to Start:**
+        *   Ensure the `ModelPath` in your model's `Additional Parameters` is a valid, absolute path to a `.gguf` file.
+        *   Check the `debug.log` for error messages from the `llama-server` process.
+        *   Your hardware may not be compatible with the default settings (e.g., FlashAttention). Try setting `"FlashAttention": false` in the model's JSON configuration.
+    *   **Model Not Found:**
+        *   Double-check the `ModelPath` for typos and ensure the file exists.
+        *   Remember to escape backslashes in the JSON path (e.g., `C:\\path\\to\\model.gguf`).
+

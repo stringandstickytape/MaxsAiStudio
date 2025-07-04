@@ -21,7 +21,8 @@ If the AI is taking a long time processing a tool or you realize you need to pro
 2.  Press `Ctrl+Enter` (or `Cmd+Enter` on Mac) or click the "Interject" button (💬➕ icon).
 3.  Your interjection will be incorporated by the AI in its next processing step. This allows you to correct the AI or provide more context without fully interrupting its flow.
 
-### 4.1.4 Rich Content (Markdown, Diagrams, Tables)
+### 4.1.5 Viewing Message Metadata
+Each AI message includes metadata such as the model used, response time, and token cost. This information is displayed below each message and can be useful for understanding the performance and cost of different models.
 AiStudio4 renders AI responses that include:
 *   **Markdown:** For formatted text, lists, etc.
 *   **Code Blocks:** With syntax highlighting for various languages.
@@ -61,6 +62,7 @@ System prompts guide the AI's behavior for an entire conversation.
     *   **Description:** Optional explanation.
     *   **Tags:** Keywords for organization.
     *   **Set as Default:** If checked, this prompt will be used for new conversations.
+    *   **Include Git Diff:** If checked, the current `git diff HEAD` output from your project will be automatically attached as a file when this prompt is applied.
     *   **Include Git Diff:** If checked, the current `git diff HEAD` output from your project will be automatically attached as a file when this prompt is applied.
     *   **Associated Tools:** Select tools from your library that should be automatically activated when this prompt is used.
     *   **Associated User Prompt:** Select a User Prompt to be automatically inserted into the input bar when this System Prompt is applied.

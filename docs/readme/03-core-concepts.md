@@ -22,7 +22,7 @@ AiStudio4 supports managing multiple projects. The **Active Project Path** is th
 *   The active project can be switched quickly via the `Project > Manage Projects...` menu or automatically by selecting a System Prompt that is associated with a specific project.
 
 ## 3.3 AI Models & Providers
-*   **Service Providers:** These are the AI services you connect to (e.g., OpenAI, Anthropic). You configure them with API keys and URLs.  Presets are provided for Anthropic, OpenAI, Google and OpenRouter - you will need to fill out the relevant API keys.
+*   **Service Providers:** These are the AI services you connect to (e.g., OpenAI, Anthropic, Llama.cpp). You configure them with API keys and URLs.  Presets are provided for Anthropic, OpenAI, Google and OpenRouter - you will need to fill out the relevant API keys.
 *   **AI Models:** These are specific models offered by providers (e.g., `gpt-4-turbo`, `claude-3-opus-20240229`). You add them to AiStudio4 and associate them with a configured provider. This allows you to manage multiple models from different providers in one place.
 
 ## 3.4 Tools: How They Work

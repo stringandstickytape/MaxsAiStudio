@@ -25,6 +25,10 @@ AI Studio 4 is comprised of a .NET backend (which also acts as the host applicat
     5.  Build and run the `AiStudio4` project. The first build might take longer as it also builds the frontend client.
         *   During the build process (specifically via the `NpmBuild` target in `AiStudio4.csproj`), the frontend application located in `AiStudioClient/dist` is copied to the backend's output directory (e.g., `AiStudio4/bin/Debug/net9.0-windows/wwwroot`).
 
+**3. Running with a Testing Profile:**
+    *   To run the application with a separate, clean data profile for testing, you can use the `--testing-profile` command-line argument. This will store all application data in `%APPDATA%\AiStudio4_Test` and will clear this directory on each startup.
+    *   You can configure this in Visual Studio under the project's Debug Properties.
+
 **2. Frontend Development (Optional, for modifying the UI - `AiStudio4/AiStudioClient` directory):**
     1.  Open a terminal in the `AiStudio4/AiStudioClient` directory.
     2.  **Install Dependencies:**
@@ -35,6 +39,11 @@ AI Studio 4 is comprised of a .NET backend (which also acts as the host applicat
     4.  **Build Frontend for Production:**
         *   `pnpm run build`
         *   This command compiles the React/TypeScript application and outputs the static assets to the `AiStudio4/AiStudioClient/dist` folder. These are the files that the C# application serves when no debugger is attached.
+
+**5. Running End-to-End Tests:**
+    *   The project includes a suite of end-to-end tests using Cypress.
+    *   To run the tests in headless mode (e.g., for CI): `pnpm cypress run`
+    *   To open the interactive Cypress test runner: `pnpm cypress open`
 
 ## 2.3 Initial Setup
 
@@ -75,6 +84,31 @@ To use AI models, you need to configure their service providers (e.g., OpenAI, A
 
 ### 2.3.3 Adding AI Models
 Once providers are configured, add specific AI models you want to use.
+
+#### 2.3.3.1 Configuring Llama.cpp Models
+For local models using Llama.cpp, you must select the `LlamaCpp` service provider when adding a model. The `Additional Parameters (JSON)` field must be used to provide the necessary configuration:
+
+```json
+{
+  "ModelPath": "C:\\path\\to\\your\\model.gguf",
+  "ContextSize": 4096,
+  "GpuLayerCount": -1,
+  "Threads": -1,
+  "BatchSize": 2048,
+  "FlashAttention": true,
+  "AdditionalArgs": ""
+}
+```
+- **ModelPath**: The absolute path to your `.gguf` model file. Note that backslashes in the JSON must be escaped (e.g., `C:\\path`).
+- **ContextSize**: The context size for the model.
+- **GpuLayerCount**: Number of layers to offload to the GPU. `-1` will attempt to auto-detect.
+- **Threads**: Number of threads to use. `-1` will attempt to auto-detect.
+- **BatchSize**: The batch size for processing.
+- **FlashAttention**: Enable flash attention if your hardware supports it.
+- **AdditionalArgs**: Any other command-line arguments to pass to the `llama-server` process.
+
+When you first use a Llama.cpp model, AiStudio4 will automatically download the appropriate `llama-server` binary to your `%APPDATA%\AiStudio4\llama-cpp` directory if it's not already present.
+
 1.  In the settings modal, navigate to the "Models" tab.
 2.  Click "Add Model".
 3.  Fill in the details:

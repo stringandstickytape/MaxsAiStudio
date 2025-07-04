@@ -7,6 +7,7 @@ AiStudio4 supports:
 *   **OpenAI:** Models like GPT-3.5, GPT-4, etc. Requires OpenAI API key. (Uses `NetOpenAi` service type).
 *   **Anthropic Claude:** Models like Claude 3 Opus, Sonnet, Haiku. Requires Anthropic API key. (Uses `Claude` service type).
 *   **Google Gemini:** Models like Gemini Pro. Requires Google AI Studio API key. (Uses `Gemini` service type).
+*   **Llama.cpp:** Local GGUF models run via a managed `llama-server` process. (Uses `LlamaCpp` service type).
 *   **Ollama:** Any model hosted by a local Ollama instance that exposes an OpenAI-compatible API. Configure as an OpenAI provider, pointing the URL to your Ollama instance (e.g., `http://localhost:11434/v1`). (Uses `NetOpenAi` service type).
 *   **Model Context Protocol (MCP):** Connect to any AI service or tool provider that adheres to the MCP standard.
 
@@ -42,7 +43,8 @@ When adding or editing a model, you can configure:
 ### 5.1.5 Temperature Control
 You can easily adjust the AI's creativity/randomness via a slider in the Input Bar. This setting directly influences the 'temperature' parameter sent with requests to the AI model.
 
-### 5.1.6 Top P (Nucleus Sampling) Control
+### 5.1.7 Malformed Tool Call Handling
+To improve reliability, AiStudio4 includes a feature to automatically detect and parse malformed tool calls that AI models sometimes produce as plain text instead of structured JSON. This allows the application to correctly execute tool calls even when the AI's output is not perfectly formatted.
 AiStudio4 provides a "Top P" slider in the Input Bar, allowing fine-grained control over the AI's token selection process during generation. This setting adjusts the "Top P" or "Nucleus Sampling" parameter sent to compatible AI models.
 
 *   **What is Top P?** Top P, also known as nucleus sampling, is a technique used in language models to control the randomness and diversity of generated text. Instead of considering all possible next words, the model considers only the smallest set of words whose cumulative probability exceeds a certain threshold (the "P" value).
@@ -70,6 +72,7 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [InfoRequestTool](tools/info-request-tool.md)
 *   [LaunchUrlTool](tools/launch-url-tool.md)
 *   [ModifyFilesTool](tools/modify-files-tool.md)
+*   [ModifyFileUsingMorph](tools/modify-file-using-morph.md)
 *   [ReadFilesTool](tools/read-files-tool.md)
 *   [ReadPartialFilesTool](tools/read-partial-files-tool.md)
 *   [ReadDatabaseSchemaTool](tools/read-database-schema-tool.md)
@@ -85,9 +88,13 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [PresentResultsAndAwaitUserInputTool](tools/present-results-and-await-user-input-tool.md)
 
 #### Azure DevOps Tools
+*   [AzureDevOpsCreateOrUpdateWikiPageTool](tools/azure-dev-ops-create-or-update-wiki-page-tool.md) (Now with git-diff confirmation)
 *   [AzureDevOpsGetCommitDiffsTool](tools/azure-dev-ops-get-commit-diffs-tool.md)
 *   [AzureDevOpsGetCommitsTool](tools/azure-dev-ops-get-commits-tool.md)
 *   [AzureDevOpsGetItemContentTool](tools/azure-dev-ops-get-item-content-tool.md)
+*   [AzureDevOpsGetPipelineDefinitionsTool](tools/azure-dev-ops-get-pipeline-definitions-tool.md)
+*   [AzureDevOpsGetPipelineResourcesTool](tools/azure-dev-ops-get-pipeline-resources-tool.md)
+*   [AzureDevOpsGetPipelineRunsTool](tools/azure-dev-ops-get-pipeline-runs-tool.md)
 *   [AzureDevOpsGetPullRequestByIdTool](tools/azure-dev-ops-get-pull-request-by-id-tool.md)
 *   [AzureDevOpsGetPullRequestChangesTool](tools/azure-dev-ops-get-pull-request-changes-tool.md)
 *   [AzureDevOpsGetPullRequestIterationsTool](tools/azure-dev-ops-get-pull-request-iterations-tool.md)
@@ -96,6 +103,7 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [AzureDevOpsGetRepositoriesTool](tools/azure-dev-ops-get-repositories-tool.md)
 *   [AzureDevOpsGetWikiPageContentTool](tools/azure-dev-ops-get-wiki-page-content-tool.md)
 *   [AzureDevOpsGetWikiPagesTool](tools/azure-dev-ops-get-wiki-pages-tool.md)
+*   [AzureDevOpsSearchWikiTool](tools/azure-dev-ops-search-wiki-tool.md)
 *   [AzureDevOpsGetWorkItemCommentsTool](tools/azure-dev-ops-get-work-item-comments-tool.md)
 *   [AzureDevOpsGetWorkItemsTool](tools/azure-dev-ops-get-work-items-tool.md)
 *   [AzureDevOpsGetWorkItemUpdatesTool](tools/azure-dev-ops-get-work-item-updates-tool.md)
