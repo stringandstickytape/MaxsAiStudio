@@ -32,13 +32,20 @@ const MarkdownMarpComponent: React.FC<MarkdownMarpComponentProps> = ({ content, 
           },
           math: 'mathjax',
           script: { source: 'cdn' },
-          minifyCSS: true,
-          allowLocalFiles: true
+          minifyCSS: false, // Don't minify CSS to preserve custom styles
+          allowLocalFiles: true,
+          inlineSVG: true
         });
         
 
         try {
-          const { html, css } = marp.render(parsed.content);
+          // Pass the FULL content including frontmatter to Marp, not just parsed.content
+          const { html, css } = marp.render(content);
+          
+          // Debug: Log the generated CSS to see if custom styles are included
+          console.log('Generated Marp CSS:', css);
+          console.log('Generated HTML:', html);
+          
           
           // Count slides
           const slideCount = (html.match(/<section/g) || []).length;
@@ -53,16 +60,9 @@ const MarkdownMarpComponent: React.FC<MarkdownMarpComponentProps> = ({ content, 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Marp Presentation</title>
   <style>
-    /* Reset styles */
-    * {
+    body {
       margin: 0;
       padding: 0;
-      box-sizing: border-box;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      line-height: 1.4;
       background: transparent;
       overflow: hidden;
       width: 100vw;
@@ -71,9 +71,6 @@ const MarkdownMarpComponent: React.FC<MarkdownMarpComponentProps> = ({ content, 
       align-items: center;
       justify-content: center;
     }
-    
-    /* Marp styles */
-    ${css}
     
     /* Simple container - let content size naturally */
     .marp-wrapper {
@@ -91,14 +88,17 @@ const MarkdownMarpComponent: React.FC<MarkdownMarpComponentProps> = ({ content, 
     }
     
     /* Hide all slides by default */
-    section {
+    .marp-content section:not(.active) {
       display: none;
     }
     
     /* Show only active slide */
-    section.active {
+    .marp-content section.active {
       display: block;
     }
+    
+    /* Marp styles come last to take precedence */
+    ${css}
   </style>
 </head>
 <body>
