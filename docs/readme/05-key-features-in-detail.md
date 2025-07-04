@@ -223,8 +223,30 @@ In the Input Bar:
 ### 5.3.5 Appearance Settings
 *   Command Bar (`Ctrl+K`) > "Appearance Settings".
 *   **Font Size:** Adjust the global font size for the application.
+*   **Chat Width:** Control the maximum width of the chat area with options including:
+    *   **Full Width:** Chat extends to full container width
+    *   **Wide:** Generous width for comfortable reading
+    *   **Medium:** Balanced width for most use cases
+    *   **Narrow:** Compact width for focused conversations
 *   **Dark Mode:** (Default) AiStudio4 primarily uses a dark theme aesthetic. Theming allows full customization.
 *   **Panel Size Persistence:** Panel sizes are automatically saved and restored between sessions with debounced saving to prevent performance issues.
+
+### 5.3.6 Marp Presentations (Early Preview)
+AiStudio4 includes initial support for Marp (Markdown Presentation Ecosystem), enabling interactive presentations directly within the chat interface.
+
+*   **Automatic Detection:** Presentations are automatically detected when markdown content includes `marp: true` in the YAML frontmatter
+*   **Basic Navigation:**
+    *   Previous/Next slide navigation with buttons and keyboard shortcuts (arrow keys, Space, Enter, Escape)
+    *   Slide counter showing current position (e.g., "5/12")
+    *   Direct "Go to slide" input for jumping to specific slides
+*   **Presentation Features:**
+    *   **Standard View:** Normal presentation display with navigation controls
+    *   **Presenter Mode:** Dual-pane view showing current slide, next slide preview, and speaker notes
+    *   **Slide Thumbnails:** Collapsible sidebar with slide previews and click-to-navigate functionality
+*   **Speaker Notes:** Support for speaker notes using HTML comments (`<!-- notes here -->`) visible in presenter mode
+*   **Timer/Stopwatch:** Built-in timing features for presentation delivery
+
+**Note:** Marp integration is currently in early development. Advanced features like theme switching, export capabilities, touch gestures, and full theme integration are planned for future releases.
 
 ## 5.4 Project Integration
 AiStudio4's project integration allows it to act as a true coding assistant with deep context of your local development environment.

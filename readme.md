@@ -45,6 +45,7 @@ This user guide is organized into the following sections:
 - **Multi-Project Management:** Define and switch between different development projects.
 - **Deep Project Integration** with context-aware AI assistance linked to the active project.
 - **Advanced Conversation Management** with branched history and tree visualization
+- **Marp Presentation Support** for creating and viewing interactive markdown-based presentations directly in the chat interface
 - **Extensible & Customizable** with custom tools and AI-powered theming
 - **Real-time Interaction** with streaming responses and tool interjection
 - **Modern Desktop Experience** built with .NET 9 and React
