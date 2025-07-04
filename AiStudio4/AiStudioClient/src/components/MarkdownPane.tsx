@@ -6,6 +6,8 @@ import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRender
 import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './MarkdownPane/CodeBlock';
 import { cn } from '@/lib/utils';
+import matter from 'gray-matter';
+import { MarpRenderer } from './renderers/marp-renderer';
 
 // Themeable properties for MarkdownPane code headers
 export const themeableProps = {
@@ -57,6 +59,54 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     const [completedSegments, setCompletedSegments] = useState<Array<{ content: string; type: 'completed' | 'incomplete' }>>([]);
     const lastProcessedLength = useRef<number>(0);
     
+    // Parse frontmatter to check for Marp
+    const parsedContent = useMemo(() => {
+        try {
+            // First check if the message itself has Marp frontmatter
+            const parsed = matter(message);
+            let isMarp = parsed.data?.marp === true;
+            let marpContent = parsed.content;
+            let marpData = parsed.data;
+            
+            // If not Marp at top level, check for markdown code blocks that might contain Marp
+            if (!isMarp) {
+                const markdownCodeBlockRegex = /```markdown\n([\s\S]*?)\n```/g;
+                let match;
+                
+                while ((match = markdownCodeBlockRegex.exec(message)) !== null) {
+                    const codeBlockContent = match[1];
+                    try {
+                        const codeBlockParsed = matter(codeBlockContent);
+                        if (codeBlockParsed.data?.marp === true) {
+                            console.log('MarkdownPane: Found Marp content in markdown code block');
+                            isMarp = true;
+                            marpContent = codeBlockParsed.content;
+                            marpData = codeBlockParsed.data;
+                            break; // Use the first Marp code block found
+                        }
+                    } catch (e) {
+                        // Skip this code block if it can't be parsed
+                        continue;
+                    }
+                }
+            }
+            
+            return {
+                content: isMarp ? marpContent : parsed.content,
+                data: marpData,
+                isMarp
+            };
+        } catch (error) {
+            // If parsing fails, treat as regular markdown
+            console.log('MarkdownPane: Frontmatter parsing failed', error);
+            return {
+                content: message,
+                data: {},
+                isMarp: false
+            };
+        }
+    }, [message]);
+    
     // Parse the markdown into segments (completed code blocks and other content)
     const parseMarkdownSegments = useCallback((markdown: string) => {
         const segments: Array<{ content: string; type: 'completed' | 'incomplete' }> = [];
@@ -95,23 +145,24 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     }, []);
 
     useEffect(() => {
-        if (message !== markdownContent) {
+        const contentToProcess = parsedContent.content;
+        if (contentToProcess !== markdownContent) {
             // Only process if content has actually grown (streaming case)
-            if (message.length > lastProcessedLength.current && message.startsWith(markdownContent)) {
+            if (contentToProcess.length > lastProcessedLength.current && contentToProcess.startsWith(markdownContent)) {
                 // This is a streaming update - only update the segments
-                const newSegments = parseMarkdownSegments(message);
+                const newSegments = parseMarkdownSegments(contentToProcess);
                 setCompletedSegments(newSegments);
-                lastProcessedLength.current = message.length;
+                lastProcessedLength.current = contentToProcess.length;
             } else {
                 // This is a completely new message - reset everything
-                const newSegments = parseMarkdownSegments(message);
+                const newSegments = parseMarkdownSegments(contentToProcess);
                 setCompletedSegments(newSegments);
-                lastProcessedLength.current = message.length;
+                lastProcessedLength.current = contentToProcess.length;
                 setMermaidKey((prev) => prev + 1);
             }
-            setMarkdownContent(message);
+            setMarkdownContent(contentToProcess);
         }
-    }, [message, markdownContent, parseMarkdownSegments]);
+    }, [parsedContent.content, markdownContent, parseMarkdownSegments]);
 
     useEffect(() => {
         const isVS = localStorage.getItem('isVisualStudio') === 'true';
@@ -291,6 +342,19 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     // Current incomplete segment that should re-render
     const incompleteSegment = completedSegments.find(segment => segment.type === 'incomplete');
 
+    // If this is a Marp presentation, render with MarpRenderer
+    if (parsedContent.isMarp) {
+        return (
+            <div className="marp-presentation-container">
+                <MarpRenderer
+                    markdown={parsedContent.content}
+                    frontmatter={parsedContent.data}
+                />
+            </div>
+        );
+    }
+
+    // Otherwise, render as regular markdown
     return (
         <div className={cn(
             "text-sm",

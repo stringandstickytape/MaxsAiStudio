@@ -15,10 +15,17 @@ export default defineConfig({
     server: {
         hmr: false
     },
+  define: {
+    global: 'globalThis',
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      buffer: 'buffer',
     },
+  },
+  optimizeDeps: {
+    include: ['buffer']
   },
   build: {
     sourcemap: true,
