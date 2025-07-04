@@ -79,42 +79,114 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         }
     }, [message]);
     
+    // Helper function to find the next code block start with backtick count
+    const findNextCodeBlockStart = useCallback((markdown: string, startIndex: number) => {
+        let index = startIndex;
+        
+        while (index < markdown.length) {
+            const backtickMatch = markdown.slice(index).match(/^```+/m);
+            if (!backtickMatch) {
+                return { index: -1, backtickCount: 0 };
+            }
+            
+            const matchIndex = index + markdown.slice(index).indexOf(backtickMatch[0]);
+            
+            // Check if this is at the start of a line
+            if (matchIndex === 0 || markdown[matchIndex - 1] === '\n') {
+                return { 
+                    index: matchIndex, 
+                    backtickCount: backtickMatch[0].length 
+                };
+            }
+            
+            index = matchIndex + 1;
+        }
+        
+        return { index: -1, backtickCount: 0 };
+    }, []);
+    
+    // Helper function to find the matching closing fence
+    const findMatchingCodeBlockEnd = useCallback((markdown: string, startIndex: number, backtickCount: number) => {
+        const openingFence = markdown.slice(startIndex);
+        const firstNewlineIndex = openingFence.indexOf('\n');
+        
+        if (firstNewlineIndex === -1) {
+            return -1; // No content after opening fence
+        }
+        
+        let searchIndex = startIndex + firstNewlineIndex + 1;
+        
+        while (searchIndex < markdown.length) {
+            const remainingContent = markdown.slice(searchIndex);
+            const lineStart = remainingContent.match(/^```+/m);
+            
+            if (!lineStart) {
+                return -1; // No closing fence found
+            }
+            
+            const lineStartIndex = searchIndex + remainingContent.indexOf(lineStart[0]);
+            
+            // Check if this is at the start of a line and has enough backticks
+            if ((lineStartIndex === 0 || markdown[lineStartIndex - 1] === '\n') && 
+                lineStart[0].length >= backtickCount) {
+                
+                // Find the end of this line
+                const lineEndIndex = markdown.indexOf('\n', lineStartIndex);
+                return lineEndIndex === -1 ? markdown.length : lineEndIndex + 1;
+            }
+            
+            searchIndex = lineStartIndex + 1;
+        }
+        
+        return -1; // No matching closing fence found
+    }, []);
+    
     // Parse the markdown into segments (completed code blocks and other content)
     const parseMarkdownSegments = useCallback((markdown: string) => {
         const segments: Array<{ content: string; type: 'completed' | 'incomplete' }> = [];
-        const codeBlockRegex = /```[\s\S]*?```/g;
-        let lastIndex = 0;
-        let match;
+        let currentIndex = 0;
         
-        while ((match = codeBlockRegex.exec(markdown)) !== null) {
+        while (currentIndex < markdown.length) {
+            // Find the next code block start
+            const codeBlockStart = findNextCodeBlockStart(markdown, currentIndex);
+            
+            if (codeBlockStart.index === -1) {
+                // No more code blocks, add remaining content
+                const remainingContent = markdown.slice(currentIndex);
+                if (remainingContent.trim()) {
+                    segments.push({ content: remainingContent, type: 'completed' });
+                }
+                break;
+            }
+            
             // Add content before the code block
-            if (match.index > lastIndex) {
-                const beforeContent = markdown.slice(lastIndex, match.index);
+            if (codeBlockStart.index > currentIndex) {
+                const beforeContent = markdown.slice(currentIndex, codeBlockStart.index);
                 if (beforeContent.trim()) {
                     segments.push({ content: beforeContent, type: 'completed' });
                 }
             }
             
-            // Add the completed code block
-            segments.push({ content: match[0], type: 'completed' });
-            lastIndex = match.index + match[0].length;
-        }
-        
-        // Add remaining content (might be incomplete)
-        if (lastIndex < markdown.length) {
-            const remainingContent = markdown.slice(lastIndex);
-            if (remainingContent.trim()) {
-                // Check if there's an incomplete code block at the end
-                const hasIncompleteCodeBlock = /```[^`]*$/.test(remainingContent);
-                segments.push({ 
-                    content: remainingContent, 
-                    type: hasIncompleteCodeBlock ? 'incomplete' : 'completed' 
-                });
+            // Find the matching closing fence
+            const codeBlockEnd = findMatchingCodeBlockEnd(markdown, codeBlockStart.index, codeBlockStart.backtickCount);
+            
+            if (codeBlockEnd === -1) {
+                // Incomplete code block at the end
+                const incompleteContent = markdown.slice(codeBlockStart.index);
+                if (incompleteContent.trim()) {
+                    segments.push({ content: incompleteContent, type: 'incomplete' });
+                }
+                break;
             }
+            
+            // Add the completed code block
+            const codeBlockContent = markdown.slice(codeBlockStart.index, codeBlockEnd);
+            segments.push({ content: codeBlockContent, type: 'completed' });
+            currentIndex = codeBlockEnd;
         }
         
         return segments;
-    }, []);
+    }, [findNextCodeBlockStart, findMatchingCodeBlockEnd]);
 
     useEffect(() => {
         const contentToProcess = parsedContent.content;
