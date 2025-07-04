@@ -87,13 +87,13 @@ const MarkdownMarpComponent: React.FC<MarkdownMarpComponentProps> = ({ content, 
       margin: 0;
     }
     
-    /* Hide all slides by default */
-    .marp-content section:not(.active) {
+    /* Hide all SVG slides by default */
+    .marpit svg {
       display: none;
     }
     
-    /* Show only active slide */
-    .marp-content section.active {
+    /* Show only active SVG slide */
+    .marpit svg.active {
       display: block;
     }
     
@@ -109,7 +109,7 @@ const MarkdownMarpComponent: React.FC<MarkdownMarpComponentProps> = ({ content, 
   </div>
   <script>
     let currentSlide = 0;
-    const slides = document.querySelectorAll('section');
+    const slides = document.querySelectorAll('.marpit svg');
     
     function showSlide(index) {
       slides.forEach((slide, i) => {
