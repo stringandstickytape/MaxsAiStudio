@@ -31,7 +31,7 @@ export const useCodeBlockStore = create<CodeBlockState>((set, get) => ({
     set((state) => ({
       collapsedBlocks: {
         ...state.collapsedBlocks,
-        [blockId]: !(state.collapsedBlocks[blockId] ?? true) // default to collapsed
+        [blockId]: !(state.collapsedBlocks[blockId] ?? false) // default to expanded
       }
     }));
   },
@@ -79,7 +79,7 @@ export const useCodeBlockStore = create<CodeBlockState>((set, get) => ({
   
   // Getters
   isCollapsed: (blockId: string) => {
-    return get().collapsedBlocks[blockId] ?? true; // default to collapsed
+    return get().collapsedBlocks[blockId] ?? false; // default to expanded
   },
   
   isRawView: (blockId: string) => {

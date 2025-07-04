@@ -217,10 +217,14 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         setIsVisualStudio(isVS);
     }, []);
 
-    // Clear code block states when message ID changes
+    // Track the previous messageId to only clear when it actually changes
+    const prevMessageIdRef = useRef<string | undefined>();
+    
     useEffect(() => {
-        if (messageId) {
+        if (messageId && messageId !== prevMessageIdRef.current) {
+            // Only clear if this is a different message, not just a re-render
             clearBlockStates();
+            prevMessageIdRef.current = messageId;
         }
     }, [messageId, clearBlockStates]);
 
@@ -280,7 +284,13 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         }
     };
 
-    let codeBlockIndex = 0;
+    // Use ref to maintain code block index across renders for stable IDs
+    const codeBlockIndexRef = useRef(0);
+    
+    // Reset index when content changes (new message or content update)
+    useEffect(() => {
+        codeBlockIndexRef.current = 0;
+    }, [markdownContent]);
 
     const components = useMemo(() => ({
         code({ className, children, ...props }: any) {
@@ -299,7 +309,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             const diagramRenderer = codeBlockRendererRegistry.get(language);
             
             // Create stable blockId that includes message ID and index
-            const blockId = `${messageId || 'unknown'}-code-block-${codeBlockIndex++}`;
+            const blockId = `${messageId || 'unknown'}-code-block-${codeBlockIndexRef.current++}`;
             return (
                 <CodeBlock
                     key={blockId}
