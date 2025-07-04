@@ -11,11 +11,6 @@ interface MarpRendererProps {
 }
 
 export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatter }) => {
-  console.log('MarpRenderer: Component initialized', {
-    markdown: markdown.slice(0, 200),
-    frontmatter
-  });
-  
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showThumbnails, setShowThumbnails] = useState(false);
   const [presenterMode, setPresenterMode] = useState(false);
@@ -37,43 +32,6 @@ export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatte
     });
   }, []);
 
-  // Parse the markdown and generate HTML/CSS
-  const { html, css, slides } = useMemo(() => {
-    try {
-      console.log('MarpRenderer: Rendering markdown with Marp', {
-        markdownLength: markdown.length,
-        markdownStart: markdown.slice(0, 100)
-      });
-      
-      const { html, css } = marp.render(markdown);
-      
-      console.log('MarpRenderer: Marp render complete', {
-        htmlLength: html.length,
-        cssLength: css.length
-      });
-      
-      // Parse slides from the HTML
-      const tempDiv = document.createElement('div');
-      tempDiv.innerHTML = html;
-      const slideElements = tempDiv.querySelectorAll('section');
-      const slides = Array.from(slideElements).map((slide, index) => ({
-        content: slide.outerHTML,
-        notes: extractSpeakerNotes(slide),
-        index
-      }));
-      
-      console.log('MarpRenderer: Parsed slides', {
-        slideCount: slides.length,
-        slideElements: slideElements.length
-      });
-      
-      return { html, css, slides };
-    } catch (error) {
-      console.error('Error rendering Marp presentation:', error);
-      return { html: '', css: '', slides: [] };
-    }
-  }, [markdown, marp]);
-
   // Extract speaker notes from slide
   const extractSpeakerNotes = (slideElement: Element): string => {
     // Look for comments in the slide that represent speaker notes
@@ -85,6 +43,28 @@ export const MarpRenderer: React.FC<MarpRendererProps> = ({ markdown, frontmatte
     }
     return '';
   };
+
+  // Parse the markdown and generate HTML/CSS
+  const { html, css, slides } = useMemo(() => {
+    try {
+      const { html, css } = marp.render(markdown);
+      
+      // Parse slides from the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = html;
+      const slideElements = tempDiv.querySelectorAll('section');
+      const slides = Array.from(slideElements).map((slide, index) => ({
+        content: slide.outerHTML,
+        notes: extractSpeakerNotes(slide),
+        index
+      }));
+      
+      return { html, css, slides };
+    } catch (error) {
+      console.error('Error rendering Marp presentation:', error);
+      return { html: '', css: '', slides: [] };
+    }
+  }, [markdown, marp]);
 
   // Handle keyboard navigation
   useEffect(() => {

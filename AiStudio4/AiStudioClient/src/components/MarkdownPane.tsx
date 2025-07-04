@@ -62,43 +62,15 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     // Parse frontmatter to check for Marp
     const parsedContent = useMemo(() => {
         try {
-            // First check if the message itself has Marp frontmatter
             const parsed = matter(message);
-            let isMarp = parsed.data?.marp === true;
-            let marpContent = parsed.content;
-            let marpData = parsed.data;
-            
-            // If not Marp at top level, check for markdown code blocks that might contain Marp
-            if (!isMarp) {
-                const markdownCodeBlockRegex = /```markdown\n([\s\S]*?)\n```/g;
-                let match;
-                
-                while ((match = markdownCodeBlockRegex.exec(message)) !== null) {
-                    const codeBlockContent = match[1];
-                    try {
-                        const codeBlockParsed = matter(codeBlockContent);
-                        if (codeBlockParsed.data?.marp === true) {
-                            console.log('MarkdownPane: Found Marp content in markdown code block');
-                            isMarp = true;
-                            marpContent = codeBlockParsed.content;
-                            marpData = codeBlockParsed.data;
-                            break; // Use the first Marp code block found
-                        }
-                    } catch (e) {
-                        // Skip this code block if it can't be parsed
-                        continue;
-                    }
-                }
-            }
-            
+            const isMarp = parsed.data?.marp === true;
             return {
-                content: isMarp ? marpContent : parsed.content,
-                data: marpData,
+                content: parsed.content,
+                data: parsed.data,
                 isMarp
             };
         } catch (error) {
             // If parsing fails, treat as regular markdown
-            console.log('MarkdownPane: Frontmatter parsing failed', error);
             return {
                 content: message,
                 data: {},
