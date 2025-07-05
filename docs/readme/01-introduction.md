@@ -9,9 +9,10 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
 *   **AI Enthusiasts:** Looking for a platform to experiment with different models, prompt engineering, and custom AI tool development.
 
 ## 1.3 Highlights
-*   **Unified AI Chat:** Seamlessly chat with OpenAI, Anthropic Claude, Google Gemini models, and custom Model Context Protocol (MCP) servers from one interface. Supports Ollama through OpenAI API compatibility.
-*   **Powerful Tool Ecosystem:** Leverage built-in tools for file operations (read, write, search, diff), web tasks (DuckDuckGo, YouTube, URL scraping), developer integrations (Git, GitHub, Azure DevOps, Sentry, Vite), and more. Allows AI to iterate over your code, edit it, and even launch it.
+*   **Unified AI Chat:** Seamlessly chat with OpenAI, Anthropic Claude, Google Gemini models, local Llama.cpp instances, and custom Model Context Protocol (MCP) servers from one interface. Supports Ollama through OpenAI API compatibility.
+*   **Powerful Tool Ecosystem:** Leverage built-in tools for file operations (read, write, search, diff, modify using morph), web tasks (DuckDuckGo, YouTube, URL scraping), developer integrations (Git, GitHub, Azure DevOps with new pipeline and wiki search tools, Sentry, Vite), and more. Allows AI to iterate over your code, edit it, and even launch it.
 *   **Extensible & Customizable AI:** Define new tools with JSON schemas or connect to external MCP-compliant tool servers.
+*   **Enhanced Reliability:** Automatically detects and handles malformed tool calls from AI models, improving robustness.
 *   **Deep Project Integration:** Define multiple projects and switch between them. The active project provides context for AI tasks, file operations, and more.
 *   **Google AI Studio Integration:** Import existing conversations from your Google AI Studio projects via Google Drive
 *   **Advanced Conversation Management:** Navigate complex discussions with branched conversation history, powerful search, and an interactive tree view.

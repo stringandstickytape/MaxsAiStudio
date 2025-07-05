@@ -24,7 +24,7 @@ namespace AiStudio4.Services
         {
             _logger = logger;
             _builtinToolService = builtinToolService; // Inject BuiltinToolService
-            _toolsDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "Tools");
+            _toolsDirectory = PathHelper.GetProfileSubPath("Tools");
 
             Directory.CreateDirectory(_toolsDirectory);
 

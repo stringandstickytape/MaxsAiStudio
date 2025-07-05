@@ -24,7 +24,7 @@ namespace AiStudio4.InjectedDependencies
             ConvId = string.IsNullOrWhiteSpace(convId) ? throw new ArgumentNullException(nameof(convId)) : convId;
         }        public void Save()
         {
-            string path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "convs", $"{ConvId}.json");
+            string path = PathHelper.GetProfileSubPath("convs", $"{ConvId}.json");
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             File.WriteAllText(path, JsonConvert.SerializeObject(this));
         }
@@ -49,6 +49,9 @@ namespace AiStudio4.InjectedDependencies
 
             // Persist the full structured blocks
             msg.ContentBlocks = contentBlocks ?? new List<ContentBlock>();
+
+            Save();
+
             return msg;
         }
 

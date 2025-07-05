@@ -412,7 +412,7 @@ export function CommandBar({ isOpen, setIsOpen }: CommandBarProps) {
                                   color: 'var(--global-text-color, #888)'
                                 }}
                                 className={cn(
-                                  'p-0.5 rounded hover:bg-gray-600/50 cursor-pointer',
+                                  'command-pin-button p-0.5 rounded hover:bg-gray-600/50 cursor-pointer',
                                   isPinned ? 'text-blue-400' : 'text-gray-500 hover:text-gray-300',
                                 )}
                               >

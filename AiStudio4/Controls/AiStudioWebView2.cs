@@ -22,9 +22,7 @@ namespace AiStudio4.Controls
             this.DefaultBackgroundColor = System.Drawing.Color.Transparent;
             this.CreationProperties = new Microsoft.Web.WebView2.Wpf.CoreWebView2CreationProperties
             {
-                UserDataFolder = System.IO.Path.Combine(
-                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData),
-                    "AiStudio4")
+                UserDataFolder = PathHelper.ProfileRootPath
             };
 
             this.WebMessageReceived += AiStudioWebView2_WebMessageReceived;

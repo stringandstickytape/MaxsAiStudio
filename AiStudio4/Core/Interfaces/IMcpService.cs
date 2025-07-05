@@ -1,4 +1,4 @@
-
+﻿
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
 
@@ -59,10 +59,6 @@ namespace AiStudio4.Core.Interfaces
         
         
         Task<bool> IsServerRunningAsync(string serverId);
-
-        
-        
-        
-        Task StopServerAsync(string serverId);
+Task StopServerAsync(string serverId);
     }
 }

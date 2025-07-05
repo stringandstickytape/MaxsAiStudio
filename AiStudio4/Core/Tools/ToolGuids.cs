@@ -1,11 +1,9 @@
-﻿
-
-
-
-
-
 namespace AiStudio4.Core.Tools
 {
+    /// <summary>
+    /// Contains unique GUID constants for all tools in the AI Studio application.
+    /// These GUIDs are used to identify and reference specific tools throughout the system.
+    /// </summary>
     static class ToolGuids
     {
         public const string AZURE_DEV_OPS_GET_COMMIT_DIFFS_TOOL_GUID = "c4d8e7f6-5a3b-2c1d-9e8f-7a6b5c4d3e2f";
@@ -20,6 +18,7 @@ namespace AiStudio4.Core.Tools
         public const string AZURE_DEV_OPS_GET_WIKI_PAGE_CONTENT_TOOL_GUID = "e2f3a4b5-c6d7-e8f9-a0b1-c2d3e4f5a6b7";
         public const string AZURE_DEV_OPS_GET_WIKI_PAGES_TOOL_GUID = "f3a4b5c6-d7e8-9f0a-1b2c-3d4e5f6a7b8c";
         public const string AZURE_DEV_OPS_CREATE_OR_UPDATE_WIKI_PAGE_TOOL_GUID = "d5e6f7a8-b9c0-1234-5678-90abcdef5678";
+        public const string AZURE_DEV_OPS_SEARCH_WIKI_TOOL_GUID = "a8b9c0d1-e2f3-4567-8901-23456789abcd";
         public const string AZURE_DEV_OPS_GET_WORK_ITEM_COMMENTS_TOOL_GUID = "4d7e6c5b-9a8f-4e3d-2c1b-7a6b5c4d3e2f";
         public const string AZURE_DEV_OPS_GET_WORK_ITEMS_TOOL_GUID = "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d";
         public const string AZURE_DEV_OPS_GET_WORK_ITEM_UPDATES_TOOL_GUID = "3a7b9c5d-2e4f-8g6h-1i2j-3k4l5m6n7o8p";
@@ -80,9 +79,15 @@ namespace AiStudio4.Core.Tools
         public const string RETRIEVE_TEXT_FROM_URL_TOOL_GUID = "c3d4e5f6-a7b8-9012-3456-7890abcdef08";
         public const string RUN_DUCK_DUCK_GO_SEARCH_TOOL_GUID = "d4e5f6g7-h8i9-j0k1-l2m3-n4o5p6q7r8s9";
         public const string STOP_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef01";
-        public const string THINK_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef04";        public const string THINK_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef03";
+        public const string THINK_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef04";
+        public const string THINK_TOOL_GUID = "b2c3d4e5-f6a7-8901-2345-67890abcdef03";
         public const string GEMINI_GOOGLE_SEARCH_TOOL_GUID = "g3m1n1s3-a4r5-c6h7-8901-234567890abc";
         public const string GOOGLE_CUSTOM_SEARCH_API_TOOL_GUID = "g00g1e5e-a7c8-4d1f-9b2e-3c5d7f9a1b3c";
         public const string WINDOWS_SANDBOX_TOOL_GUID = "w1nd0w55-4nd8-0x7o-o15a-nd80x70015ab";
+
+        public static string AZURE_DEV_OPS_GET_PIPELINE_DEFINITIONS_TOOL_GUID = "3d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
+        public static string AZURE_DEV_OPS_GET_PIPELINE_RESOURCES_TOOL_GUID = "4d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
+
+        public static string AZURE_DEV_OPS_GET_PIPELINE_RUNS_TOOL_GUID = "5d4e6f8a-1c3b-5a7d-9e8f-7c6b5a4d3e2f";
     }
 }

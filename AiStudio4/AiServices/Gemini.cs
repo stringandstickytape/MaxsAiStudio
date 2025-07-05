@@ -346,6 +346,12 @@ namespace AiStudio4.AiServices
                     
                 }
 
+                // Check if response contains malformed tool calls as JSON blocks in text
+                var malformedToolCallResponse = await TryProcessMalformedToolCallsAsync(fullResponse.ToString());
+                if (malformedToolCallResponse != null)
+                {
+                    return malformedToolCallResponse;
+                }
                 
                 var attachments = BuildImageAttachments();
                 currentResponseItem = null;
@@ -723,8 +729,9 @@ namespace AiStudio4.AiServices
 
                     var audioBytes = Convert.FromBase64String(base64Audio);
 
-                    
-                    string debugDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "DebugLogs", "AudioFiles");
+
+                    string debugDir = PathHelper.GetProfileSubPath("DebugLogs", "AudioFiles");
+
                     try
                     {
                         

@@ -1,4 +1,4 @@
-// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
+﻿// C:\Users\maxhe\source\repos\MaxsAiStudio\AiStudio4\App.xaml.cs
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
@@ -17,12 +17,12 @@ using Microsoft.Extensions.Hosting;
 using AiStudio4.InjectedDependencies.RequestHandlers;
 
 using Newtonsoft.Json.Serialization;
+using AiStudio4.Core.Models;
 using AiStudio4.Core;
 
 
 using AiStudio4.Services.Interfaces;
 using System.Net.Http; 
-
 namespace AiStudio4
 {
     public partial class App : Application
@@ -70,11 +70,10 @@ public const decimal VersionNumber = 1.05m;
             // Register configuration
             services.AddSingleton<IConfiguration>(configuration);
 
-            services.AddToolServices();
-
-            // Register core services
+            services.AddToolServices();            // Register core services
             services.AddSingleton<HttpClient>(); // Added for GitHubReleaseService
             services.AddSingleton<IGoogleDriveService, GoogleDriveService>();
+            services.AddSingleton<ILlamaServerService, LlamaServerService>(); // Add LlamaServerService
 
             services.AddSingleton<FileSystemChangeHandler>();
             services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
@@ -150,7 +149,26 @@ public const decimal VersionNumber = 1.05m;
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
+            base.OnStartup(e);            // Check for testing profile parameter
+            if (e.Args.Contains("--testing-profile"))
+            {
+                PathHelper.IsTestingProfile = true;
+                
+                // Empty the testing profile folder
+                string testingProfilePath = PathHelper.ProfileRootPath;
+                if (Directory.Exists(testingProfilePath))
+                {
+                    try
+                    {
+                        Directory.Delete(testingProfilePath, true);
+                    }
+                    catch (Exception ex)
+                    {
+                        // If deletion fails, log the error but continue startup
+                        System.Diagnostics.Debug.WriteLine($"Failed to delete testing profile folder: {ex.Message}");
+                    }
+                }
+            }
 
             // Initialize services directly since we're getting an error with IHost
             var startupService = _serviceProvider.GetRequiredService<StartupService>();

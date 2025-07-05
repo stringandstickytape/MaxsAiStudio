@@ -22,10 +22,7 @@ namespace AiStudio4.Services
         public FileSystemConvStorage(ILogger<FileSystemConvStorage> logger)
         {
             _logger = logger;
-            _basePath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "convs");
+            _basePath = PathHelper.GetProfileSubPath("convs");
             Directory.CreateDirectory(_basePath);
             _logger.LogInformation("Initialized conv storage at {BasePath}", _basePath);
         }

@@ -211,7 +211,7 @@ export const ModelManagement: React.FC<ModelManagementProps> = ({
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-3">          {[...filteredModels]
+        <div className="model-modal-grid space-y-3">          {[...filteredModels]
             // Sort models alphabetically by friendly name (A → Z)
             .sort((a, b) => a.friendlyName.localeCompare(b.friendlyName))
             .map((model) => (

@@ -296,6 +296,13 @@ namespace AiStudio4.Services
                     });
                 };
 
+                // Add cost calculation function for tool-loop messages
+                requestOptions.CalculateCost = (tokenUsage, model) =>
+                {
+                    var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
+                    return new TokenCost(tokenUsage, model, costStrategy);
+                };
+
                 requestOptions.OnAssistantMessageCreated = async (message) =>
                 {
                     // Message is already added to branched conversation by the callback
@@ -310,7 +317,9 @@ namespace AiStudio4.Services
                         Source = "assistant",
                         Attachments = message.Attachments,
                         DurationMs = 0,
-                        TokenUsage = null, // Will be updated later with final usage
+                        CostInfo = message.CostInfo,
+                        CumulativeCost = message.CumulativeCost,
+                        TokenUsage = message.CostInfo?.TokenUsage,
                         Temperature = message.Temperature
                     });
                 };

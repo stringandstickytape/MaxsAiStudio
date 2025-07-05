@@ -18,10 +18,7 @@ namespace AiStudio4.Services
         public PinnedCommandService(ILogger<PinnedCommandService> logger)
         {
             _logger = logger;
-            _pinnedCommandsDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "PinnedCommands");
+            _pinnedCommandsDirectory = PathHelper.GetProfileSubPath("pinnedCommands");
 
             Directory.CreateDirectory(_pinnedCommandsDirectory);
             _pinnedCommandsFilePath = Path.Combine(_pinnedCommandsDirectory, "pinnedCommands.json");

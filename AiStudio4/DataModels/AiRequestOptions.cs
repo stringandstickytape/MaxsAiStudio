@@ -1,8 +1,7 @@
 using AiStudio4.Convs;
 using AiStudio4.InjectedDependencies;
 using SharedClasses.Providers;
-
-
+using AiStudio4.Core.Models; // Add this import for TokenCost
 
 namespace AiStudio4.DataModels
 {
@@ -56,6 +55,13 @@ namespace AiStudio4.DataModels
         
         // Function to get the current assistant message ID for streaming updates
         public Func<string> GetCurrentAssistantMessageId { get; set; }
+
+        // Cost calculation capability
+        /// <summary>
+        /// Function to calculate token costs from TokenUsage and Model.
+        /// Used to provide cost information for intermediate tool-loop messages.
+        /// </summary>
+        public Func<TokenUsage, Model, TokenCost> CalculateCost { get; set; }
 
         // New callbacks for conversation updates during tool loop
         /// <summary>

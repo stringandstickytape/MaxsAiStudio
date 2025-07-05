@@ -29,5 +29,10 @@
         /// Whether to enable automatic stick-to-bottom behavior in chat
         /// </summary>
         public bool StickToBottomEnabled { get; set; } = true;
+
+        /// <summary>
+        /// ChatSpace width setting (sm, md, lg, xl, 2xl, 3xl, 4xl, 5xl, 6xl, 7xl, full)
+        /// </summary>
+        public string ChatSpaceWidth { get; set; } = "3xl";
     }
 }

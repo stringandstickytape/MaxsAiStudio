@@ -40,11 +40,12 @@ This user guide is organized into the following sections:
 
 ## Key Features
 
-- **Unified AI Chat** with OpenAI, Anthropic Claude, Google Gemini, and MCP servers
-- **Powerful Tool Ecosystem** for file operations, web tasks, developer integrations, and even getting a second AI opinion on a topic.
+- **Unified AI Chat** with OpenAI, Anthropic Claude, Google Gemini, local Llama.cpp instances, and MCP servers
+- **Powerful Tool Ecosystem** for file operations, web tasks, developer integrations (including new Azure DevOps pipeline and wiki search tools), and even getting a second AI opinion on a topic.
 - **Multi-Project Management:** Define and switch between different development projects.
 - **Deep Project Integration** with context-aware AI assistance linked to the active project.
 - **Advanced Conversation Management** with branched history and tree visualization
+- **Marp Presentation Support** for creating and viewing interactive markdown-based presentations directly in the chat interface
 - **Extensible & Customizable** with custom tools and AI-powered theming
 - **Real-time Interaction** with streaming responses and tool interjection
 - **Modern Desktop Experience** built with .NET 9 and React

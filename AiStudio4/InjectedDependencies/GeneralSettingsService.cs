@@ -26,7 +26,7 @@ namespace AiStudio4.InjectedDependencies
 
         public GeneralSettingsService(IConfiguration configuration)
         {    
-            _settingsFilePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "AiStudio4", "settings.json");
+            _settingsFilePath = PathHelper.GetProfileSubPath("settings.json");
             Directory.CreateDirectory(Path.GetDirectoryName(_settingsFilePath));
             LoadSettings();
         }

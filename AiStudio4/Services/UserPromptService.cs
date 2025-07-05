@@ -20,10 +20,7 @@ namespace AiStudio4.Services
         public UserPromptService(ILogger<UserPromptService> logger)
         {
             _logger = logger;
-            _userPromptsPath = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "AiStudio4",
-                "UserPrompts");
+            _userPromptsPath = PathHelper.GetProfileSubPath("UserPrompts");
 
             Directory.CreateDirectory(_userPromptsPath);
             _logger.LogInformation("Initialized user prompt storage at {UserPromptsPath}", _userPromptsPath);

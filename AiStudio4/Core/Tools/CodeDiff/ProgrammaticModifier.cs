@@ -156,11 +156,8 @@ namespace AiStudio4.Core.Tools.CodeDiff
         {
             try
             {
-                string debugDir = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    "AiStudio4",
-                    "DebugLogs",
-                    "MergeFailures");
+                string debugDir = PathHelper.GetProfileSubPath("DebugLogs", "MergeFailures");
+
                 Directory.CreateDirectory(debugDir);
 
                 string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss_fff");

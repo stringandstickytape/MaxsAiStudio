@@ -8,6 +8,7 @@ using AiStudio4.InjectedDependencies;
 using SharedClasses.Providers;
 
 
+using System.Linq;
 using System.Net.Http;
 
 using System.Text.RegularExpressions;
@@ -21,12 +22,12 @@ namespace AiStudio4.AiServices
         private string oneOffPreFill;
         private readonly ClaudeToolResponseProcessor _toolResponseProcessor;
         private readonly Queue<string> _toolIdQueue = new Queue<string>();
-        
+
         public Claude()
         {
             _toolResponseProcessor = new ClaudeToolResponseProcessor();
         }
-        
+
         public void SetOneOffPreFill(string prefill) => oneOffPreFill = prefill;
 
         protected override ProviderFormat GetProviderFormat() => ProviderFormat.Claude;
@@ -76,7 +77,7 @@ namespace AiStudio4.AiServices
         {
             // Reset ToolResponseSet for each new request
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
-            
+
             InitializeHttpClient(options.ServiceProvider, options.Model, options.ApiSettings);
 
             return await MakeStandardApiCall(options, async (content) =>
@@ -164,15 +165,15 @@ namespace AiStudio4.AiServices
         {
             var assistantContent = new JArray();
             _toolIdQueue.Clear(); // Clear previous tool IDs
-            
+
             // Add any text content first
             var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
             if (!string.IsNullOrEmpty(textContent))
             {
-                assistantContent.Add(new JObject 
-                { 
-                    ["type"] = "text", 
-                    ["text"] = textContent 
+                assistantContent.Add(new JObject
+                {
+                    ["type"] = "text",
+                    ["text"] = textContent
                 });
             }
 
@@ -182,7 +183,7 @@ namespace AiStudio4.AiServices
                 var toolId = toolCall.ToolId ?? $"tool_{Guid.NewGuid():N}"[..15]; // Use Claude's ID or fallback
                 _toolIdQueue.Enqueue(toolId); // Store in order for later use
                 System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT: Creating tool_use with id: {toolId}, tool: {toolCall.ToolName}");
-                
+
                 assistantContent.Add(new JObject
                 {
                     ["type"] = "tool_use",
@@ -197,7 +198,7 @@ namespace AiStudio4.AiServices
                 role = "assistant",
                 content = assistantContent.ToString()
             };
-            
+
             System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.content}");
             return result;
         }
@@ -205,21 +206,21 @@ namespace AiStudio4.AiServices
         private LinearConvMessage CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
             var toolResults = new JArray();
-            
+
             foreach (var block in toolResultBlocks)
             {
                 if (block.ContentType == ContentType.ToolResponse)
                 {
                     var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
                     var toolName = toolData.toolName?.ToString();
-                    
+
                     // Use the next tool ID from the queue (preserves order)
-                    var toolResultId = _toolIdQueue.Count > 0 
-                        ? _toolIdQueue.Dequeue() 
+                    var toolResultId = _toolIdQueue.Count > 0
+                        ? _toolIdQueue.Dequeue()
                         : $"tool_{Guid.NewGuid():N}"[..15];
-                    
+
                     System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}");
-                    
+
                     toolResults.Add(new JObject
                     {
                         ["type"] = "tool_result",
@@ -229,13 +230,13 @@ namespace AiStudio4.AiServices
                     });
                 }
             }
-            
+
             var result = new LinearConvMessage
             {
                 role = "user",
                 content = toolResults.ToString()
             };
-            
+
             System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.content}");
             return result;
         }
@@ -250,9 +251,9 @@ namespace AiStudio4.AiServices
         }
 
         protected override async Task<AiResponse> HandleStreamingResponse(
-            HttpContent content, 
+            HttpContent content,
             CancellationToken cancellationToken,
-            Action<string> onStreamingUpdate, 
+            Action<string> onStreamingUpdate,
             Action onStreamingComplete)
         {
             using var response = await SendRequest(content, cancellationToken);
@@ -272,6 +273,13 @@ namespace AiStudio4.AiServices
                 if (parsedResponse != null)
                 {
                     return parsedResponse;
+                }
+
+                // Check if response contains malformed tool calls as JSON blocks in text
+                var malformedToolCallResponse = await TryProcessMalformedToolCallsAsync(result.ResponseText);
+                if (malformedToolCallResponse != null)
+                {
+                    return malformedToolCallResponse;
                 }
 
                 return new AiResponse
@@ -294,14 +302,14 @@ namespace AiStudio4.AiServices
                 System.Diagnostics.Debug.WriteLine("Claude streaming cancelled.");
                 // Cancellation happened, use the partial result from the processor
                 result = streamProcessor.GetPartialResult(); // Need to add this method to StreamProcessor
-                
+
                 var tokenUsage = CreateTokenUsage(
                     result.InputTokens?.ToString(),
                     result.OutputTokens?.ToString(),
                     result.CacheCreationInputTokens?.ToString(),
                     result.CacheReadInputTokens?.ToString()
                 );
-                
+
                 return HandleCancellation(
                     result.ResponseText,
                     tokenUsage,
@@ -339,7 +347,7 @@ namespace AiStudio4.AiServices
             return jObject.ToString();
         }
 
-        
+
         private string ExtractResponseTextFromCompletion(JObject completion)
         {
             if (completion["content"] != null)
@@ -411,7 +419,7 @@ namespace AiStudio4.AiServices
                 foreach (var item in jsonArray)
                 {
                     var itemType = item["type"]?.ToString();
-                    
+
                     if (itemType == "text")
                     {
                         // Add text content block
@@ -430,7 +438,7 @@ namespace AiStudio4.AiServices
                         // Add tool call content block
                         var toolName = item["name"]?.ToString();
                         var toolInput = item["input"]?.ToString();
-                        
+
                         if (!string.IsNullOrEmpty(toolName))
                         {
                             contentBlocks.Add(new ContentBlock
@@ -466,7 +474,39 @@ namespace AiStudio4.AiServices
                 return null;
             }
         }
-    }
+
+        /// <summary>
+        /// Post-processes Claude responses that contain malformed tool calls as JSON blocks in text.
+        /// Extracts tool call JSON blocks, removes them from plain text, and converts to proper tool calls.
+        /// </summary>
+        /// <param name="responseText">The raw response text from Claude</param>
+        /// <summary>
+        /// Post-processes Claude responses that contain malformed tool calls as JSON blocks in text.
+        /// Extracts tool call JSON blocks, removes them from plain text, and converts to proper tool calls.
+        /// </summary>
+        /// <param name="responseText">The raw response text from Claude</param>
+        /// <returns>Processed AiResponse with cleaned text and extracted tool calls, or null if no malformed tool calls found</returns>
+        private async Task<AiResponse> TryProcessMalformedToolCallsAsync(string responseText)
+                {
+                    // Use the shared implementation from base class
+                    return await base.TryProcessMalformedToolCallsAsync(responseText);
+                }
+
+
+        /// <summary>
+        /// Attempts to extract tool calls from various malformed JSON patterns that Claude might produce.
+        /// This method handles multiple potential formats and patterns.
+        /// </summary>
+        /// <param name="responseText">The response text to analyze</param>
+        /// <returns>List of extracted tool call information</returns>
+        private List<(string toolName, string parameters)> ExtractMalformedToolCalls(string responseText)
+                {
+                    // Use the shared implementation from base class
+                    return base.ExtractMalformedToolCalls(responseText);
+                }
+
+    };
+
 
     internal class NotEnoughTokensForCachingException : Exception
     {
@@ -688,7 +728,9 @@ namespace AiStudio4.AiServices
 
     internal class StreamProcessingResult
     {
+
         public string ResponseText { get; set; }
+
         public int? InputTokens { get; set; }
         public int? OutputTokens { get; set; }
         public int? CacheCreationInputTokens { get; set; }

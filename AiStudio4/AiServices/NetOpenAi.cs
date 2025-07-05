@@ -232,8 +232,12 @@ namespace AiStudio4.AiServices
             }
 
             // Add tools if present
-                await AddToolsToChatOptions(chatOptions, options.ToolIds);
+            await AddToolsToChatOptions(chatOptions, options.ToolIds);
+
+            if (chatOptions.Tools.Any())
+            {
                 chatOptions.ToolChoice = ChatToolChoice.CreateAutoChoice();
+            }
 
             // Process embeddings if needed
             if (options.AddEmbeddings)

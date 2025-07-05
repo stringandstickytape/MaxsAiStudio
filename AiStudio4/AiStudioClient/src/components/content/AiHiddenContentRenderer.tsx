@@ -3,7 +3,7 @@ import { MarkdownPane } from '@/components/MarkdownPane';
 import { useDebugStore } from '@/stores/useDebugStore';
 import { ContentBlockRendererProps } from './contentBlockRendererRegistry';
 
-export const AiHiddenContentRenderer: React.FC<ContentBlockRendererProps> = ({ block }) => {
+export const AiHiddenContentRenderer: React.FC<ContentBlockRendererProps> = ({ block, messageId }) => {
   const showDevContentView = useDebugStore((state) => state.showDevContentView);
 
   if (!showDevContentView) {
@@ -15,7 +15,7 @@ export const AiHiddenContentRenderer: React.FC<ContentBlockRendererProps> = ({ b
       <div className="text-xs font-bold text-yellow-400 mb-1">
         AI Context
       </div>
-      <MarkdownPane message={block.content} />
+      <MarkdownPane message={block.content} messageId={messageId} />
     </div>
   );
 };

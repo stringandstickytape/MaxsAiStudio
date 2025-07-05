@@ -8,6 +8,10 @@ import { useSystemPromptStore } from './stores/useSystemPromptStore';
 import { useToolStore } from './stores/useToolStore';
 import { createApiRequest } from '@/utils/apiUtils';
 import { useGeneralSettingsStore } from './stores/useGeneralSettingsStore'; // Add this
+import { Buffer } from 'buffer';
+
+// Polyfill Buffer for gray-matter
+window.Buffer = Buffer;
 
 // Add TypeScript declarations for window object extensions
 declare global {
@@ -17,6 +21,7 @@ declare global {
     addThemeToStore: typeof addThemeToStore;
     applyLLMTheme: (themeJson: any) => void;
     createTheme: (themeData: any) => Promise<any>;
+    Buffer: typeof Buffer;
   }
 }
 

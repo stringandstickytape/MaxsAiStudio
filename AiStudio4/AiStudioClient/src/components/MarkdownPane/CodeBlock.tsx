@@ -5,38 +5,52 @@ import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { CodeBlockHeader } from './CodeBlockHeader';
 import { MarkdownVariant } from '../MarkdownPane';
 import { codeBlockRendererRegistry } from '../diagrams/codeBlockRendererRegistry';
+import { useCodeBlockStore } from '@/stores/useCodeBlockStore';
 
 export interface CodeBlockProps {
+    blockId: string; // Now required
     language: string;
     content: string;
     diagramRenderer?: any;
     isVisualStudio: boolean;
-    blockId: string;
-    isRawView: boolean;
-    isCollapsed: boolean;
     mermaidKey: number;
-    onToggleRaw: () => void;
-    onToggleCollapse: () => void;
     launchHtml: (content: string) => void;
     variant: MarkdownVariant;
     fullMarkdown?: string;
 }
 
 export const CodeBlock = React.memo<CodeBlockProps>(({
+    blockId,
     language,
     content,
     diagramRenderer,
     isVisualStudio,
-    blockId,
-    isRawView,
-    isCollapsed,
     mermaidKey,
-    onToggleRaw,
-    onToggleCollapse,
     launchHtml,
     variant,
     fullMarkdown,
 }) => {
+    // Optimized state subscription - only re-renders when this block's state changes
+    const isCollapsed = useCodeBlockStore(state => state.isCollapsed(blockId));
+    const isRawView = useCodeBlockStore(state => state.isRawView(blockId));
+    const toggleCollapse = useCodeBlockStore(state => state.toggleCollapse);
+    const toggleRawView = useCodeBlockStore(state => state.toggleRawView);
+
+    const handleToggleCollapse = useCallback(() => {
+        // Optional: Handle scroll position preservation
+        const scrollContainer = document.querySelector('.markdown-pane')?.parentElement?.parentElement;
+        if (scrollContainer && scrollContainer !== document.documentElement) {
+            const currentScrollPosition = scrollContainer.scrollTop;
+            toggleCollapse(blockId);
+            // You could restore scroll position here if needed
+        } else {
+            toggleCollapse(blockId);
+        }
+    }, [blockId, toggleCollapse]);
+
+    const handleToggleRaw = useCallback(() => {
+        toggleRawView(blockId);
+    }, [blockId, toggleRawView]);
     const isHtmlBlock = language === 'html' || language === 'htm';
     const DiagramComponent = diagramRenderer ? diagramRenderer.Component : null;
 
@@ -64,8 +78,8 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
             isCollapsed={isCollapsed}
             isRawView={isRawView}
             isVisualStudio={isVisualStudio}
-            onToggleRaw={onToggleRaw}
-            onToggleCollapse={onToggleCollapse}
+            onToggleRaw={handleToggleRaw}
+            onToggleCollapse={handleToggleCollapse}
             launchHtml={isHtmlBlock ? () => launchHtml(content) : undefined}
             variant={variant} // <-- PASS PROP
         />
@@ -87,6 +101,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
                     {header}
                     <div style={{ maxHeight: '500px', overflow: 'auto' }}>
                 <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
+                    {console.log(`[CodeRenderer] Rendering ${diagramRenderer.type[0]} diagram with ${content.length} chars`)}
                     <DiagramComponent content={content} className="overflow-auto" />
                         </div>
                 </div>

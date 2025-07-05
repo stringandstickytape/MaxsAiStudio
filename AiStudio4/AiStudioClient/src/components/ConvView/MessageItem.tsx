@@ -144,13 +144,17 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
 
     // Token and Cost Info
 
-    
+    metadataItems.push(
+        <span key="cost" className="flex items-center">
+            ${message.costInfo?.totalCost?.toFixed(2)}  Σ {message.cumulativeCost?.toFixed(2)}
+        </span>
+    );
 
     if (message.costInfo && (message.costInfo.tokenUsage.cacheCreationInputTokens > 0 || message.costInfo.tokenUsage.cacheReadInputTokens > 0)) {
         metadataItems.push(
             <span key="cache">
                 <span title="Input tokens">{message.costInfo.tokenUsage.inputTokens} ⬆️</span>{' '}
-                <span title="Output tokens">{message.costInfo.tokenUsage.outputTokens} ⬇️</span> { ' '}
+                <span title="Output tokens">{message.costInfo.tokenUsage.outputTokens} ⬇️</span> { '!! '}
                 <span title="Cache creation input tokens">{message.costInfo.tokenUsage.cacheCreationInputTokens}🌟</span> {' '}
                 <span title="Cache read input tokens">{message.costInfo.tokenUsage.cacheReadInputTokens}📖</span>
             </span>
@@ -162,11 +166,7 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
             </span>
         );
 
-    metadataItems.push(
-        <span key="cost" className="flex items-center">
-            ${message.costInfo.totalCost.toFixed(2)}  Σ${message.cumulativeCost?.toFixed(2)}
-        </span>
-    );
+
 
 
 
@@ -261,7 +261,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
 
       // get a text renderer, which renders a markdown pane
       const Renderer = contentBlockRendererRegistry.get('text'); // Stream is always text
-      return <Renderer block={{ content: streamedContent, contentType: 'text' }} />;
+      return <Renderer block={{ content: streamedContent, contentType: 'text' }} messageId={message.id} />;
     }
 
     // Render all stored content blocks for the message
@@ -316,7 +316,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
             }
           }}
         >
-          <Renderer block={block} />
+          <Renderer block={block} messageId={message.id} />
         </div>
       );
     });

@@ -5,9 +5,9 @@ Located in the `AiStudio4` project directory (when running from source) or insta
 *   `WebServer:Port`: Defines the port for the embedded Kestrel web server (default: `35005`).
 
 ## 6.2 User-Specific Settings (`%APPDATA%/AiStudio4/`)
-Most user preferences and data are stored in JSON files within this directory on Windows.
+Most user preferences and data are stored in JSON files within this directory on Windows. When running with the `--testing-profile` command-line argument, the application will use the `%APPDATA%/AiStudio4_Test/` directory instead.
 *   **`settings.json`**: Main user settings.
-    *   `ModelList`: Your configured AI models (now includes tiered pricing properties: `PriceBoundary`, `InputPriceAboveBoundary`, `OutputPriceAboveBoundary`).
+    *   `ModelList`: Your configured AI models (now includes tiered pricing properties: `PriceBoundary`, `InputPriceAboveBoundary`, `OutputPriceAboveBoundary`, and `LlamaCppSettings` in `AdditionalParams`).
     *   `ServiceProviders`: Your configured AI service providers (including encrypted API keys and `ChargingStrategy` property).
     *   `DefaultModelGuid`, `SecondaryModelGuid`: GUIDs of your default models.
     *   `Temperature`, `UsePromptCaching`, `StreamResponses`, `UseEmbeddings`, `EmbeddingModel`.

@@ -6,6 +6,9 @@ import { codeBlockRendererRegistry } from '@/components/diagrams/codeBlockRender
 import remarkGfm from 'remark-gfm';
 import { CodeBlock } from './MarkdownPane/CodeBlock';
 import { cn } from '@/lib/utils';
+import matter from 'gray-matter';
+import { MarpRenderer } from './renderers/marp-renderer';
+import { useCodeBlockStore } from '@/stores/useCodeBlockStore';
 
 // Themeable properties for MarkdownPane code headers
 export const themeableProps = {
@@ -40,83 +43,178 @@ export type MarkdownVariant = 'default' | 'system';
 
 interface MarkdownPaneProps {
     message: string;
+    messageId?: string; // Message ID for state management
     variant?: MarkdownVariant; // <-- ADD PROP
 }
 
 export const MarkdownPane = React.memo(function MarkdownPane({ 
     message, 
+    messageId,
     variant = 'default' // <-- ADD PROP
 }: MarkdownPaneProps) {
     const [markdownContent, setMarkdownContent] = useState<string>('');
     const [mermaidKey, setMermaidKey] = useState(0);
-    const [showRawContent, setShowRawContent] = useState<Record<string, boolean>>({});
-    const [isCodeCollapsed, setIsCodeCollapsed] = useState<Record<string, boolean>>({});
     const [isVisualStudio, setIsVisualStudio] = useState(false);
+    
     
     // Track completed portions and only render changes
     const [completedSegments, setCompletedSegments] = useState<Array<{ content: string; type: 'completed' | 'incomplete' }>>([]);
     const lastProcessedLength = useRef<number>(0);
     
+    // Parse frontmatter to check for Marp
+    const parsedContent = useMemo(() => {
+        try {
+            const parsed = matter(message);
+            const isMarp = parsed.data?.marp === true;
+            return {
+                content: parsed.content,
+                data: parsed.data,
+                isMarp
+            };
+        } catch (error) {
+            // If parsing fails, treat as regular markdown
+            return {
+                content: message,
+                data: {},
+                isMarp: false
+            };
+        }
+    }, [message]);
+    
+    // Helper function to find the next code block start with backtick count
+    const findNextCodeBlockStart = useCallback((markdown: string, startIndex: number) => {
+        let index = startIndex;
+        
+        while (index < markdown.length) {
+            const backtickMatch = markdown.slice(index).match(/^```+/m);
+            if (!backtickMatch) {
+                return { index: -1, backtickCount: 0 };
+            }
+            
+            const matchIndex = index + markdown.slice(index).indexOf(backtickMatch[0]);
+            
+            // Check if this is at the start of a line
+            if (matchIndex === 0 || markdown[matchIndex - 1] === '\n') {
+                return { 
+                    index: matchIndex, 
+                    backtickCount: backtickMatch[0].length 
+                };
+            }
+            
+            index = matchIndex + 1;
+        }
+        
+        return { index: -1, backtickCount: 0 };
+    }, []);
+    
+    // Helper function to find the matching closing fence
+    const findMatchingCodeBlockEnd = useCallback((markdown: string, startIndex: number, backtickCount: number) => {
+        const openingFence = markdown.slice(startIndex);
+        const firstNewlineIndex = openingFence.indexOf('\n');
+        
+        if (firstNewlineIndex === -1) {
+            return -1; // No content after opening fence
+        }
+        
+        let searchIndex = startIndex + firstNewlineIndex + 1;
+        
+        while (searchIndex < markdown.length) {
+            const remainingContent = markdown.slice(searchIndex);
+            const lineStart = remainingContent.match(/^```+/m);
+            
+            if (!lineStart) {
+                return -1; // No closing fence found
+            }
+            
+            const lineStartIndex = searchIndex + remainingContent.indexOf(lineStart[0]);
+            
+            // Check if this is at the start of a line and has enough backticks
+            if ((lineStartIndex === 0 || markdown[lineStartIndex - 1] === '\n') && 
+                lineStart[0].length >= backtickCount) {
+                
+                // Find the end of this line
+                const lineEndIndex = markdown.indexOf('\n', lineStartIndex);
+                return lineEndIndex === -1 ? markdown.length : lineEndIndex + 1;
+            }
+            
+            searchIndex = lineStartIndex + 1;
+        }
+        
+        return -1; // No matching closing fence found
+    }, []);
+    
     // Parse the markdown into segments (completed code blocks and other content)
     const parseMarkdownSegments = useCallback((markdown: string) => {
         const segments: Array<{ content: string; type: 'completed' | 'incomplete' }> = [];
-        const codeBlockRegex = /```[\s\S]*?```/g;
-        let lastIndex = 0;
-        let match;
+        let currentIndex = 0;
         
-        while ((match = codeBlockRegex.exec(markdown)) !== null) {
+        while (currentIndex < markdown.length) {
+            // Find the next code block start
+            const codeBlockStart = findNextCodeBlockStart(markdown, currentIndex);
+            
+            if (codeBlockStart.index === -1) {
+                // No more code blocks, add remaining content
+                const remainingContent = markdown.slice(currentIndex);
+                if (remainingContent.trim()) {
+                    segments.push({ content: remainingContent, type: 'completed' });
+                }
+                break;
+            }
+            
             // Add content before the code block
-            if (match.index > lastIndex) {
-                const beforeContent = markdown.slice(lastIndex, match.index);
+            if (codeBlockStart.index > currentIndex) {
+                const beforeContent = markdown.slice(currentIndex, codeBlockStart.index);
                 if (beforeContent.trim()) {
                     segments.push({ content: beforeContent, type: 'completed' });
                 }
             }
             
-            // Add the completed code block
-            segments.push({ content: match[0], type: 'completed' });
-            lastIndex = match.index + match[0].length;
-        }
-        
-        // Add remaining content (might be incomplete)
-        if (lastIndex < markdown.length) {
-            const remainingContent = markdown.slice(lastIndex);
-            if (remainingContent.trim()) {
-                // Check if there's an incomplete code block at the end
-                const hasIncompleteCodeBlock = /```[^`]*$/.test(remainingContent);
-                segments.push({ 
-                    content: remainingContent, 
-                    type: hasIncompleteCodeBlock ? 'incomplete' : 'completed' 
-                });
+            // Find the matching closing fence
+            const codeBlockEnd = findMatchingCodeBlockEnd(markdown, codeBlockStart.index, codeBlockStart.backtickCount);
+            
+            if (codeBlockEnd === -1) {
+                // Incomplete code block at the end
+                const incompleteContent = markdown.slice(codeBlockStart.index);
+                if (incompleteContent.trim()) {
+                    segments.push({ content: incompleteContent, type: 'incomplete' });
+                }
+                break;
             }
+            
+            // Add the completed code block
+            const codeBlockContent = markdown.slice(codeBlockStart.index, codeBlockEnd);
+            segments.push({ content: codeBlockContent, type: 'completed' });
+            currentIndex = codeBlockEnd;
         }
         
         return segments;
-    }, []);
+    }, [findNextCodeBlockStart, findMatchingCodeBlockEnd]);
 
     useEffect(() => {
-        if (message !== markdownContent) {
+        const contentToProcess = parsedContent.content;
+        if (contentToProcess !== markdownContent) {
             // Only process if content has actually grown (streaming case)
-            if (message.length > lastProcessedLength.current && message.startsWith(markdownContent)) {
+            if (contentToProcess.length > lastProcessedLength.current && contentToProcess.startsWith(markdownContent)) {
                 // This is a streaming update - only update the segments
-                const newSegments = parseMarkdownSegments(message);
+                const newSegments = parseMarkdownSegments(contentToProcess);
                 setCompletedSegments(newSegments);
-                lastProcessedLength.current = message.length;
+                lastProcessedLength.current = contentToProcess.length;
             } else {
                 // This is a completely new message - reset everything
-                const newSegments = parseMarkdownSegments(message);
+                const newSegments = parseMarkdownSegments(contentToProcess);
                 setCompletedSegments(newSegments);
-                lastProcessedLength.current = message.length;
+                lastProcessedLength.current = contentToProcess.length;
                 setMermaidKey((prev) => prev + 1);
             }
-            setMarkdownContent(message);
+            setMarkdownContent(contentToProcess);
         }
-    }, [message, markdownContent, parseMarkdownSegments]);
+    }, [parsedContent.content, markdownContent, parseMarkdownSegments]);
 
     useEffect(() => {
         const isVS = localStorage.getItem('isVisualStudio') === 'true';
         setIsVisualStudio(isVS);
     }, []);
+
 
     // Removed renderAll call since React components handle their own rendering
 
@@ -174,7 +272,13 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         }
     };
 
-    let codeBlockIndex = 0;
+    // Use ref to maintain code block index across renders for stable IDs
+    const codeBlockIndexRef = useRef(0);
+    
+    // Reset index when content changes (new message or content update)
+    useEffect(() => {
+        codeBlockIndexRef.current = 0;
+    }, [markdownContent]);
 
     const components = useMemo(() => ({
         code({ className, children, ...props }: any) {
@@ -191,52 +295,18 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             const language = match ? match[1] : 'txt';
             const content = String(children).replace(/\n$/, '');
             const diagramRenderer = codeBlockRendererRegistry.get(language);
-            const blockId = `code-block-${codeBlockIndex++}`;
-            const isRawView = showRawContent[blockId] ?? false;
-            const isCollapsed = isCodeCollapsed[blockId] ?? true;
-            const handleToggleRaw = useCallback(() => {
-                setShowRawContent((prev) => ({ ...prev, [blockId]: !prev[blockId] }));
-                setMermaidKey((prev) => prev + 1);
-            }, [blockId]);
-            const handleToggleCollapse = useCallback(() => {
-                // Find the scrollable container - try multiple selectors
-                let scrollContainer = document.querySelector('.markdown-pane')?.parentElement?.parentElement;
-                
-                // If that doesn't work, try finding a container with scroll
-                if (!scrollContainer || scrollContainer === document.documentElement) {
-                    const containers = [
-                        document.querySelector('[data-testid="chat-container"]'),
-                        document.querySelector('.chat-container'),
-                        document.querySelector('.overflow-auto'),
-                        document.querySelector('.scroll-container')
-                    ].filter(Boolean);
-                    
-                    scrollContainer = containers.find(container => 
-                        container && container.scrollHeight > container.clientHeight
-                    ) || null;
-                }
-                
-                // Only proceed if we found a valid scroll container (not document.documentElement)
-                if (scrollContainer && scrollContainer !== document.documentElement) {
-                    const currentScrollPosition = scrollContainer.scrollTop;
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
-                } else {
-                    // Just toggle without scroll manipulation if we can't find proper container
-                    setIsCodeCollapsed((prev) => ({ ...prev, [blockId]: !(prev[blockId] ?? true) }));
-                }
-            }, [blockId]);
+            
+            // Create stable blockId that includes message ID and index
+            const blockId = `${messageId || 'unknown'}-code-block-${codeBlockIndexRef.current++}`;
             return (
                 <CodeBlock
+                    key={blockId}
+                    blockId={blockId}
                     language={language}
                     content={content}
                     diagramRenderer={diagramRenderer}
                     isVisualStudio={isVisualStudio}
-                    blockId={blockId}
-                    isRawView={isRawView}
-                    isCollapsed={isCollapsed}
                     mermaidKey={mermaidKey}
-                    onToggleRaw={handleToggleRaw}
-                    onToggleCollapse={handleToggleCollapse}
                     launchHtml={launchHtml}
                     variant={variant}
                     fullMarkdown={markdownContent}
@@ -270,7 +340,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         tr: ({ children }: any) => <tr>{children}</tr>,
         th: ({ children }: any) => <th className="px-4 py-2 text-left font-medium">{children}</th>,
         td: ({ children }: any) => <td className="px-4 py-2 border-t border-gray-700">{children}</td>,
-    }), [showRawContent, isCodeCollapsed, mermaidKey, isVisualStudio, variant]); // <-- Simplified dependencies
+    }), [mermaidKey, isVisualStudio, variant, messageId]); // Removed state dependencies
 
     // Track completed segments separately for better memoization
     const completedSegmentsOnly = useMemo(() => {
@@ -291,6 +361,19 @@ export const MarkdownPane = React.memo(function MarkdownPane({
     // Current incomplete segment that should re-render
     const incompleteSegment = completedSegments.find(segment => segment.type === 'incomplete');
 
+    // If this is a Marp presentation, render with MarpRenderer
+    if (parsedContent.isMarp) {
+        return (
+            <div className="marp-presentation-container">
+                <MarpRenderer
+                    markdown={parsedContent.content}
+                    frontmatter={parsedContent.data}
+                />
+            </div>
+        );
+    }
+
+    // Otherwise, render as regular markdown
     return (
         <div className={cn(
             "text-sm",

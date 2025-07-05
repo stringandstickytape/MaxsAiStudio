@@ -35,43 +35,17 @@ describe('Command Bar Functionality', () => {
     cy.closeModal();
 
     // --- TEST: PINNING ---
-    cy.openCommandBar();
-    cy.get('#command-input').type('primary');
-    const modelCommandRow = cy.get('.command-dropdown-menu').contains('.font-medium', `${modelName} [Primary]`);
-    modelCommandRow.parents('.px-2.py-1').within(() => {
-      cy.get('svg.text-gray-500').click();
-    });
-    modelCommandRow.parents('.px-2.py-1').within(() => {
-      cy.get('svg.text-blue-400').should('exist');
-    });
-    cy.closeModal();
+    cy.searchCommand('primary');
+    cy.pinCommand(`${modelName} [Primary]`);
+    cy.closeCommandDropdown();
 
     // --- TEST: SELECTING PINNED SHORTCUT ---
-    cy.get('[class*="PinnedShortcuts"]', { timeout: 5000 })
-      .should('be.visible')
-      .contains(`${modelName} [Primary]`)
-      .click();
-
-    // ROBUST: Assert on the outcome of the click, don't just wait.
-    // Replace '[data-testid="active-model-display"]' with your app's actual selector.
-    cy.get('[data-testid="active-model-display"]', { timeout: 10000 })
-      .should('contain.text', modelName);
+    cy.clickPinnedShortcut(`${modelName} [Primary]`);
+    cy.verifyPrimaryModelSelected(modelName);
 
     // --- TEST: UNPINNING ---
-    cy.openCommandBar();
-    cy.get('#command-input').type('primary');
-    cy.get('.command-dropdown-menu')
-      .contains('.font-medium', `${modelName} [Primary]`)
-      .parents('.px-2.py-1')
-      .within(() => {
-        cy.get('svg.text-blue-400').click();
-      });
-    cy.get('.command-dropdown-menu')
-      .contains('.font-medium', `${modelName} [Primary]`)
-      .parents('.px-2.py-1')
-      .within(() => {
-        cy.get('svg.text-gray-500').should('exist');
-      });
-    cy.closeModal();
+    cy.searchCommand('primary');
+    cy.unpinCommand(`${modelName} [Primary]`);
+    cy.closeCommandDropdown();
   });
 });

@@ -7,11 +7,12 @@ import { Model } from '@/types/settings';
 interface ModelCommandsConfig {
   getAvailableModels: () => Model[];
   selectPrimaryModel: (guid: string) => void;
-    selectSecondaryModel: (guid: string) => void;
+  selectSecondaryModel: (guid: string) => void;
+  handleModelSelect?: (modelType: 'primary' | 'secondary', modelGuid: string, isGuid?: boolean) => Promise<boolean>;
 }
 
 export function initializeModelCommands(config: ModelCommandsConfig) {
-  const { getAvailableModels, selectPrimaryModel, selectSecondaryModel } = config;
+  const { getAvailableModels, selectPrimaryModel, selectSecondaryModel, handleModelSelect } = config;
 
   const availableModels = getAvailableModels();
 
@@ -21,17 +22,31 @@ export function initializeModelCommands(config: ModelCommandsConfig) {
     description: `Set primary model to ${model.modelName}`,
     keywords: ['model', 'primary', 'set', 'change', ...model.friendlyName.toLowerCase().split(' ')],
     section: 'model',
-    execute: () => selectPrimaryModel(model.guid),
+    execute: async () => {
+      // Use handleModelSelect if provided (which makes the API call), otherwise fall back to local update
+      if (handleModelSelect) {
+        await handleModelSelect('primary', model.guid, true);
+      } else {
+        selectPrimaryModel(model.guid);
+      }
+    },
     icon: React.createElement(Cpu, { size: 16, className: 'text-emerald-500' }),
   }));
 
   const secondaryModelCommands = availableModels.map((model) => ({
-      id: `select-secondary-model-${model.guid.toLowerCase().replace(/\s+/g, '-')}`,
+    id: `select-secondary-model-${model.guid.toLowerCase().replace(/\s+/g, '-')}`,
     name: `${model.friendlyName} [Secondary]`,
-      description: `Set secondary model to ${model.modelName}`,
+    description: `Set secondary model to ${model.modelName}`,
     keywords: ['model', 'secondary', 'set', 'change', ...model.friendlyName.toLowerCase().split(' ')],
     section: 'model',
-      execute: () => selectSecondaryModel(model.guid),
+    execute: async () => {
+      // Use handleModelSelect if provided (which makes the API call), otherwise fall back to local update
+      if (handleModelSelect) {
+        await handleModelSelect('secondary', model.guid, true);
+      } else {
+        selectSecondaryModel(model.guid);
+      }
+    },
     icon: React.createElement(Cpu, { size: 16, className: 'text-blue-500' }),
   }));
 

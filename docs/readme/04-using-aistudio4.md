@@ -21,12 +21,14 @@ If the AI is taking a long time processing a tool or you realize you need to pro
 2.  Press `Ctrl+Enter` (or `Cmd+Enter` on Mac) or click the "Interject" button (💬➕ icon).
 3.  Your interjection will be incorporated by the AI in its next processing step. This allows you to correct the AI or provide more context without fully interrupting its flow.
 
-### 4.1.4 Rich Content (Markdown, Diagrams, Tables)
+### 4.1.5 Viewing Message Metadata
+Each AI message includes metadata such as the model used, response time, and token cost. This information is displayed below each message and can be useful for understanding the performance and cost of different models.
 AiStudio4 renders AI responses that include:
 *   **Markdown:** For formatted text, lists, etc.
 *   **Code Blocks:** With syntax highlighting for various languages.
 *   **Tables:** Rendered from Markdown.
 *   **Diagrams:** Using Mermaid, DOT/Graphviz, or even rendering valid JSON or HTML if the AI provides them in the correct format.
+*   **Marp Presentations:** Interactive markdown-based presentations with navigation controls, presenter mode, and export capabilities.
 
 ## 4.2 Managing Conversations
 
@@ -61,6 +63,7 @@ System prompts guide the AI's behavior for an entire conversation.
     *   **Description:** Optional explanation.
     *   **Tags:** Keywords for organization.
     *   **Set as Default:** If checked, this prompt will be used for new conversations.
+    *   **Include Git Diff:** If checked, the current `git diff HEAD` output from your project will be automatically attached as a file when this prompt is applied.
     *   **Include Git Diff:** If checked, the current `git diff HEAD` output from your project will be automatically attached as a file when this prompt is applied.
     *   **Associated Tools:** Select tools from your library that should be automatically activated when this prompt is used.
     *   **Associated User Prompt:** Select a User Prompt to be automatically inserted into the input bar when this System Prompt is applied.
@@ -246,3 +249,46 @@ AiStudio4 allows you to import conversations from Google AI Studio and export co
 5.  **Upload:**
     *   The conversation will be converted to Google AI Studio format and uploaded as a JSON file to your "Google AI Studio" folder on Google Drive.
     *   A confirmation message will appear with the file ID if successful.
+
+## 4.11 Marp Presentations (Early Preview)
+
+AiStudio4 includes initial support for Marp (Markdown Presentation Ecosystem), allowing you to create and view interactive presentations directly within the chat interface. When the AI generates markdown content with Marp frontmatter, it's automatically rendered as a presentation.
+
+### 4.11.1 Creating Marp Presentations
+
+Marp presentations are detected through YAML frontmatter in markdown content. Ask the AI to create a presentation, and it will generate content like:
+
+```markdown
+---
+marp: true
+theme: default
+size: 16:9
+paginate: true
+---
+
+# Your Presentation Title
+
+Content for the first slide
+
+---
+
+# Second Slide
+
+More content here
+```
+
+### 4.11.2 Available Features
+
+When a Marp presentation is rendered, you currently have access to:
+
+* **Navigation Controls:** Previous/Next buttons and slide counter
+* **Keyboard Navigation:** Arrow keys, Space, Enter, and Escape for navigation  
+* **Slide Thumbnails:** Collapsible sidebar showing all slides with click-to-navigate
+* **Presenter Mode:** Dedicated view showing current slide, next slide preview, and speaker notes
+* **Go to Slide:** Direct navigation to specific slide numbers
+* **Speaker Notes:** Add notes to slides using HTML comments that are only visible in presenter mode
+* **Timer/Stopwatch:** Built-in timing functionality for presentations
+
+### 4.11.3 Development Status
+
+Marp integration is currently in early development. Some features mentioned in the frontmatter (like theme selection) may not be fully functional yet. Advanced features such as export capabilities, full theme integration, and touch gesture support are planned for future releases.
