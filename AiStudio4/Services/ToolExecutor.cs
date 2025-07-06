@@ -40,7 +40,7 @@ public class ToolExecutor : IToolExecutor
         _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
     }
 
-    public async Task<BuiltinToolResult> ExecuteToolAsync(string toolName, string toolParameters, ToolExecutionContext context)
+    public async Task<BuiltinToolResult> ExecuteToolAsync(string toolName, string toolParameters, ToolExecutionContext context, CancellationToken cancellationToken)
     {
         // Check for user interjections before tool execution
         if (await _interjectionService.HasInterjectionAsync(context.ClientId))
@@ -115,7 +115,7 @@ public class ToolExecutor : IToolExecutor
             var serverId = toolName.Split('_')[0];
             var actualToolName = string.Join("_", toolName.Split('_').Skip(1));
             
-            return await ExecuteMcpTool(serverId, actualToolName, cleanedToolParameters, context, toolName, taskDescription);
+            return await ExecuteMcpTool(serverId, actualToolName, cleanedToolParameters, context, toolName, cancellationToken, taskDescription);
         }
 
         // Check for tools without prefix (Claude sometimes drops the prefix)
@@ -126,7 +126,7 @@ public class ToolExecutor : IToolExecutor
 
             if (mcpTool != null)
             {
-                return await ExecuteMcpTool(serverDefinition.Id, toolName, cleanedToolParameters, context, toolName, taskDescription);
+                return await ExecuteMcpTool(serverDefinition.Id, toolName, cleanedToolParameters, context, toolName, cancellationToken, taskDescription);
             }
         }
 
@@ -140,7 +140,7 @@ public class ToolExecutor : IToolExecutor
         };
     }
 
-    private async Task<BuiltinToolResult> ExecuteMcpTool(string serverId, string actualToolName, string cleanedToolParameters, ToolExecutionContext context, string displayToolName, string taskDescription = null)
+    private async Task<BuiltinToolResult> ExecuteMcpTool(string serverId, string actualToolName, string cleanedToolParameters, ToolExecutionContext context, string displayToolName, CancellationToken cancellationToken, string taskDescription = null)
     {
         try
         {
@@ -149,7 +149,7 @@ public class ToolExecutor : IToolExecutor
             // Notify UI of MCP tool execution start
             await _notificationService.NotifyStatusMessage(context.ClientId, $"Executing MCP tool: {displayToolName}");
             
-            var mcpResult = await _mcpService.CallToolAsync(serverId, actualToolName, args);
+            var mcpResult = await _mcpService.CallToolAsync(serverId, actualToolName, args, cancellationToken);
             
             var result = new BuiltinToolResult 
             { 

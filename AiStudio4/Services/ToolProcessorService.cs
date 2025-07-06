@@ -140,7 +140,7 @@ namespace AiStudio4.Services
                 await _notificationFacade.SendStatusMessageAsync(clientId, $"Re-applying MCP tool: {displayToolName}");
                 
                 // Call the MCP tool
-                var mcpResult = await _mcpService.CallToolAsync(serverId, actualToolName, args);
+                var mcpResult = await _mcpService.CallToolAsync(serverId, actualToolName, args, new CancellationToken());
                 
                 var result = new BuiltinToolResult 
                 { 

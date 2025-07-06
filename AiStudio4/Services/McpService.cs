@@ -176,7 +176,7 @@ namespace AiStudio4.Services
         }
 
 
-        public async Task<CallToolResponse> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments)
+        public async Task<CallToolResponse> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments, CancellationToken cancellationToken)
         {
             await EnsureInitialized();
 
@@ -191,7 +191,7 @@ namespace AiStudio4.Services
             {
                 _logger.LogInformation("Calling tool {ToolName} for MCP server {ServerId}", toolName, serverId);
 
-                var retval = await client.CallToolAsync(toolName, arguments);
+                var retval = await client.CallToolAsync(toolName, arguments, null, null, cancellationToken);
 
                 _logger.LogInformation("Successfully called tool {ToolName} for MCP server {ServerId}", toolName, serverId);
                 return retval;

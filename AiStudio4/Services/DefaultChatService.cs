@@ -131,7 +131,7 @@ namespace AiStudio4.Services
             }
         }
 
-        public async Task<ChatResponse> ProcessChatRequest(ChatRequest request, string assistantMessageId)
+        public async Task<ChatResponse> ProcessChatRequest(ChatRequest request, string assistantMessageId, CancellationToken cancellationToken)
         {
             try
             {

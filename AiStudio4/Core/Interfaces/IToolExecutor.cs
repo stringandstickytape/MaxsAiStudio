@@ -19,7 +19,7 @@ public interface IToolExecutor
     /// <param name="toolParameters">The JSON string of parameters for the tool.</param>
     /// <param name="context">Execution context including client ID, cancellation token, etc.</param>
     /// <returns>The result of the tool execution.</returns>
-    Task<BuiltinToolResult> ExecuteToolAsync(string toolName, string toolParameters, ToolExecutionContext context);
+    Task<BuiltinToolResult> ExecuteToolAsync(string toolName, string toolParameters, ToolExecutionContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Gets all tools available for the AI to use.
