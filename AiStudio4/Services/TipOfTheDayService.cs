@@ -57,7 +57,7 @@ namespace AiStudio4.Services
                 if (File.Exists(tipsFilePath))
                 {
                     var jsonContent = File.ReadAllText(tipsFilePath);
-                    var tips = JsonSerializer.Deserialize<List<TipOfTheDay>>(jsonContent);
+                    var tips = System.Text.Json.JsonSerializer.Deserialize<List<TipOfTheDay>>(jsonContent);
                     return tips ?? CreateFallbackTips();
                 }
                 
