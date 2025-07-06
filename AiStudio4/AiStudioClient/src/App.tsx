@@ -160,7 +160,7 @@ function App() {
         // Show tip on startup with a small delay to ensure app is fully loaded
         setTimeout(() => {
           showTip();
-        }, 500);
+        }, 100);
       } catch (error) {
         console.error('Failed to initialize tip of the day:', error);
       }

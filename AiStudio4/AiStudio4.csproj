@@ -89,6 +89,9 @@
 	  <None Update="app-nuget-license.txt">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Data\tips.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	</ItemGroup>
 
 	<Target Name="NpmBuild" BeforeTargets="BeforeBuild;PrepareForRun" Inputs="@(TypeScriptFiles)" Outputs="$(ProjectDir)AiStudioClient\dist\index.html">
