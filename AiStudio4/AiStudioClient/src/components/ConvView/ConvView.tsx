@@ -191,6 +191,7 @@ export const ConvView = ({
                     onActivateSticking={() => setStickToBottom(true)} 
                     stickToBottomEnabled={stickToBottomEnabled}
                     scrollContainerRef={scrollContainerRef}
+                    chatSpaceWidth={chatSpaceWidth}
                 />
             </StickToBottom>
         );
@@ -212,6 +213,7 @@ export const ConvView = ({
                     onActivateSticking={() => setStickToBottom(true)} 
                     stickToBottomEnabled={stickToBottomEnabled}
                     scrollContainerRef={scrollContainerRef}
+                    chatSpaceWidth={chatSpaceWidth}
                 />
             </div>
         );

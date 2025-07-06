@@ -7,20 +7,23 @@ interface ScrollToBottomButtonProps {
   onActivateSticking: () => void;
   stickToBottomEnabled?: boolean;
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
+  chatSpaceWidth?: string;
 }
 
 // Custom comparison function for ScrollToBottomButton memoization
 const areScrollButtonPropsEqual = (prevProps: ScrollToBottomButtonProps, nextProps: ScrollToBottomButtonProps) => {
   return (
     prevProps.stickToBottomEnabled === nextProps.stickToBottomEnabled &&
-    prevProps.scrollContainerRef === nextProps.scrollContainerRef
+    prevProps.scrollContainerRef === nextProps.scrollContainerRef &&
+    prevProps.chatSpaceWidth === nextProps.chatSpaceWidth
   );
 };
 
 export const ScrollToBottomButton = React.memo(({ 
   onActivateSticking, 
   stickToBottomEnabled = true, 
-  scrollContainerRef 
+  scrollContainerRef,
+  chatSpaceWidth = 'full'
 }: ScrollToBottomButtonProps) => {
   
   // State for manual scroll position tracking when stick-to-bottom is disabled
@@ -87,7 +90,7 @@ export const ScrollToBottomButton = React.memo(({
 
   return (
     <button
-      className="absolute rounded-full p-2 shadow-md right-4 bottom-4 z-10 transition-colors ScrollToBottomButton"
+      className="absolute left-1/2 -translate-x-1/2 bottom-4 z-10 rounded-full p-2 shadow-md transition-colors ScrollToBottomButton"
       onClick={handleScrollToBottom}
       aria-label="Scroll to bottom"
       style={{
