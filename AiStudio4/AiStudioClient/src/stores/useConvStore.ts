@@ -116,6 +116,20 @@ export const useConvStore = create<ConvState>((set, get) => {
                             temperature: content.temperature
                         },
                     });
+                    
+                    // For AI messages with empty content blocks, immediately mark as streaming
+                    // This ensures the UI component can set up listeners before first cfrag arrives
+                    const isAiMessage = content.source === 'ai' || content.source === 'assistant';
+                    const hasEmptyContent = !contentBlocks?.length || contentBlocks.every(block => !block.content?.trim());
+                    console.log(`🏗️ ConvStore: Added message ${content.id}, isAi: ${isAiMessage}, hasEmptyContent: ${hasEmptyContent}`);
+                    if (isAiMessage && hasEmptyContent) {
+                        console.log(`🎯 ConvStore: Pre-marking ${content.id} as streaming before first cfrag`);
+                        // Import and use WebSocket store to mark as streaming immediately
+                        import('@/stores/useWebSocketStore').then(({ useWebSocketStore }) => {
+                            useWebSocketStore.getState().addStreamingMessage(content.id);
+                            console.log(`✅ ConvStore: Successfully pre-marked ${content.id} as streaming`);
+                        });
+                    }
                 }
                 
                 // Special handling for AI messages: ensure they're selected in the UI
