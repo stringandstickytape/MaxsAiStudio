@@ -17,7 +17,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
     getCurrentTip,
   } = useTipOfTheDayStore();
   
-  const { setInputValue } = useInputBarStore();
+  const { setInputText } = useInputBarStore();
   const { sendMessage } = useConvStore();
   
   // Fetch initial tip when component mounts
@@ -29,7 +29,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
   
   const handleShowMe = async () => {
     if (currentTip) {
-      setInputValue(currentTip.samplePrompt);
+      setInputText(currentTip.samplePrompt);
       hideTip();
       // Small delay to ensure overlay hides before sending
       setTimeout(() => {
@@ -184,17 +184,6 @@ export const TipOfTheDayOverlay: React.FC = () => {
                 </div>
               )}
               
-              {currentTip.category && (
-                <div 
-                  className="tip-category"
-                  style={{
-                    fontSize: 'calc(var(--global-font-size) * 0.85)',
-                    color: 'var(--global-secondary-text-color)',
-                  }}
-                >
-                  Category: {currentTip.category}
-                </div>
-              )}
             </div>
           )}
           

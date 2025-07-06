@@ -2,50 +2,6 @@
   {
     "Id": "tip-001",
     "Tip": "You can branch at any point in the conversation history.  Just click any message in the sidebar hierarchy.",
-    "SamplePrompt": "",
-    "Category": "Branching",
-    "CreatedAt": "2025-01-01T00:00:00.000Z"
-  },
-  {
-    "Id": "tip-002",
-    "Tip": "Try using the conversation tree view to explore different conversation branches and see how your chat evolved.",
-    "SamplePrompt": "/toggle-conv-tree",
-    "Category": "Navigation",
-    "CreatedAt": "2025-01-01T00:00:00.000Z"
-  },
-  {
-    "Id": "tip-003",
-    "Tip": "Use file attachments to provide context to your AI assistant about your codebase or documents.",
-    "SamplePrompt": "Analyze this code file and suggest improvements for performance and readability.",
-    "Category": "File Management",
-    "CreatedAt": "2025-01-01T00:00:00.000Z"
-  },
-  {
-    "Id": "tip-004",
-    "Tip": "Create user prompts to save and reuse your favorite prompt templates.",
-    "SamplePrompt": "/user-prompt Code Review Template",
-    "Category": "User Prompts",
-    "CreatedAt": "2025-01-01T00:00:00.000Z"
-  },
-  {
-    "Id": "tip-005",
-    "Tip": "Use the command palette (/) to quickly access features like creating new conversations, changing models, or opening settings.",
-    "SamplePrompt": "/new-conv",
-    "Category": "Commands",
-    "CreatedAt": "2025-01-01T00:00:00.000Z"
-  },
-  {
-    "Id": "tip-006",
-    "Tip": "Enable tools to give your AI assistant powerful capabilities like web search, file operations, and code analysis.",
-    "SamplePrompt": "Search the web for the latest React 18 best practices and summarize the key points.",
-    "Category": "Tools",
-    "CreatedAt": "2025-01-01T00:00:00.000Z"
-  },
-  {
-    "Id": "tip-007",
-    "Tip": "Customize your theme and appearance to create a comfortable working environment that suits your preferences.",
-    "SamplePrompt": "/appearance",
-    "Category": "Customization",
-    "CreatedAt": "2025-01-01T00:00:00.000Z"
+    "SamplePrompt": ""
   }
 ]

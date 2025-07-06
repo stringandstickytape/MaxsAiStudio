@@ -28,9 +28,7 @@ namespace AiStudio4.Services
                 {
                     Id = "tip-000",
                     Tip = "Welcome to AI Studio! Start exploring the features.",
-                    SamplePrompt = "/help",
-                    Category = "Welcome",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
+                    SamplePrompt = "",
                 };
             }
 
@@ -77,9 +75,7 @@ namespace AiStudio4.Services
                 {
                     Id = "tip-fallback",
                     Tip = "Welcome to AI Studio! Start exploring the features.",
-                    SamplePrompt = "/help",
-                    Category = "Welcome",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
+                    SamplePrompt = "",
                 }
             };
         }
