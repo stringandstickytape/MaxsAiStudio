@@ -10,6 +10,7 @@ import { useSearchStore } from '@/stores/useSearchStore';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { useMessageStream } from '@/hooks/useMessageStream';
 import { contentBlockRendererRegistry } from '@/components/content/contentBlockRendererRegistry';
+import { AnimatedStreamingContent } from './AnimatedStreamingContent';
 import { MessageUtils } from '@/utils/messageUtils';
 import { Pencil } from 'lucide-react';
 import { formatModelDisplay } from '@/utils/modelUtils';
@@ -250,7 +251,7 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
   
   
   // Use the new streaming hook
-  const { streamedContent } = useMessageStream(message.id, isStreamingTarget);
+  const { streamedContent, newContentInfo } = useMessageStream(message.id, isStreamingTarget);
   
   // --- NEW RENDER FUNCTION ---
   const renderContent = () => {
@@ -258,10 +259,15 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
 
       
     if (isStreamingTarget) {
-
-      // get a text renderer, which renders a markdown pane
-      const Renderer = contentBlockRendererRegistry.get('text'); // Stream is always text
-      return <Renderer block={{ content: streamedContent, contentType: 'text' }} messageId={message.id} />;
+      console.log(`🎯 MessageItem: Using streaming renderer for ${message.id}, content="${streamedContent}"`);
+      // Use animated streaming content renderer
+      return (
+        <AnimatedStreamingContent
+          content={streamedContent}
+          messageId={message.id}
+          newContentInfo={newContentInfo}
+        />
+      );
     }
 
     // Render all stored content blocks for the message
