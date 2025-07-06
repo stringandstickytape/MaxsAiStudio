@@ -55,7 +55,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     isDarkMode = settings.IsDarkMode,
                     chatPanelSize = settings.ChatPanelSize,
                     inputBarPanelSize = settings.InputBarPanelSize,
-                    stickToBottomEnabled = settings.StickToBottomEnabled,
                     chatSpaceWidth = settings.ChatSpaceWidth,
                 });
             }
@@ -79,7 +78,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     IsDarkMode = requestObject["isDarkMode"]?.Value<bool>() ?? currentSettings.IsDarkMode,
                     ChatPanelSize = requestObject["chatPanelSize"]?.Value<int>() ?? currentSettings.ChatPanelSize,
                     InputBarPanelSize = requestObject["inputBarPanelSize"]?.Value<int>() ?? currentSettings.InputBarPanelSize,
-                    StickToBottomEnabled = requestObject["stickToBottomEnabled"]?.Value<bool>() ?? currentSettings.StickToBottomEnabled,
                     ChatSpaceWidth = requestObject["chatSpaceWidth"]?.Value<string>() ?? currentSettings.ChatSpaceWidth,
                 };
 
