@@ -137,55 +137,55 @@ Each tip follows this JSON structure:
 For each file, follow this process:
 
 ### 1. Read and Analyze
-- [ ] Read the entire file carefully
-- [ ] Identify key features, shortcuts, best practices
-- [ ] Note any "hidden" functionality or non-obvious benefits
-- [ ] Look for workflow optimizations
+-  Read the entire file carefully
+-  Identify key features, shortcuts, best practices
+-  Note any "hidden" functionality or non-obvious benefits
+-  Look for workflow optimizations
 
 ### 2. Extract Tips
 Focus on extracting tips about:
-- [ ] **Feature Discovery** - "Did you know you can..."
-- [ ] **Workflow Optimization** - "Speed up your work by..."
-- [ ] **Best Practices** - "For best results, try..."
-- [ ] **Hidden Features** - "You can also..."
-- [ ] **Troubleshooting** - "If X happens, try Y..."
-- [ ] **Integration Tips** - "Works well with..."
+-  **Feature Discovery** - "Did you know you can..."
+-  **Workflow Optimization** - "Speed up your work by..."
+-  **Best Practices** - "For best results, try..."
+-  **Hidden Features** - "You can also..."
+-  **Troubleshooting** - "If X happens, try Y..."
+-  **Integration Tips** - "Works well with..."
 
 ### 3. Write Tips
 For each tip:
-- [ ] Create a unique ID (tip-XXX)
-- [ ] Write clear, concise tip text
-- [ ] Add sample prompt only if it directly demonstrates the tip
-- [ ] Ensure tip provides immediate value to users
+-  Create a unique ID (tip-XXX)
+-  Write clear, concise tip text
+-  Add sample prompt only if it directly demonstrates the tip
+-  Ensure tip provides immediate value to users
 
 ### 4. Common Tip Categories to Look For
 
 #### UI/UX Tips
-- [ ] Keyboard shortcuts
-- [ ] Context menu options
-- [ ] Drag-and-drop functionality
-- [ ] Panel management
-- [ ] Visual customization options
+-  Keyboard shortcuts
+-  Context menu options
+-  Drag-and-drop functionality
+-  Panel management
+-  Visual customization options
 
 #### Feature Tips
-- [ ] Tool combinations that work well together
-- [ ] Advanced parameters or options
-- [ ] File format support
-- [ ] Integration capabilities
-- [ ] Performance optimization
+-  Tool combinations that work well together
+-  Advanced parameters or options
+-  File format support
+-  Integration capabilities
+-  Performance optimization
 
 #### Workflow Tips
-- [ ] Time-saving techniques
-- [ ] Automation possibilities
-- [ ] Best practices for specific tasks
-- [ ] Error prevention
-- [ ] Recovery methods
+-  Time-saving techniques
+-  Automation possibilities
+-  Best practices for specific tasks
+-  Error prevention
+-  Recovery methods
 
 #### Configuration Tips
-- [ ] Setup optimizations
-- [ ] Customization options
-- [ ] Environment-specific settings
-- [ ] Security considerations
+-  Setup optimizations
+-  Customization options
+-  Environment-specific settings
+-  Security considerations
 
 ---
 
@@ -194,51 +194,25 @@ For each tip:
 Before adding tips to the JSON file, ensure each tip meets these criteria:
 
 ### Content Quality
-- [ ] **Clear and Concise** - Easy to understand in 5 seconds
-- [ ] **Actionable** - User knows exactly what to do
-- [ ] **Valuable** - Provides real benefit to users
-- [ ] **Accurate** - Information is correct and up-to-date
-- [ ] **Specific** - Focuses on one clear concept
+-  **Clear and Concise** - Easy to understand in 5 seconds
+-  **Actionable** - User knows exactly what to do
+-  **Valuable** - Provides real benefit to users
+-  **Accurate** - Information is correct and up-to-date
+-  **Specific** - Focuses on one clear concept
 
 ### Technical Quality
-- [ ] **Unique ID** - No duplicate IDs
-- [ ] **Proper JSON Format** - Valid JSON syntax
-- [ ] **Appropriate Length** - Tip text under 200 characters when possible
-- [ ] **Sample Prompt Relevance** - Only included when directly relevant
+-  **Unique ID** - No duplicate IDs; ids for tips related to tools should be based in part on the tool name
+-  **Proper JSON Format** - Valid JSON syntax
+-  **Appropriate Length** - Tip text under 200 characters when possible
+-  **Sample Prompt Relevance** - Only included when directly relevant
 
 ### User Experience
-- [ ] **Beginner Friendly** - Avoids excessive jargon
-- [ ] **Contextual** - Makes sense without additional explanation
-- [ ] **Motivating** - Encourages users to try the feature
-- [ ] **Practical** - Addresses real user needs
-
----
-
-## Completion Notes
-
-### Next Steps After Completing Checklist
-1. Review all extracted tips for duplicates
-2. Organize tips by category if needed
-3. Update the `tips.json` file with new entries
-4. Test that JSON file is valid
-5. Consider tip rotation/randomization logic
-
-### Estimated Time
-- Core documentation: 2-3 hours
-- Tool documentation: 4-6 hours
-- Quality review and JSON updates: 1-2 hours
-- **Total: 7-11 hours**
-
-### Success Metrics
-- Target: 50-100 new tips extracted
-- Quality: Each tip should be immediately useful
-- Coverage: All major features should have at least one tip
-- Variety: Mix of beginner and advanced tips
+-  **Beginner Friendly** - Avoids excessive jargon
+-  **Contextual** - Makes sense without additional explanation
+-  **Motivating** - Encourages users to try the feature
+-  **Practical** - Addresses real user needs
 
 ---
 
 ## File Location
-Tips should be added to: `AiStudio4/Data/tips.json`
-
-Current tips count: 1 (tip-001)
-Target tips count: 50-100+
+Tips should be added to: `AiStudio4/Data/tips.json`.  There is no limit on how many tips should be added.  All useful distinct tips are worthwhile.
