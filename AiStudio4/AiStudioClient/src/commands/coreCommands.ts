@@ -4,6 +4,7 @@ import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal, Bug } fro
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { useDebugStore } from '@/stores/useDebugStore';
+import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { createApiRequest } from '@/utils/apiUtils';
 import { commandRegistry } from '@/services/commandRegistry';
 
