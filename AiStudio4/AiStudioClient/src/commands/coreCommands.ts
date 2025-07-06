@@ -1,12 +1,13 @@
 ﻿// AiStudioClient/src/commands/coreCommands.ts
 import { v4 as uuidv4 } from 'uuid';
-import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal, Bug } from 'lucide-react';
+import { Plus, RefreshCw, Settings, GitBranch, ExternalLink, Terminal, Bug, Lightbulb } from 'lucide-react';
 import React from 'react';
 import { useConvStore } from '@/stores/useConvStore';
 import { useDebugStore } from '@/stores/useDebugStore';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { createApiRequest } from '@/utils/apiUtils';
 import { commandRegistry } from '@/services/commandRegistry';
+import { useTipOfTheDayStore } from '@/stores/useTipOfTheDayStore';
 
 export function initializeCoreCommands(handlers: {
   toggleSidebar: () => void;
@@ -37,6 +38,8 @@ export function initializeCoreCommands(handlers: {
             id: convId,
             rootMessage: { id: messageId, content: '', source: 'system', timestamp: Date.now() },
           });
+          // Hide tip when starting new conversation
+          useTipOfTheDayStore.getState().hideTip();
         },
       ],
       [
@@ -119,6 +122,16 @@ export function initializeCoreCommands(handlers: {
           useDebugStore.getState().toggleDevContentView();
           const isVisible = useDebugStore.getState().showDevContentView;
           console.log(`Developer Content View: ${isVisible ? 'ON' : 'OFF'}`);
+        },
+      ],
+      [
+        'show-tip-of-the-day',
+        'Show Tip of the Day',
+        '',
+        ['tip', 'help', 'hint', 'suggestion', 'advice', 'guide', 'tutorial', 'learn'],
+        React.createElement(Lightbulb, { size: 16 }),
+        () => {
+          useTipOfTheDayStore.getState().showTip();
         },
       ],
     ].map(([id, name, shortcut, keywords, icon, fn]) => ({

@@ -22,6 +22,7 @@ using AiStudio4.Core;
 
 
 using AiStudio4.Services.Interfaces;
+using AiStudio4.Core.Interfaces;
 using System.Net.Http; 
 namespace AiStudio4
 {
@@ -103,6 +104,7 @@ namespace AiStudio4
             services.AddSingleton<IConversationArchivingService, ConversationArchivingService>();
             services.AddSingleton<IGeneralSettingsService, GeneralSettingsService>();
             services.AddSingleton<IAppearanceSettingsService, AppearanceSettingsService>();
+            services.AddSingleton<ITipOfTheDayService, TipOfTheDayService>();
             services.AddSingleton<IBuiltInToolExtraPropertiesService, BuiltInToolExtraPropertiesService>();
             services.AddSingleton<WebSocketConnectionManager>();
             services.AddSingleton<WebSocketMessageHandler>();
@@ -126,6 +128,7 @@ namespace AiStudio4
             services.AddTransient<IRequestHandler, MiscRequestHandler>();
             services.AddTransient<IRequestHandler, ConfigRequestHandler>();
             services.AddTransient<IRequestHandler, ProjectRequestHandler>();
+            services.AddTransient<IRequestHandler, TipOfTheDayRequestHandler>();
 
             // Register request router and broker
             services.AddSingleton<UiRequestRouter>();

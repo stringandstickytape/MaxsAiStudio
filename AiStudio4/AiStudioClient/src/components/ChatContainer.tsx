@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { ConvView } from './ConvView';
 import { useWebSocketStore } from '@/stores/useWebSocketStore';
+import { TipOfTheDayOverlay } from './TipOfTheDayOverlay';
 // StickToBottom removed
 
 interface ChatContainerProps {
@@ -21,10 +22,11 @@ export const ChatContainer = React.memo(({ isMobile, isCancelling }: ChatContain
   const { isCancelling: wsIsCancelling } = useWebSocketStore();
   
   return (
-      <div className="h-full w-full overflow-hidden">
+      <div className="h-full w-full overflow-hidden relative">
           <ConvView 
             isCancelling={isCancelling || wsIsCancelling}
           />
+          <TipOfTheDayOverlay />
     </div>
   );
 }, areChatContainerPropsEqual);
