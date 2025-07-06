@@ -228,7 +228,7 @@ export const MarkdownPane = React.memo(function MarkdownPane({
       }
       .code-content {
         max-height: 50000px;
-        transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+        transition: max-height .1s ease-in-out;
         overflow: hidden;
         opacity: 1;
       }
