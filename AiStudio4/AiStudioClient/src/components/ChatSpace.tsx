@@ -122,14 +122,12 @@ export function ChatSpace() {
       </div>
       
       <div 
-        className="flex-1 min-h-0 w-full" 
+        className="flex-1 overflow-hidden min-h-0 w-full" 
         style={{
           width: '100%'
         }}
       >
-        <div className={`w-full h-full ${getWidthClass(chatSpaceWidth)} mx-auto`}>
-          {memoizedChatContainer}
-        </div>
+        {memoizedChatContainer}
       </div>
       
       <div className="flex-shrink-0 w-full overflow-auto pr-4">

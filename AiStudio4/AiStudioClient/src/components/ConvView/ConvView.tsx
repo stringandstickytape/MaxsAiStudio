@@ -23,6 +23,22 @@ interface ConvViewProps {
 export const ConvView = ({
     isCancelling = false
 }: ConvViewProps) => {
+    const getWidthClass = (width: string = 'full') => {
+        switch (width) {
+            case 'sm': return 'max-w-sm';
+            case 'md': return 'max-w-md';
+            case 'lg': return 'max-w-lg';
+            case 'xl': return 'max-w-xl';
+            case '2xl': return 'max-w-2xl';
+            case '3xl': return 'max-w-3xl';
+            case '4xl': return 'max-w-4xl';
+            case '5xl': return 'max-w-5xl';
+            case '6xl': return 'max-w-6xl';
+            case '7xl': return 'max-w-7xl';
+            case 'full': return 'max-w-full';
+            default: return 'max-w-3xl';
+        }
+    };
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [isScrolling, setIsScrolling] = useState(false);
@@ -32,6 +48,7 @@ export const ConvView = ({
     // Get stick-to-bottom setting from appearance store
     const stickToBottomEnabled = useAppearanceStore(state => state.stickToBottomEnabled);
     const setStickToBottom = useAppearanceStore(state => state.setStickToBottom);
+    const chatSpaceWidth = useAppearanceStore(state => state.chatSpaceWidth);
     
     
     // Optimize store subscription - only get what we need
@@ -163,8 +180,10 @@ export const ConvView = ({
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
-                <StickToBottom.Content className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
-                    {messageContent}
+                <StickToBottom.Content>
+                    <div className={`ConvView flex flex-col gap-4 w-full ${getWidthClass(chatSpaceWidth)} mx-auto px-4`}>
+                        {messageContent}
+                    </div>
                 </StickToBottom.Content>
                 
                 {/* Add scroll to bottom button */}
@@ -184,7 +203,7 @@ export const ConvView = ({
                 onMouseEnter={() => setIsHovering(true)}
                 onMouseLeave={() => setIsHovering(false)}
             >
-                <div className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
+                <div className={`ConvView flex flex-col gap-4 w-full ${getWidthClass(chatSpaceWidth)} mx-auto px-4`}>
                     {messageContent}
                 </div>
                 
