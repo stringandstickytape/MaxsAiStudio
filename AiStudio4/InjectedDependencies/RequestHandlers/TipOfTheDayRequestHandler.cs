@@ -18,8 +18,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
 
         protected override IEnumerable<string> SupportedRequestTypes => new[]
         {
-            "tipOfTheDay/getSettings",
-            "tipOfTheDay/saveSettings"
+            "tipOfTheDay/getTipOfTheDay"
         };
 
         public override async Task<string> HandleAsync(string clientId, string requestType, JObject requestObject)
@@ -28,8 +27,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             {
                 return requestType switch
                 {
-                    "tipOfTheDay/getSettings" => await HandleGetSettingsRequest(requestObject),
-                    "tipOfTheDay/saveSettings" => await HandleSaveSettingsRequest(requestObject),
+                    "tipOfTheDay/getTipOfTheDay" => await HandleGetTipOfTheDayRequest(requestObject),
                     _ => SerializeError($"Unsupported request type: {requestType}")
                 };
             }
@@ -39,35 +37,10 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             }
         }
 
-        private async Task<string> HandleGetSettingsRequest(JObject requestObject)
+        private async Task<string> HandleGetTipOfTheDayRequest(JObject requestObject)
         {
-            var settings = _tipOfTheDayService.GetSettings();
-            return SerializeSuccess(settings);
-        }
-
-        private async Task<string> HandleSaveSettingsRequest(JObject requestObject)
-        {
-            var settingsObj = requestObject["settings"];
-            if (settingsObj == null)
-            {
-                return SerializeError("Settings object is required");
-            }
-
-            try
-            {
-                var settings = settingsObj.ToObject<TipOfTheDaySettings>();
-                if (settings == null)
-                {
-                    return SerializeError("Invalid settings format");
-                }
-
-                _tipOfTheDayService.UpdateSettings(settings);
-                return SerializeSuccess();
-            }
-            catch (Exception ex)
-            {
-                return SerializeError($"Failed to save settings: {ex.Message}");
-            }
+            var tip = _tipOfTheDayService.GetTipOfTheDay();
+            return SerializeSuccess(tip);
         }
     }
 }

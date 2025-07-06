@@ -1,103 +1,47 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using AiStudio4.InjectedDependencies;
 
 namespace AiStudio4.Services
 {
     public class TipOfTheDayService : ITipOfTheDayService
     {
-        private readonly string _settingsFilePath;
-        private readonly object _lock = new();
-        private TipOfTheDaySettings _settings = new();
+        private readonly IGeneralSettingsService _generalSettingsService;
+        private readonly List<TipOfTheDay> _tips;
 
-        public TipOfTheDayService()
+        public TipOfTheDayService(IGeneralSettingsService generalSettingsService)
         {
-            _settingsFilePath = PathHelper.GetProfileSubPath("settings.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(_settingsFilePath) ?? string.Empty);
-            LoadSettings();
+            _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
+            _tips = CreateDefaultTips();
         }
 
-        public void LoadSettings()
+        public TipOfTheDay GetTipOfTheDay()
         {
-            lock (_lock)
+            if (_tips.Count == 0)
             {
-                if (!File.Exists(_settingsFilePath))
+                return new TipOfTheDay
                 {
-                    _settings = CreateDefaultSettings();
-                    SaveSettings();
-                    return;
-                }
-
-                try
-                {
-                    var json = JObject.Parse(File.ReadAllText(_settingsFilePath));
-                    var section = json["tipOfTheDaySettings"];
-                    if (section != null)
-                    {
-                        _settings = section.ToObject<TipOfTheDaySettings>() ?? CreateDefaultSettings();
-                    }
-                    else
-                    {
-                        _settings = CreateDefaultSettings();
-                        SaveSettings();
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error loading tip of the day settings: {ex.Message}");
-                    _settings = CreateDefaultSettings();
-                    SaveSettings();
-                }
+                    Id = "tip-000",
+                    Tip = "Welcome to AI Studio! Start exploring the features.",
+                    SamplePrompt = "/help",
+                    Category = "Welcome",
+                    CreatedAt = DateTime.UtcNow.ToString("O")
+                };
             }
+
+            var currentTipIndex = _generalSettingsService.CurrentSettings.NextTipNumber % _tips.Count;
+            var currentTip = _tips[currentTipIndex];
+            
+            // Increment the tip number for next time
+            var settings = _generalSettingsService.CurrentSettings;
+            settings.NextTipNumber = (settings.NextTipNumber + 1) % _tips.Count;
+            _generalSettingsService.UpdateSettings(settings);
+            
+            return currentTip;
         }
 
-        public void SaveSettings()
-        {
-            lock (_lock)
-            {
-                try
-                {
-                    JObject json;
-                    if (File.Exists(_settingsFilePath))
-                    {
-                        json = JObject.Parse(File.ReadAllText(_settingsFilePath));
-                    }
-                    else
-                    {
-                        json = new JObject();
-                    }
-
-                    json["tipOfTheDaySettings"] = JToken.FromObject(_settings);
-                    File.WriteAllText(_settingsFilePath, json.ToString(Formatting.Indented));
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error saving tip of the day settings: {ex.Message}");
-                }
-            }
-        }
-
-        public TipOfTheDaySettings GetSettings() => _settings;
-
-        public void UpdateSettings(TipOfTheDaySettings settings)
-        {
-            _settings = settings ?? CreateDefaultSettings();
-            SaveSettings();
-        }
-
-        private TipOfTheDaySettings CreateDefaultSettings()
-        {
-            return new TipOfTheDaySettings
-            {
-                ShowOnStartup = true,
-                CurrentTipIndex = 0,
-                Tips = CreateDefaultTips()
-            };
-        }
 
         private List<TipOfTheDay> CreateDefaultTips()
         {

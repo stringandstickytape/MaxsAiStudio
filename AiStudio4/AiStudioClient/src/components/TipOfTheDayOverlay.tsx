@@ -4,38 +4,28 @@ import { Card } from '@/components/ui/card';
 import { useTipOfTheDayStore } from '@/stores/useTipOfTheDayStore';
 import { useInputBarStore } from '@/stores/useInputBarStore';
 import { useConvStore } from '@/stores/useConvStore';
-import { ChevronLeft, ChevronRight, Lightbulb, X } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { Lightbulb, X } from 'lucide-react';
 
 export const TipOfTheDayOverlay: React.FC = () => {
   const {
-    tips,
-    currentTipIndex,
-    showOnStartup,
+    currentTip,
     isVisible,
     isLoading,
     error,
-    setShowOnStartup,
     hideTip,
-    nextTip,
-    previousTip,
-    fetchSettings,
-    saveSettings,
+    fetchNextTip,
     getCurrentTip,
   } = useTipOfTheDayStore();
   
   const { setInputValue } = useInputBarStore();
   const { sendMessage } = useConvStore();
   
-  // Fetch settings when component mounts if not already loaded
+  // Fetch initial tip when component mounts
   useEffect(() => {
-    if (tips.length === 0 && !isLoading) {
-      fetchSettings();
+    if (!currentTip && !isLoading && isVisible) {
+      fetchNextTip();
     }
-  }, [tips.length, isLoading, fetchSettings]);
-  
-  const currentTip = getCurrentTip();
+  }, [currentTip, isLoading, isVisible, fetchNextTip]);
   
   const handleShowMe = async () => {
     if (currentTip) {
@@ -52,9 +42,8 @@ export const TipOfTheDayOverlay: React.FC = () => {
     hideTip();
   };
   
-  const handleShowOnStartupChange = (checked: boolean) => {
-    setShowOnStartup(checked);
-    saveSettings();
+  const handleNextTip = () => {
+    fetchNextTip();
   };
   
   if (!isVisible) return null;
@@ -207,12 +196,12 @@ export const TipOfTheDayOverlay: React.FC = () => {
             </div>
           )}
           
-          {!isLoading && !error && tips.length === 0 && (
+          {!isLoading && !error && !currentTip && (
             <div 
               className="text-center py-8"
               style={{ color: 'var(--global-secondary-text-color)' }}
             >
-              No tips available
+              No tip available
             </div>
           )}
         </div>
@@ -226,72 +215,31 @@ export const TipOfTheDayOverlay: React.FC = () => {
             borderTop: `1px solid var(--global-border-color)`,
           }}
         >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="show-on-startup"
-                checked={showOnStartup}
-                onCheckedChange={handleShowOnStartupChange}
-              />
-              <Label 
-                htmlFor="show-on-startup"
-                style={{
-                  fontSize: 'calc(var(--global-font-size) * 0.9)',
-                  color: 'var(--global-secondary-text-color)',
-                }}
-              >
-                Show on startup
-              </Label>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {tips.length > 1 && (
-                <>
-                  <Button
-                    onClick={previousTip}
-                    variant="ghost"
-                    size="sm"
-                    disabled={isLoading}
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </Button>
-                  <span 
-                    style={{ 
-                      fontSize: 'calc(var(--global-font-size) * 0.85)',
-                      color: 'var(--global-secondary-text-color)',
-                    }}
-                  >
-                    {currentTipIndex + 1} / {tips.length}
-                  </span>
-                  <Button
-                    onClick={nextTip}
-                    variant="ghost"
-                    size="sm"
-                    disabled={isLoading}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </>
-              )}
-              
-              <Button 
-                onClick={handleShowMe} 
-                variant="default"
-                disabled={isLoading || !currentTip}
-                style={{
-                  backgroundColor: 'var(--global-primary-color)',
-                  color: 'white',
-                }}
-              >
-                Show Me
-              </Button>
-              <Button 
-                onClick={handleDismiss} 
-                variant="outline"
-              >
-                OK
-              </Button>
-            </div>
+          <div className="flex items-center justify-end gap-2">
+            <Button 
+              onClick={handleNextTip} 
+              variant="outline"
+              disabled={isLoading}
+            >
+              Next Tip
+            </Button>
+            <Button 
+              onClick={handleShowMe} 
+              variant="default"
+              disabled={isLoading || !currentTip}
+              style={{
+                backgroundColor: 'var(--global-primary-color)',
+                color: 'white',
+              }}
+            >
+              Show Me
+            </Button>
+            <Button 
+              onClick={handleDismiss} 
+              variant="outline"
+            >
+              OK
+            </Button>
           </div>
         </div>
       </Card>

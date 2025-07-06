@@ -152,19 +152,15 @@ function App() {
   // Initialize tip of the day
   useEffect(() => {
     const initializeTipOfTheDay = async () => {
-      const { fetchSettings, showTip } = useTipOfTheDayStore.getState();
+      const { fetchNextTip, showTip } = useTipOfTheDayStore.getState();
       
       try {
-        await fetchSettings();
+        await fetchNextTip();
         
-        // Check if we should show tip after settings are loaded
-        const currentState = useTipOfTheDayStore.getState();
-        if (currentState.showOnStartup) {
-          // Small delay to ensure app is fully loaded
-          setTimeout(() => {
-            showTip();
-          }, 1000);
-        }
+        // Show tip on startup with a small delay to ensure app is fully loaded
+        setTimeout(() => {
+          showTip();
+        }, 1000);
       } catch (error) {
         console.error('Failed to initialize tip of the day:', error);
       }
