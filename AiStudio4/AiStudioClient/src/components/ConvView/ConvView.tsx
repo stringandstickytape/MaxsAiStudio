@@ -46,8 +46,6 @@ export const ConvView = ({
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     
     // Get stick-to-bottom setting from appearance store
-    const stickToBottomEnabled = useAppearanceStore(state => state.stickToBottomEnabled);
-    const setStickToBottom = useAppearanceStore(state => state.setStickToBottom);
     const chatSpaceWidth = useAppearanceStore(state => state.chatSpaceWidth);
     
     
@@ -171,7 +169,6 @@ export const ConvView = ({
         </>
     );
 
-    if (stickToBottomEnabled) {
         return (
             <StickToBottom 
                 className={containerClassName}
@@ -188,34 +185,10 @@ export const ConvView = ({
                 
                 {/* Add scroll to bottom button */}
                 <ScrollToBottomButton 
-                    onActivateSticking={() => setStickToBottom(true)} 
-                    stickToBottomEnabled={stickToBottomEnabled}
                     scrollContainerRef={scrollContainerRef}
                     chatSpaceWidth={chatSpaceWidth}
                 />
             </StickToBottom>
         );
-    } else {
-        return (
-            <div 
-                className={containerClassName}
-                ref={scrollContainerRef}
-                style={containerStyle}
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => setIsHovering(false)}
-            >
-                <div className={`ConvView flex flex-col gap-4 w-full ${getWidthClass(chatSpaceWidth)} mx-auto px-4`}>
-                    {messageContent}
-                </div>
-                
-                {/* Add scroll to bottom button */}
-                <ScrollToBottomButton 
-                    onActivateSticking={() => setStickToBottom(true)} 
-                    stickToBottomEnabled={stickToBottomEnabled}
-                    scrollContainerRef={scrollContainerRef}
-                    chatSpaceWidth={chatSpaceWidth}
-                />
-            </div>
-        );
-    }
+  
 };

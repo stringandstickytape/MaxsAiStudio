@@ -8,7 +8,6 @@ interface AppearanceState {
   isDarkMode: boolean;
   chatPanelSize: number;
   inputBarPanelSize: number;
-  stickToBottomEnabled: boolean;
   chatSpaceWidth: string;
   isLoading: boolean;
   error: string | null;
@@ -21,8 +20,6 @@ interface AppearanceState {
   setChatPanelSize: (size: number) => void;
   setInputBarPanelSize: (size: number) => void;
   setPanelSizes: (chatSize: number, inputBarSize: number) => void;
-  toggleStickToBottom: () => void;
-  setStickToBottom: (enabled: boolean) => void;
   setChatSpaceWidth: (width: string) => void;
   saveAppearanceSettings: () => Promise<void>;
   loadAppearanceSettings: () => Promise<void>;
@@ -41,7 +38,6 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
   isDarkMode: true,
   chatPanelSize: 70,
   inputBarPanelSize: 30,
-  stickToBottomEnabled: true,
   chatSpaceWidth: '3xl',
   isLoading: false,
   error: null,
@@ -89,23 +85,13 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
       inputBarPanelSize: Math.max(10, Math.min(50, inputBarSize)),
     })),
 
-  toggleStickToBottom: () =>
-    set((state) => ({
-      stickToBottomEnabled: !state.stickToBottomEnabled,
-    })),
-
-  setStickToBottom: (enabled) =>
-    set((state) => ({
-      stickToBottomEnabled: enabled,
-    })),
-
   setChatSpaceWidth: (width) =>
     set((state) => ({
       chatSpaceWidth: width,
     })),
 
   saveAppearanceSettings: async () => {
-    const { fontSize, isDarkMode, chatPanelSize, inputBarPanelSize, stickToBottomEnabled, chatSpaceWidth } = get();
+    const { fontSize, isDarkMode, chatPanelSize, inputBarPanelSize, chatSpaceWidth } = get();
     set({ isLoading: true, error: null });
 
     try {
@@ -114,7 +100,6 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         isDarkMode,
         chatPanelSize,
         inputBarPanelSize,
-        stickToBottomEnabled,
         chatSpaceWidth,
       });
 
@@ -153,7 +138,6 @@ export const useAppearanceStore = create<AppearanceState>((set, get) => ({
         isDarkMode: data.isDarkMode ?? true,
         chatPanelSize,
         inputBarPanelSize,
-        stickToBottomEnabled: data.stickToBottomEnabled ?? true,
         chatSpaceWidth: data.chatSpaceWidth ?? '3xl',
       });
 

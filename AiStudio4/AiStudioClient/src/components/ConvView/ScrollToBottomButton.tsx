@@ -4,8 +4,6 @@ import { ArrowDown } from 'lucide-react';
 import React, { useCallback, useEffect, useState } from 'react';
 
 interface ScrollToBottomButtonProps {
-  onActivateSticking: () => void;
-  stickToBottomEnabled?: boolean;
   scrollContainerRef?: React.RefObject<HTMLDivElement>;
   chatSpaceWidth?: string;
 }
@@ -13,15 +11,12 @@ interface ScrollToBottomButtonProps {
 // Custom comparison function for ScrollToBottomButton memoization
 const areScrollButtonPropsEqual = (prevProps: ScrollToBottomButtonProps, nextProps: ScrollToBottomButtonProps) => {
   return (
-    prevProps.stickToBottomEnabled === nextProps.stickToBottomEnabled &&
     prevProps.scrollContainerRef === nextProps.scrollContainerRef &&
     prevProps.chatSpaceWidth === nextProps.chatSpaceWidth
   );
 };
 
 export const ScrollToBottomButton = React.memo(({ 
-  onActivateSticking, 
-  stickToBottomEnabled = true, 
   scrollContainerRef,
   chatSpaceWidth = 'full'
 }: ScrollToBottomButtonProps) => {
@@ -33,9 +28,7 @@ export const ScrollToBottomButton = React.memo(({
   // Try to get context, but handle the case where it doesn't exist
   let stickToBottomContext = null;
   try {
-    if (stickToBottomEnabled) {
       stickToBottomContext = useStickToBottomContext();
-    }
   } catch (error) {
     // Context not available, we'll use manual tracking
   }
@@ -51,7 +44,7 @@ export const ScrollToBottomButton = React.memo(({
 
   // Set up scroll listener when stick-to-bottom is disabled
   useEffect(() => {
-    if (stickToBottomEnabled || !scrollContainerRef?.current) return;
+    if (!scrollContainerRef?.current) return;
 
     const element = scrollContainerRef.current;
     element.addEventListener('scroll', checkIfAtBottom, { passive: true });
@@ -62,12 +55,10 @@ export const ScrollToBottomButton = React.memo(({
     return () => {
       element.removeEventListener('scroll', checkIfAtBottom);
     };
-  }, [stickToBottomEnabled, scrollContainerRef, checkIfAtBottom]);
+  }, [scrollContainerRef, checkIfAtBottom]);
 
   const handleScrollToBottom = () => {
-    // Enable sticking to bottom when button is clicked
-    onActivateSticking();
-    
+   
     if (stickToBottomContext) {
       // Use library's scroll method
       stickToBottomContext.scrollToBottom();
@@ -82,9 +73,7 @@ export const ScrollToBottomButton = React.memo(({
   };
 
   // Determine if we're at bottom based on available context
-  const isAtBottom = stickToBottomEnabled 
-    ? (stickToBottomContext?.isAtBottom ?? true)
-    : isAtBottomManual;
+    const isAtBottom = stickToBottomContext?.isAtBottom ?? true;
 
   // Only show the button when not at bottom
   if (isAtBottom) return null;
