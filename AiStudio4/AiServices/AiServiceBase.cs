@@ -263,7 +263,7 @@ namespace AiStudio4.AiServices
                         ParentMessageId = options.ParentMessageId
                     };
 
-                    var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context);
+                    var executionResult = await toolExecutor.ExecuteToolAsync(toolCall.ToolName, toolCall.ResponseText, context, options.CancellationToken);
                     
                     // Notify about tool execution
                     if (options.OnToolExecuted != null)
