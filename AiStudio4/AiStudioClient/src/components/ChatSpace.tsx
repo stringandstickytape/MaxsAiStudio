@@ -122,20 +122,12 @@ export function ChatSpace() {
       </div>
       
       <div 
-        className="flex-1 overflow-auto min-h-0 w-full" 
+        className="flex-1 min-h-0 w-full" 
         style={{
-          width: '100%',
-          scrollbarColor: 'transparent transparent',
-          transition: 'scrollbar-color 0.3s ease'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.scrollbarColor = '#6b7280 transparent';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.scrollbarColor = 'transparent transparent';
+          width: '100%'
         }}
       >
-        <div className={`w-full ${getWidthClass(chatSpaceWidth)} mx-auto`}>
+        <div className={`w-full h-full ${getWidthClass(chatSpaceWidth)} mx-auto`}>
           {memoizedChatContainer}
         </div>
       </div>

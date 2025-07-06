@@ -26,6 +26,7 @@ export const ConvView = ({
     // Create a ref for the scroll container
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [isScrolling, setIsScrolling] = useState(false);
+    const [isHovering, setIsHovering] = useState(false);
     const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     
     // Get stick-to-bottom setting from appearance store
@@ -126,6 +127,8 @@ export const ConvView = ({
         boxShadow: 'var(--global-box-shadow, none)',
         width: '100%',
         minWidth: '100%',
+        scrollbarColor: (isScrolling || isHovering) ? '#6b7280 transparent' : 'transparent transparent',
+        transition: 'scrollbar-color 0.3s ease',
         ...(window?.theme?.ConvView?.style || {})
     };
 
@@ -157,6 +160,8 @@ export const ConvView = ({
                 className={containerClassName}
                 ref={scrollContainerRef}
                 style={containerStyle}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
             >
                 <StickToBottom.Content className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
                     {messageContent}
@@ -176,6 +181,8 @@ export const ConvView = ({
                 className={containerClassName}
                 ref={scrollContainerRef}
                 style={containerStyle}
+                onMouseEnter={() => setIsHovering(true)}
+                onMouseLeave={() => setIsHovering(false)}
             >
                 <div className="ConvView flex flex-col gap-4 w-full" style={{width: '100%', minWidth: '100%'}}>
                     {messageContent}
