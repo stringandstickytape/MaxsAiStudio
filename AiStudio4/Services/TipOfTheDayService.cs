@@ -1,5 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text.Json;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
 using AiStudio4.InjectedDependencies;
@@ -14,7 +17,7 @@ namespace AiStudio4.Services
         public TipOfTheDayService(IGeneralSettingsService generalSettingsService)
         {
             _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
-            _tips = CreateDefaultTips();
+            _tips = LoadTipsFromJson();
         }
 
         public TipOfTheDay GetTipOfTheDay()
@@ -43,64 +46,39 @@ namespace AiStudio4.Services
         }
 
 
-        private List<TipOfTheDay> CreateDefaultTips()
+        private List<TipOfTheDay> LoadTipsFromJson()
+        {
+            try
+            {
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                var assemblyDirectory = Path.GetDirectoryName(assemblyLocation);
+                var tipsFilePath = Path.Combine(assemblyDirectory, "Data", "tips.json");
+                
+                if (File.Exists(tipsFilePath))
+                {
+                    var jsonContent = File.ReadAllText(tipsFilePath);
+                    var tips = JsonSerializer.Deserialize<List<TipOfTheDay>>(jsonContent);
+                    return tips ?? CreateFallbackTips();
+                }
+                
+                return CreateFallbackTips();
+            }
+            catch
+            {
+                return CreateFallbackTips();
+            }
+        }
+
+        private List<TipOfTheDay> CreateFallbackTips()
         {
             return new List<TipOfTheDay>
             {
                 new TipOfTheDay
                 {
-                    Id = "tip-001",
-                    Tip = "You can branch at any point in the conversation history.  Just click any message in the sidebar hierarchy.",
-                    SamplePrompt = "",
-                    Category = "Branching",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                },
-                new TipOfTheDay
-                {
-                    Id = "tip-002",
-                    Tip = "Try using the conversation tree view to explore different conversation branches and see how your chat evolved.",
-                    SamplePrompt = "/toggle-conv-tree",
-                    Category = "Navigation",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                },
-                new TipOfTheDay
-                {
-                    Id = "tip-003",
-                    Tip = "Use file attachments to provide context to your AI assistant about your codebase or documents.",
-                    SamplePrompt = "Analyze this code file and suggest improvements for performance and readability.",
-                    Category = "File Management",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                },
-                new TipOfTheDay
-                {
-                    Id = "tip-004",
-                    Tip = "Create user prompts to save and reuse your favorite prompt templates.",
-                    SamplePrompt = "/user-prompt Code Review Template",
-                    Category = "User Prompts",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                },
-                new TipOfTheDay
-                {
-                    Id = "tip-005",
-                    Tip = "Use the command palette (/) to quickly access features like creating new conversations, changing models, or opening settings.",
-                    SamplePrompt = "/new-conv",
-                    Category = "Commands",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                },
-                new TipOfTheDay
-                {
-                    Id = "tip-006",
-                    Tip = "Enable tools to give your AI assistant powerful capabilities like web search, file operations, and code analysis.",
-                    SamplePrompt = "Search the web for the latest React 18 best practices and summarize the key points.",
-                    Category = "Tools",
-                    CreatedAt = DateTime.UtcNow.ToString("O")
-                },
-                new TipOfTheDay
-                {
-                    Id = "tip-007",
-                    Tip = "Customize your theme and appearance to create a comfortable working environment that suits your preferences.",
-                    SamplePrompt = "/appearance",
-                    Category = "Customization",
+                    Id = "tip-fallback",
+                    Tip = "Welcome to AI Studio! Start exploring the features.",
+                    SamplePrompt = "/help",
+                    Category = "Welcome",
                     CreatedAt = DateTime.UtcNow.ToString("O")
                 }
             };
