@@ -28,6 +28,7 @@ export const ScrollToBottomButton = React.memo(({
   
   // State for manual scroll position tracking when stick-to-bottom is disabled
   const [isAtBottomManual, setIsAtBottomManual] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
   
   // Try to get context, but handle the case where it doesn't exist
   let stickToBottomContext = null;
@@ -90,14 +91,24 @@ export const ScrollToBottomButton = React.memo(({
 
   return (
     <button
-      className="absolute left-1/2 -translate-x-1/2 bottom-4 z-10 rounded-full p-2 shadow-md transition-colors ScrollToBottomButton"
+      className="absolute left-1/2 -translate-x-1/2 z-10 rounded-full p-2 shadow-md transition-all hover:shadow-lg ScrollToBottomButton"
       onClick={handleScrollToBottom}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       aria-label="Scroll to bottom"
       style={{
-        backgroundColor: 'var(--global-primary-color)',
-        color: 'var(--global-background-color)',
-        borderRadius: 'var(--global-border-radius)',
-        boxShadow: 'var(--global-box-shadow)'
+        bottom: '26px', // 16px (bottom-4) + 10px = 26px
+        backgroundColor: isHovered ? 'var(--global-background-color)' : 'transparent',
+        color: 'var(--global-primary-color)',
+        border: '2px solid var(--global-primary-color)',
+        borderRadius: '50%',
+        width: '40px',
+        height: '40px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: 'var(--global-box-shadow)',
+        transition: 'background-color 0.2s ease'
       }}
     >
       <ArrowDown className="h-5 w-5" />
