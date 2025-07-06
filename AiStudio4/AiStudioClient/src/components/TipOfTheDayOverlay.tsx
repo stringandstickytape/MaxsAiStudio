@@ -66,7 +66,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
         className="tip-card"
         style={{
           backgroundColor: 'var(--global-background-color)',
-          border: `2px solid var(--global-primary-color)`,
+          border: 'none',
           borderRadius: 'var(--global-border-radius)',
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
           padding: '24px',
@@ -110,7 +110,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
               color: 'var(--global-text-color)',
             }}
           >
-            💡 Tip of the Day
+            Tip of the Day
           </span>
         </div>
         
@@ -148,39 +148,41 @@ export const TipOfTheDayOverlay: React.FC = () => {
                 {currentTip.tip}
               </div>
               
-              <div 
-                className="sample-prompt-container"
-                style={{
-                  backgroundColor: 'var(--global-ai-message-background, var(--muted))',
-                  padding: '12px',
-                  borderRadius: 'var(--global-border-radius)',
-                  border: `1px solid var(--global-border-color)`,
-                }}
-              >
-                <span 
-                  className="prompt-label"
+              {currentTip.samplePrompt && currentTip.samplePrompt.trim() && (
+                <div 
+                  className="sample-prompt-container"
                   style={{
-                    display: 'block',
-                    fontSize: 'calc(var(--global-font-size) * 0.85)',
-                    color: 'var(--global-secondary-text-color)',
-                    marginBottom: '4px',
+                    backgroundColor: 'var(--global-ai-message-background, var(--muted))',
+                    padding: '12px',
+                    borderRadius: 'var(--global-border-radius)',
+                    border: `1px solid var(--global-border-color)`,
                   }}
                 >
-                  Try this prompt:
-                </span>
-                <code 
-                  className="prompt-text"
-                  style={{
-                    fontFamily: 'Monaco, Consolas, monospace',
-                    fontSize: 'var(--global-font-size)',
-                    display: 'block',
-                    whiteSpace: 'pre-wrap',
-                    color: 'var(--global-text-color)',
-                  }}
-                >
-                  {currentTip.samplePrompt}
-                </code>
-              </div>
+                  <span 
+                    className="prompt-label"
+                    style={{
+                      display: 'block',
+                      fontSize: 'calc(var(--global-font-size) * 0.85)',
+                      color: 'var(--global-secondary-text-color)',
+                      marginBottom: '4px',
+                    }}
+                  >
+                    Try this prompt:
+                  </span>
+                  <code 
+                    className="prompt-text"
+                    style={{
+                      fontFamily: 'Monaco, Consolas, monospace',
+                      fontSize: 'var(--global-font-size)',
+                      display: 'block',
+                      whiteSpace: 'pre-wrap',
+                      color: 'var(--global-text-color)',
+                    }}
+                  >
+                    {currentTip.samplePrompt}
+                  </code>
+                </div>
+              )}
               
               {currentTip.category && (
                 <div 
@@ -224,22 +226,24 @@ export const TipOfTheDayOverlay: React.FC = () => {
               Next Tip
             </Button>
             <Button 
-              onClick={handleShowMe} 
-              variant="default"
-              disabled={isLoading || !currentTip}
-              style={{
-                backgroundColor: 'var(--global-primary-color)',
-                color: 'white',
-              }}
-            >
-              Show Me
-            </Button>
-            <Button 
               onClick={handleDismiss} 
               variant="outline"
             >
-              OK
+              Clear
             </Button>
+            {currentTip?.samplePrompt && currentTip.samplePrompt.trim() && (
+              <Button 
+                onClick={handleShowMe} 
+                variant="default"
+                disabled={isLoading || !currentTip}
+                style={{
+                  backgroundColor: 'var(--global-primary-color)',
+                  color: 'white',
+                }}
+              >
+                Show Me
+              </Button>
+            )}
           </div>
         </div>
       </Card>

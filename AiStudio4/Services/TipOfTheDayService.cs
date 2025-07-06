@@ -50,9 +50,9 @@ namespace AiStudio4.Services
                 new TipOfTheDay
                 {
                     Id = "tip-001",
-                    Tip = "Use system prompts to give your AI assistant specific expertise and behavior patterns.",
-                    SamplePrompt = "/system You are an expert Python developer with 10 years of experience. Help me write clean, efficient code following best practices.",
-                    Category = "System Prompts",
+                    Tip = "You can branch at any point in the conversation history.  Just click any message in the sidebar hierarchy.",
+                    SamplePrompt = "",
+                    Category = "Branching",
                     CreatedAt = DateTime.UtcNow.ToString("O")
                 },
                 new TipOfTheDay
