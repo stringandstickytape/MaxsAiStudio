@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { useTipOfTheDayStore } from '@/stores/useTipOfTheDayStore';
@@ -19,6 +19,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
   
   const { setInputText } = useInputBarStore();
   const { sendMessage } = useConvStore();
+  const overlayRef = useRef<HTMLDivElement>(null);
   
   // Fetch initial tip when component mounts
   useEffect(() => {
@@ -26,6 +27,27 @@ export const TipOfTheDayOverlay: React.FC = () => {
       fetchNextTip();
     }
   }, [currentTip, isLoading, isVisible, fetchNextTip]);
+
+  // Handle click outside to close overlay
+  useEffect(() => {
+    if (!isVisible) return;
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (overlayRef.current && !overlayRef.current.contains(event.target as Node)) {
+        hideTip();
+      }
+    };
+
+    // Add event listener with a small delay to prevent immediate closure
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isVisible, hideTip]);
   
   const handleShowMe = async () => {
     if (currentTip) {
@@ -57,6 +79,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
   
   return (
     <div 
+      ref={overlayRef}
       className="tip-overlay-container"
       style={{
         position: 'absolute',
@@ -230,8 +253,8 @@ export const TipOfTheDayOverlay: React.FC = () => {
         <div 
           className="tip-footer"
           style={{
-            marginTop: '24px',
-            paddingTop: '16px',
+            marginTop: '4px',
+            paddingTop: '4px',
             borderTop: `1px solid var(--global-border-color)`,
           }}
               >
@@ -243,7 +266,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
                           style={{
                               backgroundColor: 'var(--global-background-color)',
                               color: 'var(--global-primary-color)',
-                              border: '2px solid var(--global-primary-color)',
+                              border: 'none',
                           } }
             >
               Next Tip
