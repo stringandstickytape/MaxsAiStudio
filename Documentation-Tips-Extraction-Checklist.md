@@ -37,8 +37,8 @@ Each tip follows this JSON structure:
 ## Main Documentation Files
 
 ### ✅ Core Documentation
-- [ ] `readme.md` - Main README file
-- [ ] `docs/readme/01-introduction.md` - Project introduction and overview
+- [X] `readme.md` - Main README file
+- [X] `docs/readme/01-introduction.md` - Project introduction and overview
 - [ ] `docs/readme/02-getting-started.md` - Installation and initial setup
 - [ ] `docs/readme/03-core-concepts.md` - Fundamental concepts
 - [ ] `docs/readme/04-using-aistudio4.md` - Basic usage instructions
@@ -222,4 +222,4 @@ Before adding tips to the JSON file, ensure each tip meets these criteria:
 ---
 
 ## File Location
-Tips should be added to: `AiStudio4/Data/tips.json`.  There is no limit on how many tips should be added.  All useful distinct tips are worthwhile.  Non-tool manual pages should yield up to 20 tips each.
+Tips should be added to: `AiStudio4/Data/tips.json`.  There is no limit on how many tips should be added.  All useful distinct tips are worthwhile.  Non-tool manual pages should yield between 5 and 20 tips each.

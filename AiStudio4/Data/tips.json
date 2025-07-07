@@ -4,5 +4,71 @@
     "Tip": "You can branch at any point in the conversation history.  Just click any message in the sidebar hierarchy.",
     "SamplePrompt": "",
     "ManualReference":  "readme.md"
+  },
+  {
+    "Id": "tip-002",
+    "Tip": "Connect to multiple AI models from one interface - OpenAI, Anthropic Claude, Google Gemini, local Llama.cpp, and MCP servers all work together.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-003",
+    "Tip": "Use built-in tools to let AI directly modify your code files, search the web, and manage Git repositories without leaving the chat.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-004",
+    "Tip": "Define multiple projects and switch between them to give AI context about your current workspace and file operations.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-005",
+    "Tip": "Import existing conversations from Google AI Studio via Google Drive to continue your work in AiStudio4.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-006",
+    "Tip": "Navigate complex discussions using the branched conversation tree view to explore different conversation paths.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-007",
+    "Tip": "Interject in AI tool loops in real-time when you need to provide additional input or change direction.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-008",
+    "Tip": "Use the command bar and pinnable shortcuts to quickly access frequently used prompts and commands.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-009",
+    "Tip": "Leverage the AI tool-based theming engine to personalize your interface appearance.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-010",
+    "Tip": "Connect to Ollama models through OpenAI API compatibility for local AI inference.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-011",
+    "Tip": "Use integrated audio transcription with Whisper.net to convert speech to text directly in the application.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-012",
+    "Tip": "Associate specific models, tools, and MCP servers with your system and user prompts for consistent AI behavior.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
   }
 ]
