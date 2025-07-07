@@ -70,5 +70,71 @@
     "Tip": "Associate specific models, tools, and MCP servers with your system and user prompts for consistent AI behavior.",
     "SamplePrompt": "",
     "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-013",
+    "Tip": "Set up your first project by going to Project > Manage Projects to provide context for all AI file operations and development tools.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-016",
+    "Tip": "Configure charging strategies for different AI providers to accurately track costs - Claude, OpenAI, and Gemini each have different caching models.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-017",
+    "Tip": "Access the Command Bar with Ctrl+K and type 'Providers' to quickly configure AI service providers and API keys.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-018",
+    "Tip": "Enable tiered pricing for models like Gemini 1.5 Pro that have different rates above and below token boundaries to track costs accurately.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-019",
+    "Tip": "Use local Llama.cpp models by configuring the ModelPath, ContextSize, and GpuLayerCount in the Additional Parameters JSON field.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-021",
+    "Tip": "AiStudio4 automatically downloads the appropriate llama-server binary to your %APPDATA%\\AiStudio4\\llama-cpp directory when first using Llama.cpp models.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-022",
+    "Tip": "Click the Primary Model and Secondary Model buttons in the Input Bar to quickly switch between models for different tasks.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-023",
+    "Tip": "The active project determines context for all AI tasks, file operations, Git integration, and .NET project analysis - make sure to set it correctly.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-025",
+    "Tip": "Add multiple projects and switch between them using the Project Management dialog to work on different codebases or filesets seamlessly.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-026",
+    "Tip": "Use the folder icon in the menu bar for quick Explorer access to your active project's directory.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-027",
+    "Tip": "Configure reasoning effort levels (low, medium, high) for compatible AI models to balance response quality with processing time.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
   }
 ]

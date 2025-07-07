@@ -39,7 +39,7 @@ Each tip follows this JSON structure:
 ### ✅ Core Documentation
 - [X] `readme.md` - Main README file
 - [X] `docs/readme/01-introduction.md` - Project introduction and overview
-- [ ] `docs/readme/02-getting-started.md` - Installation and initial setup
+- [X] `docs/readme/02-getting-started.md` - Installation and initial setup
 - [ ] `docs/readme/03-core-concepts.md` - Fundamental concepts
 - [ ] `docs/readme/04-using-aistudio4.md` - Basic usage instructions
 - [ ] `docs/readme/05-key-features-in-detail.md` - Detailed feature explanations
