@@ -136,5 +136,65 @@
     "Tip": "Configure reasoning effort levels (low, medium, high) for compatible AI models to balance response quality with processing time.",
     "SamplePrompt": "",
     "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-028",
+    "Tip": "Toggle the sidebar with Ctrl+B or Cmd+B to quickly access conversation history and the current conversation tree view.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-029",
+    "Tip": "Use the Search Bar in the sidebar to quickly find specific conversations from your chat history.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-030",
+    "Tip": "Set your Active Project Path to provide critical context for AI tasks, file operations, and Git integration - all tools operate relative to this path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-031",
+    "Tip": "Switch projects automatically by selecting a System Prompt that is associated with a specific project path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-032",
+    "Tip": "Activate specific tools for each conversation - the AI will only use tools you've enabled.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-033",
+    "Tip": "Connect to external MCP servers to extend your AI's capabilities with additional tools beyond the built-in ones.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-034",
+    "Tip": "View your conversation's branched structure using the interactive Tree View to understand different conversation paths.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-035",
+    "Tip": "Find your conversation files in the %APPDATA%/AiStudio4/convs directory - they're stored as JSON files with unique message IDs.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-036",
+    "Tip": "Associate System Prompts with specific models, tools, user prompts, and projects to create consistent AI behaviors for different workflows.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-037",
+    "Tip": "Use User Prompts as reusable templates and access them via Slash Commands like /my-template or /MyProjectFile.cs.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
   }
 ]
