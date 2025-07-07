@@ -43,7 +43,7 @@ Each tip follows this JSON structure:
 - [X] `docs/readme/03-core-concepts.md` - Fundamental concepts
 - [X] `docs/readme/04-using-aistudio4.md` - Basic usage instructions
 - [X] `docs/readme/05-key-features-in-detail.md` - Detailed feature explanations
-- [ ] `docs/readme/06-advanced-configuration.md` - Advanced setup and configuration
+- [X] `docs/readme/06-advanced-configuration.md` - Advanced setup and configuration
 - [ ] `docs/readme/07-troubleshooting.md` - Common issues and solutions
 - [ ] `docs/readme/08-technical-stack.md` - Technical implementation details
 - [ ] `docs/readme/09-contributing.md` - Contributing guidelines
