@@ -4,6 +4,11 @@
 
 This checklist is designed to systematically extract useful tips from the MaxsAiStudio README documentation and convert them into tip-of-the-day entries for the `AiStudio4/Data/tips.json` file.
 
+## ENORMOUSLY IMPORTANT
+
+All tips must be in the SECOND PERSON IMPERATIVE.
+All tips must be useful, not just promotional.
+
 ### Current Tips Format
 Each tip follows this JSON structure:
 ```json
@@ -206,6 +211,8 @@ Before adding tips to the JSON file, ensure each tip meets these criteria:
 -  **Appropriate Length** - Tip text under 200 characters when possible
 -  **Sample Prompt Relevance** - Only included when directly relevant
 
+"ManualReference" should point back to the documentation file being processed for tips, for instance `readme.md` or `docs/readme/01-introduction.md` .
+
 ### User Experience
 -  **Beginner Friendly** - Avoids excessive jargon
 -  **Contextual** - Makes sense without additional explanation
@@ -215,4 +222,4 @@ Before adding tips to the JSON file, ensure each tip meets these criteria:
 ---
 
 ## File Location
-Tips should be added to: `AiStudio4/Data/tips.json`.  There is no limit on how many tips should be added.  All useful distinct tips are worthwhile.
+Tips should be added to: `AiStudio4/Data/tips.json`.  There is no limit on how many tips should be added.  All useful distinct tips are worthwhile.  Non-tool manual pages should yield up to 20 tips each.

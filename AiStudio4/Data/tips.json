@@ -2,6 +2,7 @@
   {
     "Id": "tip-001",
     "Tip": "You can branch at any point in the conversation history.  Just click any message in the sidebar hierarchy.",
-    "SamplePrompt": ""
+    "SamplePrompt": "",
+    "ManualReference":  "readme.md"
   }
 ]
