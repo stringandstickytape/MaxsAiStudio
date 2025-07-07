@@ -45,6 +45,13 @@ export const TipOfTheDayOverlay: React.FC = () => {
   const handleNextTip = () => {
     fetchNextTip();
   };
+
+  const handleManualReferenceClick = () => {
+    if (currentTip?.manualReference) {
+      const githubUrl = `https://github.com/stringandstickytape/MaxsAiStudio/blob/main/${currentTip.manualReference}`;
+      window.open(githubUrl, '_blank');
+    }
+  };
   
   if (!isVisible) return null;
   
@@ -89,30 +96,7 @@ export const TipOfTheDayOverlay: React.FC = () => {
         >
           <X className="w-4 h-4" style={{ color: 'var(--global-secondary-text-color)' }} />
         </Button>
-        
-        {/* Header */}
-        <div 
-          className="tip-header"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            marginBottom: '16px',
-            paddingBottom: '12px',
-            borderBottom: `1px solid var(--global-border-color)`,
-          }}
-        >
-          <Lightbulb className="w-5 h-5" style={{ color: 'var(--global-primary-color)' }} />
-          <span 
-            style={{
-              fontSize: 'calc(var(--global-font-size) * 1.2)',
-              fontWeight: '600',
-              color: 'var(--global-text-color)',
-            }}
-          >
-            Tip of the Day
-          </span>
-        </div>
+       
         
         {/* Content */}
         <div className="tip-content">
@@ -184,6 +168,51 @@ export const TipOfTheDayOverlay: React.FC = () => {
                 </div>
               )}
               
+              {currentTip.manualReference && (
+                <div 
+                  className="manual-reference-container"
+                  style={{
+                    marginTop: '12px',
+                    padding: '8px 12px',
+                    backgroundColor: 'var(--global-user-message-background, var(--muted))',
+                    borderRadius: 'var(--global-border-radius)',
+                    border: `1px solid var(--global-border-color)`,
+                  }}
+                >
+                  <span 
+                    className="manual-reference-label"
+                    style={{
+                      fontSize: 'calc(var(--global-font-size) * 0.85)',
+                      color: 'var(--global-secondary-text-color)',
+                      marginRight: '8px',
+                    }}
+                  >
+                    📖 Manual:
+                  </span>
+                  <button
+                    onClick={handleManualReferenceClick}
+                    className="manual-reference-link"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--global-primary-color)',
+                      cursor: 'pointer',
+                      fontSize: 'var(--global-font-size)',
+                      textDecoration: 'underline',
+                      padding: '0',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.opacity = '0.8';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.opacity = '1';
+                    }}
+                  >
+                    {currentTip.manualReference}
+                  </button>
+                </div>
+              )}
+              
             </div>
           )}
           
@@ -205,21 +234,21 @@ export const TipOfTheDayOverlay: React.FC = () => {
             paddingTop: '16px',
             borderTop: `1px solid var(--global-border-color)`,
           }}
-        >
+              >
           <div className="flex items-center justify-end gap-2">
             <Button 
-              onClick={handleNextTip} 
-              variant="outline"
-              disabled={isLoading}
+                          onClick={handleNextTip}
+                          variant="outline"
+                          disabled={isLoading}
+                          style={{
+                              backgroundColor: 'var(--global-background-color)',
+                              color: 'var(--global-primary-color)',
+                              border: '2px solid var(--global-primary-color)',
+                          } }
             >
               Next Tip
             </Button>
-            <Button 
-              onClick={handleDismiss} 
-              variant="outline"
-            >
-              Clear
-            </Button>
+
             {currentTip?.samplePrompt && currentTip.samplePrompt.trim() && (
               <Button 
                 onClick={handleShowMe} 
@@ -250,11 +279,12 @@ export const TipOfTheDayOverlay: React.FC = () => {
         }
         
         .tip-text {
-          animation: fadeIn 0.3s ease-out 0.1s both;
         }
         
         .sample-prompt-container {
-          animation: slideUp 0.3s ease-out 0.2s both;
+        }
+        
+        .manual-reference-container {
         }
         
         @keyframes fadeIn {
