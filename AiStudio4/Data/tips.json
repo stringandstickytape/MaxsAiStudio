@@ -196,5 +196,209 @@
     "Tip": "Use User Prompts as reusable templates and access them via Slash Commands like /my-template or /MyProjectFile.cs.",
     "SamplePrompt": "",
     "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-038",
+    "Tip": "Use Enter to create multi-line messages in the input area instead of sending immediately.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-039",
+    "Tip": "Press Ctrl+Enter (or Cmd+Enter on Mac) to interject during AI tool processing when you need to provide additional information.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-040",
+    "Tip": "Click the 'Interject' button (💬➕ icon) to add context while the AI is processing tools without fully interrupting its flow.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-041",
+    "Tip": "Check message metadata below each AI response to see model used, response time, and token costs for performance tracking.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-042",
+    "Tip": "Middle-click conversations in the sidebar to delete them with confirmation - useful for cleaning up your chat history.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-043",
+    "Tip": "Use the search bar in the sidebar to find conversations - matching text will be highlighted in the tree view.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-044",
+    "Tip": "Click nodes in the conversation tree to jump to specific points in your chat history.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-045",
+    "Tip": "Middle-click nodes in the conversation tree to delete messages and all their descendants - perfect for pruning conversation branches.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-046",
+    "Tip": "Use the tree view control buttons to zoom, pan, center, or focus on the latest message in your conversation hierarchy.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-047",
+    "Tip": "Use {ProjectPath} in system prompts to automatically include your current project's path in the AI context.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-048",
+    "Tip": "Use {CommonAiMistakes} in system prompts to automatically include CommonAiMistakes.md content from your project root.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-049",
+    "Tip": "Enable 'Include Git Diff' in system prompts to automatically attach git diff HEAD output when the prompt is applied.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-050",
+    "Tip": "Associate tools with system prompts so they activate automatically whenever you use that prompt.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-051",
+    "Tip": "Link user prompts to system prompts to automatically populate the input bar when the system prompt is applied.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-052",
+    "Tip": "Associate specific models and MCP servers with system prompts to create complete AI environments for different workflows.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-053",
+    "Tip": "Create shortcuts for user prompts (like /my-template) to quickly insert them via slash commands.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-054",
+    "Tip": "Type / in the input bar to see a dropdown of user prompts and project files - select to insert or attach.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-055",
+    "Tip": "Shift+click files in the slash command dropdown to attach them as files instead of just inserting the path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-056",
+    "Tip": "Middle-click active tools in the input bar to quickly deactivate them, or middle-click the Tools button to deactivate all tools.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-057",
+    "Tip": "Double-click category names in the Tool Library to select all tools in that category at once.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-058",
+    "Tip": "Explicitly ask the AI to use specific tools by name when you want to ensure a particular tool is used.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-059",
+    "Tip": "Attach multiple files at once by selecting them in the file dialog - supports images, text files, and code files.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-060",
+    "Tip": "Use the 'Git Diff' attachment option to automatically include git diff HEAD output and untracked files list.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-061",
+    "Tip": "Attach images from your clipboard directly using the 'Image from Clipboard' option in the paperclip menu.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-062",
+    "Tip": "Set up Conda path and WhisperX environment to enable audio transcription of media files directly in the application.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-063",
+    "Tip": "Use Transcribe > Insert Last Transcription to add VTT-formatted transcriptions directly to your input bar.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-064",
+    "Tip": "Configure Azure DevOps Wiki Sync to automatically update system prompts from centralized team documentation.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-065",
+    "Tip": "Enable Wiki Sync to automatically synchronize system prompts with Azure DevOps wiki pages on application startup.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-066",
+    "Tip": "Use Project > Pack Project Source Code to create comprehensive XML packages of your codebase for AI analysis.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-067",
+    "Tip": "Use Project > Repack Project Source Code for quick updates to your packaged codebase using the same output location.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-068",
+    "Tip": "Configure project packaging filters to include/exclude specific file types, filenames, or folder names for cleaner packages.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-069",
+    "Tip": "Import Google AI Studio conversations via Google Drive to continue your work in AiStudio4's enhanced environment.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-070",
+    "Tip": "Export your current conversation thread to Google AI Studio format for sharing or backup purposes.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-071",
+    "Tip": "Ask the AI to create Marp presentations - they'll be automatically rendered with navigation controls and presenter mode.",
+    "SamplePrompt": "Create a short fenced Marp presentation in a markdown block, with no internal fencing, about baked goods.",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
   }
 ]
