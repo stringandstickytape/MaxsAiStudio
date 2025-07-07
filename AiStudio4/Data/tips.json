@@ -400,5 +400,119 @@
     "Tip": "Ask the AI to create Marp presentations - they'll be automatically rendered with navigation controls and presenter mode.",
     "SamplePrompt": "Create a short fenced Marp presentation in a markdown block, with no internal fencing, about baked goods.",
     "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-078",
+    "Tip": "Adjust the Temperature slider in the Input Bar to control AI creativity - lower values give more focused responses, higher values give more creative ones.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-079",
+    "Tip": "Use the Top P slider (0.0 to 1.0) alongside Temperature for fine-grained control over AI response diversity - lower values focus on probable words, higher values allow more variety.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-080",
+    "Tip": "AiStudio4 automatically detects and parses malformed tool calls that AI models sometimes produce as plain text, improving reliability.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-081",
+    "Tip": "Connect to Ollama instances using the NetOpenAi service type and pointing the URL to your Ollama instance (e.g., http://localhost:11434/v1).",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-082",
+    "Tip": "Configure MCP servers with StdIO checked for CLI-based servers or unchecked for HTTP/SSE-based servers to extend AI capabilities.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-083",
+    "Tip": "Select specific tools to expose from MCP servers - if none are selected, all tools from that server are available to the AI.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-084",
+    "Tip": "Create custom tools with 'template' schema type to let the AI fill in text templates instead of structured JSON.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-086",
+    "Tip": "Configure Extra Properties for built-in tools like FileSearchTool and DirectoryTreeTool to customize their behavior without changing code.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-087",
+    "Tip": "Use comma-separated values for CSV Extra Properties like 'excludedFileExtensions' to filter out unwanted file types from tool results.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-088",
+    "Tip": "Create AI-generated themes by making a custom tool with Output Filetype 'theme' and asking the AI to generate theme JSON - you'll get an 'Install Theme' button in the response.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-089",
+    "Tip": "Pin frequently used commands in the Command Bar by hovering over them and clicking the Pin icon - they'll appear in your Header Bar for one-click access.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-090",
+    "Tip": "Reorder pinned shortcuts by dragging and dropping them in the Header to customize your workflow.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-091",
+    "Tip": "Middle-click pinned shortcut buttons to rename them and change their icons for better organization.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-092",
+    "Tip": "Use Shift+Click on file paths in the slash command dropdown to attach files directly instead of just inserting the path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-093",
+    "Tip": "Adjust Chat Width in Appearance Settings with options from Narrow to Full Width to optimize reading comfort for different screen sizes.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-098",
+    "Tip": "Use the Project > Analyze .NET Projects menu to extract namespace, class, and member information for AI consumption.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-099",
+    "Tip": "Pack your project source code into XML format to provide comprehensive codebase snapshots to AI models with context limitations.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-100",
+    "Tip": "Configure Azure DevOps Wiki Sync to automatically update system prompts from centralized team documentation on application startup.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-101",
+    "Tip": "Set up Google Drive integration with credentials.json to import conversations from Google AI Studio and export your AiStudio4 conversations.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
   }
 ]
