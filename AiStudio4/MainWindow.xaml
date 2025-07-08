@@ -33,6 +33,10 @@
                         <MenuItem Header="Enable Wiki Sync" Name="EnableWikiSyncMenuItem" IsCheckable="True" Click="EnableWikiSyncMenuItem_Click"/>
                         <MenuItem Header="Configure Wiki Sync..." Name="ConfigureWikiSyncMenuItem" Click="ConfigureWikiSyncMenuItem_Click"/>
                     </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="LlamaCpp">
+                        <MenuItem Header="Update LlamaCpp" Name="UpdateLlamaCppMenuItem" Click="UpdateLlamaCppMenuItem_Click"/>
+                    </MenuItem>
                 </MenuItem>
                 <MenuItem Header="_Licenses" Name="LicensesMenuItem" Click="LicensesMenuItem_Click"/>
                 <Separator/>

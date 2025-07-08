@@ -1396,4 +1396,59 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
             MessageBox.Show($"Error opening project management: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
+
+    private async void UpdateLlamaCppMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var result = MessageBox.Show(
+                "This will update LlamaCpp to the latest version. The server will be stopped if it's currently running. Continue?",
+                "Update LlamaCpp",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // Show progress message
+                MessageBox.Show(
+                    "Updating LlamaCpp... This may take a few minutes. You'll be notified when complete.",
+                    "Updating",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+
+                // Get the LlamaServerService from DI
+                var llamaService = _serviceProvider.GetService<ILlamaServerService>();
+                if (llamaService == null)
+                {
+                    MessageBox.Show("LlamaCpp service is not available.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                // Perform update
+                bool success = await llamaService.UpdateLlamaCppAsync();
+
+                if (success)
+                {
+                    MessageBox.Show(
+                        "LlamaCpp has been successfully updated to the latest version.",
+                        "Update Complete",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information);
+                }
+                else
+                {
+                    MessageBox.Show(
+                        "Failed to update LlamaCpp. Please check the application logs for details.",
+                        "Update Failed",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating LlamaCpp");
+            MessageBox.Show($"Error updating LlamaCpp: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 }
