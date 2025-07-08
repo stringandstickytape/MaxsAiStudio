@@ -103,23 +103,6 @@ export const TipOfTheDayOverlay: React.FC = () => {
           position: 'relative',
         }}
       >
-        {/* Close button */}
-        <Button
-          onClick={handleDismiss}
-          variant="ghost"
-          size="sm"
-          style={{
-            position: 'absolute',
-            top: '12px',
-            right: '12px',
-            padding: '4px',
-            minWidth: 'auto',
-            height: 'auto',
-          }}
-        >
-          <X className="w-4 h-4" style={{ color: 'var(--global-secondary-text-color)' }} />
-        </Button>
-       
         
         {/* Content */}
         <div className="tip-content">
@@ -258,33 +241,45 @@ export const TipOfTheDayOverlay: React.FC = () => {
             borderTop: `1px solid var(--global-border-color)`,
           }}
               >
-          <div className="flex items-center justify-end gap-2">
-            <Button 
-                          onClick={handleNextTip}
-                          variant="outline"
-                          disabled={isLoading}
-                          style={{
-                              backgroundColor: 'var(--global-background-color)',
-                              color: 'var(--global-primary-color)',
-                              border: 'none',
-                          } }
+          <div className="flex items-center justify-between gap-2">
+            <span 
+              style={{
+                fontSize: 'calc(var(--global-font-size) * 0.8)',
+                color: 'var(--global-secondary-text-color)',
+                opacity: '0.7',
+              }}
             >
-              Next Tip
-            </Button>
-
-            {currentTip?.samplePrompt && currentTip.samplePrompt.trim() && (
+              You can use the app right away - no need to close this tip
+            </span>
+            
+            <div className="flex items-center gap-2">
               <Button 
-                onClick={handleShowMe} 
-                variant="default"
-                disabled={isLoading || !currentTip}
-                style={{
-                  backgroundColor: 'var(--global-primary-color)',
-                  color: 'white',
-                }}
+                            onClick={handleNextTip}
+                            variant="outline"
+                            disabled={isLoading}
+                            style={{
+                                backgroundColor: 'var(--global-background-color)',
+                                color: 'var(--global-primary-color)',
+                                border: 'none',
+                            } }
               >
-                Show Me
+                Next Tip
               </Button>
-            )}
+
+              {currentTip?.samplePrompt && currentTip.samplePrompt.trim() && (
+                <Button 
+                  onClick={handleShowMe} 
+                  variant="default"
+                  disabled={isLoading || !currentTip}
+                  style={{
+                    backgroundColor: 'var(--global-primary-color)',
+                    color: 'white',
+                  }}
+                >
+                  Show Me
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </Card>
