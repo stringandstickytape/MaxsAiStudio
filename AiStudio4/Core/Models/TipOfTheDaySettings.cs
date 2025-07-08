@@ -15,5 +15,7 @@ namespace AiStudio4.Core.Models
         public string Id { get; set; } = string.Empty;
         public string Tip { get; set; } = string.Empty;
         public string SamplePrompt { get; set; } = string.Empty;
+
+        public string ManualReference { get; set; } = string.Empty;
     }
 }
