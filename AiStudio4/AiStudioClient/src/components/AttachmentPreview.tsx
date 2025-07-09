@@ -15,10 +15,11 @@ interface AttachmentPreviewProps {
 
 const getIconComponent = (type: string) => {
     const iconType = getIconForFileType(type);
+    const iconStyle = { color: 'var(--global-secondary-text-color, #999999)' };
     switch (iconType) {
-        case 'Image': return <Image className="h-5 w-5" />;
-        case 'FileText': return <FileText className="h-5 w-5" />;
-        default: return <File className="h-5 w-5" />;
+        case 'Image': return <Image className="h-5 w-5" style={iconStyle} />;
+        case 'FileText': return <FileText className="h-5 w-5" style={iconStyle} />;
+        default: return <File className="h-5 w-5" style={iconStyle} />;
     }
 };
 
@@ -55,7 +56,14 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                 )}
                 title={`${attachment.name} (${fileSize})`}
             >
-                <div className="aspect-square w-10 h-10 bg-gray-800 rounded-md border border-gray-700 overflow-hidden flex items-center justify-center">
+                <div className="aspect-square w-10 h-10 rounded-md overflow-hidden flex items-center justify-center"
+                    style={{
+                        backgroundColor: 'var(--global-background-color, #1f2937)',
+                        borderColor: 'var(--global-border-color, #4a5568)',
+                        borderWidth: '1px',
+                        borderStyle: 'solid'
+                    }}
+                >
                     {isImage && attachment.previewUrl ? (
                         <img
                             src={attachment.previewUrl}
@@ -63,8 +71,10 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                             className="w-full h-full object-cover"
                         />
                     ) : isPdf && attachment.previewUrl ? (
-                        <div className="flex items-center justify-center h-full w-full bg-gray-700">
-                            <FileText className="h-5 w-5 text-gray-300" />
+                        <div className="flex items-center justify-center h-full w-full"
+                            style={{ backgroundColor: 'var(--global-secondary-color, #374151)' }}
+                        >
+                            <FileText className="h-5 w-5" style={{ color: 'var(--global-text-color, #ffffff)' }} />
                         </div>
                     ) : (
                         getIconComponent(attachment.type)
@@ -73,14 +83,38 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                 <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100">
                     <button
                         onClick={() => downloadAttachment(attachment)}
-                        className="h-5 w-5 bg-gray-700 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-blue-600 transition-colors mb-0.5"
+                        className="h-5 w-5 rounded-full flex items-center justify-center transition-colors mb-0.5"
+                        style={{
+                            backgroundColor: 'var(--global-secondary-color, #374151)',
+                            color: 'var(--global-secondary-text-color, #999999)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--global-primary-color, #3b82f6)';
+                            e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                            e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                        }}
                         title={`Download ${attachment.name}`}
                     >
                         <Download className="h-3 w-3" />
                     </button>
                     <button
                         onClick={() => onRemove(attachment.id)}
-                        className="h-5 w-5 bg-gray-700 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-red-600 transition-colors"
+                        className="h-5 w-5 rounded-full flex items-center justify-center transition-colors"
+                        style={{
+                            backgroundColor: 'var(--global-secondary-color, #374151)',
+                            color: 'var(--global-secondary-text-color, #999999)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc2626';
+                            e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                            e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                        }}
                         title={`Remove ${attachment.name}`}
                     >
                         <X className="h-3 w-3" />
@@ -105,9 +139,15 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
     return (
         <div
             className={cn(
-                'relative w-[140px] h-[56px] bg-gray-800 rounded border border-gray-700 group overflow-hidden flex',
+                'relative w-[140px] h-[56px] rounded group overflow-hidden flex',
                 className
             )}
+            style={{
+                backgroundColor: 'var(--global-background-color, #1f2937)',
+                borderColor: 'var(--global-border-color, #4a5568)',
+                borderWidth: '1px',
+                borderStyle: 'solid'
+            }}
         >
             {/* Left side - icon */}
             <div className="w-12 flex items-center justify-center flex-shrink-0">
@@ -118,7 +158,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         className="h-10 w-10 object-cover rounded"
                     />
                 ) : isPdf && attachment.previewUrl ? (
-                    <FileText className="h-6 w-6 text-gray-400" />
+                    <FileText className="h-6 w-6" style={{ color: 'var(--global-secondary-text-color, #999999)' }} />
                 ) : (
                     getIconComponent(attachment.type)
                 )}
@@ -138,9 +178,13 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                 </div>
                 <div className="flex items-center gap-1 mt-0.5">
                     <span 
-                        className="inline-block px-1 py-0.5 text-xs font-bold rounded bg-gray-800 border border-gray-600"
+                        className="inline-block px-1 py-0.5 text-xs font-bold rounded"
                         style={{
+                            backgroundColor: 'var(--global-background-color, #1f2937)',
                             color: 'var(--global-text-color, #ffffff)',
+                            borderColor: 'var(--global-border-color, #4a5568)',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
                             fontSize: '9px'
                         }}
                     >
@@ -168,7 +212,19 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         e.stopPropagation();
                         downloadAttachment(attachment);
                     }}
-                    className="p-1 cursor-pointer text-gray-300 hover:text-white transition-all bg-gray-900/70 hover:bg-blue-600/80 rounded border-none"
+                    className="p-1 cursor-pointer transition-all rounded border-none"
+                    style={{
+                        backgroundColor: 'var(--global-secondary-color, #374151)',
+                        color: 'var(--global-secondary-text-color, #999999)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--global-primary-color, #3b82f6)';
+                        e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                        e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                    }}
                     title={`Download ${attachment.name}`}
                 >
                     <Download className="h-3 w-3" />
@@ -182,7 +238,19 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         e.stopPropagation();
                         onRemove(attachment.id);
                     }}
-                    className="p-1 cursor-pointer text-gray-300 hover:text-white transition-all bg-gray-900/70 hover:bg-red-600/80 rounded border-none"
+                    className="p-1 cursor-pointer transition-all rounded border-none"
+                    style={{
+                        backgroundColor: 'var(--global-secondary-color, #374151)',
+                        color: 'var(--global-secondary-text-color, #999999)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dc2626';
+                        e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                        e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                    }}
                     title={`Remove ${attachment.name}`}
                 >
                     <X className="h-3 w-3" />
@@ -307,7 +375,18 @@ export const AttachmentButton: React.FC<AttachmentButtonProps> = ({ onClick, dis
             size="icon"
             onClick={onClick}
             disabled={disabled}
-            className={cn('btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400', className)}
+            className={cn('btn-ghost icon-btn', className)}
+            style={{
+                backgroundColor: 'var(--global-background-color, #1f2937)',
+                borderColor: 'var(--global-border-color, #4a5568)',
+                color: 'var(--global-text-color, #ffffff)'
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--global-primary-color, #3b82f6)';
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+            }}
             aria-label="Attach file"
         >
             <FilePlus className="h-5 w-5" />
