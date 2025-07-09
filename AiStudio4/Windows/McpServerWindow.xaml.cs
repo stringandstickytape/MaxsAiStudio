@@ -101,12 +101,9 @@ namespace AiStudio4.Windows
                 }
                 else
                 {
-                    var transportType = McpServerTransportType.Stdio; // Only Stdio supported for now
-                    if (TransportTypeCombo.SelectedIndex == 1)
-                    {
-                        MessageBox.Show("SSE transport is not yet implemented. Using Stdio instead.", "Information", 
-                            MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
+                    var transportType = TransportTypeCombo.SelectedIndex == 0 
+                        ? McpServerTransportType.Stdio 
+                        : McpServerTransportType.Sse;
 
                     var config = new McpServerConfig
                     {
@@ -148,13 +145,14 @@ namespace AiStudio4.Windows
                 if (_mcpServerService.CurrentTransportType == McpServerTransportType.Stdio)
                 {
                     ConnectionInstructionsText.Text = "npx @modelcontextprotocol/inspector aistudio4-mcp";
+                    BaseUrlTextBox.Text = "";
                 }
                 else
                 {
                     var port = int.Parse(PortTextBox.Text);
                     ConnectionInstructionsText.Text = $"Base URL: http://localhost:{port}\n" +
-                                                     $"Events: http://localhost:{port}/events\n" +
-                                                     $"RPC: http://localhost:{port}/rpc";
+                                                     $"SSE Stream: http://localhost:{port}/sse\n" +
+                                                     $"JSON-RPC: http://localhost:{port}/jsonrpc";
                     BaseUrlTextBox.Text = $"http://localhost:{port}";
                 }
             }
@@ -238,7 +236,9 @@ namespace AiStudio4.Windows
             {
                 var settings = _settingsService.CurrentSettings;
                 
-                settings.McpServer.DefaultTransportType = McpServerTransportType.Stdio; // Only Stdio supported for now
+                settings.McpServer.DefaultTransportType = TransportTypeCombo.SelectedIndex == 0 
+                    ? McpServerTransportType.Stdio 
+                    : McpServerTransportType.Sse;
                 settings.McpServer.SsePort = int.Parse(DefaultPortTextBox.Text);
                 settings.McpServer.EnableLogging = EnableLoggingCheckBox.IsChecked ?? false;
                 settings.McpServer.AutoStart = AutoStartCheckBox.IsChecked ?? false;

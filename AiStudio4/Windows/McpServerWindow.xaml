@@ -4,9 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="MCP Server Management" Height="600" Width="800"
-        Background="{DynamicResource BackgroundBrush}"
-        Foreground="{DynamicResource PrimaryTextBrush}">
+        Title="MCP Server Management" Height="600" Width="800">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -22,7 +20,7 @@
                 <ComboBox x:Name="TransportTypeCombo" Width="100" VerticalAlignment="Center"
                           SelectionChanged="TransportTypeCombo_SelectionChanged">
                     <ComboBoxItem>Stdio</ComboBoxItem>
-                    <ComboBoxItem IsEnabled="False">SSE (Not Implemented)</ComboBoxItem>
+                    <ComboBoxItem>SSE</ComboBoxItem>
                 </ComboBox>
                 
                 <!-- SSE Options -->
@@ -211,9 +209,11 @@
                                         BorderBrush="{DynamicResource BorderBrush}" 
                                         BorderThickness="1" CornerRadius="4" Padding="10">
                                     <TextBlock FontFamily="Consolas">
-                                        <Run Text="/events - Server-Sent Events stream"/>
+                                        <Run Text="/sse - Server-Sent Events stream"/>
                                         <LineBreak/>
-                                        <Run Text="/rpc - JSON-RPC endpoint"/>
+                                        <Run Text="/jsonrpc - JSON-RPC endpoint"/>
+                                        <LineBreak/>
+                                        <Run Text="/ - Server status page"/>
                                     </TextBlock>
                                 </Border>
                             </StackPanel>

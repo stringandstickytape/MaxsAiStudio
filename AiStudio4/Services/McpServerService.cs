@@ -23,6 +23,7 @@ namespace AiStudio4.Services
         private CancellationTokenSource? _serverCts;
         private McpServerTransportType? _currentTransportType;
         private readonly List<string> _connectedClients = new();
+        private SseServerTransport? _sseTransport;
 
         public bool IsRunning => _currentServer != null && _serverCts != null && !_serverCts.Token.IsCancellationRequested;
         public McpServerTransportType CurrentTransportType => _currentTransportType ?? McpServerTransportType.Stdio;
@@ -47,13 +48,15 @@ namespace AiStudio4.Services
 
                 _logger.LogInformation($"Starting MCP server with {transportType} transport");
 
-                // Create transport based on type
-                var transport = transportType switch
+                if (transportType == McpServerTransportType.Sse)
                 {
-                    McpServerTransportType.Stdio => new StdioServerTransport("AiStudio4-MCP"),
-                    McpServerTransportType.Sse => throw new NotImplementedException("SSE transport is not yet implemented"),
-                    _ => throw new NotSupportedException($"Transport type {transportType} is not supported")
-                };
+                    // Handle SSE transport differently since it's not a standard MCP transport
+                    await StartSseServerAsync(config);
+                    return _currentServer!; // Will be set by StartSseServerAsync
+                }
+
+                // Create stdio transport
+                var transport = new StdioServerTransport("AiStudio4-MCP");
 
                 // Configure server with tools
                 var options = CreateServerOptions(config);
@@ -103,6 +106,12 @@ namespace AiStudio4.Services
                 _serverCts = null;
             }
 
+            if (_sseTransport != null)
+            {
+                _sseTransport.Dispose();
+                _sseTransport = null;
+            }
+
             if (_currentServer != null)
             {
                 await _currentServer.DisposeAsync();
@@ -116,6 +125,10 @@ namespace AiStudio4.Services
 
         public IReadOnlyList<string> GetConnectedClients()
         {
+            if (_sseTransport != null)
+            {
+                return _sseTransport.GetConnectedClients();
+            }
             return _connectedClients.AsReadOnly();
         }
 
@@ -184,6 +197,46 @@ namespace AiStudio4.Services
                     }
                 }
             };
+        }
+
+        private async Task StartSseServerAsync(McpServerConfig config)
+        {
+            // Create a dummy MCP server for SSE transport to use
+            var options = CreateServerOptions(config);
+            _currentServer = McpServerFactory.Create(new StdioServerTransport("dummy"), options);
+            _currentTransportType = McpServerTransportType.Sse;
+
+            // Create and start SSE transport
+            _sseTransport = new SseServerTransport(
+                config.HttpPort ?? 3000, 
+                _serviceProvider,
+                _serviceProvider.GetService<ILogger<SseServerTransport>>()
+            );
+
+            // Start server
+            _serverCts = new CancellationTokenSource();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _sseTransport.RunAsync(_currentServer, _serverCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Normal shutdown
+                    _logger.LogInformation("SSE MCP server stopped");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "SSE MCP server error");
+                    OnStatusChanged(false, $"SSE server error: {ex.Message}");
+                }
+            }, _serverCts.Token);
+
+            // Give the server a moment to start
+            await Task.Delay(500);
+            
+            OnStatusChanged(true, $"SSE server started on port {config.HttpPort ?? 3000}");
         }
 
         private void OnStatusChanged(bool isRunning, string message)
