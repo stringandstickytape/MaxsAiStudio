@@ -53,7 +53,7 @@ namespace AiStudio4.Core.Interfaces
         
         Task<IEnumerable<ModelContextProtocol.Protocol.Tool>> ListToolsAsync(string serverId);
 
-        Task<CallToolResponse> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments, CancellationToken cancellationToken);
+        Task<CallToolResult> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments, CancellationToken cancellationToken);
 
         
         

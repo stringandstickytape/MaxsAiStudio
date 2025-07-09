@@ -176,7 +176,7 @@ namespace AiStudio4.Services
         }
 
 
-        public async Task<CallToolResponse> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments, CancellationToken cancellationToken)
+        public async Task<CallToolResult> CallToolAsync(string serverId, string toolName, Dictionary<string, object> arguments, CancellationToken cancellationToken)
         {
             await EnsureInitialized();
 

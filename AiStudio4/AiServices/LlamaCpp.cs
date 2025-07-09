@@ -68,7 +68,7 @@ namespace AiStudio4.AiServices
             {
                 return new AiResponse
                 {
-                    ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = e.Message, ContentType = ContentType.Text } }
+                    ContentBlocks = new List<Core.Models.ContentBlock> { new Core.Models.ContentBlock { Content = e.Message, ContentType = ContentType.Text } }
                 };
 
             }
@@ -136,7 +136,7 @@ namespace AiStudio4.AiServices
             };
         }
 
-        private LinearConvMessage CreateLlamaCppToolResultMessage(List<ContentBlock> toolResultBlocks)
+        private LinearConvMessage CreateLlamaCppToolResultMessage(List<Core.Models.ContentBlock> toolResultBlocks)
         {
             // Use OpenAI-compatible format
             var contentArray = new JArray();
@@ -424,9 +424,9 @@ namespace AiStudio4.AiServices
 
                 return new AiResponse
                 {
-                    ContentBlocks = new List<ContentBlock> 
+                    ContentBlocks = new List<Core.Models.ContentBlock> 
                     { 
-                        new ContentBlock 
+                        new Core.Models.ContentBlock
                         { 
                             Content = responseBuilder.ToString(), 
                             ContentType = ContentType.Text 
