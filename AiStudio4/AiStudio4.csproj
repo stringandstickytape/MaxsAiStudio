@@ -23,6 +23,9 @@
 		<PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3783" />
 		<PackageReference Include="Ignore" Version="0.2.1" />
 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" />
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.2.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.2.0" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.13.0" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />

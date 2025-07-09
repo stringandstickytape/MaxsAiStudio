@@ -18,12 +18,14 @@ namespace AiStudio4.Core.Interfaces
     public enum McpServerTransportType
     {
         Stdio,
-        Sse
+        Sse,
+        OAuthSse
     }
 
     public class McpServerConfig
     {
         public int? HttpPort { get; set; } // For SSE
+        public int? OAuthPort { get; set; } // For OAuth SSE
         public string? StdioCommand { get; set; } // For stdio
         public bool EnableLogging { get; set; }
         public List<string> ExcludedToolGuids { get; set; } = new();

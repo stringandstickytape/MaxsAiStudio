@@ -17,10 +17,11 @@
                 BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Label Content="Transport Type:" VerticalAlignment="Center"/>
-                <ComboBox x:Name="TransportTypeCombo" Width="100" VerticalAlignment="Center"
+                <ComboBox x:Name="TransportTypeCombo" Width="120" VerticalAlignment="Center"
                           SelectionChanged="TransportTypeCombo_SelectionChanged">
                     <ComboBoxItem>Stdio</ComboBoxItem>
                     <ComboBoxItem>SSE</ComboBoxItem>
+                    <ComboBoxItem>OAuth SSE</ComboBoxItem>
                 </ComboBox>
                 
                 <!-- SSE Options -->
@@ -28,6 +29,17 @@
                             Visibility="Collapsed" Margin="10,0,0,0">
                     <Label Content="Port:" VerticalAlignment="Center"/>
                     <TextBox x:Name="PortTextBox" Width="60" Text="3000" 
+                             VerticalAlignment="Center" Margin="5,0"/>
+                </StackPanel>
+                
+                <!-- OAuth SSE Options -->
+                <StackPanel x:Name="OAuthSseOptions" Orientation="Horizontal" 
+                            Visibility="Collapsed" Margin="10,0,0,0">
+                    <Label Content="MCP Port:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="McpPortTextBox" Width="60" Text="3000" 
+                             VerticalAlignment="Center" Margin="5,0"/>
+                    <Label Content="OAuth Port:" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <TextBox x:Name="OAuthPortTextBox" Width="60" Text="7029" 
                              VerticalAlignment="Center" Margin="5,0"/>
                 </StackPanel>
                 

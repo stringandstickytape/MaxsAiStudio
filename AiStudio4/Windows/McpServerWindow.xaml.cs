@@ -78,8 +78,16 @@ namespace AiStudio4.Windows
             var settings = _settingsService.CurrentSettings;
             var mcpSettings = settings.McpServer;
             
-            TransportTypeCombo.SelectedIndex = mcpSettings.DefaultTransportType == McpServerTransportType.Stdio ? 0 : 1;
+            TransportTypeCombo.SelectedIndex = mcpSettings.DefaultTransportType switch
+            {
+                McpServerTransportType.Stdio => 0,
+                McpServerTransportType.Sse => 1,
+                McpServerTransportType.OAuthSse => 2,
+                _ => 0
+            };
             PortTextBox.Text = mcpSettings.SsePort.ToString();
+            McpPortTextBox.Text = mcpSettings.SsePort.ToString();
+            OAuthPortTextBox.Text = "7029";
             EnableLoggingCheckBox.IsChecked = mcpSettings.EnableLogging;
             AutoStartCheckBox.IsChecked = mcpSettings.AutoStart;
             DefaultPortTextBox.Text = mcpSettings.SsePort.ToString();
@@ -101,14 +109,24 @@ namespace AiStudio4.Windows
                 }
                 else
                 {
-                    var transportType = TransportTypeCombo.SelectedIndex == 0 
-                        ? McpServerTransportType.Stdio 
-                        : McpServerTransportType.Sse;
+                    var transportType = TransportTypeCombo.SelectedIndex switch
+                    {
+                        0 => McpServerTransportType.Stdio,
+                        1 => McpServerTransportType.Sse,
+                        2 => McpServerTransportType.OAuthSse,
+                        _ => McpServerTransportType.Stdio
+                    };
 
                     var config = new McpServerConfig
                     {
-                        HttpPort = transportType == McpServerTransportType.Sse 
-                            ? int.Parse(PortTextBox.Text) 
+                        HttpPort = transportType switch
+                        {
+                            McpServerTransportType.Sse => int.Parse(PortTextBox.Text),
+                            McpServerTransportType.OAuthSse => int.Parse(McpPortTextBox.Text),
+                            _ => null
+                        },
+                        OAuthPort = transportType == McpServerTransportType.OAuthSse 
+                            ? int.Parse(OAuthPortTextBox.Text) 
                             : null,
                         EnableLogging = EnableLoggingCheckBox.IsChecked ?? false,
                         ExcludedToolGuids = _toolViewModels
@@ -174,6 +192,13 @@ namespace AiStudio4.Windows
             if (SseOptions != null)
             {
                 SseOptions.Visibility = TransportTypeCombo.SelectedIndex == 1 
+                    ? Visibility.Visible 
+                    : Visibility.Collapsed;
+            }
+            
+            if (OAuthSseOptions != null)
+            {
+                OAuthSseOptions.Visibility = TransportTypeCombo.SelectedIndex == 2 
                     ? Visibility.Visible 
                     : Visibility.Collapsed;
             }

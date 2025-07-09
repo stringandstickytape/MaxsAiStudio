@@ -24,6 +24,7 @@ namespace AiStudio4.Services
         private McpServerTransportType? _currentTransportType;
         private readonly List<string> _connectedClients = new();
         private SseServerTransport? _sseTransport;
+        private OAuthSseServerTransport? _oauthSseTransport;
 
         public bool IsRunning => _currentServer != null && _serverCts != null && !_serverCts.Token.IsCancellationRequested;
         public McpServerTransportType CurrentTransportType => _currentTransportType ?? McpServerTransportType.Stdio;
@@ -53,6 +54,13 @@ namespace AiStudio4.Services
                     // Handle SSE transport differently since it's not a standard MCP transport
                     await StartSseServerAsync(config);
                     return _currentServer!; // Will be set by StartSseServerAsync
+                }
+                
+                if (transportType == McpServerTransportType.OAuthSse)
+                {
+                    // Handle OAuth SSE transport
+                    await StartOAuthSseServerAsync(config);
+                    return _currentServer!; // Will be set by StartOAuthSseServerAsync
                 }
 
                 // Create stdio transport
@@ -111,6 +119,12 @@ namespace AiStudio4.Services
                 _sseTransport.Dispose();
                 _sseTransport = null;
             }
+            
+            if (_oauthSseTransport != null)
+            {
+                _oauthSseTransport.Dispose();
+                _oauthSseTransport = null;
+            }
 
             if (_currentServer != null)
             {
@@ -128,6 +142,10 @@ namespace AiStudio4.Services
             if (_sseTransport != null)
             {
                 return _sseTransport.GetConnectedClients();
+            }
+            if (_oauthSseTransport != null)
+            {
+                return _oauthSseTransport.GetConnectedClients();
             }
             return _connectedClients.AsReadOnly();
         }
@@ -237,6 +255,47 @@ namespace AiStudio4.Services
             await Task.Delay(500);
             
             OnStatusChanged(true, $"SSE server started on port {config.HttpPort ?? 3000}");
+        }
+        
+        private async Task StartOAuthSseServerAsync(McpServerConfig config)
+        {
+            // Create a dummy MCP server for OAuth SSE transport to use
+            var options = CreateServerOptions(config);
+            _currentServer = McpServerFactory.Create(new StdioServerTransport("dummy"), options);
+            _currentTransportType = McpServerTransportType.OAuthSse;
+
+            // Create and start OAuth SSE transport
+            _oauthSseTransport = new OAuthSseServerTransport(
+                config.HttpPort ?? 3000,
+                config.OAuthPort ?? 7029,
+                _serviceProvider,
+                _serviceProvider.GetService<ILogger<OAuthSseServerTransport>>()
+            );
+
+            // Start server
+            _serverCts = new CancellationTokenSource();
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _oauthSseTransport.RunAsync(_currentServer, _serverCts.Token);
+                }
+                catch (OperationCanceledException)
+                {
+                    // Normal shutdown
+                    _logger.LogInformation("OAuth SSE MCP server stopped");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "OAuth SSE MCP server error");
+                    OnStatusChanged(false, $"OAuth SSE server error: {ex.Message}");
+                }
+            }, _serverCts.Token);
+
+            // Give the server a moment to start
+            await Task.Delay(500);
+            
+            OnStatusChanged(true, $"OAuth SSE server started on port {config.HttpPort ?? 3000}, OAuth on port {config.OAuthPort ?? 7029}");
         }
 
         private void OnStatusChanged(bool isRunning, string message)

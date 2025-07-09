@@ -43,6 +43,16 @@
     "LicenseInformationOrigin": 2
   },
   {
+    "PackageId": "Microsoft.AspNetCore.Authentication.JwtBearer",
+    "PackageVersion": "9.0.4",
+    "PackageProjectUrl": "https://asp.net/",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
     "PackageId": "Microsoft.AspNetCore.OpenApi",
     "PackageVersion": "9.0.4",
     "PackageProjectUrl": "https://asp.net/",
@@ -103,6 +113,16 @@
     "LicenseInformationOrigin": 0
   },
   {
+    "PackageId": "Microsoft.IdentityModel.Tokens",
+    "PackageVersion": "8.2.0",
+    "PackageProjectUrl": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
     "PackageId": "Microsoft.Web.WebView2",
     "PackageVersion": "1.0.3240.44",
     "PackageProjectUrl": "https://aka.ms/webview",
@@ -133,6 +153,16 @@
     "PackageProjectUrl": "https://github.com/openai/openai-dotnet/tree/OpenAI_2.2.0-beta.4",
     "Copyright": "Copyright (c) 2024 OpenAI (https://openai.com)",
     "Authors": "OpenAI",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "System.IdentityModel.Tokens.Jwt",
+    "PackageVersion": "8.2.0",
+    "PackageProjectUrl": "https://github.com/AzureAD/azure-activedirectory-identitymodel-extensions-for-dotnet",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
     "License": "MIT",
     "LicenseUrl": "https://licenses.nuget.org/MIT",
     "LicenseInformationOrigin": 0
