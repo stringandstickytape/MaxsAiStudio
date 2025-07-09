@@ -15,10 +15,11 @@ interface AttachmentPreviewProps {
 
 const getIconComponent = (type: string) => {
     const iconType = getIconForFileType(type);
+    const iconStyle = { color: 'var(--global-secondary-text-color, #999999)' };
     switch (iconType) {
-        case 'Image': return <Image className="h-5 w-5" />;
-        case 'FileText': return <FileText className="h-5 w-5" />;
-        default: return <File className="h-5 w-5" />;
+        case 'Image': return <Image className="h-5 w-5" style={iconStyle} />;
+        case 'FileText': return <FileText className="h-5 w-5" style={iconStyle} />;
+        default: return <File className="h-5 w-5" style={iconStyle} />;
     }
 };
 
@@ -55,7 +56,14 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                 )}
                 title={`${attachment.name} (${fileSize})`}
             >
-                <div className="aspect-square w-10 h-10 bg-gray-800 rounded-md border border-gray-700 overflow-hidden flex items-center justify-center">
+                <div className="aspect-square w-10 h-10 rounded-md overflow-hidden flex items-center justify-center"
+                    style={{
+                        backgroundColor: 'var(--global-background-color, #1f2937)',
+                        borderColor: 'var(--global-border-color, #4a5568)',
+                        borderWidth: '1px',
+                        borderStyle: 'solid'
+                    }}
+                >
                     {isImage && attachment.previewUrl ? (
                         <img
                             src={attachment.previewUrl}
@@ -63,8 +71,10 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                             className="w-full h-full object-cover"
                         />
                     ) : isPdf && attachment.previewUrl ? (
-                        <div className="flex items-center justify-center h-full w-full bg-gray-700">
-                            <FileText className="h-5 w-5 text-gray-300" />
+                        <div className="flex items-center justify-center h-full w-full"
+                            style={{ backgroundColor: 'var(--global-secondary-color, #374151)' }}
+                        >
+                            <FileText className="h-5 w-5" style={{ color: 'var(--global-text-color, #ffffff)' }} />
                         </div>
                     ) : (
                         getIconComponent(attachment.type)
@@ -73,14 +83,38 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                 <div className="absolute top-1 right-1 flex flex-col gap-1 opacity-0 group-hover:opacity-100">
                     <button
                         onClick={() => downloadAttachment(attachment)}
-                        className="h-5 w-5 bg-gray-700 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-blue-600 transition-colors mb-0.5"
+                        className="h-5 w-5 rounded-full flex items-center justify-center transition-colors mb-0.5"
+                        style={{
+                            backgroundColor: 'var(--global-secondary-color, #374151)',
+                            color: 'var(--global-secondary-text-color, #999999)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--global-primary-color, #3b82f6)';
+                            e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                            e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                        }}
                         title={`Download ${attachment.name}`}
                     >
                         <Download className="h-3 w-3" />
                     </button>
                     <button
                         onClick={() => onRemove(attachment.id)}
-                        className="h-5 w-5 bg-gray-700 rounded-full flex items-center justify-center text-gray-300 hover:text-white hover:bg-red-600 transition-colors"
+                        className="h-5 w-5 rounded-full flex items-center justify-center transition-colors"
+                        style={{
+                            backgroundColor: 'var(--global-secondary-color, #374151)',
+                            color: 'var(--global-secondary-text-color, #999999)'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.backgroundColor = '#dc2626';
+                            e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                            e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                        }}
                         title={`Remove ${attachment.name}`}
                     >
                         <X className="h-3 w-3" />
@@ -90,58 +124,137 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
         );
     }
 
-    // Regular view
+    // Get file extension for file type label
+    const getFileType = () => {
+        const extension = attachment.name.split('.').pop()?.toUpperCase() || '';
+        if (extension.length > 4) {
+            // For longer extensions, use the mime type
+            const mimeType = attachment.type.split('/')[1]?.toUpperCase() || 'FILE';
+            return mimeType.length > 4 ? mimeType.substring(0, 4) : mimeType;
+        }
+        return extension || 'FILE';
+    };
+
+    // Regular view - 140px x 64px
     return (
         <div
             className={cn(
-                'flex items-center gap-2 p-2 bg-gray-800 rounded border border-gray-700 group',
+                'relative w-[140px] h-[56px] rounded group overflow-hidden flex',
                 className
             )}
+            style={{
+                backgroundColor: 'var(--global-background-color, #1f2937)',
+                borderColor: 'var(--global-border-color, #4a5568)',
+                borderWidth: '1px',
+                borderStyle: 'solid'
+            }}
         >
-            {isImage && attachment.previewUrl ? (
-                <div className="relative w-10 h-10 bg-gray-700 rounded overflow-hidden flex-shrink-0">
+            {/* Left side - icon */}
+            <div className="w-12 flex items-center justify-center flex-shrink-0">
+                {isImage && attachment.previewUrl ? (
                     <img
                         src={attachment.previewUrl}
                         alt={attachment.name}
-                        className="w-full h-full object-cover"
+                        className="h-10 w-10 object-cover rounded"
                     />
-                </div>
-            ) : isPdf && attachment.previewUrl ? (
-                <div className="relative w-10 h-10 bg-gray-700 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-gray-300" />
-                </div>
-            ) : (
-                <div className="w-10 h-10 bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
-                    {getIconComponent(attachment.type)}
-                </div>
-            )}
+                ) : isPdf && attachment.previewUrl ? (
+                    <FileText className="h-6 w-6" style={{ color: 'var(--global-secondary-text-color, #999999)' }} />
+                ) : (
+                    getIconComponent(attachment.type)
+                )}
+            </div>
 
-            {!iconsOnly && (
-                <div className="flex-1 min-w-0">
-                    <div className="truncate text-sm font-medium text-gray-200">{attachment.name}</div>
-                    <div className="text-xs text-gray-400">{fileSize}</div>
+            {/* Right side - all text info */}
+            <div className="flex-1 flex flex-col justify-center min-w-0">
+                <div 
+                    className="text-xs font-medium text-gray-200 truncate"
+                    title={attachment.name}
+                    style={{ 
+                        color: 'var(--global-text-color, #ffffff)',
+                        fontSize: '11px'
+                    }}
+                >
+                    {attachment.name}
                 </div>
-            )}
-
-            <div className="flex flex-col gap-1">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => downloadAttachment(attachment)}
-                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                <div className="flex items-center gap-1 mt-0.5">
+                    <span 
+                        className="inline-block px-1 py-0.5 text-xs font-bold rounded"
+                        style={{
+                            backgroundColor: 'var(--global-background-color, #1f2937)',
+                            color: 'var(--global-text-color, #ffffff)',
+                            borderColor: 'var(--global-border-color, #4a5568)',
+                            borderWidth: '1px',
+                            borderStyle: 'solid',
+                            fontSize: '9px'
+                        }}
+                    >
+                        {getFileType()}
+                    </span>
+                    <div 
+                        className="text-xs text-gray-400"
+                        style={{ 
+                            color: 'var(--global-secondary-text-color, #999999)',
+                            fontSize: '10px'
+                        }}
+                    >
+                        {fileSize}
+                    </div>
+                </div>
+            </div>
+            
+            {/* Action buttons - top right */}
+            <div className="absolute top-1 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Download button */}
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        downloadAttachment(attachment);
+                    }}
+                    className="p-1 cursor-pointer transition-all rounded border-none"
+                    style={{
+                        backgroundColor: 'var(--global-secondary-color, #374151)',
+                        color: 'var(--global-secondary-text-color, #999999)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--global-primary-color, #3b82f6)';
+                        e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                        e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                    }}
                     title={`Download ${attachment.name}`}
                 >
                     <Download className="h-3 w-3" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onRemove(attachment.id)}
-                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-100 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                </button>
+                
+                {/* Remove button */}
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRemove(attachment.id);
+                    }}
+                    className="p-1 cursor-pointer transition-all rounded border-none"
+                    style={{
+                        backgroundColor: 'var(--global-secondary-color, #374151)',
+                        color: 'var(--global-secondary-text-color, #999999)'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#dc2626';
+                        e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--global-secondary-color, #374151)';
+                        e.currentTarget.style.color = 'var(--global-secondary-text-color, #999999)';
+                    }}
                     title={`Remove ${attachment.name}`}
                 >
                     <X className="h-3 w-3" />
-                </Button>
+                </button>
             </div>
         </div>
     );
@@ -233,36 +346,18 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
         );
     }
 
-    // Regular view
+    // Regular view - horizontal layout for input bar
     return (
-        <div className={cn('p-2 bg-gray-800/50 rounded border border-gray-700/50 h-full overflow-auto', className)}>
-            <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-300">
-                    {!iconsOnly ? `Attachments (${attachments.length})` : ''}
-                </div>
-                {onClear && attachments.length > 1 && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onClear}
-                        className="h-6 px-2 py-0 text-xs"
-                        title="Clear all attachments"
-                    >
-                        {iconsOnly ? <X className="h-3 w-3" /> : "Clear All"}
-                    </Button>
-                )}
-            </div>
-            <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto">
-                {attachments.map((attachment) => (
-                    <AttachmentPreview
-                        key={attachment.id}
-                        attachment={attachment}
-                        onRemove={onRemove}
-                        className="w-full"
-                        iconsOnly={iconsOnly}
-                    />
-                ))}
-            </div>
+        <div className={cn('flex gap-2 overflow-x-auto h-full', className)}>
+            {attachments.map((attachment) => (
+                <AttachmentPreview
+                    key={attachment.id}
+                    attachment={attachment}
+                    onRemove={onRemove}
+                    className="flex-shrink-0"
+                    iconsOnly={iconsOnly}
+                />
+            ))}
         </div>
     );
 };
@@ -280,7 +375,18 @@ export const AttachmentButton: React.FC<AttachmentButtonProps> = ({ onClick, dis
             size="icon"
             onClick={onClick}
             disabled={disabled}
-            className={cn('btn-ghost icon-btn bg-gray-800 border-gray-700 hover:text-blue-400', className)}
+            className={cn('btn-ghost icon-btn', className)}
+            style={{
+                backgroundColor: 'var(--global-background-color, #1f2937)',
+                borderColor: 'var(--global-border-color, #4a5568)',
+                color: 'var(--global-text-color, #ffffff)'
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--global-primary-color, #3b82f6)';
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--global-text-color, #ffffff)';
+            }}
             aria-label="Attach file"
         >
             <FilePlus className="h-5 w-5" />

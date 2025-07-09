@@ -16,6 +16,7 @@ import { slashItemRegistry } from './services/slashItemRegistry';
 import { UserPromptProvider } from './services/providers/userPromptProvider';
 import { FileNameProvider } from './services/providers/fileNameProvider';
 import { useInputBarStore } from '@/stores/useInputBarStore';
+import { useTipOfTheDayStore } from '@/stores/useTipOfTheDayStore';
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -146,7 +147,29 @@ function App() {
         },
       });
     }
-  }, [activeConvId, createConv]);  // Destructure modal state from useModalStore
+  }, [activeConvId, createConv]);
+  
+  // Initialize tip of the day
+  useEffect(() => {
+    const initializeTipOfTheDay = async () => {
+      const { fetchNextTip, showTip } = useTipOfTheDayStore.getState();
+      
+      try {
+        await fetchNextTip();
+        
+        // Show tip on startup with a small delay to ensure app is fully loaded
+        setTimeout(() => {
+          showTip();
+        }, 100);
+      } catch (error) {
+        console.error('Failed to initialize tip of the day:', error);
+      }
+    };
+    
+    initializeTipOfTheDay();
+  }, []);
+  
+  // Destructure modal state from useModalStore
   const { currentModal, closeModal } = useModalStore();
 
   // Assuming userPrompts is available in this scope; if not, it should be imported or passed as prop

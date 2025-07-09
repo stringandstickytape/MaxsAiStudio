@@ -8,6 +8,7 @@ import type { ContentBlock } from '@/types/conv';
 import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { MessageUtils } from '@/utils/messageUtils';
 import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
+import { useTipOfTheDayStore } from '@/stores/useTipOfTheDayStore';
 
 interface ConvState {
     convs: Record<string, Conv>;
@@ -289,6 +290,9 @@ export const useConvStore = create<ConvState>((set, get) => {
             }),
 
         setActiveConv: (convId: string) => {
+            // Hide tip when switching conversations
+            useTipOfTheDayStore.getState().hideTip();
+            
             return set(s => {
                 const conv = s.convs[convId];
                 if (!conv) return s;

@@ -1,0 +1,518 @@
+[
+  {
+    "Id": "tip-001",
+    "Tip": "You can branch at any point in the conversation history.  Just click any message in the sidebar hierarchy.",
+    "SamplePrompt": "",
+    "ManualReference":  "readme.md"
+  },
+  {
+    "Id": "tip-002",
+    "Tip": "Connect to multiple AI models from one interface - OpenAI, Anthropic Claude, Google Gemini, local Llama.cpp, and MCP servers all work together.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-003",
+    "Tip": "Use built-in tools to let AI directly modify your code files, search the web, and manage Git repositories without leaving the chat.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-004",
+    "Tip": "Define multiple projects and switch between them to give AI context about your current workspace and file operations.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-005",
+    "Tip": "Import existing conversations from Google AI Studio via Google Drive to continue your work in AiStudio4.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-006",
+    "Tip": "Navigate complex discussions using the branched conversation tree view to explore different conversation paths.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-007",
+    "Tip": "Interject in AI tool loops in real-time when you need to provide additional input or change direction.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-008",
+    "Tip": "Use the command bar and pinnable shortcuts to quickly access frequently used prompts and commands.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-009",
+    "Tip": "Leverage the AI tool-based theming engine to personalize your interface appearance.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-010",
+    "Tip": "Connect to Ollama models through OpenAI API compatibility for local AI inference.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-011",
+    "Tip": "Use integrated audio transcription with Whisper.net to convert speech to text directly in the application.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-012",
+    "Tip": "Associate specific models, tools, and MCP servers with your system and user prompts for consistent AI behavior.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/01-introduction.md"
+  },
+  {
+    "Id": "tip-013",
+    "Tip": "Set up your first project by going to Project > Manage Projects to provide context for all AI file operations and development tools.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-016",
+    "Tip": "Configure charging strategies for different AI providers to accurately track costs - Claude, OpenAI, and Gemini each have different caching models.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-017",
+    "Tip": "Access the Command Bar with Ctrl+K and type 'Providers' to quickly configure AI service providers and API keys.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-018",
+    "Tip": "Enable tiered pricing for models like Gemini 1.5 Pro that have different rates above and below token boundaries to track costs accurately.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-019",
+    "Tip": "Use local Llama.cpp models by configuring the ModelPath, ContextSize, and GpuLayerCount in the Additional Parameters JSON field.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-021",
+    "Tip": "AiStudio4 automatically downloads the appropriate llama-server binary to your %APPDATA%\\AiStudio4\\llama-cpp directory when first using Llama.cpp models.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-022",
+    "Tip": "Click the Primary Model and Secondary Model buttons in the Input Bar to quickly switch between models for different tasks.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-023",
+    "Tip": "The active project determines context for all AI tasks, file operations, Git integration, and .NET project analysis - make sure to set it correctly.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-025",
+    "Tip": "Add multiple projects and switch between them using the Project Management dialog to work on different codebases or filesets seamlessly.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-026",
+    "Tip": "Use the folder icon in the menu bar for quick Explorer access to your active project's directory.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-027",
+    "Tip": "Configure reasoning effort levels (low, medium, high) for compatible AI models to balance response quality with processing time.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/02-getting-started.md"
+  },
+  {
+    "Id": "tip-028",
+    "Tip": "Toggle the sidebar with Ctrl+B or Cmd+B to quickly access conversation history and the current conversation tree view.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-029",
+    "Tip": "Use the Search Bar in the sidebar to quickly find specific conversations from your chat history.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-030",
+    "Tip": "Set your Active Project Path to provide critical context for AI tasks, file operations, and Git integration - all tools operate relative to this path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-031",
+    "Tip": "Switch projects automatically by selecting a System Prompt that is associated with a specific project path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-032",
+    "Tip": "Activate specific tools for each conversation - the AI will only use tools you've enabled.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-033",
+    "Tip": "Connect to external MCP servers to extend your AI's capabilities with additional tools beyond the built-in ones.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-034",
+    "Tip": "View your conversation's branched structure using the interactive Tree View to understand different conversation paths.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-035",
+    "Tip": "Find your conversation files in the %APPDATA%/AiStudio4/convs directory - they're stored as JSON files with unique message IDs.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-036",
+    "Tip": "Associate System Prompts with specific models, tools, user prompts, and projects to create consistent AI behaviors for different workflows.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-037",
+    "Tip": "Use User Prompts as reusable templates and access them via Slash Commands like /my-template or /MyProjectFile.cs.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/03-core-concepts.md"
+  },
+  {
+    "Id": "tip-038",
+    "Tip": "Use Enter to create multi-line messages in the input area instead of sending immediately.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-039",
+    "Tip": "Press Ctrl+Enter (or Cmd+Enter on Mac) to interject during AI tool processing when you need to provide additional information.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-040",
+    "Tip": "Click the 'Interject' button (💬➕ icon) to add context while the AI is processing tools without fully interrupting its flow.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-041",
+    "Tip": "Check message metadata below each AI response to see model used, response time, and token costs for performance tracking.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-042",
+    "Tip": "Middle-click conversations in the sidebar to delete them with confirmation - useful for cleaning up your chat history.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-043",
+    "Tip": "Use the search bar in the sidebar to find conversations - matching text will be highlighted in the tree view.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-044",
+    "Tip": "Click nodes in the conversation tree to jump to specific points in your chat history.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-045",
+    "Tip": "Middle-click nodes in the conversation tree to delete messages and all their descendants - perfect for pruning conversation branches.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-046",
+    "Tip": "Use the tree view control buttons to zoom, pan, center, or focus on the latest message in your conversation hierarchy.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-047",
+    "Tip": "Use {ProjectPath} in system prompts to automatically include your current project's path in the AI context.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-048",
+    "Tip": "Use {CommonAiMistakes} in system prompts to automatically include CommonAiMistakes.md content from your project root.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-049",
+    "Tip": "Enable 'Include Git Diff' in system prompts to automatically attach git diff HEAD output when the prompt is applied.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-050",
+    "Tip": "Associate tools with system prompts so they activate automatically whenever you use that prompt.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-051",
+    "Tip": "Link user prompts to system prompts to automatically populate the input bar when the system prompt is applied.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-052",
+    "Tip": "Associate specific models and MCP servers with system prompts to create complete AI environments for different workflows.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-053",
+    "Tip": "Create shortcuts for user prompts (like /my-template) to quickly insert them via slash commands.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-054",
+    "Tip": "Type / in the input bar to see a dropdown of user prompts and project files - select to insert or attach.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-055",
+    "Tip": "Shift+click files in the slash command dropdown to attach them as files instead of just inserting the path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-056",
+    "Tip": "Middle-click active tools in the input bar to quickly deactivate them, or middle-click the Tools button to deactivate all tools.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-057",
+    "Tip": "Double-click category names in the Tool Library to select all tools in that category at once.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-058",
+    "Tip": "Explicitly ask the AI to use specific tools by name when you want to ensure a particular tool is used.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-059",
+    "Tip": "Attach multiple files at once by selecting them in the file dialog - supports images, text files, and code files.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-060",
+    "Tip": "Use the 'Git Diff' attachment option to automatically include git diff HEAD output and untracked files list.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-061",
+    "Tip": "Attach images from your clipboard directly using the 'Image from Clipboard' option in the paperclip menu.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-062",
+    "Tip": "Set up Conda path and WhisperX environment to enable audio transcription of media files directly in the application.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-063",
+    "Tip": "Use Transcribe > Insert Last Transcription to add VTT-formatted transcriptions directly to your input bar.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-064",
+    "Tip": "Configure Azure DevOps Wiki Sync to automatically update system prompts from centralized team documentation.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-065",
+    "Tip": "Enable Wiki Sync to automatically synchronize system prompts with Azure DevOps wiki pages on application startup.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-066",
+    "Tip": "Use Project > Pack Project Source Code to create comprehensive XML packages of your codebase for AI analysis.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-067",
+    "Tip": "Use Project > Repack Project Source Code for quick updates to your packaged codebase using the same output location.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-068",
+    "Tip": "Configure project packaging filters to include/exclude specific file types, filenames, or folder names for cleaner packages.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-069",
+    "Tip": "Import Google AI Studio conversations via Google Drive to continue your work in AiStudio4's enhanced environment.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-070",
+    "Tip": "Export your current conversation thread to Google AI Studio format for sharing or backup purposes.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-071",
+    "Tip": "Ask the AI to create Marp presentations - they'll be automatically rendered with navigation controls and presenter mode.",
+    "SamplePrompt": "Create a short fenced Marp presentation in a markdown block, with no internal fencing, about baked goods.",
+    "ManualReference": "docs/readme/04-using-aistudio4.md"
+  },
+  {
+    "Id": "tip-078",
+    "Tip": "Adjust the Temperature slider in the Input Bar to control AI creativity - lower values give more focused responses, higher values give more creative ones.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-079",
+    "Tip": "Use the Top P slider (0.0 to 1.0) alongside Temperature for fine-grained control over AI response diversity - lower values focus on probable words, higher values allow more variety.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-080",
+    "Tip": "AiStudio4 automatically detects and parses malformed tool calls that AI models sometimes produce as plain text, improving reliability.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-081",
+    "Tip": "Connect to Ollama instances using the NetOpenAi service type and pointing the URL to your Ollama instance (e.g., http://localhost:11434/v1).",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-082",
+    "Tip": "Configure MCP servers with StdIO checked for CLI-based servers or unchecked for HTTP/SSE-based servers to extend AI capabilities.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-083",
+    "Tip": "Select specific tools to expose from MCP servers - if none are selected, all tools from that server are available to the AI.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-084",
+    "Tip": "Create custom tools with 'template' schema type to let the AI fill in text templates instead of structured JSON.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-086",
+    "Tip": "Configure Extra Properties for built-in tools like FileSearchTool and DirectoryTreeTool to customize their behavior without changing code.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-087",
+    "Tip": "Use comma-separated values for CSV Extra Properties like 'excludedFileExtensions' to filter out unwanted file types from tool results.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-088",
+    "Tip": "Create AI-generated themes by making a custom tool with Output Filetype 'theme' and asking the AI to generate theme JSON - you'll get an 'Install Theme' button in the response.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-089",
+    "Tip": "Pin frequently used commands in the Command Bar by hovering over them and clicking the Pin icon - they'll appear in your Header Bar for one-click access.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-090",
+    "Tip": "Reorder pinned shortcuts by dragging and dropping them in the Header to customize your workflow.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-091",
+    "Tip": "Middle-click pinned shortcut buttons to rename them and change their icons for better organization.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-092",
+    "Tip": "Use Shift+Click on file paths in the slash command dropdown to attach files directly instead of just inserting the path.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-093",
+    "Tip": "Adjust Chat Width in Appearance Settings with options from Narrow to Full Width to optimize reading comfort for different screen sizes.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-098",
+    "Tip": "Use the Project > Analyze .NET Projects menu to extract namespace, class, and member information for AI consumption.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-099",
+    "Tip": "Pack your project source code into XML format to provide comprehensive codebase snapshots to AI models with context limitations.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-100",
+    "Tip": "Configure Azure DevOps Wiki Sync to automatically update system prompts from centralized team documentation on application startup.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  },
+  {
+    "Id": "tip-101",
+    "Tip": "Set up Google Drive integration with credentials.json to import conversations from Google AI Studio and export your AiStudio4 conversations.",
+    "SamplePrompt": "",
+    "ManualReference": "docs/readme/05-key-features-in-detail.md"
+  }
+]

@@ -18,7 +18,8 @@
       "Bash(awk:*)",
       "Bash(cat:*)",
       "mcp__serena__find_symbol",
-      "Bash(pnpm cypress run:*)"
+      "Bash(pnpm cypress run:*)",
+      "Bash(npx eslint:*)"
     ],
     "deny": []
   }

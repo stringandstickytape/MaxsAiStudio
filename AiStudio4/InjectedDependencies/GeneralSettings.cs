@@ -34,6 +34,7 @@ namespace AiStudio4.InjectedDependencies
         public string SecondaryModelGuid { get; set; } = string.Empty;
         public int ConversationZipRetentionDays { get; set; } = 30;
         public int ConversationDeleteZippedRetentionDays { get; set; } = 90;
+        public int NextTipNumber { get; set; } = 0;
 
         public List<string> PackerIncludeFileTypes { get; set; } = new List<string>();
         public List<string> PackerExcludeFilenames { get; set; } = new List<string>();

@@ -10,5 +10,6 @@ namespace AiStudio4.Services.Interfaces
         bool IsServerRunning { get; }
         string ServerBaseUrl { get; }
         Task<bool> IsServerHealthyAsync();
+        Task<bool> UpdateLlamaCppAsync();
     }
 }

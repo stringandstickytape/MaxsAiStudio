@@ -34,8 +34,8 @@ namespace AiStudio4.InjectedDependencies
             try
             {
                 await _notificationService.NotifyFileSystemChanges(e.Directories, e.Files);
-                _logger.LogDebug("Notified clients of file system changes: {DirectoryCount} directories, {FileCount} files", 
-                    e.Directories.Count, e.Files.Count);
+                //_logger.LogDebug("Notified clients of file system changes: {DirectoryCount} directories, {FileCount} files", 
+                //    e.Directories.Count, e.Files.Count);
             }
             catch (Exception ex)
             {

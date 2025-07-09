@@ -8,6 +8,7 @@ import { useAttachmentStore } from '@/stores/useAttachmentStore';
 import { Attachment } from '@/types/attachment';
 import { useModelStore } from '@/stores/useModelStore';
 import { useToolStore } from '@/stores/useToolStore';
+import { useTipOfTheDayStore } from '@/stores/useTipOfTheDayStore';
 import { createResourceHook } from './useResourceFactory';
 
 // --- FIX: Moved this hook definition to the top of the file, before it is used. ---
@@ -55,6 +56,9 @@ export function useChatManagement() {
 
     const sendMessage = useCallback(
         async (params: Omit<SendMessageParams, 'model'>) => {
+            // Hide tip when sending a message
+            useTipOfTheDayStore.getState().hideTip();
+            
             return executeApiCall(async () => {
                 const { slctdMsgId } = useConvStore.getState(); // Get it from the store
                 const parentMessageId = slctdMsgId; // Use the current selected message ID

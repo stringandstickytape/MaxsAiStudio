@@ -436,6 +436,70 @@ namespace AiStudio4.Services
             return port;
         }
 
+        public async Task<bool> UpdateLlamaCppAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Checking for LlamaCpp updates...");
+
+                // Stop the server if it's running
+                if (IsServerRunning)
+                {
+                    _logger.LogInformation("Stopping llama-server before update");
+                    await StopServerAsync();
+                }
+
+                // Backup existing binary
+                string backupPath = null;
+                if (File.Exists(_llamaServerPath))
+                {
+                    backupPath = _llamaServerPath + ".backup";
+                    File.Copy(_llamaServerPath, backupPath, true);
+                    _logger.LogInformation("Backed up existing binary to {BackupPath}", backupPath);
+                }
+
+                try
+                {
+                    // Remove existing binary to force re-download
+                    if (File.Exists(_llamaServerPath))
+                    {
+                        File.Delete(_llamaServerPath);
+                    }
+
+                    // Download latest version
+                    await DownloadLatestLlamaServerAsync();
+                    
+                    // Clean up backup on success
+                    if (!string.IsNullOrEmpty(backupPath) && File.Exists(backupPath))
+                    {
+                        File.Delete(backupPath);
+                    }
+
+                    _logger.LogInformation("Successfully updated LlamaCpp");
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to update LlamaCpp");
+                    
+                    // Restore backup if update failed
+                    if (!string.IsNullOrEmpty(backupPath) && File.Exists(backupPath))
+                    {
+                        _logger.LogInformation("Restoring backup after failed update");
+                        File.Copy(backupPath, _llamaServerPath, true);
+                        File.Delete(backupPath);
+                    }
+                    
+                    throw;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during LlamaCpp update");
+                return false;
+            }
+        }
+
         public void Dispose()
         {
             _serverLock?.Wait(5000);
