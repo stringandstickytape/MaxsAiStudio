@@ -44,7 +44,7 @@ namespace AiStudio4.Services.Mcp
             _logger = logger;
             
             _serverUrl = $"http://172.19.80.1:{mcpPort}/";
-            _oauthServerUrl = $"https://172.19.80.1:{oauthPort}";
+            _oauthServerUrl = $"http://172.19.80.1:{oauthPort}";
             
             // Create OAuth server
             _oauthServer = new InMemoryOAuthServer(oauthPort, _oauthServerUrl, _serverUrl, logger);
@@ -139,7 +139,11 @@ namespace AiStudio4.Services.Mcp
         {
             try
             {
-                _logger?.LogDebug("Handling request to {Path}", context.Request.Url?.AbsolutePath);
+                var path = context.Request.Url?.AbsolutePath;
+                var method = context.Request.HttpMethod;
+                var query = context.Request.QueryString.ToString();
+                
+                _logger?.LogInformation($"MCP Server: {method} {path} {query}");
                 
                 // Add CORS headers
                 context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -148,28 +152,32 @@ namespace AiStudio4.Services.Mcp
                 
                 if (context.Request.HttpMethod == "OPTIONS")
                 {
+                    _logger?.LogDebug("MCP Server: Handling OPTIONS request");
                     context.Response.StatusCode = 200;
                     context.Response.Close();
                     return;
                 }
                 
-                var path = context.Request.Url?.AbsolutePath;
-                
                 switch (path)
                 {
                     case "/":
+                        _logger?.LogInformation("MCP Server: Serving root page");
                         await HandleRootRequest(context);
                         break;
                     case "/.well-known/oauth-protected-resource":
+                        _logger?.LogInformation("MCP Server: Serving OAuth protected resource metadata");
                         await HandleProtectedResourceMetadata(context);
                         break;
                     case "/sse":
+                        _logger?.LogInformation("MCP Server: Handling SSE connection");
                         await HandleSseConnection(context, cancellationToken);
                         break;
                     case "/jsonrpc":
+                        _logger?.LogInformation("MCP Server: Handling JSON-RPC request");
                         await HandleJsonRpcRequest(context);
                         break;
                     default:
+                        _logger?.LogWarning($"MCP Server: Unknown path requested: {path}");
                         await Handle404Request(context);
                         break;
                 }
@@ -273,6 +281,9 @@ namespace AiStudio4.Services.Mcp
             
             context.Response.ContentType = "application/json";
             var json = System.Text.Json.JsonSerializer.Serialize(metadata, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+            
+            _logger?.LogInformation($"MCP Server: Sending protected resource metadata: {json}");
+            
             var bytes = Encoding.UTF8.GetBytes(json);
             await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
             context.Response.Close();

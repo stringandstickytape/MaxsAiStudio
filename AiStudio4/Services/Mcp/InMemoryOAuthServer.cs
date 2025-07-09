@@ -26,6 +26,7 @@ namespace AiStudio4.Services.Mcp
         private readonly string _audience;
         
         private readonly ConcurrentDictionary<string, OAuthClient> _clients = new();
+        private readonly ConcurrentDictionary<string, AuthorizationData> _authorizationCodes = new();
         
         public InMemoryOAuthServer(int port, string issuer, string audience, ILogger<OAuthSseServerTransport>? logger = null)
         {
@@ -62,12 +63,12 @@ namespace AiStudio4.Services.Mcp
             _cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             
             _listener = new HttpListener();
-            _listener.Prefixes.Add($"https://localhost:{_port}/");
+            _listener.Prefixes.Add($"http://*:{_port}/");
             
             try
             {
                 _listener.Start();
-                _logger?.LogInformation($"OAuth server started on https://localhost:{_port}/");
+                _logger?.LogInformation($"OAuth server started on http://localhost:{_port}/");
             }
             catch (HttpListenerException ex)
             {
@@ -114,34 +115,48 @@ namespace AiStudio4.Services.Mcp
         {
             try
             {
+                var path = context.Request.Url?.AbsolutePath;
+                var method = context.Request.HttpMethod;
+                var query = context.Request.QueryString.ToString();
+                
+                _logger?.LogInformation($"OAuth Server: {method} {path} {query}");
+                
                 context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
                 context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
                 context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
                 
                 if (context.Request.HttpMethod == "OPTIONS")
                 {
+                    _logger?.LogDebug("OAuth Server: Handling OPTIONS request");
                     context.Response.StatusCode = 200;
                     context.Response.Close();
                     return;
                 }
                 
-                var path = context.Request.Url?.AbsolutePath;
-                
                 switch (path)
                 {
                     case "/.well-known/openid_configuration":
+                        _logger?.LogInformation("OAuth Server: Serving OpenID configuration");
                         await HandleOpenIdConfiguration(context);
                         break;
                     case "/.well-known/jwks":
+                        _logger?.LogInformation("OAuth Server: Serving JWKS");
                         await HandleJwks(context);
                         break;
                     case "/.well-known/oauth-protected-resource":
+                        _logger?.LogInformation("OAuth Server: Serving protected resource metadata");
                         await HandleProtectedResourceMetadata(context);
                         break;
                     case "/token":
+                        _logger?.LogInformation("OAuth Server: Handling token request");
                         await HandleTokenRequest(context);
                         break;
+                    case "/auth":
+                        _logger?.LogInformation("OAuth Server: Handling authorization request");
+                        await HandleAuthorizationRequest(context);
+                        break;
                     default:
+                        _logger?.LogWarning($"OAuth Server: Unknown path requested: {path}");
                         await HandleNotFound(context);
                         break;
                 }
@@ -167,11 +182,13 @@ namespace AiStudio4.Services.Mcp
                 token_endpoint = $"{_issuer}/token",
                 jwks_uri = $"{_issuer}/.well-known/jwks",
                 response_types_supported = new[] { "code" },
+                grant_types_supported = new[] { "authorization_code", "client_credentials" },
                 subject_types_supported = new[] { "public" },
                 id_token_signing_alg_values_supported = new[] { "RS256" },
                 scopes_supported = new[] { "openid", "mcp:tools" },
-                token_endpoint_auth_methods_supported = new[] { "client_secret_post", "client_secret_basic" },
-                claims_supported = new[] { "sub", "name", "preferred_username", "email" }
+                token_endpoint_auth_methods_supported = new[] { "client_secret_post", "client_secret_basic", "none" },
+                claims_supported = new[] { "sub", "name", "preferred_username", "email" },
+                code_challenge_methods_supported = new[] { "S256", "plain" }
             };
             
             await WriteJsonResponse(context, config);
@@ -206,6 +223,262 @@ namespace AiStudio4.Services.Mcp
             await WriteJsonResponse(context, metadata);
         }
         
+        private async Task HandleAuthorizationRequest(HttpListenerContext context)
+        {
+            var query = context.Request.QueryString;
+            var responseType = query["response_type"];
+            var clientId = query["client_id"];
+            var redirectUri = query["redirect_uri"];
+            var scope = query["scope"];
+            var state = query["state"];
+            var codeChallenge = query["code_challenge"];
+            var codeChallengeMethod = query["code_challenge_method"];
+            
+            _logger?.LogInformation($"OAuth Server: Authorization request - client_id={clientId}, redirect_uri={redirectUri}, scope={scope}, response_type={responseType}");
+            
+            if (responseType != "code")
+            {
+                _logger?.LogWarning($"OAuth Server: Unsupported response type: {responseType}");
+                await SendAuthError(context, "unsupported_response_type", "Only code response type is supported");
+                return;
+            }
+            
+            if (string.IsNullOrEmpty(clientId))
+            {
+                _logger?.LogWarning("OAuth Server: Missing client_id");
+                await SendAuthError(context, "invalid_request", "client_id is required");
+                return;
+            }
+            
+            // Handle POST request (form submission)
+            if (context.Request.HttpMethod == "POST")
+            {
+                _logger?.LogInformation("OAuth Server: Handling POST authorization request");
+                var form = await ReadFormData(context.Request);
+                var action = form.GetValueOrDefault("action", "");
+                
+                _logger?.LogInformation($"OAuth Server: Form action: {action}");
+                
+                if (action == "approve")
+                {
+                    // Generate and store authorization code
+                    var authCode = Guid.NewGuid().ToString("N");
+                    
+                    var authData = new AuthorizationData
+                    {
+                        Code = authCode,
+                        ClientId = clientId,
+                        RedirectUri = redirectUri,
+                        Scope = scope ?? "mcp:tools",
+                        CodeChallenge = codeChallenge,
+                        CodeChallengeMethod = codeChallengeMethod,
+                        ExpiresAt = DateTime.UtcNow.AddMinutes(10)
+                    };
+                    
+                    _authorizationCodes.TryAdd(authCode, authData);
+                    
+                    // Redirect back to the client with the authorization code
+                    var redirectUrl = $"{redirectUri}?code={authCode}";
+                    if (!string.IsNullOrEmpty(state))
+                    {
+                        redirectUrl += $"&state={state}";
+                    }
+                    
+                    _logger?.LogInformation($"OAuth Server: Redirecting to: {redirectUrl}");
+                    
+                    context.Response.StatusCode = 302;
+                    context.Response.Headers.Add("Location", redirectUrl);
+                    context.Response.Close();
+                    return;
+                }
+                else if (action == "deny")
+                {
+                    // Redirect back with error
+                    var redirectUrl = $"{redirectUri}?error=access_denied&error_description=The+user+denied+the+request";
+                    if (!string.IsNullOrEmpty(state))
+                    {
+                        redirectUrl += $"&state={state}";
+                    }
+                    
+                    _logger?.LogInformation($"OAuth Server: User denied, redirecting to: {redirectUrl}");
+                    
+                    context.Response.StatusCode = 302;
+                    context.Response.Headers.Add("Location", redirectUrl);
+                    context.Response.Close();
+                    return;
+                }
+            }
+            
+            // Show authorization page
+            _logger?.LogInformation("OAuth Server: Showing authorization page");
+            await ShowAuthorizationPage(context, clientId, redirectUri, scope ?? "mcp:tools", state, codeChallenge, codeChallengeMethod);
+        }
+        
+        private async Task ShowAuthorizationPage(HttpListenerContext context, string clientId, string? redirectUri, string scope, string? state, string? codeChallenge, string? codeChallengeMethod)
+        {
+            var html = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Authorize AiStudio4 MCP Access</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }}
+        .auth-container {{
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+        .app-info {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .app-name {{
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }}
+        .permissions {{
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }}
+        .permissions h3 {{
+            margin-top: 0;
+            color: #555;
+        }}
+        .scope {{
+            background: #e3f2fd;
+            padding: 5px 10px;
+            border-radius: 3px;
+            display: inline-block;
+            margin: 5px;
+            font-size: 14px;
+        }}
+        .buttons {{
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }}
+        .btn {{
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }}
+        .btn-approve {{
+            background: #4CAF50;
+            color: white;
+        }}
+        .btn-approve:hover {{
+            background: #45a049;
+        }}
+        .btn-deny {{
+            background: #f44336;
+            color: white;
+        }}
+        .btn-deny:hover {{
+            background: #da190b;
+        }}
+        .client-info {{
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }}
+        .auto-approve {{
+            background: #e8f5e8;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-size: 14px;
+            color: #2e7d32;
+        }}
+    </style>
+</head>
+<body>
+    <div class='auth-container'>
+        <div class='app-info'>
+            <div class='app-name'>🔐 AiStudio4 MCP Server</div>
+            <div class='client-info'>Client ID: <code>{clientId}</code></div>
+        </div>
+        
+        <div class='auto-approve'>
+            <strong>🚀 Development Mode:</strong> This authorization will be automatically approved for Claude MCP connections.
+        </div>
+        
+        <div class='permissions'>
+            <h3>Requested Permissions:</h3>
+            <div class='scope'>🔧 {scope}</div>
+            <p style='margin: 10px 0 0 0; font-size: 14px; color: #666;'>
+                This allows access to AiStudio4 tools and resources through the MCP protocol.
+            </p>
+        </div>
+        
+        <form method='post'>
+            <input type='hidden' name='client_id' value='{clientId}'>
+            <input type='hidden' name='redirect_uri' value='{redirectUri}'>
+            <input type='hidden' name='scope' value='{scope}'>
+            <input type='hidden' name='state' value='{state}'>
+            <input type='hidden' name='code_challenge' value='{codeChallenge}'>
+            <input type='hidden' name='code_challenge_method' value='{codeChallengeMethod}'>
+            
+            <div class='buttons'>
+                <button type='submit' name='action' value='approve' class='btn btn-approve'>
+                    ✓ Approve Access
+                </button>
+                <button type='submit' name='action' value='deny' class='btn btn-deny'>
+                    ✗ Deny Access
+                </button>
+            </div>
+        </form>
+        
+        <script>
+            // Auto-approve after 3 seconds for development convenience
+            setTimeout(function() {{
+                document.querySelector('button[value=""approve""]').click();
+            }}, 3000);
+        </script>
+    </div>
+</body>
+</html>";
+            
+            context.Response.ContentType = "text/html";
+            var bytes = Encoding.UTF8.GetBytes(html);
+            await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+            context.Response.Close();
+        }
+        
+        private async Task SendAuthError(HttpListenerContext context, string error, string description)
+        {
+            var errorHtml = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OAuth Error</title>
+</head>
+<body>
+    <h1>OAuth Error</h1>
+    <p><strong>Error:</strong> {error}</p>
+    <p><strong>Description:</strong> {description}</p>
+</body>
+</html>";
+            context.Response.ContentType = "text/html";
+            var bytes = Encoding.UTF8.GetBytes(errorHtml);
+            await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+            context.Response.Close();
+        }
+        
         private async Task HandleTokenRequest(HttpListenerContext context)
         {
             if (context.Request.HttpMethod != "POST")
@@ -217,13 +490,105 @@ namespace AiStudio4.Services.Mcp
             
             var form = await ReadFormData(context.Request);
             
-            if (!form.TryGetValue("grant_type", out var grantType) || grantType != "client_credentials")
+            if (!form.TryGetValue("grant_type", out var grantType))
             {
                 context.Response.StatusCode = 400;
-                await WriteJsonResponse(context, new { error = "unsupported_grant_type", error_description = "Only client_credentials grant type supported" });
+                await WriteJsonResponse(context, new { error = "invalid_request", error_description = "grant_type is required" });
                 return;
             }
             
+            if (grantType == "authorization_code")
+            {
+                await HandleAuthorizationCodeGrant(context, form);
+            }
+            else if (grantType == "client_credentials")
+            {
+                await HandleClientCredentialsGrant(context, form);
+            }
+            else
+            {
+                context.Response.StatusCode = 400;
+                await WriteJsonResponse(context, new { error = "unsupported_grant_type", error_description = "Only authorization_code and client_credentials grant types are supported" });
+            }
+        }
+        
+        private async Task HandleAuthorizationCodeGrant(HttpListenerContext context, Dictionary<string, string> form)
+        {
+            var code = form.GetValueOrDefault("code", "");
+            var redirectUri = form.GetValueOrDefault("redirect_uri", "");
+            var clientId = form.GetValueOrDefault("client_id", "");
+            var codeVerifier = form.GetValueOrDefault("code_verifier", "");
+            
+            if (string.IsNullOrEmpty(code))
+            {
+                context.Response.StatusCode = 400;
+                await WriteJsonResponse(context, new { error = "invalid_request", error_description = "code is required" });
+                return;
+            }
+            
+            if (!_authorizationCodes.TryGetValue(code, out var authData))
+            {
+                context.Response.StatusCode = 400;
+                await WriteJsonResponse(context, new { error = "invalid_grant", error_description = "Invalid authorization code" });
+                return;
+            }
+            
+            if (authData.ExpiresAt < DateTime.UtcNow)
+            {
+                _authorizationCodes.TryRemove(code, out _);
+                context.Response.StatusCode = 400;
+                await WriteJsonResponse(context, new { error = "invalid_grant", error_description = "Authorization code has expired" });
+                return;
+            }
+            
+            if (authData.ClientId != clientId)
+            {
+                context.Response.StatusCode = 400;
+                await WriteJsonResponse(context, new { error = "invalid_grant", error_description = "client_id mismatch" });
+                return;
+            }
+            
+            if (authData.RedirectUri != redirectUri)
+            {
+                context.Response.StatusCode = 400;
+                await WriteJsonResponse(context, new { error = "invalid_grant", error_description = "redirect_uri mismatch" });
+                return;
+            }
+            
+            // Verify PKCE if present
+            if (!string.IsNullOrEmpty(authData.CodeChallenge))
+            {
+                if (string.IsNullOrEmpty(codeVerifier))
+                {
+                    context.Response.StatusCode = 400;
+                    await WriteJsonResponse(context, new { error = "invalid_request", error_description = "code_verifier is required" });
+                    return;
+                }
+                
+                if (!VerifyCodeChallenge(codeVerifier, authData.CodeChallenge, authData.CodeChallengeMethod))
+                {
+                    context.Response.StatusCode = 400;
+                    await WriteJsonResponse(context, new { error = "invalid_grant", error_description = "Invalid code verifier" });
+                    return;
+                }
+            }
+            
+            // Remove the used authorization code
+            _authorizationCodes.TryRemove(code, out _);
+            
+            var token = GenerateAccessToken(clientId, authData.Scope);
+            
+            await WriteJsonResponse(context, new
+            {
+                access_token = token,
+                token_type = "Bearer",
+                expires_in = 3600,
+                scope = authData.Scope
+            });
+        }
+        
+        private async Task HandleClientCredentialsGrant(HttpListenerContext context, Dictionary<string, string> form)
+        {
             var clientId = form.GetValueOrDefault("client_id", "");
             var clientSecret = form.GetValueOrDefault("client_secret", "");
             
@@ -251,6 +616,25 @@ namespace AiStudio4.Services.Mcp
                 expires_in = 3600,
                 scope = scope
             });
+        }
+        
+        private bool VerifyCodeChallenge(string codeVerifier, string codeChallenge, string? method)
+        {
+            if (method == "S256")
+            {
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(codeVerifier));
+                var base64Hash = Convert.ToBase64String(hash)
+                    .Replace("+", "-")
+                    .Replace("/", "_")
+                    .Replace("=", "");
+                return base64Hash == codeChallenge;
+            }
+            else if (method == "plain" || string.IsNullOrEmpty(method))
+            {
+                return codeVerifier == codeChallenge;
+            }
+            return false;
         }
         
         private string GenerateAccessToken(string clientId, string scope)
@@ -334,6 +718,17 @@ namespace AiStudio4.Services.Mcp
             public string ClientSecret { get; set; } = "";
             public string Name { get; set; } = "";
             public string[] Scopes { get; set; } = Array.Empty<string>();
+        }
+        
+        private class AuthorizationData
+        {
+            public string Code { get; set; } = "";
+            public string ClientId { get; set; } = "";
+            public string? RedirectUri { get; set; }
+            public string Scope { get; set; } = "";
+            public string? CodeChallenge { get; set; }
+            public string? CodeChallengeMethod { get; set; }
+            public DateTime ExpiresAt { get; set; }
         }
     }
 }
