@@ -37,14 +37,12 @@ interface HistoricalConvsStore {
   isLoadingList: boolean;
   isLoadingConv: boolean;
   error: string | null;
-  regeneratingSummaries: Set<string>;
 
   
   fetchAllConvs: () => Promise<void>;
   fetchConvTree: (convId: string) => Promise<TreeNode | null>;
   addOrUpdateConv: (conv: HistoricalConv) => void;
   deleteConv: (convId: string) => Promise<void>;
-  regenerateSummary: (convId: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -70,7 +68,6 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
     isLoadingList: false,
     isLoadingConv: false,
     error: null,
-    regeneratingSummaries: new Set<string>(),
 
     
     fetchAllConvs: async () => {
@@ -201,39 +198,6 @@ export const useHistoricalConvsStore = create<HistoricalConvsStore>((set, get) =
         set({
           error: error instanceof Error ? error.message : 'Failed to delete conv',
           isLoading: false,
-        });
-      }
-    },
-
-    regenerateSummary: async (convId: string) => {
-      const clientId = webSocketService.getClientId();
-      if (!clientId) return set({ error: 'No client ID available' });
-
-      // Add convId to regenerating set
-      set((state) => ({
-        regeneratingSummaries: new Set(state.regeneratingSummaries).add(convId)
-      }));
-
-      try {
-        const { data } = await apiClient.post('/api/regenerateSummary', { convId });
-        
-        if (!data.success) {
-          throw new Error(data.error || 'Failed to regenerate summary');
-        }
-        
-        // The summary update will come through the WebSocket notification
-        // so we don't need to manually update the store here
-        
-      } catch (error) {
-        set({
-          error: error instanceof Error ? error.message : 'Failed to regenerate summary',
-        });
-      } finally {
-        // Remove convId from regenerating set
-        set((state) => {
-          const newSet = new Set(state.regeneratingSummaries);
-          newSet.delete(convId);
-          return { regeneratingSummaries: newSet };
         });
       }
     },

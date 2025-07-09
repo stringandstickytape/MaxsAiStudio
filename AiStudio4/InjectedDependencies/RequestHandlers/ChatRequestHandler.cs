@@ -21,8 +21,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
         private readonly WebSocketServer _webSocketServer;
         private readonly IConvStorage _convStorage;
         private readonly IGeneralSettingsService _generalSettingsService;
-        private readonly IWebSocketNotificationService _notificationService;
-        private readonly ILogger<ChatRequestHandler> _logger;
 
         public ChatRequestHandler(
             ChatManager chatManager,
@@ -30,9 +28,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             ClientRequestCancellationService cancellationService,
             WebSocketServer webSocketServer,
             IConvStorage convStorage,
-            IGeneralSettingsService generalSettingsService,
-            IWebSocketNotificationService notificationService,
-            ILogger<ChatRequestHandler> logger)
+            IGeneralSettingsService generalSettingsService)
         {
             _chatManager = chatManager ?? throw new ArgumentNullException(nameof(chatManager));
             _chatService = chatService ?? throw new ArgumentNullException(nameof(chatService));
@@ -40,8 +36,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             _webSocketServer = webSocketServer ?? throw new ArgumentNullException(nameof(webSocketServer));
             _convStorage = convStorage ?? throw new ArgumentNullException(nameof(convStorage));
             _generalSettingsService = generalSettingsService ?? throw new ArgumentNullException(nameof(generalSettingsService));
-            _notificationService = notificationService ?? throw new ArgumentNullException(nameof(notificationService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         protected override IEnumerable<string> SupportedRequestTypes => new[]
@@ -58,8 +52,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             "chat",
             "simpleChat",
             "cancelRequest",
-            "updateMessage",
-            "regenerateSummary"
+            "updateMessage"
         };
 
         public override async Task<string> HandleAsync(string clientId, string requestType, JObject requestObject)
@@ -80,7 +73,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                     "simpleChat" => await HandleSimpleChatRequest(requestObject),
                     "cancelRequest" => await HandleCancelRequestAsync(clientId, requestObject),
                     "updateMessage" => await HandleUpdateMessageRequest(clientId, requestObject),
-                    "regenerateSummary" => await HandleRegenerateSummaryRequest(clientId, requestObject),
                     _ => SerializeError($"Unsupported request type: {requestType}")
                 };
             }
@@ -215,119 +207,6 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
             {
                 return SerializeError($"Error updating message: {ex.Message}");
             }
-        }
-
-        private async Task<string> HandleRegenerateSummaryRequest(string clientId, JObject requestObject)
-        {
-            try
-            {
-                string convId = requestObject["convId"]?.ToString();
-                if (string.IsNullOrEmpty(convId))
-                    return SerializeError("Conversation ID cannot be empty");
-
-                // Load the conversation
-                var conv = await _convStorage.LoadConv(convId);
-                if (conv == null)
-                    return SerializeError($"Conversation with ID {convId} not found");
-
-                // Check if secondary model is configured
-                var secondaryModelName = _generalSettingsService.CurrentSettings.SecondaryModel;
-                if (string.IsNullOrEmpty(secondaryModelName))
-                    return SerializeError("Secondary model not configured for summary generation");
-
-                var model = _generalSettingsService.CurrentSettings.ModelList.FirstOrDefault(x => x.ModelName == secondaryModelName);
-                if (model == null)
-                    return SerializeError($"Secondary model '{secondaryModelName}' not found in model list");
-
-                try
-                {
-                    // Get the first user message and AI response for context
-                    var userMessage = conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User);
-                    var aiMessage = conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.Assistant);
-
-                    if (userMessage == null)
-                        return SerializeError("No user message found in conversation");
-
-                    // Extract text content from messages
-                    var userMessageText = string.Join("\n\n", userMessage.ContentBlocks
-                        .Where(cb => cb.ContentType == ContentType.Text)
-                        .Select(cb => cb.Content));
-
-                    var aiMessageText = aiMessage != null 
-                        ? string.Join("\n\n", aiMessage.ContentBlocks
-                            .Where(cb => cb.ContentType == ContentType.Text)
-                            .Select(cb => cb.Content))
-                        : "";
-
-                    // Truncate messages for summary generation
-                    string userMessageExcerpt = userMessageText.Length > 250 
-                        ? userMessageText.Substring(0, 250) 
-                        : userMessageText;
-
-                    string aiResponseExcerpt = aiMessageText.Length > 250 
-                        ? aiMessageText.Substring(0, 250) 
-                        : aiMessageText;
-
-                    // Generate summary prompt
-                    var summaryPrompt = $"Generate a concise 6 - 10 word summary of the following content. Produce NO OTHER OUTPUT WHATSOEVER.\n\n```txt\nUser: {userMessageExcerpt}\nAI: {aiResponseExcerpt}\n```\n";
-
-                    // Use the chat service to generate the summary
-                    var summaryResponse = await _chatService.ProcessSimpleChatRequest(summaryPrompt);
-
-                    if (!summaryResponse.Success)
-                        return SerializeError($"Failed to generate summary: {summaryResponse.Error}");
-
-                    // Clean and truncate the summary
-                    var summary = summaryResponse.ResponseText.Trim();
-                    if (summary.Length > 100)
-                        summary = summary.Substring(0, 97) + "...";
-
-                    // Update the conversation with the new summary
-                    conv.Summary = summary;
-                    await _convStorage.SaveConv(conv);
-
-                    // Notify all clients about the summary update
-                    await _notificationService.NotifyConvList(new ConvListDto
-                    {
-                        ConvId = conv.ConvId,
-                        Summary = summary,
-                        LastModified = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-                        FlatMessageStructure = BuildFlatMessageStructure(conv)
-                    });
-
-                    _logger.LogInformation("Successfully regenerated summary for conversation {ConvId}", convId);
-
-                    return JsonConvert.SerializeObject(new { success = true, summary = summary });
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Error generating summary for conversation {ConvId}", convId);
-                    return SerializeError($"Error generating summary: {ex.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in HandleRegenerateSummaryRequest");
-                return SerializeError($"Error regenerating summary: {ex.Message}");
-            }
-        }
-
-        private List<object> BuildFlatMessageStructure(v4BranchedConv conv)
-        {
-            var allMessages = conv.GetAllMessages();
-
-            return allMessages.Select(msg => new {
-                id = msg.Id,
-                contentBlocks = msg.ContentBlocks,
-                parentId = msg.ParentId,
-                source = msg.Role == v4BranchedConvMessageRole.User ? "user" :
-                        msg.Role == v4BranchedConvMessageRole.Assistant ? "ai" : "system",
-                costInfo = msg.CostInfo,
-                attachments = msg.Attachments,
-                timestamp = msg.Timestamp,
-                durationMs = msg.DurationMs,
-                temperature = msg.Temperature
-            }).ToList<object>();
         }
     }
 }

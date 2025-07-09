@@ -6,7 +6,7 @@ import { useHistoricalConvsStore } from '@/stores/useHistoricalConvsStore';
 import { useSearchStore } from '@/stores/useSearchStore';
 import { useChatManagement } from '@/hooks/useChatManagement';
 import { useMessageSelection } from '@/hooks/useMessageSelection';
-import { Search, X, MessageSquare, RefreshCw } from 'lucide-react';
+import { Search, X, MessageSquare } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 // Memoized individual conversation item component
@@ -14,81 +14,34 @@ const ConversationItem = memo(({
     conv, 
     searchResult, 
     onMiddleClick, 
-    onClick,
-    onCtrlClick,
-    isRegenerating 
+    onClick 
 }: {
     conv: any;
     searchResult?: { matchingMessageIds: string[] } | undefined;
     onMiddleClick: (e: React.MouseEvent, convId: string) => void;
     onClick: () => void;
-    onCtrlClick: (convId: string) => void;
-    isRegenerating: boolean;
 }) => {
-    const [isHovering, setIsHovering] = useState(false);
-    const [ctrlPressed, setCtrlPressed] = useState(false);
-
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.ctrlKey || e.metaKey) setCtrlPressed(true);
-        };
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (!e.ctrlKey && !e.metaKey) setCtrlPressed(false);
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        window.addEventListener('keyup', handleKeyUp);
-
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-            window.removeEventListener('keyup', handleKeyUp);
-        };
-    }, []);
-    const handleClick = (e: React.MouseEvent) => {
-        if (e.ctrlKey || e.metaKey) {
-            e.preventDefault();
-            onCtrlClick(conv.convGuid);
-        } else {
-            onClick();
-        }
-    };
-
-    const getTooltip = () => {
-        if (ctrlPressed && isHovering) {
-            return "Ctrl+click to regenerate summary";
-        }
-        return "Click to open • Middle-click to delete • Ctrl+click to regenerate summary";
-    };
-
     return (
         <div
             key={conv.convGuid}
-            className="HistoricalConvTreeList text-sm cursor-pointer px-2 py-0.5 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1 relative"
-            title={getTooltip()}
+            className="HistoricalConvTreeList text-sm cursor-pointer px-2 py-0.5 rounded overflow-hidden text-ellipsis whitespace-normal break-words mb-1"
+            title="Middle-click to delete conversation"
             style={{ 
                 display: 'block', 
                 wordBreak: 'break-word',
                 color: 'var(--global-text-color, #e5e7eb)',
-                backgroundColor: ctrlPressed && isHovering 
-                    ? 'var(--global-primary-color, rgba(59, 130, 246, 0.2))' 
-                    : 'var(--global-background-color, transparent)',
+                backgroundColor: 'var(--global-background-color, transparent)',
                 border: 'none',
-                transition: 'background-color 0.2s ease',
+                ':hover': {
+                    backgroundColor: 'var(--global-primary-color, rgba(31, 41, 55, 0.4))',
+                    opacity: 0.7
+                },
                 ...(window?.theme?.HistoricalConvTreeList?.style || {})
             }}
             onMouseDown={(e) => onMiddleClick(e, conv.convGuid)}
-            onClick={handleClick}
-            onMouseEnter={() => setIsHovering(true)}
-            onMouseLeave={() => setIsHovering(false)}
+            onClick={onClick}
         >
-            <div className="flex items-center justify-between">
-                <span className={isRegenerating ? 'opacity-50' : ''}>
-                    {conv.summary}
-                </span>
-                {isRegenerating && (
-                    <RefreshCw className="h-3 w-3 animate-spin ml-2 flex-shrink-0" />
-                )}
-            </div>
+            {conv.summary}
             {searchResult && (
                 <div className="text-xs text-blue-400 mt-1">
                     {searchResult.matchingMessageIds.length} matching message{searchResult.matchingMessageIds.length !== 1 ? 's' : ''}
@@ -102,7 +55,6 @@ const ConversationItem = memo(({
         prevProps.conv.convGuid === nextProps.conv.convGuid &&
         prevProps.conv.summary === nextProps.conv.summary &&
         prevProps.conv.lastModified === nextProps.conv.lastModified &&
-        prevProps.isRegenerating === nextProps.isRegenerating &&
         JSON.stringify(prevProps.searchResult) === JSON.stringify(nextProps.searchResult)
     );
 });
@@ -126,7 +78,7 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
     const currentRequest = useWebSocketStore(state => state.currentRequest);
     const { createConv, addMessage, convs: currentConvs } = useConvStore();
     const { selectMessage } = useMessageSelection();
-    const { convs, fetchAllConvs, addOrUpdateConv, deleteConv, isLoadingList, regenerateSummary, regeneratingSummaries } = useHistoricalConvsStore();
+    const { convs, fetchAllConvs, addOrUpdateConv, deleteConv, isLoadingList } = useHistoricalConvsStore();
     const { highlightMessage } = useSearchStore();
 
     const isChatRequestOngoing = !!currentRequest;
@@ -333,15 +285,6 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
         }
     }, [getConv, handleNodeClick]);
 
-    // Handle ctrl+click for regenerating summary
-    const handleCtrlClick = useCallback(async (convId: string) => {
-        try {
-            await regenerateSummary(convId);
-        } catch (error) {
-            console.error('Failed to regenerate summary:', error);
-        }
-    }, [regenerateSummary]);
-
     // Memoize the entire conversation list rendering to prevent recreation during livestream events
     const conversationItems = useMemo(() => {
         return displayedConvs.map((conv) => {
@@ -355,12 +298,10 @@ const HistoricalConvTreeListComponent = ({ searchResults }: HistoricalConvTreeLi
                     searchResult={searchResult}
                     onMiddleClick={handleMiddleClick}
                     onClick={() => handleConversationClick(conv)}
-                    onCtrlClick={handleCtrlClick}
-                    isRegenerating={regeneratingSummaries.has(conv.convGuid)}
                 />
             );
         });
-    }, [displayedConvs, searchResults, handleMiddleClick, handleConversationClick, handleCtrlClick, regeneratingSummaries]);
+    }, [displayedConvs, searchResults, handleMiddleClick, handleConversationClick]);
 
     return (
         <div className="HistoricalConvTreeList flex flex-col h-full" 
