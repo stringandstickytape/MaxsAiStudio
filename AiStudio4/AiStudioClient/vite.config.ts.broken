@@ -1,0 +1,74 @@
+﻿import path from 'path';
+import react from '@vitejs/plugin-react';
+import { defineConfig } from 'vite'; 
+import license from 'vite-plugin-license';
+
+export default defineConfig({
+    plugins: [react(),
+        license({
+            thirdParty: {
+                output: {
+                    file: './dist/licenses.txt',
+                },
+            },
+        })    ],
+    server: {
+        hmr: false
+    },
+  define: {
+    global: 'globalThis',
+    'process.env': {}
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+      buffer: 'buffer',
+    },
+  },
+  optimizeDeps: {
+    include: ['buffer'],
+    exclude: [
+      'cytoscape',
+      'cytoscape-fcose', 
+      'cytoscape-cose-bilkent',
+      'layout-base',
+      'cose-base',
+      'mermaid'
+    ]
+  },
+  build: {
+    sourcemap: true,
+    reportCompressedSize: false,
+    minify: 'esbuild', // Faster and less memory intensive than terser
+    commonjsOptions: {
+      include: [/node_modules/],
+      transformMixedEsModules: true
+    },
+    rollupOptions: {
+      maxParallelFileOps: 2, // Reduce concurrent operations
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules')) {
+            if (id.includes('duckdb')) return 'duckdb';
+            if (id.includes('cytoscape') || id.includes('layout-base') || id.includes('cose-base')) return 'cytoscape';
+            if (id.includes('radar')) return 'radar';
+            if (id.includes('@viz-js/viz') || id.includes('viz.js')) return 'viz';
+            if (id.includes('recharts')) return 'vendor';
+            if (id.includes('d3')) return 'd3';
+            if (id.includes('mermaid')) return 'index';
+            if (id.includes('@radix-ui')) return 'vendor';
+            if (id.includes('reactflow')) return 'react-flow';
+            if (id.includes('react-dom')) return 'vendor';
+            if (id.includes('react') || id.includes('redux')) return 'vendor';
+            if (id.includes('date-fns') || id.includes('axios') || id.includes('uuid')) return 'utils';
+            return 'vendor-other';
+          }
+          // Keep all application code together to avoid initialization issues
+          if (id.includes('src/')) {
+            return 'index';
+          }
+        }
+      }
+    }
+  },
+});
