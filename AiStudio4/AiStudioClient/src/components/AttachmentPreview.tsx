@@ -105,7 +105,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
     return (
         <div
             className={cn(
-                'relative w-[140px] h-[64px] bg-gray-800 rounded border border-gray-700 group overflow-hidden flex',
+                'relative w-[140px] h-[56px] bg-gray-800 rounded border border-gray-700 group overflow-hidden flex',
                 className
             )}
         >
@@ -125,7 +125,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
             </div>
 
             {/* Right side - all text info */}
-            <div className="flex-1 py-2 pr-2 flex flex-col justify-center min-w-0">
+            <div className="flex-1 flex flex-col justify-center min-w-0">
                 <div 
                     className="text-xs font-medium text-gray-200 truncate"
                     title={attachment.name}
@@ -168,7 +168,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         e.stopPropagation();
                         downloadAttachment(attachment);
                     }}
-                    className="p-0 cursor-pointer text-gray-400 hover:text-blue-500 transition-colors bg-transparent border-none"
+                    className="p-1 cursor-pointer text-gray-300 hover:text-white transition-all bg-gray-900/70 hover:bg-blue-600/80 rounded border-none"
                     title={`Download ${attachment.name}`}
                 >
                     <Download className="h-3 w-3" />
@@ -182,7 +182,7 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
                         e.stopPropagation();
                         onRemove(attachment.id);
                     }}
-                    className="p-0 cursor-pointer text-gray-400 hover:text-red-500 transition-colors bg-transparent border-none"
+                    className="p-1 cursor-pointer text-gray-300 hover:text-white transition-all bg-gray-900/70 hover:bg-red-600/80 rounded border-none"
                     title={`Remove ${attachment.name}`}
                 >
                     <X className="h-3 w-3" />

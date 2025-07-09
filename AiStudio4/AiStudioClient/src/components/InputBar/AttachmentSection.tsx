@@ -18,13 +18,10 @@ export const AttachmentSection = React.memo(() => {
     }
     
     return (
-        <div className="w-64 flex-shrink-0 overflow-auto">
-            <AttachmentPreviewBar
-                attachments={attachments}
-                onRemove={removeAttachment}
-                onClear={clearAttachments}
-                className="h-full"
-            />
-        </div>
+        <AttachmentPreviewBar
+            attachments={attachments}
+            onRemove={removeAttachment}
+            onClear={clearAttachments}
+        />
     );
 });
