@@ -114,6 +114,9 @@ namespace AiStudio4.InjectedDependencies
                     var mcpService = scope.ServiceProvider.GetRequiredService<IMcpService>();
                     await mcpService.InitializeAsync();
 
+                    // Auto-start MCP server if configured
+                    await StartMcpServerIfConfiguredAsync(scope);
+
                     _logger.LogInformation("Service initialization completed");
                 }
                 catch (Exception ex)
@@ -245,6 +248,41 @@ namespace AiStudio4.InjectedDependencies
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during wiki system prompt sync. Application startup will continue.");
+                // Don't re-throw; allow app to continue starting
+            }
+        }
+
+        private async Task StartMcpServerIfConfiguredAsync(IServiceScope scope)
+        {
+            try
+            {
+                var settings = _generalSettingsService.CurrentSettings;
+                
+                // Check if MCP server auto-start is enabled
+                if (!settings.McpServer.AutoStart)
+                {
+                    _logger.LogInformation("MCP server auto-start is disabled. Skipping auto-start.");
+                    return;
+                }
+
+                _logger.LogInformation("Auto-starting MCP server...");
+                
+                var mcpServerService = scope.ServiceProvider.GetRequiredService<IMcpServerService>();
+                var config = new McpServerConfig
+                {
+                    HttpPort = settings.McpServer.SsePort,
+                    EnableLogging = settings.McpServer.EnableLogging,
+                    ExcludedToolGuids = settings.McpServer.DisabledToolGuids
+                };
+
+                await mcpServerService.StartServerAsync(settings.McpServer.DefaultTransportType, config);
+                
+                _logger.LogInformation("MCP server auto-started successfully with {TransportType} transport", 
+                    settings.McpServer.DefaultTransportType);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during MCP server auto-start. Application startup will continue.");
                 // Don't re-throw; allow app to continue starting
             }
         }

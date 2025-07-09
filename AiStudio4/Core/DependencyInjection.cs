@@ -73,6 +73,11 @@ namespace AiStudio4.Core
             // Register the new ToolExecutor for provider-managed tool loops
             services.AddScoped<Core.Interfaces.IToolExecutor, ToolExecutor>();
 
+            // Register MCP Server services
+            services.AddSingleton<IMcpServerService, AiStudio4.Services.AiStudioMcpServerService>();
+            services.AddTransient<AiStudio4.Services.Mcp.IToolToMcpAdapter>();
+            services.AddTransient<AiStudio4.Windows.McpServerWindow>();
+
             return services;
         }
     }

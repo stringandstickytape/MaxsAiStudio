@@ -1451,4 +1451,19 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
             MessageBox.Show($"Error updating LlamaCpp: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
+
+    private void McpServer_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var mcpWindow = _serviceProvider.GetRequiredService<Windows.McpServerWindow>();
+            mcpWindow.Owner = this;
+            mcpWindow.ShowDialog();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error opening MCP server window");
+            MessageBox.Show($"Error opening MCP server window: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 }

@@ -1,6 +1,7 @@
 // AiStudio4/InjectedDependencies/GeneralSettings.cs
  // If you have a shared Model class
 using SharedClasses.Providers; // If your Model/ServiceProvider classes are here
+using AiStudio4.Core.Interfaces;
 
 
 
@@ -49,6 +50,9 @@ namespace AiStudio4.InjectedDependencies
         public string WikiSyncPagePath { get; set; } = string.Empty;
         public string WikiSyncTargetSystemPromptGuid { get; set; } = string.Empty;
 
+        // MCP Server Settings
+        public McpServerSettings McpServer { get; set; } = new();
+
         // Remove obsolete plaintext properties if you are doing a clean break
         // Otherwise, keep them for migration (see GeneralSettingsService.cs)
         [Obsolete("Use EncryptedYouTubeApiKey. This property is for migration only.")]
@@ -76,5 +80,14 @@ namespace AiStudio4.InjectedDependencies
             UseEmbeddings = this.UseEmbeddings,
             DefaultSystemPromptId = this.DefaultSystemPromptId
         };
+    }
+
+    public class McpServerSettings
+    {
+        public McpServerTransportType DefaultTransportType { get; set; } = McpServerTransportType.Stdio;
+        public int SsePort { get; set; } = 3000;
+        public bool EnableLogging { get; set; } = true;
+        public bool AutoStart { get; set; } = false;
+        public List<string> DisabledToolGuids { get; set; } = new();
     }
 }

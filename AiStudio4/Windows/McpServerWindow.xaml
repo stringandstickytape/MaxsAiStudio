@@ -1,0 +1,240 @@
+<Window x:Class="AiStudio4.Windows.McpServerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="MCP Server Management" Height="600" Width="800"
+        Background="{DynamicResource BackgroundBrush}"
+        Foreground="{DynamicResource PrimaryTextBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Control Panel -->
+        <Border Grid.Row="0" Background="{DynamicResource SecondaryBackgroundBrush}" 
+                BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,0,0,1">
+            <StackPanel Orientation="Horizontal" Margin="10">
+                <Label Content="Transport Type:" VerticalAlignment="Center"/>
+                <ComboBox x:Name="TransportTypeCombo" Width="100" VerticalAlignment="Center"
+                          SelectionChanged="TransportTypeCombo_SelectionChanged">
+                    <ComboBoxItem>Stdio</ComboBoxItem>
+                    <ComboBoxItem IsEnabled="False">SSE (Not Implemented)</ComboBoxItem>
+                </ComboBox>
+                
+                <!-- SSE Options -->
+                <StackPanel x:Name="SseOptions" Orientation="Horizontal" 
+                            Visibility="Collapsed" Margin="10,0,0,0">
+                    <Label Content="Port:" VerticalAlignment="Center"/>
+                    <TextBox x:Name="PortTextBox" Width="60" Text="3000" 
+                             VerticalAlignment="Center" Margin="5,0"/>
+                </StackPanel>
+                
+                <Button x:Name="StartStopButton" Content="Start Server" 
+                        Click="StartStopButton_Click" Margin="10,0"
+                        Padding="10,5" VerticalAlignment="Center"/>
+                
+                <TextBlock x:Name="StatusText" VerticalAlignment="Center" 
+                           Foreground="{DynamicResource SecondaryTextBrush}"/>
+            </StackPanel>
+        </Border>
+        
+        <!-- Main Content -->
+        <TabControl Grid.Row="1" Background="Transparent">
+            <TabItem Header="Server Status">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <GroupBox Header="Server Information" Grid.Row="0" Margin="5">
+                        <StackPanel Margin="10">
+                            <TextBlock x:Name="ServerInfoText" Margin="0,5"/>
+                            <TextBlock x:Name="ConnectionInfoText" Margin="0,5"/>
+                            <Border Background="{DynamicResource CodeBlockBackgroundBrush}" 
+                                    BorderBrush="{DynamicResource BorderBrush}" 
+                                    BorderThickness="1" CornerRadius="4" 
+                                    Padding="10" Margin="0,10">
+                                <StackPanel>
+                                    <TextBlock Text="Connection Instructions:" 
+                                               FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <TextBlock x:Name="ConnectionInstructionsText" 
+                                               FontFamily="Consolas" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </GroupBox>
+                    
+                    <GroupBox Header="Activity Log" Grid.Row="1" Margin="5">
+                        <ListBox x:Name="ActivityLog" 
+                                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                 Background="{DynamicResource CodeBlockBackgroundBrush}">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{DynamicResource BorderBrush}" 
+                                            BorderThickness="0,0,0,1" Padding="5">
+                                        <StackPanel>
+                                            <TextBlock Text="{Binding Timestamp}" 
+                                                       Foreground="{DynamicResource SecondaryTextBrush}" 
+                                                       FontSize="10"/>
+                                            <TextBlock Text="{Binding Message}" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            
+            <TabItem Header="Available Tools">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <StackPanel Grid.Row="0" Margin="5">
+                        <TextBlock x:Name="ToolCountText" Margin="5"/>
+                        <CheckBox x:Name="ShowDisabledToolsCheckBox" 
+                                  Content="Show disabled tools" 
+                                  Margin="5" 
+                                  Checked="ShowDisabledToolsCheckBox_Changed"
+                                  Unchecked="ShowDisabledToolsCheckBox_Changed"/>
+                    </StackPanel>
+                    
+                    <DataGrid x:Name="ToolsGrid" Grid.Row="1" AutoGenerateColumns="False" 
+                              CanUserAddRows="False" Margin="5">
+                        <DataGrid.Columns>
+                            <DataGridCheckBoxColumn Header="Enabled" 
+                                                    Binding="{Binding IsEnabled}"
+                                                    Width="60"/>
+                            <DataGridTextColumn Header="Name" 
+                                                Binding="{Binding Name}" 
+                                                Width="200" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Category" 
+                                                Binding="{Binding Category}" 
+                                                Width="150" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Description" 
+                                                Binding="{Binding Description}" 
+                                                Width="*" IsReadOnly="True"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </TabItem>
+            
+            <TabItem Header="Connected Clients">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <TextBlock Grid.Row="0" Margin="10" 
+                               x:Name="ClientCountText"/>
+                    
+                    <ListBox x:Name="ClientsList" Grid.Row="1" Margin="5">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderBrush="{DynamicResource BorderBrush}" 
+                                        BorderThickness="1" CornerRadius="4" 
+                                        Padding="10" Margin="5">
+                                    <StackPanel>
+                                        <TextBlock Text="{Binding ClientId}" FontWeight="Bold"/>
+                                        <TextBlock Text="{Binding ConnectedAt, 
+                                                          StringFormat='Connected: {0}'}" 
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                        <TextBlock Text="{Binding LastActivity, 
+                                                          StringFormat='Last Activity: {0}'}" 
+                                                   Foreground="{DynamicResource SecondaryTextBrush}"/>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </TabItem>
+            
+            <TabItem Header="Configuration">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="10">
+                        <GroupBox Header="General Settings" Margin="0,5">
+                            <StackPanel Margin="10">
+                                <CheckBox x:Name="EnableLoggingCheckBox" 
+                                          Content="Enable detailed logging" Margin="0,5"/>
+                                <CheckBox x:Name="AutoStartCheckBox" 
+                                          Content="Auto-start server on application launch" Margin="0,5"/>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="Stdio Configuration" Margin="0,10">
+                            <StackPanel Margin="10">
+                                <TextBlock Text="When using stdio transport, clients connect via command line" 
+                                           TextWrapping="Wrap" Margin="0,5"/>
+                                <TextBlock Text="Example:" FontWeight="Bold" Margin="0,5"/>
+                                <Border Background="{DynamicResource CodeBlockBackgroundBrush}" 
+                                        BorderBrush="{DynamicResource BorderBrush}" 
+                                        BorderThickness="1" CornerRadius="4" Padding="10">
+                                    <TextBlock FontFamily="Consolas" 
+                                               Text="npx @modelcontextprotocol/inspector aistudio4-mcp"/>
+                                </Border>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <GroupBox Header="SSE Configuration" Margin="0,10">
+                            <StackPanel Margin="10">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition/>
+                                        <RowDefinition/>
+                                    </Grid.RowDefinitions>
+                                    
+                                    <Label Grid.Row="0" Grid.Column="0" Content="Base URL:"/>
+                                    <TextBox Grid.Row="0" Grid.Column="1" x:Name="BaseUrlTextBox" 
+                                             IsReadOnly="True" Margin="5"/>
+                                    
+                                    <Label Grid.Row="1" Grid.Column="0" Content="Default Port:"/>
+                                    <TextBox Grid.Row="1" Grid.Column="1" x:Name="DefaultPortTextBox" 
+                                             Text="3000" Margin="5"/>
+                                </Grid>
+                                
+                                <TextBlock Text="SSE Endpoints:" FontWeight="Bold" Margin="0,10,0,5"/>
+                                <Border Background="{DynamicResource CodeBlockBackgroundBrush}" 
+                                        BorderBrush="{DynamicResource BorderBrush}" 
+                                        BorderThickness="1" CornerRadius="4" Padding="10">
+                                    <TextBlock FontFamily="Consolas">
+                                        <Run Text="/events - Server-Sent Events stream"/>
+                                        <LineBreak/>
+                                        <Run Text="/rpc - JSON-RPC endpoint"/>
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+                        </GroupBox>
+                        
+                        <Button Content="Save Configuration" Click="SaveConfiguration_Click" 
+                                HorizontalAlignment="Right" Margin="0,10" Padding="10,5"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+        
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="2" Background="{DynamicResource SecondaryBackgroundBrush}">
+            <StatusBarItem>
+                <TextBlock x:Name="StatusBarText" Text="Ready"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="ServerVersionText"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>
