@@ -90,58 +90,103 @@ export const AttachmentPreview: React.FC<AttachmentPreviewProps> = ({
         );
     }
 
-    // Regular view
+    // Get file extension for file type label
+    const getFileType = () => {
+        const extension = attachment.name.split('.').pop()?.toUpperCase() || '';
+        if (extension.length > 4) {
+            // For longer extensions, use the mime type
+            const mimeType = attachment.type.split('/')[1]?.toUpperCase() || 'FILE';
+            return mimeType.length > 4 ? mimeType.substring(0, 4) : mimeType;
+        }
+        return extension || 'FILE';
+    };
+
+    // Regular view - 140px x 64px
     return (
         <div
             className={cn(
-                'flex items-center gap-2 p-2 bg-gray-800 rounded border border-gray-700 group',
+                'relative w-[140px] h-[64px] bg-gray-800 rounded border border-gray-700 group overflow-hidden flex',
                 className
             )}
         >
-            {isImage && attachment.previewUrl ? (
-                <div className="relative w-10 h-10 bg-gray-700 rounded overflow-hidden flex-shrink-0">
+            {/* Left side - icon */}
+            <div className="w-12 flex items-center justify-center flex-shrink-0">
+                {isImage && attachment.previewUrl ? (
                     <img
                         src={attachment.previewUrl}
                         alt={attachment.name}
-                        className="w-full h-full object-cover"
+                        className="h-10 w-10 object-cover rounded"
                     />
-                </div>
-            ) : isPdf && attachment.previewUrl ? (
-                <div className="relative w-10 h-10 bg-gray-700 rounded overflow-hidden flex-shrink-0 flex items-center justify-center">
-                    <FileText className="h-6 w-6 text-gray-300" />
-                </div>
-            ) : (
-                <div className="w-10 h-10 bg-gray-700 rounded flex items-center justify-center flex-shrink-0">
-                    {getIconComponent(attachment.type)}
-                </div>
-            )}
+                ) : isPdf && attachment.previewUrl ? (
+                    <FileText className="h-6 w-6 text-gray-400" />
+                ) : (
+                    getIconComponent(attachment.type)
+                )}
+            </div>
 
-            {!iconsOnly && (
-                <div className="flex-1 min-w-0">
-                    <div className="truncate text-sm font-medium text-gray-200">{attachment.name}</div>
-                    <div className="text-xs text-gray-400">{fileSize}</div>
+            {/* Right side - all text info */}
+            <div className="flex-1 py-2 pr-2 flex flex-col justify-center min-w-0">
+                <div 
+                    className="text-xs font-medium text-gray-200 truncate"
+                    title={attachment.name}
+                    style={{ 
+                        color: 'var(--global-text-color, #ffffff)',
+                        fontSize: '11px'
+                    }}
+                >
+                    {attachment.name}
                 </div>
-            )}
-
-            <div className="flex flex-col gap-1">
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => downloadAttachment(attachment)}
-                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-400 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                <div className="flex items-center gap-1 mt-0.5">
+                    <span 
+                        className="inline-block px-1 py-0.5 text-xs font-bold rounded bg-gray-800 border border-gray-600"
+                        style={{
+                            color: 'var(--global-text-color, #ffffff)',
+                            fontSize: '9px'
+                        }}
+                    >
+                        {getFileType()}
+                    </span>
+                    <div 
+                        className="text-xs text-gray-400"
+                        style={{ 
+                            color: 'var(--global-secondary-text-color, #999999)',
+                            fontSize: '10px'
+                        }}
+                    >
+                        {fileSize}
+                    </div>
+                </div>
+            </div>
+            
+            {/* Action buttons - top right */}
+            <div className="absolute top-1 right-2 z-10 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* Download button */}
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        downloadAttachment(attachment);
+                    }}
+                    className="p-0 cursor-pointer text-gray-400 hover:text-blue-500 transition-colors bg-transparent border-none"
                     title={`Download ${attachment.name}`}
                 >
                     <Download className="h-3 w-3" />
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onRemove(attachment.id)}
-                    className="h-6 w-6 p-0 text-gray-400 hover:text-gray-100 hover:bg-gray-700/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                </button>
+                
+                {/* Remove button */}
+                <button
+                    type="button"
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRemove(attachment.id);
+                    }}
+                    className="p-0 cursor-pointer text-gray-400 hover:text-red-500 transition-colors bg-transparent border-none"
                     title={`Remove ${attachment.name}`}
                 >
                     <X className="h-3 w-3" />
-                </Button>
+                </button>
             </div>
         </div>
     );
@@ -233,36 +278,18 @@ export const AttachmentPreviewBar: React.FC<AttachmentPreviewBarProps> = ({
         );
     }
 
-    // Regular view
+    // Regular view - horizontal layout for input bar
     return (
-        <div className={cn('p-2 bg-gray-800/50 rounded border border-gray-700/50 h-full overflow-auto', className)}>
-            <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium text-gray-300">
-                    {!iconsOnly ? `Attachments (${attachments.length})` : ''}
-                </div>
-                {onClear && attachments.length > 1 && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={onClear}
-                        className="h-6 px-2 py-0 text-xs"
-                        title="Clear all attachments"
-                    >
-                        {iconsOnly ? <X className="h-3 w-3" /> : "Clear All"}
-                    </Button>
-                )}
-            </div>
-            <div className="flex flex-col gap-2 max-h-[200px] overflow-y-auto">
-                {attachments.map((attachment) => (
-                    <AttachmentPreview
-                        key={attachment.id}
-                        attachment={attachment}
-                        onRemove={onRemove}
-                        className="w-full"
-                        iconsOnly={iconsOnly}
-                    />
-                ))}
-            </div>
+        <div className={cn('flex gap-2 overflow-x-auto h-full', className)}>
+            {attachments.map((attachment) => (
+                <AttachmentPreview
+                    key={attachment.id}
+                    attachment={attachment}
+                    onRemove={onRemove}
+                    className="flex-shrink-0"
+                    iconsOnly={iconsOnly}
+                />
+            ))}
         </div>
     );
 };
