@@ -13,7 +13,7 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
 1. **Download and Extract**: Download the latest release and extract it to a directory of your choice
 2. **Start the Application**: Find and run AiStudio4.exe
 3. **Configure AI Providers**: Use `Ctrl+K` → "Service Providers" to add your API keys
-4. **Add AI Models**: Navigate to Settings → Models to configure your preferred AI models
+4. **Add AI Models**: Use `Ctrl+K` → "Models" to configure your preferred AI models
 5. **Start Chatting**: Begin conversing with AI using the input bar at the bottom
 6. **Set Project Path**: Go to `File > Project > Set Project Path...` and select your project root directory
 
