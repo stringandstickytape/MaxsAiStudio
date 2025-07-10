@@ -148,6 +148,16 @@
     "LicenseInformationOrigin": 0
   },
   {
+    "PackageId": "ModelContextProtocol.AspNetCore",
+    "PackageVersion": "0.3.0-preview.2",
+    "PackageProjectUrl": "https://github.com/modelcontextprotocol/csharp-sdk",
+    "Copyright": "\u00A9 Anthropic and Contributors.",
+    "Authors": "ModelContextProtocolOfficial",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
     "PackageId": "OpenAI",
     "PackageVersion": "2.2.0-beta.4",
     "PackageProjectUrl": "https://github.com/openai/openai-dotnet/tree/OpenAI_2.2.0-beta.4",

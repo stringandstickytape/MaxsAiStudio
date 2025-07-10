@@ -24,7 +24,7 @@ namespace AiStudio4.Services
         private McpServerTransportType? _currentTransportType;
         private readonly List<string> _connectedClients = new();
         private SseServerTransport? _sseTransport;
-        private OAuthSseServerTransport? _oauthSseTransport;
+        private AspNetCoreOAuthMcpServer? _aspNetCoreServer;
 
         public bool IsRunning => _currentServer != null && _serverCts != null && !_serverCts.Token.IsCancellationRequested;
         public McpServerTransportType CurrentTransportType => _currentTransportType ?? McpServerTransportType.Stdio;
@@ -56,11 +56,11 @@ namespace AiStudio4.Services
                     return _currentServer!; // Will be set by StartSseServerAsync
                 }
                 
-                if (transportType == McpServerTransportType.OAuthSse)
+                if (transportType == McpServerTransportType.AspNetCoreOAuth)
                 {
-                    // Handle OAuth SSE transport
-                    await StartOAuthSseServerAsync(config);
-                    return _currentServer!; // Will be set by StartOAuthSseServerAsync
+                    // Handle ASP.NET Core OAuth transport
+                    await StartAspNetCoreOAuthServerAsync(config);
+                    return _currentServer!; // Will be set by StartAspNetCoreOAuthServerAsync
                 }
 
                 // Create stdio transport
@@ -120,10 +120,10 @@ namespace AiStudio4.Services
                 _sseTransport = null;
             }
             
-            if (_oauthSseTransport != null)
+            if (_aspNetCoreServer != null)
             {
-                _oauthSseTransport.Dispose();
-                _oauthSseTransport = null;
+                _aspNetCoreServer.Dispose();
+                _aspNetCoreServer = null;
             }
 
             if (_currentServer != null)
@@ -143,9 +143,11 @@ namespace AiStudio4.Services
             {
                 return _sseTransport.GetConnectedClients();
             }
-            if (_oauthSseTransport != null)
+            if (_aspNetCoreServer != null)
             {
-                return _oauthSseTransport.GetConnectedClients();
+                // ASP.NET Core server doesn't track clients the same way
+                // Return empty list for now - could be enhanced later
+                return new List<string>().AsReadOnly();
             }
             return _connectedClients.AsReadOnly();
         }
@@ -257,19 +259,20 @@ namespace AiStudio4.Services
             OnStatusChanged(true, $"SSE server started on port {config.HttpPort ?? 3000}");
         }
         
-        private async Task StartOAuthSseServerAsync(McpServerConfig config)
+        private async Task StartAspNetCoreOAuthServerAsync(McpServerConfig config)
         {
-            // Create a dummy MCP server for OAuth SSE transport to use
+            // Create MCP server for ASP.NET Core OAuth transport to use
             var options = CreateServerOptions(config);
             _currentServer = McpServerFactory.Create(new StdioServerTransport("dummy"), options);
-            _currentTransportType = McpServerTransportType.OAuthSse;
+            _currentTransportType = McpServerTransportType.AspNetCoreOAuth;
 
-            // Create and start OAuth SSE transport
-            _oauthSseTransport = new OAuthSseServerTransport(
+            // Create and start ASP.NET Core OAuth server
+            _aspNetCoreServer = new AspNetCoreOAuthMcpServer(
                 config.HttpPort ?? 3000,
                 config.OAuthPort ?? 7029,
+                _currentServer,
                 _serviceProvider,
-                _serviceProvider.GetService<ILogger<OAuthSseServerTransport>>()
+                _serviceProvider.GetService<ILogger<AspNetCoreOAuthMcpServer>>()
             );
 
             // Start server
@@ -278,24 +281,24 @@ namespace AiStudio4.Services
             {
                 try
                 {
-                    await _oauthSseTransport.RunAsync(_currentServer, _serverCts.Token);
+                    await _aspNetCoreServer.RunAsync(_serverCts.Token);
                 }
                 catch (OperationCanceledException)
                 {
                     // Normal shutdown
-                    _logger.LogInformation("OAuth SSE MCP server stopped");
+                    _logger.LogInformation("ASP.NET Core OAuth MCP server stopped");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "OAuth SSE MCP server error");
-                    OnStatusChanged(false, $"OAuth SSE server error: {ex.Message}");
+                    _logger.LogError(ex, "ASP.NET Core OAuth MCP server error");
+                    OnStatusChanged(false, $"ASP.NET Core OAuth server error: {ex.Message}");
                 }
             }, _serverCts.Token);
 
             // Give the server a moment to start
             await Task.Delay(500);
             
-            OnStatusChanged(true, $"OAuth SSE server started on port {config.HttpPort ?? 3000}, OAuth on port {config.OAuthPort ?? 7029}");
+            OnStatusChanged(true, $"ASP.NET Core OAuth server started on port {config.HttpPort ?? 3000}, OAuth on port {config.OAuthPort ?? 7029}");
         }
 
         private void OnStatusChanged(bool isRunning, string message)

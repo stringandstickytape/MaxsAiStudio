@@ -139,6 +139,10 @@ namespace AiStudio4.Services.Mcp
                         _logger?.LogInformation("OAuth Server: Serving OpenID configuration");
                         await HandleOpenIdConfiguration(context);
                         break;
+                    case "/.well-known/oauth-authorization-server":
+                        _logger?.LogInformation("OAuth Server: Serving OAuth authorization server metadata");
+                        await HandleOAuthAuthorizationServerMetadata(context);
+                        break;
                     case "/.well-known/jwks":
                         _logger?.LogInformation("OAuth Server: Serving JWKS");
                         await HandleJwks(context);
@@ -146,6 +150,10 @@ namespace AiStudio4.Services.Mcp
                     case "/.well-known/oauth-protected-resource":
                         _logger?.LogInformation("OAuth Server: Serving protected resource metadata");
                         await HandleProtectedResourceMetadata(context);
+                        break;
+                    case "/register":
+                        _logger?.LogInformation("OAuth Server: Handling dynamic client registration");
+                        await HandleClientRegistration(context);
                         break;
                     case "/token":
                         _logger?.LogInformation("OAuth Server: Handling token request");
@@ -181,6 +189,7 @@ namespace AiStudio4.Services.Mcp
                 authorization_endpoint = $"{_issuer}/auth",
                 token_endpoint = $"{_issuer}/token",
                 jwks_uri = $"{_issuer}/.well-known/jwks",
+                registration_endpoint = $"{_issuer}/register",
                 response_types_supported = new[] { "code" },
                 grant_types_supported = new[] { "authorization_code", "client_credentials" },
                 subject_types_supported = new[] { "public" },
@@ -192,6 +201,144 @@ namespace AiStudio4.Services.Mcp
             };
             
             await WriteJsonResponse(context, config);
+        }
+        
+        private async Task HandleOAuthAuthorizationServerMetadata(HttpListenerContext context)
+        {
+            var metadata = new
+            {
+                issuer = _issuer,
+                authorization_endpoint = $"{_issuer}/auth",
+                token_endpoint = $"{_issuer}/token",
+                jwks_uri = $"{_issuer}/.well-known/jwks",
+                registration_endpoint = $"{_issuer}/register",
+                response_types_supported = new[] { "code" },
+                grant_types_supported = new[] { "authorization_code", "client_credentials" },
+                token_endpoint_auth_methods_supported = new[] { "client_secret_post", "client_secret_basic", "none" },
+                scopes_supported = new[] { "mcp:tools" },
+                code_challenge_methods_supported = new[] { "S256", "plain" }
+            };
+            
+            await WriteJsonResponse(context, metadata);
+        }
+        
+        private async Task HandleClientRegistration(HttpListenerContext context)
+        {
+            if (context.Request.HttpMethod != "POST")
+            {
+                context.Response.StatusCode = 405;
+                await WriteJsonResponse(context, new { error = "invalid_request", error_description = "Only POST method supported" });
+                return;
+            }
+            
+            using var reader = new StreamReader(context.Request.InputStream);
+            var requestBody = await reader.ReadToEndAsync();
+            
+            _logger?.LogInformation($"OAuth Server: Client registration request: {requestBody}");
+            
+            try
+            {
+                var registrationRequest = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(requestBody);
+                
+                // Extract redirect URIs from the request
+                var redirectUris = new List<string>();
+                if (registrationRequest?.TryGetValue("redirect_uris", out var redirectUrisObj) == true)
+                {
+                    if (redirectUrisObj is System.Text.Json.JsonElement redirectUrisElement && redirectUrisElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        redirectUris = redirectUrisElement.EnumerateArray()
+                            .Select(item => item.GetString())
+                            .Where(uri => !string.IsNullOrEmpty(uri))
+                            .Cast<string>()
+                            .ToList();
+                    }
+                }
+                
+                // Extract other fields
+                var clientName = "Claude MCP Client";
+                if (registrationRequest?.TryGetValue("client_name", out var clientNameObj) == true)
+                {
+                    clientName = clientNameObj.ToString() ?? "Claude MCP Client";
+                }
+                
+                var grantTypes = new[] { "authorization_code", "client_credentials" };
+                if (registrationRequest?.TryGetValue("grant_types", out var grantTypesObj) == true)
+                {
+                    if (grantTypesObj is System.Text.Json.JsonElement grantTypesElement && grantTypesElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        grantTypes = grantTypesElement.EnumerateArray()
+                            .Select(item => item.GetString())
+                            .Where(type => !string.IsNullOrEmpty(type))
+                            .Cast<string>()
+                            .ToArray();
+                    }
+                }
+                
+                var responseTypes = new[] { "code" };
+                if (registrationRequest?.TryGetValue("response_types", out var responseTypesObj) == true)
+                {
+                    if (responseTypesObj is System.Text.Json.JsonElement responseTypesElement && responseTypesElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                    {
+                        responseTypes = responseTypesElement.EnumerateArray()
+                            .Select(item => item.GetString())
+                            .Where(type => !string.IsNullOrEmpty(type))
+                            .Cast<string>()
+                            .ToArray();
+                    }
+                }
+                
+                var tokenEndpointAuthMethod = "none";
+                if (registrationRequest?.TryGetValue("token_endpoint_auth_method", out var authMethodObj) == true)
+                {
+                    tokenEndpointAuthMethod = authMethodObj.ToString() ?? "none";
+                }
+                
+                // Generate client credentials
+                var clientId = Guid.NewGuid().ToString();
+                var clientSecret = tokenEndpointAuthMethod == "none" ? null : Guid.NewGuid().ToString();
+                
+                // Register the client
+                var client = new OAuthClient
+                {
+                    ClientId = clientId,
+                    ClientSecret = clientSecret ?? "",
+                    Name = clientName,
+                    Scopes = new[] { "mcp:tools" },
+                    RedirectUris = redirectUris,
+                    TokenEndpointAuthMethod = tokenEndpointAuthMethod
+                };
+                
+                _clients.TryAdd(clientId, client);
+                
+                _logger?.LogInformation($"OAuth Server: Registered new client: {clientId} with redirect URIs: {string.Join(", ", redirectUris)}");
+                
+                // Return client credentials
+                var response = new Dictionary<string, object>
+                {
+                    ["client_id"] = clientId,
+                    ["client_name"] = clientName,
+                    ["redirect_uris"] = redirectUris.ToArray(),
+                    ["grant_types"] = grantTypes,
+                    ["response_types"] = responseTypes,
+                    ["token_endpoint_auth_method"] = tokenEndpointAuthMethod,
+                    ["client_secret_expires_at"] = 0 // Never expires
+                };
+                
+                // Only include client_secret if auth method is not "none"
+                if (tokenEndpointAuthMethod != "none" && clientSecret != null)
+                {
+                    response["client_secret"] = clientSecret;
+                }
+                
+                context.Response.StatusCode = 201;
+                await WriteJsonResponse(context, response);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error processing client registration");
+                context.Response.StatusCode = 400;
+                await WriteJsonResponse(context, new { error = "invalid_request", error_description = "Invalid registration request" });
+            }
         }
         
         private async Task HandleJwks(HttpListenerContext context)
@@ -718,6 +865,8 @@ namespace AiStudio4.Services.Mcp
             public string ClientSecret { get; set; } = "";
             public string Name { get; set; } = "";
             public string[] Scopes { get; set; } = Array.Empty<string>();
+            public List<string> RedirectUris { get; set; } = new();
+            public string TokenEndpointAuthMethod { get; set; } = "none";
         }
         
         private class AuthorizationData

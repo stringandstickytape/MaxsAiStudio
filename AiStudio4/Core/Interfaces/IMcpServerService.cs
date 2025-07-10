@@ -19,7 +19,7 @@ namespace AiStudio4.Core.Interfaces
     {
         Stdio,
         Sse,
-        OAuthSse
+        AspNetCoreOAuth
     }
 
     public class McpServerConfig

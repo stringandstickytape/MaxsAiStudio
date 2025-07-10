@@ -142,8 +142,24 @@ namespace AiStudio4.Services.Mcp
                 var path = context.Request.Url?.AbsolutePath;
                 var method = context.Request.HttpMethod;
                 var query = context.Request.QueryString.ToString();
+                var accept = context.Request.Headers["Accept"];
+                var cacheControl = context.Request.Headers["Cache-Control"];
+                var authorization = context.Request.Headers["Authorization"];
+                var contentType = context.Request.ContentType;
+                var userAgent = context.Request.Headers["User-Agent"];
                 
-                _logger?.LogInformation($"MCP Server: {method} {path} {query}");
+                _logger?.LogInformation($"=== MCP Server Request === {method} {path} {query}");
+                _logger?.LogInformation($"MCP Server: Full URL: {context.Request.Url}");
+                _logger?.LogInformation($"MCP Server: Accept: {accept}");
+                _logger?.LogInformation($"MCP Server: Content-Type: {contentType}");
+                _logger?.LogInformation($"MCP Server: User-Agent: {userAgent}");
+                _logger?.LogInformation($"MCP Server: Authorization: {(authorization != null ? "Present" : "None")}");
+                
+                // Note: Cannot read POST body here due to stream limitations
+                if (method == "POST" && context.Request.HasEntityBody)
+                {
+                    _logger?.LogInformation($"MCP Server: POST request has entity body of length: {context.Request.ContentLength64}");
+                }
                 
                 // Add CORS headers
                 context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
@@ -161,23 +177,47 @@ namespace AiStudio4.Services.Mcp
                 switch (path)
                 {
                     case "/":
-                        _logger?.LogInformation("MCP Server: Serving root page");
-                        await HandleRootRequest(context);
+                        // Streamable HTTP transport: Handle both GET (SSE) and POST (JSON-RPC) at root
+                        if (context.Request.HttpMethod == "GET" && 
+                            context.Request.Headers["Accept"]?.Contains("text/event-stream") == true)
+                        {
+                            _logger?.LogInformation("MCP Server: Handling SSE connection at root (GET)");
+                            await HandleSseConnection(context, cancellationToken);
+                        }
+                        else if (context.Request.HttpMethod == "POST")
+                        {
+                            _logger?.LogInformation("MCP Server: Handling JSON-RPC request at root (POST)");
+                            _logger?.LogInformation($"MCP Server: POST Content-Type: {context.Request.ContentType}");
+                            _logger?.LogInformation($"MCP Server: POST Accept: {context.Request.Headers["Accept"]}");
+                            await HandleStreamableHttpRequest(context);
+                        }
+                        else
+                        {
+                            _logger?.LogInformation("MCP Server: Serving root page");
+                            await HandleRootRequest(context);
+                        }
                         break;
                     case "/.well-known/oauth-protected-resource":
                         _logger?.LogInformation("MCP Server: Serving OAuth protected resource metadata");
                         await HandleProtectedResourceMetadata(context);
                         break;
                     case "/sse":
-                        _logger?.LogInformation("MCP Server: Handling SSE connection");
+                        _logger?.LogInformation("MCP Server: Handling SSE connection (legacy)");
                         await HandleSseConnection(context, cancellationToken);
                         break;
                     case "/jsonrpc":
-                        _logger?.LogInformation("MCP Server: Handling JSON-RPC request");
+                        _logger?.LogInformation("MCP Server: Handling JSON-RPC request (legacy)");
                         await HandleJsonRpcRequest(context);
                         break;
                     default:
-                        _logger?.LogWarning($"MCP Server: Unknown path requested: {path}");
+                        _logger?.LogWarning($"MCP Server: Unknown path requested: {method} {path} - Full URL: {context.Request.Url}");
+                        _logger?.LogWarning($"MCP Server: Request headers: {string.Join(", ", context.Request.Headers.AllKeys.Select(k => $"{k}: {context.Request.Headers[k]}"))}");
+                        if (context.Request.HttpMethod == "POST")
+                        {
+                            using var reader = new StreamReader(context.Request.InputStream);
+                            var body = await reader.ReadToEndAsync();
+                            _logger?.LogWarning($"MCP Server: POST body: {body}");
+                        }
                         await Handle404Request(context);
                         break;
                 }
@@ -293,18 +333,21 @@ namespace AiStudio4.Services.Mcp
         {
             try
             {
+                _logger?.LogDebug("MCP Server: Starting token validation");
                 var tokenHandler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                
+                _logger?.LogDebug("MCP Server: Validating token with parameters");
                 var principal = tokenHandler.ValidateToken(token, _tokenValidationParameters, out var validatedToken);
                 
                 var name = principal?.Identity?.Name ?? "unknown";
                 var email = principal?.FindFirst("preferred_username")?.Value ?? "unknown";
-                _logger?.LogDebug($"Token validated for: {name} ({email})");
+                _logger?.LogDebug($"MCP Server: Token validated for: {name} ({email})");
                 
                 return principal;
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning(ex, "Token validation failed");
+                _logger?.LogWarning(ex, "MCP Server: Token validation failed - {Message}", ex.Message);
                 return null;
             }
         }
@@ -312,29 +355,40 @@ namespace AiStudio4.Services.Mcp
         private async Task<bool> AuthorizeRequest(HttpListenerContext context)
         {
             var authHeader = context.Request.Headers["Authorization"];
+            
+            _logger?.LogDebug($"MCP Server: Authorization header: {authHeader ?? "null"}");
+            
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
             {
+                _logger?.LogWarning("MCP Server: Missing or invalid authorization header");
                 await SendUnauthorizedResponse(context, "Missing or invalid authorization header");
                 return false;
             }
             
             var token = authHeader.Substring("Bearer ".Length).Trim();
+            _logger?.LogDebug($"MCP Server: Validating token: {token.Substring(0, Math.Min(20, token.Length))}...");
+            
             var principal = await ValidateTokenAsync(token);
             
             if (principal == null)
             {
+                _logger?.LogWarning("MCP Server: Token validation failed");
                 await SendUnauthorizedResponse(context, "Invalid or expired token");
                 return false;
             }
             
             // Check if token has required scope
             var scopes = principal.FindFirst("scope")?.Value ?? "";
+            _logger?.LogDebug($"MCP Server: Token scopes: {scopes}");
+            
             if (!scopes.Contains("mcp:tools"))
             {
+                _logger?.LogWarning($"MCP Server: Insufficient scope. Required: mcp:tools, Got: {scopes}");
                 await SendForbiddenResponse(context, "Insufficient scope");
                 return false;
             }
             
+            _logger?.LogInformation("MCP Server: Authorization successful");
             return true;
         }
         
@@ -373,6 +427,8 @@ namespace AiStudio4.Services.Mcp
             context.Response.Headers.Add("Connection", "keep-alive");
             context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
             
+            _logger?.LogDebug("SSE connection Content-Type set to: text/event-stream");
+            
             var clientId = Guid.NewGuid().ToString();
             var client = new SseClient(context.Response, clientId, _logger);
             
@@ -381,14 +437,13 @@ namespace AiStudio4.Services.Mcp
             
             try
             {
-                // Send initial connection event
-                await client.SendEventAsync("connected", System.Text.Json.JsonSerializer.Serialize(new
-                {
-                    status = "connected",
-                    clientId = clientId,
-                    serverName = "AiStudio4-OAuth-MCP-Server",
-                    timestamp = DateTimeOffset.UtcNow
-                }));
+                // Small delay to ensure connection is stable
+                await Task.Delay(100, cancellationToken);
+                
+                // Send an initial endpoint event for backwards compatibility with old transport
+                await client.SendEventAsync("endpoint", "/jsonrpc");
+                
+                _logger?.LogInformation("MCP Server: SSE connection established, sent endpoint information");
                 
                 // Keep connection alive with periodic pings
                 while (!cancellationToken.IsCancellationRequested && client.IsConnected)
@@ -421,7 +476,7 @@ namespace AiStudio4.Services.Mcp
             }
         }
         
-        private async Task HandleJsonRpcRequest(HttpListenerContext context)
+        private async Task HandleStreamableHttpRequest(HttpListenerContext context)
         {
             // Authorize request
             if (!await AuthorizeRequest(context))
@@ -439,31 +494,69 @@ namespace AiStudio4.Services.Mcp
             using var reader = new StreamReader(context.Request.InputStream);
             var requestBody = await reader.ReadToEndAsync();
             
-            _logger?.LogDebug("Received authenticated JSON-RPC request: {Request}", requestBody);
+            _logger?.LogDebug("Received Streamable HTTP request: {Request}", requestBody);
             
             try
             {
-                // Parse the JSON-RPC request
-                var request = System.Text.Json.JsonSerializer.Deserialize<JsonRpcRequest>(requestBody);
+                // Parse the JSON-RPC request with camelCase property naming
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                var request = System.Text.Json.JsonSerializer.Deserialize<JsonRpcRequest>(requestBody, options);
                 if (request == null)
                 {
                     throw new InvalidOperationException("Invalid JSON-RPC request");
                 }
                 
-                // Process the request through the MCP server
-                var result = await ProcessMcpRequest(request);
+                _logger?.LogDebug("Parsed JSON-RPC: Method={Method}, Id={Id}, HasParams={HasParams}", 
+                    request.Method, request.Id, request.Params != null);
                 
-                // Send response
-                context.Response.ContentType = "application/json";
-                var responseJson = System.Text.Json.JsonSerializer.Serialize(result);
-                _logger?.LogDebug("Sending JSON-RPC response: {Response}", responseJson);
+                // Check if this is a notification (no ID) or response (return 202 Accepted)
+                if (request.Id == null || (request.Method?.StartsWith("notifications/") == true && !string.IsNullOrEmpty(request.Method)))
+                {
+                    _logger?.LogInformation("Handling notification: {Method}", request.Method);
+                    
+                    // Special handling for initialized notification
+                    if (request.Method == "notifications/initialized")
+                    {
+                        _logger?.LogInformation("Received initialized notification - MCP handshake complete!");
+                    }
+                    
+                    context.Response.StatusCode = 202; // Accepted
+                    context.Response.Close();
+                    return;
+                }
                 
-                var responseBytes = Encoding.UTF8.GetBytes(responseJson);
-                await context.Response.OutputStream.WriteAsync(responseBytes, 0, responseBytes.Length);
+                // Check Accept header to determine response format
+                var acceptHeader = context.Request.Headers["Accept"];
+                var supportsSSE = acceptHeader?.Contains("text/event-stream") == true;
+                var supportsJSON = acceptHeader?.Contains("application/json") == true || acceptHeader?.Contains("*/*") == true;
+                
+                _logger?.LogDebug("Accept header: {Accept}, SupportsSSE: {SSE}, SupportsJSON: {JSON}", 
+                    acceptHeader, supportsSSE, supportsJSON);
+                
+                if (supportsSSE && ShouldUseSSEForRequest(request))
+                {
+                    _logger?.LogDebug("Using SSE response for request: {Method}", request.Method);
+                    await HandleRequestWithSSEResponse(context, request);
+                }
+                else if (supportsJSON)
+                {
+                    _logger?.LogDebug("Using JSON response for request: {Method}", request.Method);
+                    await HandleRequestWithJSONResponse(context, request);
+                }
+                else
+                {
+                    _logger?.LogWarning("Accept header not supported: {Accept}", acceptHeader);
+                    context.Response.StatusCode = 406; // Not Acceptable
+                    await context.Response.OutputStream.WriteAsync(Encoding.UTF8.GetBytes("Not Acceptable"), 0, 14);
+                    context.Response.Close();
+                }
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error processing authenticated JSON-RPC request");
+                _logger?.LogError(ex, "Error processing Streamable HTTP request");
                 
                 // Send error response
                 var errorResponse = new
@@ -482,11 +575,102 @@ namespace AiStudio4.Services.Mcp
                 var errorJson = System.Text.Json.JsonSerializer.Serialize(errorResponse);
                 var errorBytes = Encoding.UTF8.GetBytes(errorJson);
                 await context.Response.OutputStream.WriteAsync(errorBytes, 0, errorBytes.Length);
+                context.Response.Close();
+            }
+        }
+        
+        private bool ShouldUseSSEForRequest(JsonRpcRequest request)
+        {
+            // For now, use JSON responses for all requests
+            // In the future, you might want to use SSE for long-running operations
+            return false;
+        }
+        
+        private async Task HandleRequestWithJSONResponse(HttpListenerContext context, JsonRpcRequest request)
+        {
+            _logger?.LogDebug("Starting JSON response processing for method: {Method}", request.Method);
+            
+            try
+            {
+                // Process the request through the MCP server
+                _logger?.LogDebug("Processing MCP request...");
+                var result = await ProcessMcpRequest(request);
+                _logger?.LogDebug("MCP request processed successfully");
+                
+                // Send response
+                context.Response.ContentType = "application/json";
+                var responseJson = System.Text.Json.JsonSerializer.Serialize(result);
+                _logger?.LogDebug("Sending JSON response: {Response}", responseJson);
+                _logger?.LogDebug("Response Content-Type set to: application/json");
+                
+                var responseBytes = Encoding.UTF8.GetBytes(responseJson);
+                await context.Response.OutputStream.WriteAsync(responseBytes, 0, responseBytes.Length);
+                context.Response.Close();
+                _logger?.LogDebug("JSON response sent successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in HandleRequestWithJSONResponse");
+                throw;
+            }
+        }
+        
+        private async Task HandleRequestWithSSEResponse(HttpListenerContext context, JsonRpcRequest request)
+        {
+            // Set up SSE headers
+            context.Response.ContentType = "text/event-stream";
+            context.Response.Headers.Add("Cache-Control", "no-cache");
+            context.Response.Headers.Add("Connection", "keep-alive");
+            context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+            
+            var writer = new StreamWriter(context.Response.OutputStream, Encoding.UTF8) { AutoFlush = true };
+            
+            try
+            {
+                // Process the request through the MCP server
+                var result = await ProcessMcpRequest(request);
+                
+                // Send the response as an SSE event
+                var responseJson = System.Text.Json.JsonSerializer.Serialize(result);
+                await writer.WriteLineAsync("event: message");
+                await writer.WriteLineAsync($"data: {responseJson}");
+                await writer.WriteLineAsync();
+                
+                _logger?.LogDebug("Sent SSE response for request: {Method}", request.Method);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error in SSE response");
+                
+                // Send error as SSE event
+                var errorResponse = new
+                {
+                    jsonrpc = "2.0",
+                    id = request.Id,
+                    error = new
+                    {
+                        code = -32603,
+                        message = ex.Message,
+                        data = ex.GetType().Name
+                    }
+                };
+                
+                var errorJson = System.Text.Json.JsonSerializer.Serialize(errorResponse);
+                await writer.WriteLineAsync("event: message");
+                await writer.WriteLineAsync($"data: {errorJson}");
+                await writer.WriteLineAsync();
             }
             finally
             {
+                writer.Dispose();
                 context.Response.Close();
             }
+        }
+        
+        private async Task HandleJsonRpcRequest(HttpListenerContext context)
+        {
+            // Legacy endpoint - redirect to streamable HTTP
+            await HandleStreamableHttpRequest(context);
         }
         
         private async Task<object> ProcessMcpRequest(JsonRpcRequest request)
@@ -507,14 +691,14 @@ namespace AiStudio4.Services.Mcp
                         id = request.Id,
                         result = new
                         {
-                            protocolVersion = "0.1.0",
+                            protocolVersion = "2025-06-18",
                             capabilities = new
                             {
                                 tools = capabilities.Tools != null ? new { } : null
                             },
                             serverInfo = new
                             {
-                                name = "AiStudio4-OAuth-MCP-Server",
+                                name = "AiStudio4",
                                 version = "1.0.0"
                             }
                         }

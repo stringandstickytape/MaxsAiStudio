@@ -21,7 +21,7 @@
                           SelectionChanged="TransportTypeCombo_SelectionChanged">
                     <ComboBoxItem>Stdio</ComboBoxItem>
                     <ComboBoxItem>SSE</ComboBoxItem>
-                    <ComboBoxItem>OAuth SSE</ComboBoxItem>
+                    <ComboBoxItem>ASP.NET Core OAuth</ComboBoxItem>
                 </ComboBox>
                 
                 <!-- SSE Options -->
@@ -32,8 +32,8 @@
                              VerticalAlignment="Center" Margin="5,0"/>
                 </StackPanel>
                 
-                <!-- OAuth SSE Options -->
-                <StackPanel x:Name="OAuthSseOptions" Orientation="Horizontal" 
+                <!-- ASP.NET Core OAuth Options -->
+                <StackPanel x:Name="AspNetCoreOAuthOptions" Orientation="Horizontal" 
                             Visibility="Collapsed" Margin="10,0,0,0">
                     <Label Content="MCP Port:" VerticalAlignment="Center"/>
                     <TextBox x:Name="McpPortTextBox" Width="60" Text="3000" 

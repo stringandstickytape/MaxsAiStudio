@@ -82,7 +82,7 @@ namespace AiStudio4.Windows
             {
                 McpServerTransportType.Stdio => 0,
                 McpServerTransportType.Sse => 1,
-                McpServerTransportType.OAuthSse => 2,
+                McpServerTransportType.AspNetCoreOAuth => 2,
                 _ => 0
             };
             PortTextBox.Text = mcpSettings.SsePort.ToString();
@@ -113,7 +113,7 @@ namespace AiStudio4.Windows
                     {
                         0 => McpServerTransportType.Stdio,
                         1 => McpServerTransportType.Sse,
-                        2 => McpServerTransportType.OAuthSse,
+                        2 => McpServerTransportType.AspNetCoreOAuth,
                         _ => McpServerTransportType.Stdio
                     };
 
@@ -122,10 +122,10 @@ namespace AiStudio4.Windows
                         HttpPort = transportType switch
                         {
                             McpServerTransportType.Sse => int.Parse(PortTextBox.Text),
-                            McpServerTransportType.OAuthSse => int.Parse(McpPortTextBox.Text),
+                            McpServerTransportType.AspNetCoreOAuth => int.Parse(McpPortTextBox.Text),
                             _ => null
                         },
-                        OAuthPort = transportType == McpServerTransportType.OAuthSse 
+                        OAuthPort = transportType == McpServerTransportType.AspNetCoreOAuth 
                             ? int.Parse(OAuthPortTextBox.Text) 
                             : null,
                         EnableLogging = EnableLoggingCheckBox.IsChecked ?? false,
@@ -196,9 +196,9 @@ namespace AiStudio4.Windows
                     : Visibility.Collapsed;
             }
             
-            if (OAuthSseOptions != null)
+            if (AspNetCoreOAuthOptions != null)
             {
-                OAuthSseOptions.Visibility = TransportTypeCombo.SelectedIndex == 2 
+                AspNetCoreOAuthOptions.Visibility = TransportTypeCombo.SelectedIndex == 2 
                     ? Visibility.Visible 
                     : Visibility.Collapsed;
             }
