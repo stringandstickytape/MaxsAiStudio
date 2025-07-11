@@ -36,7 +36,7 @@ namespace AiStudio4.AiServices
         private ImageClient _imageClient;
         private EmbeddingClient _embeddingClient;
         private readonly List<GeneratedImage> _generatedImages = new List<GeneratedImage>();
-        // Tool IDs are now stored in ContentBlock.ToolId instead of queue
+        private readonly Queue<string> _toolIdQueue = new Queue<string>();
 
         public NetOpenAi() { }
 
@@ -191,11 +191,22 @@ namespace AiStudio4.AiServices
             }
 
             // Add conversation messages
-            foreach (var message in options.Conv.messages)
-            { 
+            for (int i = 0; i < options.Conv.messages.Count; i++)
+            {
+                var message = options.Conv.messages[i];
                 ChatMessage chatMessage = CreateChatMessage(message);
                 messages.Add(chatMessage);
-                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Added message to API call: Type={chatMessage.GetType().Name}");
+                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Added message [{i}] to API call: Role={message.role}, Type={chatMessage.GetType().Name}, ContentBlocks={message.contentBlocks?.Count ?? 0}");
+                
+                // Debug content blocks
+                if (message.contentBlocks != null)
+                {
+                    for (int j = 0; j < message.contentBlocks.Count; j++)
+                    {
+                        var block = message.contentBlocks[j];
+                        System.Diagnostics.Debug.WriteLine($"🔧 OPENAI   ContentBlock [{j}]: Type={block.ContentType}, ToolId={block.ToolId}, Content preview: {block.Content?.Substring(0, Math.Min(100, block.Content.Length /* this does not have a value property! */))}...");
+                    }
+                }
             }
 
             // Configure chat completion options
@@ -267,6 +278,7 @@ namespace AiStudio4.AiServices
         private LinearConvMessage CreateOpenAIAssistantMessage(AiResponse response)
         {
             var contentBlocks = new List<ContentBlock>();
+            _toolIdQueue.Clear(); // Clear previous tool IDs
             
             // Add text content if any
             var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
@@ -279,14 +291,17 @@ namespace AiStudio4.AiServices
                 });
             }
 
-            // Add tool calls if present
+            // Add tool calls as a single structured block if present
             if (response.ToolResponseSet?.Tools?.Any() == true)
             {
+                var toolCallsArray = new JArray();
+                
                 foreach (var tool in response.ToolResponseSet.Tools)
                 {
                     var toolCallId = tool.ToolId ?? $"call_{Guid.NewGuid():N}".Substring(0, 24); // Use existing ID or generate new
+                    _toolIdQueue.Enqueue(toolCallId); // Store in order for later use
                     
-                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT: Creating tool_call with id: {toolCallId}, tool: {tool.ToolName}");
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT: Creating tool_call with id: {toolCallId}, tool: {tool.ToolName}, queue_count: {_toolIdQueue.Count}");
                     
                     var toolCallData = new JObject
                     {
@@ -299,13 +314,19 @@ namespace AiStudio4.AiServices
                         }
                     };
                     
-                    contentBlocks.Add(new ContentBlock
-                    {
-                        ContentType = ContentType.Tool,
-                        Content = toolCallData.ToString(),
-                        ToolId = toolCallId // Store the tool_call_id for matching
-                    });
+                    toolCallsArray.Add(toolCallData);
+                    
+                    // Update the tool ID in the response set for later reference
+                    tool.ToolId = toolCallId;
                 }
+                
+                // Add all tool calls as a single ContentBlock with Tool type
+                contentBlocks.Add(new ContentBlock
+                {
+                    ContentType = ContentType.Tool,
+                    Content = toolCallsArray.ToString(),
+                    ToolId = response.ToolResponseSet.Tools.FirstOrDefault()?.ToolId
+                });
             }
 
             var assistantMessage = new LinearConvMessage
@@ -330,22 +351,19 @@ namespace AiStudio4.AiServices
                     var toolName = toolData.toolName?.ToString();
                     var result = toolData.result?.ToString();
                     
-                    // Use the tool_call_id from the ContentBlock
-                    var toolCallId = block.ToolId ?? $"call_{Guid.NewGuid():N}".Substring(0, 24);
+                    // Use the next tool ID from the queue (preserves order)
+                    var toolCallId = _toolIdQueue.Count > 0
+                        ? _toolIdQueue.Dequeue()
+                        : $"call_{Guid.NewGuid():N}".Substring(0, 24);
                     
-                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Creating tool result with tool_call_id: {toolCallId}, tool: {toolName}");
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Creating tool result with tool_call_id: {toolCallId}, tool: {toolName}, queue_count: {_toolIdQueue.Count}");
                     
-                    var toolResultData = new JObject
-                    {
-                        ["type"] = "tool_result",
-                        ["tool_call_id"] = toolCallId,
-                        ["content"] = result ?? ""
-                    };
-                    
+                    // For OpenAI, each tool result becomes a separate tool message
+                    // We'll create individual messages in the CreateChatMessage method
                     contentBlocks.Add(new ContentBlock
                     {
                         ContentType = ContentType.ToolResponse,
-                        Content = toolResultData.ToString(),
+                        Content = result ?? "",
                         ToolId = toolCallId // Store the tool_call_id for matching
                     });
                 }
@@ -353,7 +371,7 @@ namespace AiStudio4.AiServices
             
             var toolResultMessage = new LinearConvMessage
             {
-                role = "user", // Tool results go in user messages for OpenAI
+                role = "tool", // Use tool role for OpenAI tool results
                 contentBlocks = contentBlocks
             };
             
@@ -382,6 +400,13 @@ namespace AiStudio4.AiServices
             var contentBlocks = message.contentBlocks ?? new List<ContentBlock>();
             System.Diagnostics.Debug.WriteLine($"🔧 OPENAI CreateChatMessage: role={message.role}, content blocks count={contentBlocks.Count}");
             
+            // Debug all content blocks
+            for (int i = 0; i < contentBlocks.Count; i++)
+            {
+                var block = contentBlocks[i];
+                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI   Block [{i}]: Type={block.ContentType}, ToolId={block.ToolId}");
+            }
+            
             // Handle assistant messages with tool calls
             if (message.role.ToLower() == "assistant")
             {
@@ -398,23 +423,74 @@ namespace AiStudio4.AiServices
                     }
                     else if (block.ContentType == ContentType.Tool)
                     {
-                        // Parse tool call from JSON content
+                        // Parse tool calls from JSON content - could be single object or array
                         try
                         {
-                            var toolData = JObject.Parse(block.Content ?? "{}");
-                            var toolCallId = toolData["id"]?.ToString();
-                            var functionName = toolData["function"]?["name"]?.ToString();
-                            var functionArgs = toolData["function"]?["arguments"]?.ToString();
+                            var content = block.Content ?? "{}";
                             
-                            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_call: id={toolCallId}, name={functionName}");
-                            
-                            if (!string.IsNullOrEmpty(toolCallId) && !string.IsNullOrEmpty(functionName))
+                            // Try to parse as array first (new format)
+                            if (content.TrimStart().StartsWith("["))
                             {
-                                toolCalls.Add(ChatToolCall.CreateFunctionToolCall(
-                                    toolCallId,
-                                    functionName,
-                                    BinaryData.FromString(functionArgs ?? "{}")
-                                ));
+                                var toolCallsArray = JArray.Parse(content);
+                                foreach (var toolCallToken in toolCallsArray)
+                                {
+                                    if (toolCallToken is JObject toolData)
+                                    {
+                                        var toolCallId = toolData["id"]?.ToString();
+                                        var functionName = toolData["function"]?["name"]?.ToString();
+                                        var functionArgs = toolData["function"]?["arguments"]?.ToString();
+                                        
+                                        System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_call from array: id={toolCallId}, name={functionName}");
+                                        
+                                        if (!string.IsNullOrEmpty(toolCallId) && !string.IsNullOrEmpty(functionName))
+                                        {
+                                            toolCalls.Add(ChatToolCall.CreateFunctionToolCall(
+                                                toolCallId,
+                                                functionName,
+                                                BinaryData.FromString(functionArgs ?? "{}")
+                                            ));
+                                        }
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                // Try to parse as single object (legacy format)
+                                var toolData = JObject.Parse(content);
+                                var toolCallId = toolData["id"]?.ToString();
+                                var functionName = toolData["function"]?["name"]?.ToString();
+                                var functionArgs = toolData["function"]?["arguments"]?.ToString();
+                                
+                                // If the new format doesn't work, try the very old format: {"toolName":"...", "parameters":"..."}
+                                if (string.IsNullOrEmpty(functionName))
+                                {
+                                    functionName = toolData["toolName"]?.ToString();
+                                    functionArgs = toolData["parameters"]?.ToString();
+                                    
+                                    // Generate a tool call ID if missing
+                                    if (string.IsNullOrEmpty(toolCallId))
+                                    {
+                                        toolCallId = block.ToolId ?? $"call_{Guid.NewGuid():N}".Substring(0, 24);
+                                    }
+                                    
+                                    // Store this ID in the queue for later tool result matching
+                                    _toolIdQueue.Enqueue(toolCallId);
+                                    
+                                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_call from legacy object: id={toolCallId}, name={functionName}, added to queue_count: {_toolIdQueue.Count}");
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_call from object: id={toolCallId}, name={functionName}");
+                                }
+                                
+                                if (!string.IsNullOrEmpty(toolCallId) && !string.IsNullOrEmpty(functionName))
+                                {
+                                    toolCalls.Add(ChatToolCall.CreateFunctionToolCall(
+                                        toolCallId,
+                                        functionName,
+                                        BinaryData.FromString(functionArgs ?? "{}")
+                                    ));
+                                }
                             }
                         }
                         catch (Exception ex)
@@ -441,24 +517,45 @@ namespace AiStudio4.AiServices
                 }
             }
             
-            // Handle user messages with tool results
+            // Handle tool messages (OpenAI tool results)
+            if (message.role.ToLower() == "tool")
+            {
+                // For tool role messages, each ContentBlock represents a tool result
+                var toolResponseBlock = contentBlocks.FirstOrDefault(b => b.ContentType == ContentType.ToolResponse);
+                if (toolResponseBlock != null)
+                {
+                    var toolCallId = toolResponseBlock.ToolId ?? "unknown";
+                    var content = toolResponseBlock.Content ?? "";
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Creating ToolChatMessage: tool_call_id={toolCallId}");
+                    return new ToolChatMessage(toolCallId, ChatMessageContentPart.CreateTextPart(content));
+                }
+            }
+            
+            // Handle user messages with tool results (legacy format)
             if (message.role.ToLower() == "user")
             {
                 var toolResponseBlock = contentBlocks.FirstOrDefault(b => b.ContentType == ContentType.ToolResponse);
                 if (toolResponseBlock != null)
                 {
+                    // Use the next tool ID from the queue if available, otherwise try to parse from content
+                    var toolCallId = _toolIdQueue.Count > 0 
+                        ? _toolIdQueue.Dequeue()
+                        : toolResponseBlock.ToolId ?? "unknown";
+                    
+                    // For tool results, the content might be in different formats
+                    string content;
                     try
                     {
                         var toolData = JObject.Parse(toolResponseBlock.Content ?? "{}");
-                        var toolCallId = toolData["tool_call_id"]?.ToString() ?? "unknown";
-                        var content = toolData["content"]?.ToString() ?? "";
-                        System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_result: tool_call_id={toolCallId}");
-                        return new ToolChatMessage(toolCallId, ChatMessageContentPart.CreateTextPart(content));
+                        content = toolData["content"]?.ToString() ?? toolData["result"]?.ToString() ?? toolResponseBlock.Content ?? "";
                     }
-                    catch (Exception ex)
+                    catch
                     {
-                        System.Diagnostics.Debug.WriteLine($"Failed to parse tool response JSON: {ex.Message}");
+                        content = toolResponseBlock.Content ?? "";
                     }
+                    
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_result: tool_call_id={toolCallId}, queue_count: {_toolIdQueue.Count}");
+                    return new ToolChatMessage(toolCallId, ChatMessageContentPart.CreateTextPart(content));
                 }
             }
             

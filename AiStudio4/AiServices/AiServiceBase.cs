@@ -244,6 +244,7 @@ namespace AiStudio4.AiServices
 
                 // 6. Add the AI's response with tool calls to conversation history
                 var assistantMessage = createAssistantMessage(response);
+                System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding assistant message - Role={assistantMessage.role}, ContentBlocks={assistantMessage.contentBlocks?.Count ?? 0}");
                 linearConv.messages.Add(assistantMessage);
 
                 // 7. Execute tools and collect results
@@ -322,6 +323,7 @@ namespace AiStudio4.AiServices
                 {
                     // Add to linear conversation for API (provider-specific format)
                     var toolResultMessage = createToolResultMessage(toolResultBlocks);
+                    System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding tool result message - Role={toolResultMessage.role}, ContentBlocks={toolResultMessage.contentBlocks?.Count ?? 0}");
                     linearConv.messages.Add(toolResultMessage);
                     
                     if (shouldStopLoop)
