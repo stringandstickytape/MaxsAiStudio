@@ -645,8 +645,8 @@ namespace AiStudio4.AiServices
 
             try
             {
-                //OpenAISdkHelper.SetStreamOptionsToNull(options);
-                //OpenAISdkHelper.SetMaxTokens(options, 32768);
+                OpenAISdkHelper.SetStreamOptionsToNull(options);
+                OpenAISdkHelper.SetMaxTokens(options, 32768);
                 AsyncCollectionResult<StreamingChatCompletionUpdate> completionUpdates =
                     _chatClient.CompleteChatStreamingAsync(messages, options, cancellationToken);
 

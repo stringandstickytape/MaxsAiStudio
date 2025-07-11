@@ -169,7 +169,7 @@ namespace AiStudio4.AiServices
         private void ConfigureClaudeGeneration()
         {
             _payload["model"] = _model;
-            _payload["max_tokens"] = (_model == "claude-3-7-sonnet-20250219" || _model == "claude-3-7-sonnet-latest") ? 64000 : 8192;
+            _payload["max_tokens"] = (_model.Contains("opus") ? 32000 : _model.Contains("haiku") ? 8000 : 64000);
             _payload["stream"] = true;
             _payload["temperature"] = _apiSettings.Temperature;
         }
