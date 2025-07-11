@@ -197,7 +197,7 @@ namespace AiStudio4.AiServices
                     try
                     {
                         var structuredContent = JToken.Parse(block.Content ?? "{}");
-                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Processing ContentBlock type={block.ContentType}, content preview: {block.Content?.Substring(0, Math.Min(200, block.Content.Length))}...");
+                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Processing ContentBlock type={block.ContentType}, toolId={block.ToolId}, content preview: {block.Content?.Substring(0, Math.Min(200, block.Content.Length))}...");
                         
                         // Ensure we're adding individual content items, not nested arrays
                         if (structuredContent is JArray structuredArray)
@@ -209,19 +209,62 @@ namespace AiStudio4.AiServices
                                     var itemType = itemObj["type"]?.ToString();
                                     var toolUseId = itemObj["tool_use_id"]?.ToString() ?? itemObj["id"]?.ToString();
                                     System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Adding array item type={itemType}, tool_use_id={toolUseId}");
+                                    
+                                    // Ensure the item has a "type" field for Claude API
+                                    if (string.IsNullOrEmpty(itemType))
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: WARNING - Missing type field, converting to text");
+                                        contentArray.Add(new JObject
+                                        {
+                                            ["type"] = "text",
+                                            ["text"] = item.ToString()
+                                        });
+                                    }
+                                    else
+                                    {
+                                        contentArray.Add(item);
+                                    }
                                 }
-                                contentArray.Add(item);
+                                else
+                                {
+                                    // Non-object items, convert to text
+                                    contentArray.Add(new JObject
+                                    {
+                                        ["type"] = "text",
+                                        ["text"] = item.ToString()
+                                    });
+                                }
+                            }
+                        }
+                        else if (structuredContent is JObject structuredObj)
+                        {
+                            var itemType = structuredObj["type"]?.ToString();
+                            var toolUseId = structuredObj["tool_use_id"]?.ToString() ?? structuredObj["id"]?.ToString();
+                            System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Adding single item type={itemType}, tool_use_id={toolUseId}");
+                            
+                            // Ensure the object has a "type" field for Claude API
+                            if (string.IsNullOrEmpty(itemType))
+                            {
+                                System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: WARNING - Missing type field, converting to text");
+                                contentArray.Add(new JObject
+                                {
+                                    ["type"] = "text",
+                                    ["text"] = structuredObj.ToString()
+                                });
+                            }
+                            else
+                            {
+                                contentArray.Add(structuredObj);
                             }
                         }
                         else
                         {
-                            if (structuredContent is JObject structuredObj)
+                            // Non-object structured content, convert to text
+                            contentArray.Add(new JObject
                             {
-                                var itemType = structuredObj["type"]?.ToString();
-                                var toolUseId = structuredObj["tool_use_id"]?.ToString() ?? structuredObj["id"]?.ToString();
-                                System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Adding single item type={itemType}, tool_use_id={toolUseId}");
-                            }
-                            contentArray.Add(structuredContent);
+                                ["type"] = "text",
+                                ["text"] = structuredContent.ToString()
+                            });
                         }
                     }
                     catch (Exception ex)
@@ -267,12 +310,44 @@ namespace AiStudio4.AiServices
                         {
                             foreach (var item in structuredArray)
                             {
-                                partArray.Add(item);
+                                // For Gemini, structured content should be text parts if not properly formatted
+                                if (item is JObject itemObj)
+                                {
+                                    // Check if it's a valid Gemini part (should have text, functionCall, or functionResponse)
+                                    if (itemObj.ContainsKey("text") || itemObj.ContainsKey("functionCall") || itemObj.ContainsKey("functionResponse"))
+                                    {
+                                        partArray.Add(item);
+                                    }
+                                    else
+                                    {
+                                        // Convert to text part
+                                        partArray.Add(new JObject { ["text"] = item.ToString() });
+                                    }
+                                }
+                                else
+                                {
+                                    // Non-object items, convert to text
+                                    partArray.Add(new JObject { ["text"] = item.ToString() });
+                                }
+                            }
+                        }
+                        else if (structuredContent is JObject structuredObj)
+                        {
+                            // Check if it's a valid Gemini part
+                            if (structuredObj.ContainsKey("text") || structuredObj.ContainsKey("functionCall") || structuredObj.ContainsKey("functionResponse"))
+                            {
+                                partArray.Add(structuredObj);
+                            }
+                            else
+                            {
+                                // Convert to text part
+                                partArray.Add(new JObject { ["text"] = structuredObj.ToString() });
                             }
                         }
                         else
                         {
-                            partArray.Add(structuredContent);
+                            // Non-object structured content, convert to text
+                            partArray.Add(new JObject { ["text"] = structuredContent.ToString() });
                         }
                     }
                     catch
@@ -331,6 +406,16 @@ namespace AiStudio4.AiServices
             {
                 if (block.ContentType == ContentType.Text)
                 {
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = block.Content ?? ""
+                    });
+                }
+                else
+                {
+                    // For structured content (tool calls/responses), convert to text since OpenAI uses different format
+                    // OpenAI handles tool calls through function_call/tool_calls fields, not in content array
                     contentArray.Add(new JObject
                     {
                         ["type"] = "text",

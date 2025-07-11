@@ -312,7 +312,8 @@ namespace AiStudio4.AiServices
                             success = executionResult.WasProcessed,
                             statusMessage = executionResult.StatusMessage,
                             outputFileType = executionResult.OutputFileType
-                        })
+                        }),
+                        ToolId = toolCall.ToolId // Store the tool_use_id for proper matching
                     });
                 }
                 

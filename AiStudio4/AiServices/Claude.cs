@@ -202,7 +202,8 @@ namespace AiStudio4.AiServices
                     new ContentBlock
                     {
                         ContentType = ContentType.Tool, // Change to Tool so MessageBuilder parses the JSON
-                        Content = assistantContent.ToString()
+                        Content = assistantContent.ToString(),
+                        ToolId = response.ToolResponseSet.Tools.FirstOrDefault()?.ToolId // Store the tool ID
                     }
                 }
             };
@@ -247,7 +248,8 @@ namespace AiStudio4.AiServices
                     new ContentBlock
                     {
                         ContentType = ContentType.ToolResponse,
-                        Content = toolResults.ToString()
+                        Content = toolResults.ToString(),
+                        ToolId = toolResultBlocks.FirstOrDefault()?.ToolId // Preserve the tool ID from the original block
                     }
                 }
             };

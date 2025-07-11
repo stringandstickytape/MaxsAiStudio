@@ -34,6 +34,23 @@ namespace AiStudio4.AiServices
         public RequestPayloadBuilder WithConversation(LinearConv conv)
         {
             _conv = conv;
+
+            foreach(var m in _conv.messages)
+            {
+                var cList = new List<ContentBlock>();
+                foreach(var c in m.contentBlocks)
+                {
+                    if(string.IsNullOrEmpty(c.Content))
+                    {
+                        cList.Add(c);
+                    }
+                }
+                foreach (var block in cList)
+                {
+                    m.contentBlocks.Remove(block);
+                }
+            }
+
             return this;
         }
 
