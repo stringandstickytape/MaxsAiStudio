@@ -100,16 +100,16 @@ export const ActionButtons = React.memo(({
                 variant="outline"
                 size="icon"
                 onClick={onToggleListening}
-                aria-label={isListening ? "Stop Voice Input" : "Start Voice Input"}
-                title={isListening ? "Stop Voice Input" : "Start Voice Input"} // Added title for tooltip consistency
+                aria-label={isListening ? "Stop continuous recording" : "Start continuous recording"}
+                title={isListening ? "Stop continuous recording (click to stop)" : "Start continuous recording (click to begin)"} // Updated tooltips
                 disabled={isLoading || disabled} // Retain existing disabled logic
                 style={{
-                    backgroundColor: 'transparent',
+                    backgroundColor: isListening ? 'rgba(239, 68, 68, 0.1)' : 'transparent',
                     border: 'none',
                     opacity: (isLoading || disabled) ? 0.5 : 1,
                     ...(window?.theme?.InputBar?.style || {}), // Spread theme first
-                    // Use global primary color for all states
-                    color: 'var(--global-text-color)',
+                    // Use red color when recording, normal color otherwise
+                    color: isListening ? 'rgb(239, 68, 68)' : 'var(--global-text-color)',
                 }}
             >
                 <Mic className="h-5 w-5" />

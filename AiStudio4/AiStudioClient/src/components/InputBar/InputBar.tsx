@@ -68,13 +68,15 @@ export function InputBar({
     const { isListening: isVoiceListening, error: voiceError, startListening: startVoiceStoreListening, stopListening: stopVoiceStoreListening } = useVoiceInputStore();
     const { toast } = useToast();
 
-    const handleFinalVoiceTranscript = useCallback((text: string) => {
-        useInputBarStore.getState().appendToInputText(text.trim());
-        stopVoiceStoreListening();
-        textareaRef.current?.focusWithCursor();
-    }, [stopVoiceStoreListening]);
+    const voiceStartTextRef = useRef('');
 
-    const { isSupported: voiceIsSupported, startMicCapture, stopMicCapture, resetTranscript } = useVoiceInput({ onTranscriptFinalized: handleFinalVoiceTranscript });
+    const handleVoiceTranscriptUpdate = useCallback((text: string) => {
+        // Combine the original text with the voice transcript
+        useInputBarStore.getState().setInputText(voiceStartTextRef.current + text);
+        textareaRef.current?.focusWithCursor();
+    }, []);
+
+    const { isSupported: voiceIsSupported, startMicCapture, stopMicCapture, resetTranscript } = useVoiceInput({ onTranscriptUpdate: handleVoiceTranscriptUpdate });
 
     const handleToggleListening = () => {
         if (isVoiceListening) {
@@ -87,6 +89,12 @@ export function InputBar({
     useEffect(() => {
         if (isVoiceListening) {
             if (voiceIsSupported) {
+                // Store current text and add space if needed
+                const currentText = useInputBarStore.getState().inputText;
+                voiceStartTextRef.current = currentText;
+                if (currentText && !currentText.endsWith(' ')) {
+                    voiceStartTextRef.current += ' ';
+                }
                 resetTranscript();
                 startMicCapture();
             } else {
@@ -95,6 +103,7 @@ export function InputBar({
             }
         } else {
             stopMicCapture();
+            voiceStartTextRef.current = '';
         }
     }, [isVoiceListening, voiceIsSupported, startMicCapture, stopMicCapture, resetTranscript, stopVoiceStoreListening]);
 
