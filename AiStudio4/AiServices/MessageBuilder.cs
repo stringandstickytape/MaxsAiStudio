@@ -416,6 +416,7 @@ namespace AiStudio4.AiServices
                 {
                     // For structured content (tool calls/responses), convert to text since OpenAI uses different format
                     // OpenAI handles tool calls through function_call/tool_calls fields, not in content array
+                    System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER OPENAI: Converting structured content to text, type={block.ContentType}, toolId={block.ToolId}");
                     contentArray.Add(new JObject
                     {
                         ["type"] = "text",

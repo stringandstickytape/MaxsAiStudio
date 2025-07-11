@@ -36,7 +36,7 @@ namespace AiStudio4.AiServices
         private ImageClient _imageClient;
         private EmbeddingClient _embeddingClient;
         private readonly List<GeneratedImage> _generatedImages = new List<GeneratedImage>();
-        private readonly Queue<string> _toolCallIdQueue = new Queue<string>();
+        // Tool IDs are now stored in ContentBlock.ToolId instead of queue
 
         public NetOpenAi() { }
 
@@ -266,8 +266,6 @@ namespace AiStudio4.AiServices
 
         private LinearConvMessage CreateOpenAIAssistantMessage(AiResponse response)
         {
-            _toolCallIdQueue.Clear(); // Clear previous tool IDs
-            
             var contentBlocks = new List<ContentBlock>();
             
             // Add text content if any
@@ -286,8 +284,7 @@ namespace AiStudio4.AiServices
             {
                 foreach (var tool in response.ToolResponseSet.Tools)
                 {
-                    var toolCallId = $"call_{Guid.NewGuid():N}".Substring(0, 24); // Generate a unique ID
-                    _toolCallIdQueue.Enqueue(toolCallId); // Store in order for later use
+                    var toolCallId = tool.ToolId ?? $"call_{Guid.NewGuid():N}".Substring(0, 24); // Use existing ID or generate new
                     
                     System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT: Creating tool_call with id: {toolCallId}, tool: {tool.ToolName}");
                     
@@ -305,7 +302,8 @@ namespace AiStudio4.AiServices
                     contentBlocks.Add(new ContentBlock
                     {
                         ContentType = ContentType.Tool,
-                        Content = toolCallData.ToString()
+                        Content = toolCallData.ToString(),
+                        ToolId = toolCallId // Store the tool_call_id for matching
                     });
                 }
             }
@@ -332,10 +330,8 @@ namespace AiStudio4.AiServices
                     var toolName = toolData.toolName?.ToString();
                     var result = toolData.result?.ToString();
                     
-                    // Use the next tool call ID from the queue (preserves order)
-                    var toolCallId = _toolCallIdQueue.Count > 0 
-                        ? _toolCallIdQueue.Dequeue() 
-                        : $"call_{Guid.NewGuid():N}".Substring(0, 24);
+                    // Use the tool_call_id from the ContentBlock
+                    var toolCallId = block.ToolId ?? $"call_{Guid.NewGuid():N}".Substring(0, 24);
                     
                     System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Creating tool result with tool_call_id: {toolCallId}, tool: {toolName}");
                     
@@ -349,7 +345,8 @@ namespace AiStudio4.AiServices
                     contentBlocks.Add(new ContentBlock
                     {
                         ContentType = ContentType.ToolResponse,
-                        Content = toolResultData.ToString()
+                        Content = toolResultData.ToString(),
+                        ToolId = toolCallId // Store the tool_call_id for matching
                     });
                 }
             }
@@ -594,7 +591,8 @@ namespace AiStudio4.AiServices
                                 var toolResponseItem = new ToolResponseItem
                                 {
                                     ToolName = toolCall.FunctionName,
-                                    ResponseText = ""
+                                    ResponseText = "",
+                                    ToolId = toolCall.ToolCallId // Store the tool_call_id from OpenAI response
                                 };
                                 ToolResponseSet.Tools.Add(toolResponseItem);
 
