@@ -537,10 +537,8 @@ namespace AiStudio4.AiServices
                 var toolResponseBlock = contentBlocks.FirstOrDefault(b => b.ContentType == ContentType.ToolResponse);
                 if (toolResponseBlock != null)
                 {
-                    // Use the next tool ID from the queue if available, otherwise try to parse from content
-                    var toolCallId = _toolIdQueue.Count > 0 
-                        ? _toolIdQueue.Dequeue()
-                        : toolResponseBlock.ToolId ?? "unknown";
+                    // Use the next tool ID from the queue - queue must be populated by preceding assistant message
+                    var toolCallId = _toolIdQueue.Dequeue();
                     
                     // For tool results, the content might be in different formats
                     string content;
