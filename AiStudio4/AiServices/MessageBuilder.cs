@@ -192,25 +192,41 @@ namespace AiStudio4.AiServices
                 }
                 else
                 {
-                    // For structured content (tool calls/responses), parse the JSON
+                    // For structured content (tool calls/responses), use the properly formatted data directly
+                    // AI providers have already created the correct structure with proper tool_use_ids
                     try
                     {
                         var structuredContent = JToken.Parse(block.Content ?? "{}");
+                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Processing ContentBlock type={block.ContentType}, content preview: {block.Content?.Substring(0, Math.Min(200, block.Content.Length))}...");
+                        
                         // Ensure we're adding individual content items, not nested arrays
                         if (structuredContent is JArray structuredArray)
                         {
                             foreach (var item in structuredArray)
                             {
+                                if (item is JObject itemObj)
+                                {
+                                    var itemType = itemObj["type"]?.ToString();
+                                    var toolUseId = itemObj["tool_use_id"]?.ToString() ?? itemObj["id"]?.ToString();
+                                    System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Adding array item type={itemType}, tool_use_id={toolUseId}");
+                                }
                                 contentArray.Add(item);
                             }
                         }
                         else
                         {
+                            if (structuredContent is JObject structuredObj)
+                            {
+                                var itemType = structuredObj["type"]?.ToString();
+                                var toolUseId = structuredObj["tool_use_id"]?.ToString() ?? structuredObj["id"]?.ToString();
+                                System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Adding single item type={itemType}, tool_use_id={toolUseId}");
+                            }
                             contentArray.Add(structuredContent);
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
+                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Parse error: {ex.Message}");
                         // If parsing fails, treat as text
                         contentArray.Add(new JObject
                         {
@@ -241,7 +257,8 @@ namespace AiStudio4.AiServices
                 }
                 else
                 {
-                    // For structured content, parse the JSON
+                    // For structured content, use the properly formatted data directly
+                    // AI providers have already created the correct structure with proper IDs
                     try
                     {
                         var structuredContent = JToken.Parse(block.Content ?? "{}");

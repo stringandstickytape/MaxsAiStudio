@@ -94,6 +94,24 @@ namespace AiStudio4.AiServices
             {
                 case ProviderFormat.Claude:
                     _payload["messages"] = messagesArray;
+                    System.Diagnostics.Debug.WriteLine($"🔧 REQUESTPAYLOADBUILDER: Created Claude messages array with {messagesArray.Count} messages");
+                    for (int i = 0; i < messagesArray.Count; i++)
+                    {
+                        var msg = messagesArray[i];
+                        var role = msg["role"]?.ToString();
+                        var content = msg["content"] as JArray;
+                        System.Diagnostics.Debug.WriteLine($"🔧 REQUESTPAYLOADBUILDER: Message {i}: role={role}, content_blocks={content?.Count}");
+                        if (content != null)
+                        {
+                            for (int j = 0; j < content.Count; j++)
+                            {
+                                var block = content[j];
+                                var type = block["type"]?.ToString();
+                                var toolUseId = block["tool_use_id"]?.ToString() ?? block["id"]?.ToString();
+                                System.Diagnostics.Debug.WriteLine($"🔧 REQUESTPAYLOADBUILDER: Content {j}: type={type}, tool_use_id={toolUseId}");
+                            }
+                        }
+                    }
                     break;
                 case ProviderFormat.Gemini:
                     _payload["contents"] = messagesArray;

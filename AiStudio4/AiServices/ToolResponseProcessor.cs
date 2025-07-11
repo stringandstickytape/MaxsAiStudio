@@ -48,32 +48,11 @@ namespace AiStudio4.AiServices
 
         public virtual LinearConvMessage CreateToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
-            var toolResults = new JArray();
-
-            foreach (var block in toolResultBlocks)
-            {
-                if (block.ContentType == ContentType.ToolResponse)
-                {
-                    var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
-                    var toolName = toolData.toolName?.ToString();
-                    var result = toolData.result?.ToString();
-                    var success = (bool)(toolData.success ?? false);
-
-                    toolResults.Add(MessageBuilder.CreateToolResultPart(toolName, result, success, _format));
-                }
-            }
-
+            // Use ContentBlocks directly - AI providers have already created properly formatted tool results
             return new LinearConvMessage
             {
                 role = "user",
-                contentBlocks = new List<ContentBlock>
-                {
-                    new ContentBlock
-                    {
-                        ContentType = ContentType.ToolResponse,
-                        Content = toolResults.ToString()
-                    }
-                }
+                contentBlocks = toolResultBlocks
             };
         }
 

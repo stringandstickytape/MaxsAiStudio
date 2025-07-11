@@ -182,6 +182,7 @@ namespace AiStudio4.AiServices
             {
                 var toolId = toolCall.ToolId ?? $"tool_{Guid.NewGuid():N}"[..15]; // Use Claude's ID or fallback
                 _toolIdQueue.Enqueue(toolId); // Store in order for later use
+                System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL CALL: Enqueued tool_use_id: {toolId}, tool: {toolCall.ToolName}, queue_count: {_toolIdQueue.Count}");
                 System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT: Creating tool_use with id: {toolId}, tool: {toolCall.ToolName}");
 
                 assistantContent.Add(new JObject
@@ -200,7 +201,7 @@ namespace AiStudio4.AiServices
                 {
                     new ContentBlock
                     {
-                        ContentType = ContentType.Text,
+                        ContentType = ContentType.Tool, // Change to Tool so MessageBuilder parses the JSON
                         Content = assistantContent.ToString()
                     }
                 }
@@ -226,7 +227,7 @@ namespace AiStudio4.AiServices
                         ? _toolIdQueue.Dequeue()
                         : $"tool_{Guid.NewGuid():N}"[..15];
 
-                    System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}");
+                    System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}, queue_count: {_toolIdQueue.Count}");
 
                     toolResults.Add(new JObject
                     {
