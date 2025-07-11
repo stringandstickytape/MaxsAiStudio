@@ -143,7 +143,7 @@ namespace AiStudio4.AiServices
             };
         }
 
-        private LinearConvMessage CreateLlamaCppToolResultMessage(List<Core.Models.ContentBlock> toolResultBlocks)
+        private List<LinearConvMessage> CreateLlamaCppToolResultMessage(List<Core.Models.ContentBlock> toolResultBlocks)
         {
             // Use OpenAI-compatible format
             var contentArray = new JArray();
@@ -164,7 +164,7 @@ namespace AiStudio4.AiServices
                 }
             }
             
-            return new LinearConvMessage
+            var message = new LinearConvMessage
             {
                 role = "user",
                 contentBlocks = new List<Core.Models.ContentBlock>
@@ -176,6 +176,8 @@ namespace AiStudio4.AiServices
                     }
                 }
             };
+            
+            return new List<LinearConvMessage> { message };
         }
 
         protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)

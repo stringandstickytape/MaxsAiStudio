@@ -116,7 +116,7 @@ namespace AiStudio4.AiServices
             return _toolResponseProcessor.CreateAssistantMessage(response);
         }
 
-        private LinearConvMessage CreateGeminiToolResultMessage(List<ContentBlock> toolResultBlocks)
+        private List<LinearConvMessage> CreateGeminiToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
             return _toolResponseProcessor.CreateToolResultMessage(toolResultBlocks);
         }

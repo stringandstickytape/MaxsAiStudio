@@ -339,9 +339,9 @@ namespace AiStudio4.AiServices
             return assistantMessage;
         }
 
-        private LinearConvMessage CreateOpenAIToolResultMessage(List<ContentBlock> toolResultBlocks)
+        private List<LinearConvMessage> CreateOpenAIToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
-            var contentBlocks = new List<ContentBlock>();
+            var messages = new List<LinearConvMessage>();
             
             foreach (var block in toolResultBlocks)
             {
@@ -352,31 +352,31 @@ namespace AiStudio4.AiServices
                     var result = toolData.result?.ToString();
                     
                     // Use the next tool ID from the queue (preserves order)
-                    var toolCallId = _toolIdQueue.Count > 0
-                        ? _toolIdQueue.Dequeue()
-                        : $"call_{Guid.NewGuid():N}".Substring(0, 24);
+                    var toolCallId = _toolIdQueue.Dequeue();
                     
                     System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Creating tool result with tool_call_id: {toolCallId}, tool: {toolName}, queue_count: {_toolIdQueue.Count}");
                     
                     // For OpenAI, each tool result becomes a separate tool message
-                    // We'll create individual messages in the CreateChatMessage method
-                    contentBlocks.Add(new ContentBlock
+                    var toolResultMessage = new LinearConvMessage
                     {
-                        ContentType = ContentType.ToolResponse,
-                        Content = result ?? "",
-                        ToolId = toolCallId // Store the tool_call_id for matching
-                    });
+                        role = "tool", // Use tool role for OpenAI tool results
+                        contentBlocks = new List<ContentBlock>
+                        {
+                            new ContentBlock
+                            {
+                                ContentType = ContentType.ToolResponse,
+                                Content = result ?? "",
+                                ToolId = toolCallId // Store the tool_call_id for matching
+                            }
+                        }
+                    };
+                    
+                    messages.Add(toolResultMessage);
                 }
             }
             
-            var toolResultMessage = new LinearConvMessage
-            {
-                role = "tool", // Use tool role for OpenAI tool results
-                contentBlocks = contentBlocks
-            };
-            
-            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT MESSAGE: {contentBlocks.Count} content blocks");
-            return toolResultMessage;
+            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT MESSAGES: Created {messages.Count} separate tool messages");
+            return messages;
         }
 
         protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)

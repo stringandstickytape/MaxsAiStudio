@@ -212,7 +212,7 @@ namespace AiStudio4.AiServices
             return result;
         }
 
-        private LinearConvMessage CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
+        private List<LinearConvMessage> CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
             var toolResults = new JArray();
 
@@ -255,7 +255,7 @@ namespace AiStudio4.AiServices
             };
 
             System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.contentBlocks.Count} content blocks");
-            return result;
+            return new List<LinearConvMessage> { result };
         }
 
         protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)

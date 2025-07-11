@@ -102,7 +102,7 @@ namespace AiStudio4.AiServices
             Core.Interfaces.IToolExecutor toolExecutor, 
             Func<AiRequestOptions, Task<AiResponse>> makeApiCall,
             Func<AiResponse, LinearConvMessage> createAssistantMessage,
-            Func<List<ContentBlock>, LinearConvMessage> createToolResultMessage,
+            Func<List<ContentBlock>, List<LinearConvMessage>> createToolResultMessage,
             int maxIterations = 10)
         {
             var linearConv = options.Conv;
@@ -322,9 +322,13 @@ namespace AiStudio4.AiServices
                 if (toolResultBlocks.Any())
                 {
                     // Add to linear conversation for API (provider-specific format)
-                    var toolResultMessage = createToolResultMessage(toolResultBlocks);
-                    System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding tool result message - Role={toolResultMessage.role}, ContentBlocks={toolResultMessage.contentBlocks?.Count ?? 0}");
-                    linearConv.messages.Add(toolResultMessage);
+                    var toolResultMessages = createToolResultMessage(toolResultBlocks);
+                    System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding {toolResultMessages.Count} tool result messages");
+                    foreach (var toolResultMessage in toolResultMessages)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding tool result message - Role={toolResultMessage.role}, ContentBlocks={toolResultMessage.contentBlocks?.Count ?? 0}");
+                        linearConv.messages.Add(toolResultMessage);
+                    }
                     
                     if (shouldStopLoop)
                     {

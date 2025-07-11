@@ -46,14 +46,15 @@ namespace AiStudio4.AiServices
             };
         }
 
-        public virtual LinearConvMessage CreateToolResultMessage(List<ContentBlock> toolResultBlocks)
+        public virtual List<LinearConvMessage> CreateToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
             // Use ContentBlocks directly - AI providers have already created properly formatted tool results
-            return new LinearConvMessage
+            var message = new LinearConvMessage
             {
                 role = "user",
                 contentBlocks = toolResultBlocks
             };
+            return new List<LinearConvMessage> { message };
         }
 
         public virtual LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
