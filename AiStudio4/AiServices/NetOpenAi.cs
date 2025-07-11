@@ -3,7 +3,8 @@ using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using AiStudio4.Core.Models;
 
-
+using OpenAIChatCompletionOptions = OpenAI.Chat.ChatCompletionOptions;
+using OpenAIChatToolChoice = OpenAI.Chat.ChatToolChoice;
 using OpenAI;
 using OpenAI.Chat;
 using OpenAI.Audio;
@@ -23,6 +24,7 @@ using System.ClientModel;
 
 using AiStudio4.Services;
 using Azure.Core;
+using System.Runtime.CompilerServices;
 
 
 namespace AiStudio4.AiServices
@@ -549,6 +551,8 @@ namespace AiStudio4.AiServices
 
             try
             {
+                //OpenAISdkHelper.SetStreamOptionsToNull(options);
+                //OpenAISdkHelper.SetMaxTokens(options, 32768);
                 AsyncCollectionResult<StreamingChatCompletionUpdate> completionUpdates =
                     _chatClient.CompleteChatStreamingAsync(messages, options, cancellationToken);
 
@@ -791,5 +795,21 @@ namespace AiStudio4.AiServices
 
     }
 
+
+    public static class OpenAISdkHelper
+    {
+        [UnsafeAccessor(UnsafeAccessorKind.Method, Name = "set__deprecatedMaxTokens")]
+        public static extern void SetMaxTokens(OpenAIChatCompletionOptions options, int? deprecatedMaxTokens);
+
+        [UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_predefinedValue")]
+        public static extern ref string? GetToolChoicePredefinedValue(OpenAIChatToolChoice toolChoice);
+
+        private static PropertyInfo? StreamOptionsProperty { get; } = typeof(OpenAIChatCompletionOptions).GetProperty("StreamOptions", BindingFlags.NonPublic | BindingFlags.Instance)!;
+
+        public static void SetStreamOptionsToNull(OpenAIChatCompletionOptions options)
+        {
+            StreamOptionsProperty?.SetValue(options, null);
+        }
+    }
 
 }
