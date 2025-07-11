@@ -180,7 +180,7 @@ namespace AiStudio4.AiServices
         private async Task<AiResponse> MakeOpenAIApiCall(AiRequestOptions options)
         {
             ToolResponseSet = new ToolResponse { Tools = new List<ToolResponseItem>() };
-            
+
             // Create list of messages for the chat completion
             List<ChatMessage> messages = new List<ChatMessage>();
 
@@ -197,7 +197,7 @@ namespace AiStudio4.AiServices
                 ChatMessage chatMessage = CreateChatMessage(message);
                 messages.Add(chatMessage);
                 System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Added message [{i}] to API call: Role={message.role}, Type={chatMessage.GetType().Name}, ContentBlocks={message.contentBlocks?.Count ?? 0}");
-                
+
                 // Debug content blocks
                 if (message.contentBlocks != null)
                 {
@@ -211,10 +211,10 @@ namespace AiStudio4.AiServices
 
             // Configure chat completion options
             float temp = options.Model.Requires1fTemp ? 1f : options.ApiSettings.Temperature;
-            
+
             ChatCompletionOptions chatOptions = new ChatCompletionOptions
             {
-               Temperature = temp
+                Temperature = temp
             };
 
             // Add TopP if supported
@@ -255,7 +255,7 @@ namespace AiStudio4.AiServices
             if (options.AddEmbeddings)
             {
                 var lastMessage = options.Conv.messages.Last();
-                var lastMessageContent = string.Join("\n\n", 
+                var lastMessageContent = string.Join("\n\n",
                     lastMessage.contentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]);
                 var newInput = await AddEmbeddingsIfRequired(
                     options.Conv,
@@ -270,6 +270,12 @@ namespace AiStudio4.AiServices
                     int lastIndex = messages.Count - 1;
                     messages[lastIndex] = new UserChatMessage(newInput);
                 }
+            }
+
+            if (options.Model.ModelName.StartsWith("kimi"))
+            { 
+                OpenAISdkHelper.SetStreamOptionsToNull(chatOptions);
+                OpenAISdkHelper.SetMaxTokens(chatOptions, 32768);
             }
 
             return await HandleStreamingChatCompletion(messages, chatOptions, options.CancellationToken, options.OnStreamingUpdate, options.OnStreamingComplete);
@@ -658,8 +664,7 @@ namespace AiStudio4.AiServices
 
             try
             {
-                //OpenAISdkHelper.SetStreamOptionsToNull(options);
-                //OpenAISdkHelper.SetMaxTokens(options, 32768);
+
                 AsyncCollectionResult<StreamingChatCompletionUpdate> completionUpdates =
                     _chatClient.CompleteChatStreamingAsync(messages, options, cancellationToken);
 
