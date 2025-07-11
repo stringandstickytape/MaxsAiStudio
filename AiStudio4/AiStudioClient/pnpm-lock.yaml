@@ -203,6 +203,9 @@ importers:
       react-resizable-panels:
         specifier: ^2.1.9
         version: 2.1.9(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+      react-speech-recognition:
+        specifier: ^4.0.1
+        version: 4.0.1(react@19.1.0)
       react-syntax-highlighter:
         specifier: ^15.6.1
         version: 15.6.1(react@19.1.0)
@@ -5009,6 +5012,11 @@ packages:
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+
+  react-speech-recognition@4.0.1:
+    resolution: {integrity: sha512-0fIqzLtfY8vuYA6AmJVK7qiabZx0oFKOO+rbiBgFI3COWVGREy0A+gdU16hWXmFebeyrI8JsOLYsWk6WaHUXRw==}
+    peerDependencies:
+      react: '>=16.8.0'
 
   react-style-singleton@2.2.3:
     resolution: {integrity: sha512-b6jSvxvVnyptAiLjbkWLE/lOnR4lfTtDAl+eUC7RZy+QQWc6wRzIV2CE6xBuMmDxc2qIihtDCZD5NPOFl7fRBQ==}
@@ -11566,6 +11574,11 @@ snapshots:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
       react-transition-group: 4.4.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+
+  react-speech-recognition@4.0.1(react@19.1.0):
+    dependencies:
+      lodash.debounce: 4.0.8
+      react: 19.1.0
 
   react-style-singleton@2.2.3(@types/react@19.1.8)(react@19.1.0):
     dependencies:

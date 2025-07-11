@@ -78,6 +78,7 @@
     "react-markdown": "^9.1.0",
     "react-redux": "^9.2.0",
     "react-resizable-panels": "^2.1.9",
+    "react-speech-recognition": "^4.0.1",
     "react-syntax-highlighter": "^15.6.1",
     "react-textarea-autosize": "^8.5.9",
     "react-virtual": "^2.10.4",
