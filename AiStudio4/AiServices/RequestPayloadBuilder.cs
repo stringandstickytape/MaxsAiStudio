@@ -231,7 +231,13 @@ namespace AiStudio4.AiServices
                         var content = message["content"] as JArray;
                         if (content != null && content.Count > 0)
                         {
-                            content[0]["cache_control"] = new JObject { ["type"] = "ephemeral" };
+                            // Add cache_control to the last content block (any type)
+                            // Content is now guaranteed to be a flat array
+                            var lastContentItem = content.Last();
+                            if (lastContentItem is JObject contentObj)
+                            {
+                                contentObj["cache_control"] = new JObject { ["type"] = "ephemeral" };
+                            }
                         }
                     }
                 }

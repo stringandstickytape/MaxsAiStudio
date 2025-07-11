@@ -72,7 +72,9 @@ namespace AiStudio4.AiServices
 
             if (options.AddEmbeddings)
             {
-                var lastMessageContent = options.Conv.messages.Last().content;
+                var lastMessage = options.Conv.messages.Last();
+                var lastMessageContent = string.Join("\n\n", 
+                    lastMessage.contentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]);
                 var newInput = await AddEmbeddingsIfRequired(options.Conv, options.ApiSettings, options.MustNotUseEmbedding, options.AddEmbeddings, lastMessageContent);
                 // Adjust the content structure based on the deepseek flag.
                 if (deepseekBodge)
@@ -165,16 +167,36 @@ namespace AiStudio4.AiServices
                 }
             }
 
-            messageContent.Add(new JObject
+            // Convert ContentBlocks to OpenAI format
+            foreach (var block in message.contentBlocks ?? new List<ContentBlock>())
             {
-                ["type"] = "text",
-                ["text"] = message.content
-            });
+                if (block.ContentType == ContentType.Text)
+                {
+                    messageContent.Add(new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = block.Content ?? ""
+                    });
+                }
+                // Handle other content types as needed
+            }
+
+            // For deepseek, flatten to simple text
+            if (deepseekBodge)
+            {
+                var textContent = string.Join("\n\n", 
+                    message.contentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]);
+                return new JObject
+                {
+                    ["role"] = message.role,
+                    ["content"] = textContent
+                };
+            }
 
             return new JObject
             {
                 ["role"] = message.role,
-                ["content"] = deepseekBodge ? message.content : messageContent
+                ["content"] = messageContent
             };
         }
 

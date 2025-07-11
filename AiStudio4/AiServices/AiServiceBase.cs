@@ -429,36 +429,17 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = interjectionText
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = interjectionText
+                    }
+                }
             };
         }
 
-        
-        public Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConv conv,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
-        {
-            
-            var options = AiRequestOptions.Create(
-                serviceProvider, model, conv, base64image, base64ImageType,
-                cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
-                addEmbeddings, customSystemPrompt);
-            
-            
-            options.OnStreamingUpdate = null;
-            options.OnStreamingComplete = null;
-            
-            return FetchResponse(options);
-        }
         
         
         protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false);

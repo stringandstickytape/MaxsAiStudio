@@ -129,7 +129,7 @@ You should specify the following arguments before the others: [target_file]",
                 //systemprompt = systemPrompt,
                 messages = new List<LinearConvMessage>
                 {
-                    new LinearConvMessage { role = "user", content = userPrompt }
+                    new LinearConvMessage { role = "user", contentBlocks = new List<ContentBlock> { new ContentBlock { ContentType = ContentType.Text, Content = userPrompt } } }
                 }
             };
 

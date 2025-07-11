@@ -3,7 +3,6 @@ using AiStudio4.Core.Models;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using AiStudio4.InjectedDependencies;
-using Azure.Core;
 
 
 using SharedClasses.Providers;
@@ -676,7 +675,7 @@ namespace AiStudio4.AiServices
 
         private async Task<AiResponse> HandleTtsRequestAsync(AiRequestOptions options)
         {
-            string textToSynthesize = options.Conv?.messages?.LastOrDefault(m => m.role == "user")?.content;
+            string textToSynthesize = string.Join("\n\n", options.Conv?.messages?.LastOrDefault(m => m.role == "user")?.contentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]);
             if (string.IsNullOrEmpty(textToSynthesize))
             {
                 return new AiResponse { Success = false, ContentBlocks = new List<ContentBlock> { new ContentBlock { Content = "No text provided for speech synthesis in the last user message.", ContentType = Core.Models.ContentType.Text } } };

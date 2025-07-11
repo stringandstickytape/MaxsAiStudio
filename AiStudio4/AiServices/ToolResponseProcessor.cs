@@ -35,7 +35,14 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = GetAssistantRole(),
-                content = assistantContent.ToString()
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = assistantContent.ToString()
+                    }
+                }
             };
         }
 
@@ -59,7 +66,14 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = toolResults.ToString()
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.ToolResponse,
+                        Content = toolResults.ToString()
+                    }
+                }
             };
         }
 
@@ -68,9 +82,16 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = _format == ProviderFormat.Gemini 
-                    ? new JArray { new JObject { ["text"] = interjectionText } }.ToString()
-                    : interjectionText
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = _format == ProviderFormat.Gemini 
+                            ? new JArray { new JObject { ["text"] = interjectionText } }.ToString()
+                            : interjectionText
+                    }
+                }
             };
         }
 

@@ -1,11 +1,12 @@
 
+using AiStudio4.Core.Models;
 
 namespace AiStudio4.DataModels
 {
     public class LinearConvMessage
     {
         public string role { get; set; }
-        public string content { get; set; }
+        public List<ContentBlock> contentBlocks { get; set; } = new List<ContentBlock>();
 
         // Keep for backward compatibility
         public string? base64type { get; set; }

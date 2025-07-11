@@ -195,7 +195,7 @@ namespace AiStudio4.Services
                     var summaryText = conv.Summary;
                     if(summaryText == null)
                     {
-                        var userMessage = string.Join("\n\n", conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.ContentBlocks ?? new List<ContentBlock>());
+                        var userMessage = string.Join("\n\n", conv.Messages.FirstOrDefault(m => m.Role == v4BranchedConvMessageRole.User)?.ContentBlocks?.Where(cb => cb.ContentType == ContentType.Text)?.Select(cb => cb.Content) ?? new List<string>());
 
                         if(userMessage == null)
                         {
@@ -285,9 +285,10 @@ namespace AiStudio4.Services
 
                                             if (summaryResponse.Success)
                                             {
-                                                var summary = summaryResponse.ResponseText.Length > 100
-                                                    ? summaryResponse.ResponseText.Substring(0, 97) + "..."
-                                                    : summaryResponse.ResponseText;
+                                                var responseText = string.Join("\n\n", summaryResponse.ContentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]);
+                                                var summary = responseText.Length > 100
+                                                    ? responseText.Substring(0, 97) + "..."
+                                                    : responseText;
 
                                                 // Re-load the conversation within the scope before modifying/saving
                                                 var currentConv = await scopedConvStorage.LoadConv(conversationId);

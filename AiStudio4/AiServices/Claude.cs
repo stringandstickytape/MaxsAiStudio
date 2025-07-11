@@ -196,10 +196,17 @@ namespace AiStudio4.AiServices
             var result = new LinearConvMessage
             {
                 role = "assistant",
-                content = assistantContent.ToString()
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = assistantContent.ToString()
+                    }
+                }
             };
 
-            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.content}");
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.contentBlocks.Count} content blocks");
             return result;
         }
 
@@ -234,10 +241,17 @@ namespace AiStudio4.AiServices
             var result = new LinearConvMessage
             {
                 role = "user",
-                content = toolResults.ToString()
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.ToolResponse,
+                        Content = toolResults.ToString()
+                    }
+                }
             };
 
-            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.content}");
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.contentBlocks.Count} content blocks");
             return result;
         }
 
@@ -246,7 +260,14 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = interjectionText
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = interjectionText
+                    }
+                }
             };
         }
 

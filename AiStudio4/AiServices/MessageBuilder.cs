@@ -179,23 +179,46 @@ namespace AiStudio4.AiServices
                 }
             }
 
-            // Handle structured content (tool calls/responses) or plain text
-            try
+            // Handle ContentBlocks
+            foreach (var block in message.contentBlocks ?? new List<ContentBlock>())
             {
-                var parsedContent = JArray.Parse(message.content);
-                foreach (var item in parsedContent)
+                if (block.ContentType == ContentType.Text)
                 {
-                    contentArray.Add(item);
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = (block.Content ?? "").Replace("\r", "")
+                    });
                 }
-            }
-            catch
-            {
-                // If parsing fails, treat as plain text
-                contentArray.Add(new JObject
+                else
                 {
-                    ["type"] = "text",
-                    ["text"] = message.content.Replace("\r", "")
-                });
+                    // For structured content (tool calls/responses), parse the JSON
+                    try
+                    {
+                        var structuredContent = JToken.Parse(block.Content ?? "{}");
+                        // Ensure we're adding individual content items, not nested arrays
+                        if (structuredContent is JArray structuredArray)
+                        {
+                            foreach (var item in structuredArray)
+                            {
+                                contentArray.Add(item);
+                            }
+                        }
+                        else
+                        {
+                            contentArray.Add(structuredContent);
+                        }
+                    }
+                    catch
+                    {
+                        // If parsing fails, treat as text
+                        contentArray.Add(new JObject
+                        {
+                            ["type"] = "text",
+                            ["text"] = block.Content ?? ""
+                        });
+                    }
+                }
             }
 
             return new JObject
@@ -209,16 +232,38 @@ namespace AiStudio4.AiServices
         {
             var partArray = new JArray();
 
-            // Try to parse content as structured parts first (for tool calls/responses)
-            try
+            // Handle ContentBlocks for Gemini format
+            foreach (var block in message.contentBlocks ?? new List<ContentBlock>())
             {
-                var parsedContent = JArray.Parse(message.content);
-                partArray = parsedContent;
-            }
-            catch
-            {
-                // If parsing fails, treat as plain text
-                partArray.Add(new JObject { ["text"] = message.content });
+                if (block.ContentType == ContentType.Text)
+                {
+                    partArray.Add(new JObject { ["text"] = block.Content ?? "" });
+                }
+                else
+                {
+                    // For structured content, parse the JSON
+                    try
+                    {
+                        var structuredContent = JToken.Parse(block.Content ?? "{}");
+                        // Ensure we're adding individual content items, not nested arrays
+                        if (structuredContent is JArray structuredArray)
+                        {
+                            foreach (var item in structuredArray)
+                            {
+                                partArray.Add(item);
+                            }
+                        }
+                        else
+                        {
+                            partArray.Add(structuredContent);
+                        }
+                    }
+                    catch
+                    {
+                        // If parsing fails, treat as text
+                        partArray.Add(new JObject { ["text"] = block.Content ?? "" });
+                    }
+                }
             }
 
             // Add legacy single image if present
@@ -264,12 +309,18 @@ namespace AiStudio4.AiServices
         {
             var contentArray = new JArray();
 
-            // Add text content
-            contentArray.Add(new JObject
+            // Add text content from ContentBlocks
+            foreach (var block in message.contentBlocks ?? new List<ContentBlock>())
             {
-                ["type"] = "text",
-                ["text"] = message.content
-            });
+                if (block.ContentType == ContentType.Text)
+                {
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = block.Content ?? ""
+                    });
+                }
+            }
 
             // Handle legacy single image
             if (!string.IsNullOrEmpty(message.base64image))
