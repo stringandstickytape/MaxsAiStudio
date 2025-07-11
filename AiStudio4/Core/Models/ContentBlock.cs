@@ -14,5 +14,24 @@ namespace AiStudio4.Core.Models
 
         [JsonPropertyName("contentType")]
         public ContentType ContentType { get; set; } = ContentType.Text;
+
+        /// <summary>
+        /// The actual tool call ID from the AI service API (e.g., OpenAI tool call ID).
+        /// Used for proper conversation resumption and tool call/response relationships.
+        /// </summary>
+        [JsonPropertyName("toolCallId")]
+        public string? ToolCallId { get; set; }
+
+        /// <summary>
+        /// The name of the tool being called. Used with ToolCall content type.
+        /// </summary>
+        [JsonPropertyName("toolName")]
+        public string? ToolName { get; set; }
+
+        /// <summary>
+        /// The tool arguments as JSON string. Used with ToolCall content type.
+        /// </summary>
+        [JsonPropertyName("toolArguments")]
+        public string? ToolArguments { get; set; }
     }
 }

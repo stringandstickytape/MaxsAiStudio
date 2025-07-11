@@ -1,5 +1,6 @@
 
 
+
 namespace AiStudio4.DataModels
 {
     public class LinearConvMessage
@@ -17,5 +18,6 @@ namespace AiStudio4.DataModels
         // For OpenAI function calling compatibility
         public string? function_call { get; set; }
         public string? name { get; set; } // For function result messages
+        public List<ContentBlock> contentBlocks { get; internal set; }
     }
 }

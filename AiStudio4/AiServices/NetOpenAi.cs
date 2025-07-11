@@ -2,6 +2,7 @@ using AiStudio4.Convs;
 using AiStudio4.Core.Tools;
 using AiStudio4.DataModels;
 using AiStudio4.Core.Models;
+using Newtonsoft.Json.Linq;
 
 using OpenAIChatCompletionOptions = OpenAI.Chat.ChatCompletionOptions;
 using OpenAIChatToolChoice = OpenAI.Chat.ChatToolChoice;
@@ -38,6 +39,7 @@ namespace AiStudio4.AiServices
         private EmbeddingClient _embeddingClient;
         private readonly List<GeneratedImage> _generatedImages = new List<GeneratedImage>();
         private readonly Queue<string> _toolCallIdQueue = new Queue<string>();
+        private readonly Dictionary<string, string> _toolCallIdMap = new Dictionary<string, string>();
 
         public NetOpenAi() { }
 
@@ -81,6 +83,16 @@ namespace AiStudio4.AiServices
                 {
                     messages.Add(new SystemChatMessage(options.Conv.SystemPromptWithDateTime()));
                 }
+
+                // Debug output for tool call ID comparison
+                System.Diagnostics.Debug.WriteLine($"🔧 === OPENAI REQUEST PREPARATION ===");
+                System.Diagnostics.Debug.WriteLine($"🔧 Tool Call ID Map has {_toolCallIdMap.Count} entries:");
+                foreach (var kvp in _toolCallIdMap)
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔧   Tool: {kvp.Key} -> ID: {kvp.Value}");
+                }
+                System.Diagnostics.Debug.WriteLine($"🔧 Tool Call ID Queue has {_toolCallIdQueue.Count} entries");
+                System.Diagnostics.Debug.WriteLine($"🔧 Processing {options.Conv.messages.Count} conversation messages");
 
                 // Add conversation messages
                 foreach (var message in options.Conv.messages)
@@ -267,17 +279,17 @@ namespace AiStudio4.AiServices
         {
             _toolCallIdQueue.Clear(); // Clear previous tool IDs
             
-            // Build content similar to Claude - as a JSON array
-            var contentArray = new JArray();
+            // Create content blocks with both JSON format (for backward compatibility) and structured format
+            var contentBlocks = new List<ContentBlock>();
             
             // Add text content if any
             var textContent = response.ContentBlocks?.FirstOrDefault(c => c.ContentType == Core.Models.ContentType.Text)?.Content;
             if (!string.IsNullOrEmpty(textContent))
             {
-                contentArray.Add(new JObject
+                contentBlocks.Add(new ContentBlock
                 {
-                    ["type"] = "text",
-                    ["text"] = textContent
+                    Content = textContent,
+                    ContentType = Core.Models.ContentType.Text
                 });
             }
 
@@ -286,28 +298,60 @@ namespace AiStudio4.AiServices
             {
                 foreach (var tool in response.ToolResponseSet.Tools)
                 {
-                    var toolCallId = $"call_{Guid.NewGuid():N}".Substring(0, 24); // Generate a unique ID
-                    _toolCallIdQueue.Enqueue(toolCallId); // Store in order for later use
+                    // Use the real tool call ID if available, otherwise generate one
+                    var toolCallId = _toolCallIdMap.ContainsKey(tool.ToolName) 
+                        ? _toolCallIdMap[tool.ToolName] 
+                        : $"call_{Guid.NewGuid():N}".Substring(0, 24);
                     
-                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT: Creating tool_call with id: {toolCallId}, tool: {tool.ToolName}");
+                    _toolCallIdQueue.Enqueue(toolCallId); // Store in order for later use (backward compatibility)
                     
+                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT: Creating tool_call with REAL id: {toolCallId}, tool: {tool.ToolName}");
+                    
+                    // Create structured ContentBlock with tool call information
+                    contentBlocks.Add(new ContentBlock
+                    {
+                        ContentType = Core.Models.ContentType.ToolCall,
+                        ToolCallId = toolCallId,
+                        ToolName = tool.ToolName,
+                        ToolArguments = tool.ResponseText,
+                        // Also maintain JSON format for backward compatibility
+                        Content = new JObject
+                        {
+                            ["type"] = "tool_call",
+                            ["id"] = toolCallId,
+                            ["function"] = new JObject
+                            {
+                                ["name"] = tool.ToolName,
+                                ["arguments"] = tool.ResponseText
+                            }
+                        }.ToString()
+                    });
+                }
+            }
+
+            // Build JSON content array for backward compatibility
+            var contentArray = new JArray();
+            foreach (var block in contentBlocks)
+            {
+                if (block.ContentType == Core.Models.ContentType.Text)
+                {
                     contentArray.Add(new JObject
                     {
-                        ["type"] = "tool_call",
-                        ["id"] = toolCallId,
-                        ["function"] = new JObject
-                        {
-                            ["name"] = tool.ToolName,
-                            ["arguments"] = tool.ResponseText
-                        }
+                        ["type"] = "text",
+                        ["text"] = block.Content
                     });
+                }
+                else if (block.ContentType == Core.Models.ContentType.ToolCall)
+                {
+                    contentArray.Add(JObject.Parse(block.Content));
                 }
             }
 
             var assistantMessage = new LinearConvMessage
             {
                 role = "assistant",
-                content = contentArray.ToString()
+                content = contentArray.ToString(),
+                contentBlocks = contentBlocks
             };
 
             System.Diagnostics.Debug.WriteLine($"🔧 OPENAI ASSISTANT MESSAGE: {assistantMessage.content}");
@@ -327,12 +371,23 @@ namespace AiStudio4.AiServices
                     var toolName = toolData.toolName?.ToString();
                     var result = toolData.result?.ToString();
                     
-                    // Use the next tool call ID from the queue (preserves order)
-                    var toolCallId = _toolCallIdQueue.Count > 0 
-                        ? _toolCallIdQueue.Dequeue() 
-                        : $"call_{Guid.NewGuid():N}".Substring(0, 24);
-                    
-                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Creating tool result with tool_call_id: {toolCallId}, tool: {toolName}");
+                    // Try to use preserved tool call ID from the map first, then fall back to queue
+                    var toolCallId = "";
+                    if (!string.IsNullOrEmpty(toolName) && _toolCallIdMap.ContainsKey(toolName))
+                    {
+                        toolCallId = _toolCallIdMap[toolName];
+                        System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Using PRESERVED tool_call_id: {toolCallId} for tool: {toolName}");
+                    }
+                    else if (_toolCallIdQueue.Count > 0)
+                    {
+                        toolCallId = _toolCallIdQueue.Dequeue();
+                        System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Using QUEUE tool_call_id: {toolCallId} for tool: {toolName}");
+                    }
+                    else
+                    {
+                        toolCallId = $"call_{Guid.NewGuid():N}".Substring(0, 24);
+                        System.Diagnostics.Debug.WriteLine($"🔧 OPENAI TOOL RESULT: Using GENERATED tool_call_id: {toolCallId} for tool: {toolName}");
+                    }
                     
                     contentArray.Add(new JObject
                     {
@@ -385,30 +440,66 @@ namespace AiStudio4.AiServices
                         var textContent = "";
                         var toolCalls = new List<ChatToolCall>();
                         
-                        foreach (var item in contentArray)
+                        // Use structured ContentBlocks if available (new format)
+                        if (message.contentBlocks?.Any() == true)
                         {
-                            var itemType = item["type"]?.ToString();
-                            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Assistant message item type: {itemType}");
+                            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Using structured ContentBlocks ({message.contentBlocks.Count} blocks)");
                             
-                            if (itemType == "text")
+                            foreach (var block in message.contentBlocks)
                             {
-                                textContent = item["text"]?.ToString() ?? "";
-                            }
-                            else if (itemType == "tool_call")
-                            {
-                                var toolCallId = item["id"]?.ToString();
-                                var functionName = item["function"]?["name"]?.ToString();
-                                var functionArgs = item["function"]?["arguments"]?.ToString();
-                                
-                                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_call: id={toolCallId}, name={functionName}");
-                                
-                                if (!string.IsNullOrEmpty(toolCallId) && !string.IsNullOrEmpty(functionName))
+                                if (block.ContentType == Core.Models.ContentType.Text)
                                 {
-                                    toolCalls.Add(ChatToolCall.CreateFunctionToolCall(
-                                        toolCallId,
-                                        functionName,
-                                        BinaryData.FromString(functionArgs ?? "{}")
-                                    ));
+                                    textContent = block.Content ?? "";
+                                }
+                                else if (block.ContentType == Core.Models.ContentType.ToolCall)
+                                {
+                                    var toolCallId = block.ToolCallId;
+                                    var functionName = block.ToolName;
+                                    var functionArgs = block.ToolArguments;
+                                    
+                                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Using PRESERVED tool_call: id={toolCallId}, name={functionName}");
+                                    
+                                    if (!string.IsNullOrEmpty(toolCallId) && !string.IsNullOrEmpty(functionName))
+                                    {
+                                        toolCalls.Add(ChatToolCall.CreateFunctionToolCall(
+                                            toolCallId,
+                                            functionName,
+                                            BinaryData.FromString(functionArgs ?? "{}")
+                                        ));
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // Fall back to JSON parsing for backward compatibility
+                            System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Falling back to JSON parsing");
+                            
+                            foreach (var item in contentArray)
+                            {
+                                var itemType = item["type"]?.ToString();
+                                System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Assistant message item type: {itemType}");
+                                
+                                if (itemType == "text")
+                                {
+                                    textContent = item["text"]?.ToString() ?? "";
+                                }
+                                else if (itemType == "tool_call")
+                                {
+                                    var toolCallId = item["id"]?.ToString();
+                                    var functionName = item["function"]?["name"]?.ToString();
+                                    var functionArgs = item["function"]?["arguments"]?.ToString();
+                                    
+                                    System.Diagnostics.Debug.WriteLine($"🔧 OPENAI Found tool_call: id={toolCallId}, name={functionName}");
+                                    
+                                    if (!string.IsNullOrEmpty(toolCallId) && !string.IsNullOrEmpty(functionName))
+                                    {
+                                        toolCalls.Add(ChatToolCall.CreateFunctionToolCall(
+                                            toolCallId,
+                                            functionName,
+                                            BinaryData.FromString(functionArgs ?? "{}")
+                                        ));
+                                    }
                                 }
                             }
                         }
@@ -549,6 +640,9 @@ namespace AiStudio4.AiServices
             int outputTokens = 0;
             int cachedTokens = 0;
 
+            // Clear tool call ID map at the start of each request
+            _toolCallIdMap.Clear();
+
             try
             {
                 //OpenAISdkHelper.SetStreamOptionsToNull(options);
@@ -571,6 +665,13 @@ namespace AiStudio4.AiServices
                     {
                         foreach (var toolCall in update.ToolCallUpdates)
                         {
+                            // Capture the actual tool call ID from OpenAI API
+                            if (!string.IsNullOrEmpty(toolCall.ToolCallId) && !string.IsNullOrEmpty(toolCall.FunctionName))
+                            {
+                                _toolCallIdMap[toolCall.FunctionName] = toolCall.ToolCallId;
+                                System.Diagnostics.Debug.WriteLine($"🔧 CAPTURED TOOL CALL ID: {toolCall.ToolCallId} for tool: {toolCall.FunctionName}");
+                            }
+
                             if (!string.IsNullOrEmpty(toolCall.FunctionName))
                             {
                                 chosenTool = toolCall.FunctionName;
