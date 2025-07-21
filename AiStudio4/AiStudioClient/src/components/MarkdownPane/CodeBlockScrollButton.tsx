@@ -4,9 +4,10 @@ import React, { useState, useEffect, useRef } from 'react';
 
 interface CodeBlockScrollButtonProps {
   stickToBottomInstance: any; // StickToBottom instance
+  isHovered?: boolean; // Only show buttons when message is hovered
 }
 
-export const CodeBlockScrollButton = React.memo(({ stickToBottomInstance }: CodeBlockScrollButtonProps) => {
+export const CodeBlockScrollButton = React.memo(({ stickToBottomInstance, isHovered = false }: CodeBlockScrollButtonProps) => {
   const [isHoveredBottom, setIsHoveredBottom] = useState(false);
   const [isHoveredTop, setIsHoveredTop] = useState(false);
   const [isAtTop, setIsAtTop] = useState(true);
@@ -46,13 +47,10 @@ export const CodeBlockScrollButton = React.memo(({ stickToBottomInstance }: Code
     }
   };
 
-  // Only show buttons when not at respective positions
+  // Only show buttons when not at respective positions AND message is hovered
   const isAtBottom = stickToBottomInstance?.isAtBottom ?? true;
-  const showBottomButton = !isAtBottom;
-  const showTopButton = !isAtTop;
-  
-  // Don't render anything if both buttons are hidden
-  if (!showBottomButton && !showTopButton) return null;
+  const showBottomButton = !isAtBottom && isHovered;
+  const showTopButton = !isAtTop && isHovered;
 
   const buttonStyle = {
     color: 'var(--global-primary-color)',
@@ -69,40 +67,42 @@ export const CodeBlockScrollButton = React.memo(({ stickToBottomInstance }: Code
   };
 
   return (
-    <div className="absolute right-2 bottom-2 z-10 flex flex-col gap-1">
+    <div 
+      className="absolute right-2 bottom-2 z-10 flex flex-col gap-1 transition-opacity duration-200"
+      style={{
+        opacity: (showTopButton || showBottomButton) ? 1 : 0,
+        pointerEvents: (showTopButton || showBottomButton) ? 'auto' : 'none'
+      }}
+    >
       {/* Scroll to top button */}
-      {showTopButton && (
-        <button
-          className="rounded-full p-1.5 shadow-md transition-all hover:shadow-lg"
-          onClick={handleScrollToTop}
-          onMouseEnter={() => setIsHoveredTop(true)}
-          onMouseLeave={() => setIsHoveredTop(false)}
-          aria-label="Scroll to top of code block"
-          style={{
-            ...buttonStyle,
-            backgroundColor: isHoveredTop ? 'var(--global-background-color)' : 'rgba(0, 0, 0, 0.7)',
-          }}
-        >
-          <ArrowUp className="h-3.5 w-3.5" />
-        </button>
-      )}
+      <button
+        className={`rounded-full p-1.5 shadow-md transition-all duration-200 hover:shadow-lg ${showTopButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={handleScrollToTop}
+        onMouseEnter={() => setIsHoveredTop(true)}
+        onMouseLeave={() => setIsHoveredTop(false)}
+        aria-label="Scroll to top of code block"
+        style={{
+          ...buttonStyle,
+          backgroundColor: isHoveredTop ? 'var(--global-background-color)' : 'rgba(0, 0, 0, 0.7)',
+        }}
+      >
+        <ArrowUp className="h-3.5 w-3.5" />
+      </button>
       
       {/* Scroll to bottom button */}
-      {showBottomButton && (
-        <button
-          className="rounded-full p-1.5 shadow-md transition-all hover:shadow-lg"
-          onClick={handleScrollToBottom}
-          onMouseEnter={() => setIsHoveredBottom(true)}
-          onMouseLeave={() => setIsHoveredBottom(false)}
-          aria-label="Scroll to bottom of code block"
-          style={{
-            ...buttonStyle,
-            backgroundColor: isHoveredBottom ? 'var(--global-background-color)' : 'rgba(0, 0, 0, 0.7)',
-          }}
-        >
-          <ArrowDown className="h-3.5 w-3.5" />
-        </button>
-      )}
+      <button
+        className={`rounded-full p-1.5 shadow-md transition-all duration-200 hover:shadow-lg ${showBottomButton ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        onClick={handleScrollToBottom}
+        onMouseEnter={() => setIsHoveredBottom(true)}
+        onMouseLeave={() => setIsHoveredBottom(false)}
+        aria-label="Scroll to bottom of code block"
+        style={{
+          ...buttonStyle,
+          backgroundColor: isHoveredBottom ? 'var(--global-background-color)' : 'rgba(0, 0, 0, 0.7)',
+        }}
+      >
+        <ArrowDown className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 });

@@ -1,5 +1,5 @@
 ﻿// MarkdownPane/CodeBlock.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 import { useStickToBottom } from 'use-stick-to-bottom';
@@ -37,6 +37,9 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
     const isRawView = useCodeBlockStore(state => state.isRawView(blockId));
     const toggleCollapse = useCodeBlockStore(state => state.toggleCollapse);
     const toggleRawView = useCodeBlockStore(state => state.toggleRawView);
+
+    // Local hover state for the code block
+    const [isCodeBlockHovered, setIsCodeBlockHovered] = useState(false);
 
     // Initialize stick-to-bottom for each code block
     const stickToBottomInstance = useStickToBottom({
@@ -96,7 +99,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
     // Diagram block
     if (DiagramComponent) {
         return isRawView ? (
-            <div className=" overflow-hidden my-2">
+            <div className=" overflow-hidden my-2" onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
                 {header}
                 <div className="relative">
                     <div 
@@ -109,11 +112,11 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
                             </div>
                         </div>
                     </div>
-                    <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} />
+                    <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} isHovered={isCodeBlockHovered} />
                 </div>
             </div>
         ) : (
-            <div className=" overflow-hidden my-2" key={mermaidKey}>
+            <div className=" overflow-hidden my-2" key={mermaidKey} onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
                     {header}
                     <div className="relative">
                         <div 
@@ -126,7 +129,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
                                 </div>
                             </div>
                         </div>
-                        <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} />
+                        <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} isHovered={isCodeBlockHovered} />
                     </div>
             </div>
         );
@@ -145,7 +148,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
 
     // Regular code block
     return isRawView ? (
-        <div className=" overflow-hidden my-2">
+        <div className=" overflow-hidden my-2" onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
             {header}
             <div className="relative">
                 <div 
@@ -162,7 +165,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
             </div>
         </div>
     ) : (
-        <div className=" overflow-hidden my-2">
+        <div className=" overflow-hidden my-2" onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
                 {header}
                 <div className="relative">
                     <div 
@@ -187,7 +190,7 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
                             </div>
                         </div>
                     </div>
-                    <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} />
+                    <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} isHovered={isCodeBlockHovered} />
                 </div>
         </div>
     );
