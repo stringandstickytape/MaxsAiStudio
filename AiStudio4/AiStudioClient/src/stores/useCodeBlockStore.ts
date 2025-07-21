@@ -41,7 +41,7 @@ export const useCodeBlockStore = create<CodeBlockState>((set, get) => ({
     set((state) => ({
       rawViewBlocks: {
         ...state.rawViewBlocks,
-        [blockId]: !state.rawViewBlocks[blockId]
+        [blockId]: !(state.rawViewBlocks[blockId] ?? true) // toggle from default true
       }
     }));
   },
@@ -109,6 +109,6 @@ export const useCodeBlockStore = create<CodeBlockState>((set, get) => ({
   },
   
   isRawView: (blockId: string) => {
-    return get().rawViewBlocks[blockId] ?? false;
+    return get().rawViewBlocks[blockId] ?? true; // default to raw view
   }
 }));
