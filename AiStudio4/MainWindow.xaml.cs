@@ -428,7 +428,7 @@ public partial class WebViewWindow : Window
             ? "[Project Path Not Set]"
             : _generalSettingsService.CurrentSettings.ProjectPath;
 
-        this.Title = $"AiStudio4 - {projectPathDisplay}{(Debugger.IsAttached ? " - ⚠️⚠️⚠️ Debugger Attached ⚠️⚠️⚠️" : "")}";
+        this.Title = $"AiStudio4 v{App.VersionNumber} - {projectPathDisplay}{(Debugger.IsAttached ? " - ⚠️⚠️⚠️ Debugger Attached ⚠️⚠️⚠️" : "")}";
     }
 
     private void ExitMenuItem_Click(object sender, RoutedEventArgs e)
