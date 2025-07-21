@@ -272,13 +272,13 @@ export const MarkdownPane = React.memo(function MarkdownPane({
         }
     };
 
-    // Use ref to maintain code block index across renders for stable IDs
-    const codeBlockIndexRef = useRef(0);
+    // Track code blocks by content hash for stable IDs
+    const codeBlockIdsRef = useRef<Map<string, number>>(new Map());
     
-    // Reset index when content changes (new message or content update)
+    // Reset code block IDs when message changes
     useEffect(() => {
-        codeBlockIndexRef.current = 0;
-    }, [markdownContent]);
+        codeBlockIdsRef.current.clear();
+    }, [messageId]);
 
     const components = useMemo(() => ({
         code({ className, children, ...props }: any) {
@@ -296,8 +296,14 @@ export const MarkdownPane = React.memo(function MarkdownPane({
             const content = String(children).replace(/\n$/, '');
             const diagramRenderer = codeBlockRendererRegistry.get(language);
             
-            // Create stable blockId that includes message ID and index
-            const blockId = `${messageId || 'unknown'}-code-block-${codeBlockIndexRef.current++}`;
+            // Create stable blockId based on content position/hash
+            const contentHash = content.slice(0, 50) + '-' + language; // Use first 50 chars + language as stable identifier
+            if (!codeBlockIdsRef.current.has(contentHash)) {
+                codeBlockIdsRef.current.set(contentHash, codeBlockIdsRef.current.size);
+            }
+            const stableIndex = codeBlockIdsRef.current.get(contentHash)!;
+            const blockId = `${messageId || 'unknown'}-code-block-${stableIndex}`;
+            
             return (
                 <CodeBlock
                     key={blockId}
