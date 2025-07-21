@@ -13,7 +13,7 @@ interface AnimatedStreamingContentProps {
 export function AnimatedStreamingContent({ 
   content, 
   messageId, 
-  newContentInfo 
+  newContentInfo
 }: AnimatedStreamingContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const { previousLength, animationKey } = newContentInfo;

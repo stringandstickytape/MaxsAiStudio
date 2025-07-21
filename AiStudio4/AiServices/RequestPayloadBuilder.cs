@@ -34,6 +34,23 @@ namespace AiStudio4.AiServices
         public RequestPayloadBuilder WithConversation(LinearConv conv)
         {
             _conv = conv;
+
+            foreach(var m in _conv.messages)
+            {
+                var cList = new List<ContentBlock>();
+                foreach(var c in m.contentBlocks)
+                {
+                    if(string.IsNullOrEmpty(c.Content))
+                    {
+                        cList.Add(c);
+                    }
+                }
+                foreach (var block in cList)
+                {
+                    m.contentBlocks.Remove(block);
+                }
+            }
+
             return this;
         }
 
@@ -94,6 +111,24 @@ namespace AiStudio4.AiServices
             {
                 case ProviderFormat.Claude:
                     _payload["messages"] = messagesArray;
+                    System.Diagnostics.Debug.WriteLine($"🔧 REQUESTPAYLOADBUILDER: Created Claude messages array with {messagesArray.Count} messages");
+                    for (int i = 0; i < messagesArray.Count; i++)
+                    {
+                        var msg = messagesArray[i];
+                        var role = msg["role"]?.ToString();
+                        var content = msg["content"] as JArray;
+                        System.Diagnostics.Debug.WriteLine($"🔧 REQUESTPAYLOADBUILDER: Message {i}: role={role}, content_blocks={content?.Count}");
+                        if (content != null)
+                        {
+                            for (int j = 0; j < content.Count; j++)
+                            {
+                                var block = content[j];
+                                var type = block["type"]?.ToString();
+                                var toolUseId = block["tool_use_id"]?.ToString() ?? block["id"]?.ToString();
+                                System.Diagnostics.Debug.WriteLine($"🔧 REQUESTPAYLOADBUILDER: Content {j}: type={type}, tool_use_id={toolUseId}");
+                            }
+                        }
+                    }
                     break;
                 case ProviderFormat.Gemini:
                     _payload["contents"] = messagesArray;
@@ -231,7 +266,13 @@ namespace AiStudio4.AiServices
                         var content = message["content"] as JArray;
                         if (content != null && content.Count > 0)
                         {
-                            content[0]["cache_control"] = new JObject { ["type"] = "ephemeral" };
+                            // Add cache_control to the last content block (any type)
+                            // Content is now guaranteed to be a flat array
+                            var lastContentItem = content.Last();
+                            if (lastContentItem is JObject contentObj)
+                            {
+                                contentObj["cache_control"] = new JObject { ["type"] = "ephemeral" };
+                            }
                         }
                     }
                 }

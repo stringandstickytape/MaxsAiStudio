@@ -278,7 +278,7 @@ namespace AiStudio4.InjectedDependencies.RequestHandlers
                         return SerializeError($"Failed to generate summary: {summaryResponse.Error}");
 
                     // Clean and truncate the summary
-                    var summary = summaryResponse.ResponseText.Trim();
+                    var summary = string.Join("\n\n", summaryResponse.ContentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]).Trim();
                     if (summary.Length > 100)
                         summary = summary.Substring(0, 97) + "...";
 

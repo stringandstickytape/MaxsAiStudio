@@ -110,7 +110,7 @@ namespace AiStudio4.Core.Tools
                 systemprompt = systemPrompt,
                 messages = new List<LinearConvMessage>
                 {
-                    new LinearConvMessage { role = "user", content = prompt }
+                    new LinearConvMessage { role = "user", contentBlocks = new List<ContentBlock> { new ContentBlock { ContentType = ContentType.Text, Content = prompt } } }
                 }
             };
 

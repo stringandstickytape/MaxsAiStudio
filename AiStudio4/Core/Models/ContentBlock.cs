@@ -14,5 +14,8 @@ namespace AiStudio4.Core.Models
 
         [JsonPropertyName("contentType")]
         public ContentType ContentType { get; set; } = ContentType.Text;
+
+        [JsonPropertyName("toolId")]
+        public string? ToolId { get; set; }
     }
 }

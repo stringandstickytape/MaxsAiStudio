@@ -132,11 +132,18 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "assistant",
-                content = contentArray.ToString()
+                contentBlocks = new List<Core.Models.ContentBlock>
+                {
+                    new Core.Models.ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = contentArray.ToString()
+                    }
+                }
             };
         }
 
-        private LinearConvMessage CreateLlamaCppToolResultMessage(List<Core.Models.ContentBlock> toolResultBlocks)
+        private List<LinearConvMessage> CreateLlamaCppToolResultMessage(List<Core.Models.ContentBlock> toolResultBlocks)
         {
             // Use OpenAI-compatible format
             var contentArray = new JArray();
@@ -157,11 +164,20 @@ namespace AiStudio4.AiServices
                 }
             }
             
-            return new LinearConvMessage
+            var message = new LinearConvMessage
             {
                 role = "user",
-                content = contentArray.ToString()
+                contentBlocks = new List<Core.Models.ContentBlock>
+                {
+                    new Core.Models.ContentBlock
+                    {
+                        ContentType = ContentType.ToolResponse,
+                        Content = contentArray.ToString()
+                    }
+                }
             };
+            
+            return new List<LinearConvMessage> { message };
         }
 
         protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
@@ -169,7 +185,14 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = interjectionText
+                contentBlocks = new List<Core.Models.ContentBlock>
+                {
+                    new Core.Models.ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = interjectionText
+                    }
+                }
             };
         }
 
@@ -271,10 +294,13 @@ namespace AiStudio4.AiServices
 
         protected override JObject CreateMessageObject(LinearConvMessage message)
         {
+            var textContent = string.Join("\n\n", 
+                message.contentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]);
+
             var messageObj = new JObject
             {
                 ["role"] = message.role,
-                ["content"] = message.content ?? ""
+                ["content"] = textContent
             };
 
             // Handle attachments if any
@@ -283,12 +309,12 @@ namespace AiStudio4.AiServices
                 var contentArray = new JArray();
                 
                 // Add text content
-                if (!string.IsNullOrEmpty(message.content))
+                if (!string.IsNullOrEmpty(textContent))
                 {
                     contentArray.Add(new JObject
                     {
                         ["type"] = "text",
-                        ["text"] = message.content
+                        ["text"] = textContent
                     });
                 }
 

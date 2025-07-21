@@ -1,8 +1,10 @@
 ﻿// MarkdownPane/CodeBlock.tsx
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { nightOwl } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { useStickToBottom } from 'use-stick-to-bottom';
 import { CodeBlockHeader } from './CodeBlockHeader';
+import { CodeBlockScrollButton } from './CodeBlockScrollButton';
 import { MarkdownVariant } from '../MarkdownPane';
 import { codeBlockRendererRegistry } from '../diagrams/codeBlockRendererRegistry';
 import { useCodeBlockStore } from '@/stores/useCodeBlockStore';
@@ -35,6 +37,15 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
     const isRawView = useCodeBlockStore(state => state.isRawView(blockId));
     const toggleCollapse = useCodeBlockStore(state => state.toggleCollapse);
     const toggleRawView = useCodeBlockStore(state => state.toggleRawView);
+
+    // Local hover state for the code block
+    const [isCodeBlockHovered, setIsCodeBlockHovered] = useState(false);
+
+    // Initialize stick-to-bottom for each code block
+    const stickToBottomInstance = useStickToBottom({
+        initial: 'smooth',
+        resize: 'smooth'
+    });
 
     const handleToggleCollapse = useCallback(() => {
         // Optional: Handle scroll position preservation
@@ -88,23 +99,38 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
     // Diagram block
     if (DiagramComponent) {
         return isRawView ? (
-            <div className=" overflow-hidden my-2">
+            <div className=" overflow-hidden my-2" onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
                 {header}
-                <div style={{ maxHeight: '500px', overflow: 'auto' }}>
-                <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 rounded-b-lg`}>
-                    <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
+                <div className="relative">
+                    <div 
+                        ref={stickToBottomInstance.scrollRef} 
+                        className="max-h-[500px] overflow-auto"
+                    >
+                        <div ref={stickToBottomInstance.contentRef}>
+                            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 rounded-b-lg`}>
+                                <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
+                            </div>
+                        </div>
                     </div>
+                    <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} isHovered={isCodeBlockHovered} />
                 </div>
             </div>
         ) : (
-            <div className=" overflow-hidden my-2" key={mermaidKey}>
+            <div className=" overflow-hidden my-2" key={mermaidKey} onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
                     {header}
-                    <div style={{ maxHeight: '500px', overflow: 'auto' }}>
-                <div className={`code-content ${isCollapsed ? 'collapsed' : ''} rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
-                    {console.log(`[CodeRenderer] Rendering ${diagramRenderer.type[0]} diagram with ${content.length} chars`)}
-                    <DiagramComponent content={content} className="overflow-auto" />
+                    <div className="relative">
+                        <div 
+                            ref={stickToBottomInstance.scrollRef} 
+                            className="max-h-[500px] overflow-auto"
+                        >
+                            <div ref={stickToBottomInstance.contentRef}>
+                                <div className={`code-content ${isCollapsed ? 'collapsed' : ''} rounded-b-lg diagram-container`} data-type={diagramRenderer.type[0]} data-content={content}>
+                                    <DiagramComponent content={content} className="overflow-auto" />
+                                </div>
+                            </div>
                         </div>
-                </div>
+                        <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} isHovered={isCodeBlockHovered} />
+                    </div>
             </div>
         );
     }
@@ -122,34 +148,50 @@ export const CodeBlock = React.memo<CodeBlockProps>(({
 
     // Regular code block
     return isRawView ? (
-        <div className=" overflow-hidden my-2">
+        <div className=" overflow-hidden my-2" onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
             {header}
-            <div style={{ maxHeight: '500px', overflow: 'auto' }}>
-            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl`}>
-                <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
+            <div className="relative">
+                <div 
+                    ref={stickToBottomInstance.scrollRef} 
+                    className="max-h-[500px] overflow-auto"
+                >
+                    <div ref={stickToBottomInstance.contentRef}>
+                        <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl`}>
+                            <pre style={{ whiteSpace: 'break-spaces' }}>{content}</pre>
+                        </div>
+                    </div>
                 </div>
+                <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} />
             </div>
         </div>
     ) : (
-        <div className=" overflow-hidden my-2">
+        <div className=" overflow-hidden my-2" onMouseEnter={() => setIsCodeBlockHovered(true)} onMouseLeave={() => setIsCodeBlockHovered(false)}>
                 {header}
-                <div style={{ maxHeight: '500px', overflow: 'auto' }}>
-            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200`}>
-                <SyntaxHighlighter
-                    style={nightOwl as any}
-                    language={language}
-                    PreTag="div"
-                    className="rounded-lg"
-                    wrapLines={false}
-                    wrapLongLines={false}
-                    showLineNumbers={false}
-                    useInlineStyles={true}
-                    customStyle={{ display: 'block', width: '100%', overflow: 'auto' }}
-                >
-                    {content}
-                </SyntaxHighlighter>
+                <div className="relative">
+                    <div 
+                        ref={stickToBottomInstance.scrollRef} 
+                        className="max-h-[500px] overflow-auto"
+                    >
+                        <div ref={stickToBottomInstance.contentRef}>
+                            <div className={`code-content ${isCollapsed ? 'collapsed' : ''} p-1 backdrop-blur-sm shadow-inner border-t border-gray-700/30 rounded-b-xl hover:bg-gray-800/50 transition-colors duration-200`}>
+                                <SyntaxHighlighter
+                                    style={nightOwl as any}
+                                    language={language}
+                                    PreTag="div"
+                                    className="rounded-lg"
+                                    wrapLines={false}
+                                    wrapLongLines={false}
+                                    showLineNumbers={false}
+                                    useInlineStyles={true}
+                                    customStyle={{ display: 'block', width: '100%', overflow: 'auto' }}
+                                >
+                                    {content}
+                                </SyntaxHighlighter>
+                            </div>
+                        </div>
                     </div>
-            </div>
+                    <CodeBlockScrollButton stickToBottomInstance={stickToBottomInstance} isHovered={isCodeBlockHovered} />
+                </div>
         </div>
     );
 });

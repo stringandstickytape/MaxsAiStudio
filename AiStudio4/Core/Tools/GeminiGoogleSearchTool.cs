@@ -190,7 +190,7 @@ namespace AiStudio4.Core.Tools
                 systemprompt = "You are an AI assistant whose sole task is to perform Google searches based on user queries and return the results in a structured and informative way. You have direct access to Google Search.",
                 messages = new List<LinearConvMessage>
                 {
-                    new LinearConvMessage { role = "user", content = geminiSubPrompt.ToString() }
+                    new LinearConvMessage { role = "user", contentBlocks = new List<ContentBlock> { new ContentBlock { ContentType = ContentType.Text, Content = geminiSubPrompt.ToString() } } }
                 }
             };
 

@@ -102,7 +102,7 @@ namespace AiStudio4.AiServices
             Core.Interfaces.IToolExecutor toolExecutor, 
             Func<AiRequestOptions, Task<AiResponse>> makeApiCall,
             Func<AiResponse, LinearConvMessage> createAssistantMessage,
-            Func<List<ContentBlock>, LinearConvMessage> createToolResultMessage,
+            Func<List<ContentBlock>, List<LinearConvMessage>> createToolResultMessage,
             int maxIterations = 10)
         {
             var linearConv = options.Conv;
@@ -244,6 +244,7 @@ namespace AiStudio4.AiServices
 
                 // 6. Add the AI's response with tool calls to conversation history
                 var assistantMessage = createAssistantMessage(response);
+                System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding assistant message - Role={assistantMessage.role}, ContentBlocks={assistantMessage.contentBlocks?.Count ?? 0}");
                 linearConv.messages.Add(assistantMessage);
 
                 // 7. Execute tools and collect results
@@ -312,7 +313,8 @@ namespace AiStudio4.AiServices
                             success = executionResult.WasProcessed,
                             statusMessage = executionResult.StatusMessage,
                             outputFileType = executionResult.OutputFileType
-                        })
+                        }),
+                        ToolId = toolCall.ToolId // Store the tool_use_id for proper matching
                     });
                 }
                 
@@ -320,8 +322,13 @@ namespace AiStudio4.AiServices
                 if (toolResultBlocks.Any())
                 {
                     // Add to linear conversation for API (provider-specific format)
-                    var toolResultMessage = createToolResultMessage(toolResultBlocks);
-                    linearConv.messages.Add(toolResultMessage);
+                    var toolResultMessages = createToolResultMessage(toolResultBlocks);
+                    System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding {toolResultMessages.Count} tool result messages");
+                    foreach (var toolResultMessage in toolResultMessages)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 TOOL LOOP: Adding tool result message - Role={toolResultMessage.role}, ContentBlocks={toolResultMessage.contentBlocks?.Count ?? 0}");
+                        linearConv.messages.Add(toolResultMessage);
+                    }
                     
                     if (shouldStopLoop)
                     {
@@ -429,36 +436,17 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = interjectionText
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = interjectionText
+                    }
+                }
             };
         }
 
-        
-        public Task<AiResponse> FetchResponse(
-            ServiceProvider serviceProvider,
-            Model model,
-            LinearConv conv,
-            string base64image,
-            string base64ImageType,
-            CancellationToken cancellationToken,
-            ApiSettings apiSettings,
-            bool mustNotUseEmbedding,
-            List<string> toolIDs,
-            bool addEmbeddings = false,
-            string customSystemPrompt = null)
-        {
-            
-            var options = AiRequestOptions.Create(
-                serviceProvider, model, conv, base64image, base64ImageType,
-                cancellationToken, apiSettings, mustNotUseEmbedding, toolIDs,
-                addEmbeddings, customSystemPrompt);
-            
-            
-            options.OnStreamingUpdate = null;
-            options.OnStreamingComplete = null;
-            
-            return FetchResponse(options);
-        }
         
         
         protected abstract Task<AiResponse> FetchResponseInternal(AiRequestOptions options, bool forceNoTools = false);

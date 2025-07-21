@@ -179,23 +179,105 @@ namespace AiStudio4.AiServices
                 }
             }
 
-            // Handle structured content (tool calls/responses) or plain text
-            try
+            // Handle ContentBlocks
+            foreach (var block in message.contentBlocks ?? new List<ContentBlock>())
             {
-                var parsedContent = JArray.Parse(message.content);
-                foreach (var item in parsedContent)
+                if (block.ContentType == ContentType.Text)
                 {
-                    contentArray.Add(item);
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = (block.Content ?? "").Replace("\r", "")
+                    });
                 }
-            }
-            catch
-            {
-                // If parsing fails, treat as plain text
-                contentArray.Add(new JObject
+                else
                 {
-                    ["type"] = "text",
-                    ["text"] = message.content.Replace("\r", "")
-                });
+                    // For structured content (tool calls/responses), use the properly formatted data directly
+                    // AI providers have already created the correct structure with proper tool_use_ids
+                    try
+                    {
+                        var structuredContent = JToken.Parse(block.Content ?? "{}");
+                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Processing ContentBlock type={block.ContentType}, toolId={block.ToolId}, content preview: {block.Content?.Substring(0, Math.Min(200, block.Content.Length))}...");
+                        
+                        // Ensure we're adding individual content items, not nested arrays
+                        if (structuredContent is JArray structuredArray)
+                        {
+                            foreach (var item in structuredArray)
+                            {
+                                if (item is JObject itemObj)
+                                {
+                                    var itemType = itemObj["type"]?.ToString();
+                                    var toolUseId = itemObj["tool_use_id"]?.ToString() ?? itemObj["id"]?.ToString();
+                                    System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Adding array item type={itemType}, tool_use_id={toolUseId}");
+                                    
+                                    // Ensure the item has a "type" field for Claude API
+                                    if (string.IsNullOrEmpty(itemType))
+                                    {
+                                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: WARNING - Missing type field, converting to text");
+                                        contentArray.Add(new JObject
+                                        {
+                                            ["type"] = "text",
+                                            ["text"] = item.ToString()
+                                        });
+                                    }
+                                    else
+                                    {
+                                        contentArray.Add(item);
+                                    }
+                                }
+                                else
+                                {
+                                    // Non-object items, convert to text
+                                    contentArray.Add(new JObject
+                                    {
+                                        ["type"] = "text",
+                                        ["text"] = item.ToString()
+                                    });
+                                }
+                            }
+                        }
+                        else if (structuredContent is JObject structuredObj)
+                        {
+                            var itemType = structuredObj["type"]?.ToString();
+                            var toolUseId = structuredObj["tool_use_id"]?.ToString() ?? structuredObj["id"]?.ToString();
+                            System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Adding single item type={itemType}, tool_use_id={toolUseId}");
+                            
+                            // Ensure the object has a "type" field for Claude API
+                            if (string.IsNullOrEmpty(itemType))
+                            {
+                                System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: WARNING - Missing type field, converting to text");
+                                contentArray.Add(new JObject
+                                {
+                                    ["type"] = "text",
+                                    ["text"] = structuredObj.ToString()
+                                });
+                            }
+                            else
+                            {
+                                contentArray.Add(structuredObj);
+                            }
+                        }
+                        else
+                        {
+                            // Non-object structured content, convert to text
+                            contentArray.Add(new JObject
+                            {
+                                ["type"] = "text",
+                                ["text"] = structuredContent.ToString()
+                            });
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER CLAUDE: Parse error: {ex.Message}");
+                        // If parsing fails, treat as text
+                        contentArray.Add(new JObject
+                        {
+                            ["type"] = "text",
+                            ["text"] = block.Content ?? ""
+                        });
+                    }
+                }
             }
 
             return new JObject
@@ -209,16 +291,71 @@ namespace AiStudio4.AiServices
         {
             var partArray = new JArray();
 
-            // Try to parse content as structured parts first (for tool calls/responses)
-            try
+            // Handle ContentBlocks for Gemini format
+            foreach (var block in message.contentBlocks ?? new List<ContentBlock>())
             {
-                var parsedContent = JArray.Parse(message.content);
-                partArray = parsedContent;
-            }
-            catch
-            {
-                // If parsing fails, treat as plain text
-                partArray.Add(new JObject { ["text"] = message.content });
+                if (block.ContentType == ContentType.Text)
+                {
+                    partArray.Add(new JObject { ["text"] = block.Content ?? "" });
+                }
+                else
+                {
+                    // For structured content, use the properly formatted data directly
+                    // AI providers have already created the correct structure with proper IDs
+                    try
+                    {
+                        var structuredContent = JToken.Parse(block.Content ?? "{}");
+                        // Ensure we're adding individual content items, not nested arrays
+                        if (structuredContent is JArray structuredArray)
+                        {
+                            foreach (var item in structuredArray)
+                            {
+                                // For Gemini, structured content should be text parts if not properly formatted
+                                if (item is JObject itemObj)
+                                {
+                                    // Check if it's a valid Gemini part (should have text, functionCall, or functionResponse)
+                                    if (itemObj.ContainsKey("text") || itemObj.ContainsKey("functionCall") || itemObj.ContainsKey("functionResponse"))
+                                    {
+                                        partArray.Add(item);
+                                    }
+                                    else
+                                    {
+                                        // Convert to text part
+                                        partArray.Add(new JObject { ["text"] = item.ToString() });
+                                    }
+                                }
+                                else
+                                {
+                                    // Non-object items, convert to text
+                                    partArray.Add(new JObject { ["text"] = item.ToString() });
+                                }
+                            }
+                        }
+                        else if (structuredContent is JObject structuredObj)
+                        {
+                            // Check if it's a valid Gemini part
+                            if (structuredObj.ContainsKey("text") || structuredObj.ContainsKey("functionCall") || structuredObj.ContainsKey("functionResponse"))
+                            {
+                                partArray.Add(structuredObj);
+                            }
+                            else
+                            {
+                                // Convert to text part
+                                partArray.Add(new JObject { ["text"] = structuredObj.ToString() });
+                            }
+                        }
+                        else
+                        {
+                            // Non-object structured content, convert to text
+                            partArray.Add(new JObject { ["text"] = structuredContent.ToString() });
+                        }
+                    }
+                    catch
+                    {
+                        // If parsing fails, treat as text
+                        partArray.Add(new JObject { ["text"] = block.Content ?? "" });
+                    }
+                }
             }
 
             // Add legacy single image if present
@@ -264,12 +401,29 @@ namespace AiStudio4.AiServices
         {
             var contentArray = new JArray();
 
-            // Add text content
-            contentArray.Add(new JObject
+            // Add text content from ContentBlocks
+            foreach (var block in message.contentBlocks ?? new List<ContentBlock>())
             {
-                ["type"] = "text",
-                ["text"] = message.content
-            });
+                if (block.ContentType == ContentType.Text)
+                {
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = block.Content ?? ""
+                    });
+                }
+                else
+                {
+                    // For structured content (tool calls/responses), convert to text since OpenAI uses different format
+                    // OpenAI handles tool calls through function_call/tool_calls fields, not in content array
+                    System.Diagnostics.Debug.WriteLine($"🔧 MESSAGEBUILDER OPENAI: Converting structured content to text, type={block.ContentType}, toolId={block.ToolId}");
+                    contentArray.Add(new JObject
+                    {
+                        ["type"] = "text",
+                        ["text"] = block.Content ?? ""
+                    });
+                }
+            }
 
             // Handle legacy single image
             if (!string.IsNullOrEmpty(message.base64image))

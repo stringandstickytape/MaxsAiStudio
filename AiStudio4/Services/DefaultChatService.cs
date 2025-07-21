@@ -91,7 +91,14 @@ namespace AiStudio4.Services
                         new LinearConvMessage
                         {
                             role = "user",
-                            content = chatMessage
+                            contentBlocks = new List<ContentBlock>
+                            {
+                                new ContentBlock
+                                {
+                                    ContentType = ContentType.Text,
+                                    Content = chatMessage
+                                }
+                            }
                         }
                     }
                 };
@@ -113,8 +120,7 @@ namespace AiStudio4.Services
                 return new SimpleChatResponse
                 {
                     Success = response.Success,
-
-                    ResponseText = string.Join("\n\n",response.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)),
+                    ContentBlocks = response.ContentBlocks ?? new List<ContentBlock>(),
                     Error = response.Success ? null : "Failed to process chat request",
                     ProcessingTime = DateTime.UtcNow - startTime
                 };
@@ -170,7 +176,7 @@ namespace AiStudio4.Services
                     .Select(msg => new MessageHistoryItem
                     {
                         Role = msg.Role.ToString().ToLower(),
-                        Content = string.Join("\n\n", (msg.ContentBlocks?.Where(x => x.ContentType == ContentType.Text || x.ContentType == ContentType.AiHidden || x.ContentType == ContentType.Tool || x.ContentType == ContentType.ToolResponse) ?? new List<ContentBlock>()).Select(cb => cb.Content)),
+                        ContentBlocks = msg.ContentBlocks ?? new List<ContentBlock>(),
                         Attachments = msg.Attachments
                     }).ToList();
 
@@ -179,7 +185,7 @@ namespace AiStudio4.Services
                     var message = new LinearConvMessage
                     {
                         role = historyItem.Role,
-                        content = historyItem.Content,
+                        contentBlocks = historyItem.ContentBlocks,
                         attachments = historyItem.Attachments?.ToList() ?? new List<Attachment>()
                     };
                     linearConversation.messages.Add(message);
@@ -187,12 +193,12 @@ namespace AiStudio4.Services
 
                 // Ensure the last user message is included
                 var lastUserMessage = messageHistory.LastOrDefault(m => m.Role == "user");
-                if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.content == lastUserMessage.Content))
+                if (lastUserMessage != null && !linearConversation.messages.Any(m => m.role == "user" && m.contentBlocks.SequenceEqual(lastUserMessage.ContentBlocks)))
                 {
                     linearConversation.messages.Add(new LinearConvMessage
                     {
                         role = "user",
-                        content = lastUserMessage.Content,
+                        contentBlocks = lastUserMessage.ContentBlocks,
                         attachments = lastUserMessage.Attachments?.ToList() ?? new List<Attachment>()
                     });
                 }
@@ -372,23 +378,17 @@ namespace AiStudio4.Services
                     if (response.ContentBlocks != null && response.ContentBlocks.Any())
                     {
                         var newContentBlocks = new List<ContentBlock>();
-                        var existingTextContent = string.Join("", existingMessage.ContentBlocks?
-                            .Where(cb => cb.ContentType == ContentType.Text)
-                            .Select(cb => cb.Content) ?? new List<string>());
+                        var existingBlocks = existingMessage.ContentBlocks ?? new List<ContentBlock>();
                         
                         foreach (var newBlock in response.ContentBlocks)
                         {
-                            // Only add text blocks that aren't already included in existing content
-                            if (newBlock.ContentType == ContentType.Text)
+                            // Only add blocks that aren't already in the existing message
+                            var isDuplicate = existingBlocks.Any(existing => 
+                                existing.ContentType == newBlock.ContentType && 
+                                existing.Content == newBlock.Content);
+                            
+                            if (!isDuplicate)
                             {
-                                if (!existingTextContent.Contains(newBlock.Content ?? ""))
-                                {
-                                    newContentBlocks.Add(newBlock);
-                                }
-                            }
-                            else
-                            {
-                                // Always add non-text blocks (they should be unique)
                                 newContentBlocks.Add(newBlock);
                             }
                         }

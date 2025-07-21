@@ -35,32 +35,26 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = GetAssistantRole(),
-                content = assistantContent.ToString()
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = assistantContent.ToString()
+                    }
+                }
             };
         }
 
-        public virtual LinearConvMessage CreateToolResultMessage(List<ContentBlock> toolResultBlocks)
+        public virtual List<LinearConvMessage> CreateToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
-            var toolResults = new JArray();
-
-            foreach (var block in toolResultBlocks)
-            {
-                if (block.ContentType == ContentType.ToolResponse)
-                {
-                    var toolData = JsonConvert.DeserializeObject<dynamic>(block.Content);
-                    var toolName = toolData.toolName?.ToString();
-                    var result = toolData.result?.ToString();
-                    var success = (bool)(toolData.success ?? false);
-
-                    toolResults.Add(MessageBuilder.CreateToolResultPart(toolName, result, success, _format));
-                }
-            }
-
-            return new LinearConvMessage
+            // Use ContentBlocks directly - AI providers have already created properly formatted tool results
+            var message = new LinearConvMessage
             {
                 role = "user",
-                content = toolResults.ToString()
+                contentBlocks = toolResultBlocks
             };
+            return new List<LinearConvMessage> { message };
         }
 
         public virtual LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
@@ -68,9 +62,16 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = _format == ProviderFormat.Gemini 
-                    ? new JArray { new JObject { ["text"] = interjectionText } }.ToString()
-                    : interjectionText
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = _format == ProviderFormat.Gemini 
+                            ? new JArray { new JObject { ["text"] = interjectionText } }.ToString()
+                            : interjectionText
+                    }
+                }
             };
         }
 

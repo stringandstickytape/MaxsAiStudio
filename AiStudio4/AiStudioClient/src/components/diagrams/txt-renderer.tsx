@@ -1,6 +1,8 @@
 // src/components/diagrams/txt-renderer.tsx
 import { CodeBlockRenderer } from '@/components/diagrams/types';
 
+import React from 'react';
+
 export const TxtRenderer: CodeBlockRenderer = {
   type: ['txt', 'text'],
   initialize: () => {
@@ -9,7 +11,7 @@ export const TxtRenderer: CodeBlockRenderer = {
   render: async () => {
     // No async rendering needed for plain text
   },
-  Component: ({ content, className }) => {
+  Component: React.memo(({ content, className }) => {
     return (
       <pre 
         className={`whitespace-pre-wrap break-words ${className || ''}`}
@@ -27,5 +29,5 @@ export const TxtRenderer: CodeBlockRenderer = {
         {content}
       </pre>
     );
-  },
+  }),
 };

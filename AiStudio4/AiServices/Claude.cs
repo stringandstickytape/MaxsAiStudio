@@ -182,6 +182,7 @@ namespace AiStudio4.AiServices
             {
                 var toolId = toolCall.ToolId ?? $"tool_{Guid.NewGuid():N}"[..15]; // Use Claude's ID or fallback
                 _toolIdQueue.Enqueue(toolId); // Store in order for later use
+                System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL CALL: Enqueued tool_use_id: {toolId}, tool: {toolCall.ToolName}, queue_count: {_toolIdQueue.Count}");
                 System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT: Creating tool_use with id: {toolId}, tool: {toolCall.ToolName}");
 
                 assistantContent.Add(new JObject
@@ -196,14 +197,22 @@ namespace AiStudio4.AiServices
             var result = new LinearConvMessage
             {
                 role = "assistant",
-                content = assistantContent.ToString()
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Tool, // Change to Tool so MessageBuilder parses the JSON
+                        Content = assistantContent.ToString(),
+                        ToolId = response.ToolResponseSet.Tools.FirstOrDefault()?.ToolId // Store the tool ID
+                    }
+                }
             };
 
-            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.content}");
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE ASSISTANT MESSAGE: {result.contentBlocks.Count} content blocks");
             return result;
         }
 
-        private LinearConvMessage CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
+        private List<LinearConvMessage> CreateClaudeToolResultMessage(List<ContentBlock> toolResultBlocks)
         {
             var toolResults = new JArray();
 
@@ -219,7 +228,7 @@ namespace AiStudio4.AiServices
                         ? _toolIdQueue.Dequeue()
                         : $"tool_{Guid.NewGuid():N}"[..15];
 
-                    System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}");
+                    System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT: Creating tool_result with tool_use_id: {toolResultId}, tool: {toolName}, queue_count: {_toolIdQueue.Count}");
 
                     toolResults.Add(new JObject
                     {
@@ -234,11 +243,19 @@ namespace AiStudio4.AiServices
             var result = new LinearConvMessage
             {
                 role = "user",
-                content = toolResults.ToString()
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.ToolResponse,
+                        Content = toolResults.ToString(),
+                        ToolId = toolResultBlocks.FirstOrDefault()?.ToolId // Preserve the tool ID from the original block
+                    }
+                }
             };
 
-            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.content}");
-            return result;
+            System.Diagnostics.Debug.WriteLine($"🔧 CLAUDE TOOL RESULT MESSAGE: {result.contentBlocks.Count} content blocks");
+            return new List<LinearConvMessage> { result };
         }
 
         protected override LinearConvMessage CreateUserInterjectionMessage(string interjectionText)
@@ -246,7 +263,14 @@ namespace AiStudio4.AiServices
             return new LinearConvMessage
             {
                 role = "user",
-                content = interjectionText
+                contentBlocks = new List<ContentBlock>
+                {
+                    new ContentBlock
+                    {
+                        ContentType = ContentType.Text,
+                        Content = interjectionText
+                    }
+                }
             };
         }
 

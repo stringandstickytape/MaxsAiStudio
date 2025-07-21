@@ -85,7 +85,14 @@ namespace AiStudio4.Services
                         new LinearConvMessage
                         {
                             role = "user",
-                            content = prompt
+                            contentBlocks = new List<ContentBlock>
+                            {
+                                new ContentBlock
+                                {
+                                    ContentType = ContentType.Text,
+                                    Content = prompt
+                                }
+                            }
                         }
                     }
                 };
