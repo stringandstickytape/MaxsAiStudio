@@ -5,7 +5,7 @@
 
 namespace AiStudio4.Core.Interfaces
 {
-    public interface IWebSocketNotificationService
+    public interface IWebSocketNotificationService : IDisposable
     {
         
         

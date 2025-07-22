@@ -1,4 +1,6 @@
 using AiStudio4.Core.Exceptions;
+using System.Collections.Concurrent;
+using System.Text;
 
 
 
@@ -15,6 +17,7 @@ namespace AiStudio4.Services
     {
         private readonly WebSocketServer _webSocketServer;
         private readonly ILogger<WebSocketNotificationService> _logger;
+        private readonly ConcurrentDictionary<string, CfragBuffer> _activeBuffers;
 
         public WebSocketNotificationService(
             WebSocketServer webSocketServer,
@@ -22,6 +25,41 @@ namespace AiStudio4.Services
         {
             _webSocketServer = webSocketServer;
             _logger = logger;
+            _activeBuffers = new ConcurrentDictionary<string, CfragBuffer>();
+        }
+
+        private class CfragBuffer
+        {
+            public string MessageId { get; set; }
+            public string ClientId { get; set; }
+            public StringBuilder Content { get; set; } = new StringBuilder();
+            public Timer FlushTimer { get; set; }
+            public DateTime LastUpdate { get; set; } = DateTime.UtcNow;
+            public readonly object LockObject = new object();
+
+            public void AppendContent(string fragment)
+            {
+                lock (LockObject)
+                {
+                    Content.Append(fragment);
+                    LastUpdate = DateTime.UtcNow;
+                }
+            }
+
+            public string GetContentAndClear()
+            {
+                lock (LockObject)
+                {
+                    var content = Content.ToString();
+                    Content.Clear();
+                    return content;
+                }
+            }
+
+            public void Dispose()
+            {
+                FlushTimer?.Dispose();
+            }
         }        
         
         public async Task NotifyConvUpdate(string clientId, ConvUpdateDto update)
@@ -111,20 +149,142 @@ namespace AiStudio4.Services
                 if (string.IsNullOrEmpty(clientId)) throw new ArgumentNullException(nameof(clientId));
                 if (update == null) throw new ArgumentNullException(nameof(update));
 
-                var message = new
+                if (update.MessageType == "cfrag")
                 {
-                    messageType = update.MessageType,
-                    messageId = update.MessageId, // Include messageId
-                    content = update.Content
-                };
-
-                await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
+                    await BufferCfragment(clientId, update.MessageId, update.Content);
+                }
+                else if (update.MessageType == "endstream")
+                {
+                    await FlushBuffer(update.MessageId, sendEndstream: true);
+                }
+                else
+                {
+                    // Send other message types immediately (toolcalls, toolresult, etc.)
+                    await SendMessageDirectly(clientId, update);
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to send streaming update to client {ClientId}", clientId);
                 throw new WebSocketNotificationException("Failed to send streaming update", ex);
             }
+        }
+
+        private async Task BufferCfragment(string clientId, string messageId, string content)
+        {
+            var buffer = _activeBuffers.AddOrUpdate(messageId,
+                // Add new buffer
+                key => CreateNewBuffer(clientId, messageId, content),
+                // Update existing buffer
+                (key, existingBuffer) => 
+                {
+                    existingBuffer.AppendContent(content);
+                    // Don't reset timer - let it flush after exactly 100ms
+                    return existingBuffer;
+                });
+
+            // If this was a new buffer, the timer was set in CreateNewBuffer
+            // If existing buffer, just append content - timer keeps running
+        }
+
+        private CfragBuffer CreateNewBuffer(string clientId, string messageId, string initialContent)
+        {
+            var buffer = new CfragBuffer
+            {
+                MessageId = messageId,
+                ClientId = clientId
+            };
+            
+            buffer.AppendContent(initialContent);
+            buffer.FlushTimer = new Timer(async _ => await FlushBufferCallback(messageId), null, TimeSpan.FromMilliseconds(100), Timeout.InfiniteTimeSpan);
+            
+            return buffer;
+        }
+
+
+        private async Task FlushBufferCallback(string messageId)
+        {
+            try
+            {
+                await FlushBuffer(messageId, sendEndstream: false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in flush buffer callback for message {MessageId}", messageId);
+            }
+        }
+
+        private async Task FlushBuffer(string messageId, bool sendEndstream)
+        {
+            if (_activeBuffers.TryRemove(messageId, out var buffer))
+            {
+                try
+                {
+                    var content = buffer.GetContentAndClear();
+                    
+                    // Send buffered content if any
+                    if (!string.IsNullOrEmpty(content))
+                    {
+                        var cfragMessage = new
+                        {
+                            messageType = "cfrag",
+                            messageId = messageId,
+                            content = content
+                        };
+                        
+                        await _webSocketServer.SendToClientAsync(buffer.ClientId, JsonConvert.SerializeObject(cfragMessage));
+                    }
+                    
+                    // Send endstream if requested
+                    if (sendEndstream)
+                    {
+                        var endstreamMessage = new
+                        {
+                            messageType = "endstream",
+                            messageId = messageId,
+                            content = ""
+                        };
+                        
+                        await _webSocketServer.SendToClientAsync(buffer.ClientId, JsonConvert.SerializeObject(endstreamMessage));
+                    }
+                    else
+                    {
+                        // If not ending stream, create a new buffer for continued streaming
+                        // This handles the case where timer fired during active streaming
+                        CreateNewBufferForContinuation(buffer.ClientId, messageId);
+                    }
+                }
+                finally
+                {
+                    buffer.Dispose();
+                }
+            }
+        }
+
+        private void CreateNewBufferForContinuation(string clientId, string messageId)
+        {
+            var newBuffer = new CfragBuffer
+            {
+                MessageId = messageId,
+                ClientId = clientId
+            };
+            
+            newBuffer.FlushTimer = new Timer(async _ => await FlushBufferCallback(messageId), null, TimeSpan.FromMilliseconds(100), Timeout.InfiniteTimeSpan);
+            
+            // Only add if no buffer exists (race condition protection)
+            _activeBuffers.TryAdd(messageId, newBuffer);
+        }
+
+        private async Task SendMessageDirectly(string clientId, StreamingUpdateDto update)
+        {
+            var message = new
+            {
+                messageType = update.MessageType,
+                messageId = update.MessageId,
+                content = update.Content
+            };
+
+            await _webSocketServer.SendToClientAsync(clientId, JsonConvert.SerializeObject(message));
         }
 
         public async Task NotifyConvList(ConvListDto convs)
@@ -243,6 +403,16 @@ namespace AiStudio4.Services
                 _logger.LogError(ex, "Failed to send file system update to clients");
                 throw new WebSocketNotificationException("Failed to send file system update", ex);
             }
+        }
+
+        public void Dispose()
+        {
+            // Clean up any remaining buffers
+            foreach (var buffer in _activeBuffers.Values)
+            {
+                buffer.Dispose();
+            }
+            _activeBuffers.Clear();
         }
     }
 }
