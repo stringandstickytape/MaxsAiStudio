@@ -132,11 +132,14 @@ public class ToolExecutor : IToolExecutor
 
         // Tool not found
         _logger.LogWarning("Tool '{ToolName}' is not an enabled MCP tool or recognized built-in tool.", toolName);
-        return new BuiltinToolResult 
-        { 
-            WasProcessed = false, 
+
+        return new BuiltinToolResult
+        {
+            WasProcessed = true,
             ContinueProcessing = false,
-            ResultMessage = $"Tool '{toolName}' not found or not enabled." 
+            ResultMessage = toolParameters,
+            TaskDescription = taskDescription,
+            OutputFileType = tool.Filetype // MCP tools always return JSON
         };
     }
 

@@ -77,7 +77,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     // Listen for streaming events to track active streaming messages
     listenToWebSocketEvent('cfrag', (detail) => {
       if (detail.messageId) {
-        console.log(`🔔 WebSocketStore received cfrag for ${detail.messageId}: "${detail.content}"`);
+        //console.log(`🔔 WebSocketStore received cfrag for ${detail.messageId}: "${detail.content}"`);
         get().addStreamingMessage(detail.messageId);
         get().addToStreamingBuffer(detail.messageId, detail.content);
       }
@@ -188,7 +188,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
           animationKey: existing ? existing.animationKey + 1 : 1
         };
         
-        console.log(`💾 Updating streaming content for ${messageId}: previousLength=${previousLength}, animationKey=${newInfo.animationKey}, contentLength=${content.length}`);
+        //console.log(`💾 Updating streaming content for ${messageId}: previousLength=${previousLength}, animationKey=${newInfo.animationKey}, contentLength=${content.length}`);
         
         newMap.set(messageId, newInfo);
         
@@ -223,7 +223,7 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
             const fullContent = (currentInfo?.content || '') + bufferedContent;
             
             // Update the content
-            console.log(`🔄 Flushing buffer for ${messageId}: "${bufferedContent}" -> total: "${fullContent}"`);
+            //console.log(`🔄 Flushing buffer for ${messageId}: "${bufferedContent}" -> total: "${fullContent}"`);
             state.updateStreamingContent(messageId, fullContent);
             
             // Clear the buffer and timeout
