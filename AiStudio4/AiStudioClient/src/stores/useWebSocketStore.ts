@@ -19,8 +19,6 @@ interface WebSocketStore {
   currentRequest?: { convId: string; messageId: string };
   activeStreamingMessageIds: Set<string>; // Track which messages are actively streaming
   streamingContent: Map<string, StreamingContentInfo>; // Store streaming content with animation info
-  streamingBuffers: Map<string, string>; // Buffer for throttling
-  streamingTimeouts: Map<string, NodeJS.Timeout>; // Timeouts for throttling
 
   
 
@@ -32,7 +30,6 @@ interface WebSocketStore {
   hasActiveStreaming: () => boolean;
   updateStreamingContent: (messageId: string, content: string) => void;
   getStreamingContent: (messageId: string) => StreamingContentInfo | undefined;
-  addToStreamingBuffer: (messageId: string, fragment: string) => void;
 }
 
 export const useWebSocketStore = create<WebSocketStore>((set, get) => {
@@ -79,27 +76,16 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
       if (detail.messageId) {
         //console.log(`🔔 WebSocketStore received cfrag for ${detail.messageId}: "${detail.content}"`);
         get().addStreamingMessage(detail.messageId);
-        get().addToStreamingBuffer(detail.messageId, detail.content);
+        
+        // Get current content and append the new fragment
+        const currentInfo = get().streamingContent.get(detail.messageId);
+        const fullContent = (currentInfo?.content || '') + detail.content;
+        get().updateStreamingContent(detail.messageId, fullContent);
       }
     });
     
     listenToWebSocketEvent('endstream', (detail) => {
       if (detail.messageId) {
-        // Flush any remaining buffer content
-        const state = get();
-        const bufferedContent = state.streamingBuffers.get(detail.messageId);
-        if (bufferedContent) {
-          const currentInfo = state.streamingContent.get(detail.messageId);
-          const fullContent = (currentInfo?.content || '') + bufferedContent;
-          state.updateStreamingContent(detail.messageId, fullContent);
-        }
-        
-        // Clear timeout if any
-        const timeout = state.streamingTimeouts.get(detail.messageId);
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-        
         get().removeStreamingMessage(detail.messageId);
       }
       set({ isCancelling: false });
@@ -116,8 +102,6 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
     currentRequest: undefined,
     activeStreamingMessageIds: new Set<string>(),
     streamingContent: new Map<string, StreamingContentInfo>(),
-    streamingBuffers: new Map<string, string>(),
-    streamingTimeouts: new Map<string, NodeJS.Timeout>(),
 
     
 
@@ -145,23 +129,9 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
         const newMap = new Map(state.streamingContent);
         newMap.delete(messageId);
         
-        // Clean up buffers and timeouts
-        const newBuffers = new Map(state.streamingBuffers);
-        const newTimeouts = new Map(state.streamingTimeouts);
-        
-        const timeout = newTimeouts.get(messageId);
-        if (timeout) {
-          clearTimeout(timeout);
-        }
-        
-        newBuffers.delete(messageId);
-        newTimeouts.delete(messageId);
-        
         return { 
           activeStreamingMessageIds: newSet,
-          streamingContent: newMap,
-          streamingBuffers: newBuffers,
-          streamingTimeouts: newTimeouts
+          streamingContent: newMap
         };
       });
     },
@@ -198,51 +168,6 @@ export const useWebSocketStore = create<WebSocketStore>((set, get) => {
 
     getStreamingContent: (messageId: string) => {
       return get().streamingContent.get(messageId);
-    },
-
-    addToStreamingBuffer: (messageId: string, fragment: string) => {
-      set(state => {
-        const newBuffers = new Map(state.streamingBuffers);
-        const currentBuffer = newBuffers.get(messageId) || '';
-        newBuffers.set(messageId, currentBuffer + fragment);
-        
-        // Clear existing timeout if any
-        const existingTimeout = state.streamingTimeouts.get(messageId);
-        if (existingTimeout) {
-          clearTimeout(existingTimeout);
-        }
-        
-        // Set new timeout for 50ms throttling
-        const newTimeouts = new Map(state.streamingTimeouts);
-        const timeout = setTimeout(() => {
-          const state = get();
-          const bufferedContent = state.streamingBuffers.get(messageId);
-          if (bufferedContent) {
-            // Get current content and build full content
-            const currentInfo = state.streamingContent.get(messageId);
-            const fullContent = (currentInfo?.content || '') + bufferedContent;
-            
-            // Update the content
-            //console.log(`🔄 Flushing buffer for ${messageId}: "${bufferedContent}" -> total: "${fullContent}"`);
-            state.updateStreamingContent(messageId, fullContent);
-            
-            // Clear the buffer and timeout
-            const newBuffers = new Map(state.streamingBuffers);
-            const newTimeouts = new Map(state.streamingTimeouts);
-            newBuffers.delete(messageId);
-            newTimeouts.delete(messageId);
-            
-            set({ streamingBuffers: newBuffers, streamingTimeouts: newTimeouts });
-          }
-        }, 50);
-        
-        newTimeouts.set(messageId, timeout);
-        
-        return { 
-          streamingBuffers: newBuffers,
-          streamingTimeouts: newTimeouts
-        };
-      });
     },
   };
 });
