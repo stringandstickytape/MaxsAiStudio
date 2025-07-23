@@ -1451,4 +1451,29 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
             MessageBox.Show($"Error updating LlamaCpp: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
+
+    private void ProtectedMcpServerMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var mcpServerService = _serviceProvider.GetService<IProtectedMcpServerService>();
+            if (mcpServerService == null)
+            {
+                MessageBox.Show("Protected MCP Server service is not available.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var logger = _serviceProvider.GetService<ILogger<ProtectedMcpServerWindow>>();
+            var protectedMcpWindow = new ProtectedMcpServerWindow(mcpServerService, logger)
+            {
+                Owner = this
+            };
+            protectedMcpWindow.Show();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error opening Protected MCP Server window");
+            MessageBox.Show($"Error opening Protected MCP Server window: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 }

@@ -88,6 +88,7 @@ namespace AiStudio4
             services.AddSingleton<IUserPromptService, UserPromptService>();
             services.AddSingleton<ClientRequestCancellationService>();
             services.AddSingleton<IMcpService, McpService>(); // Add McpService
+            services.AddSingleton<IProtectedMcpServerService, ProtectedMcpServerService>(); // Add ProtectedMcpServerService
             services.AddSingleton<IStatusMessageService, StatusMessageService>();
             services.AddSingleton<Services.Interfaces.INotificationFacade, NotificationFacade>();
             services.AddSingleton<IToolProcessorService, ToolProcessorService>(); // Add ToolProcessorService

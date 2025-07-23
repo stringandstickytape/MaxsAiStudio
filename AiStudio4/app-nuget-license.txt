@@ -43,6 +43,16 @@
     "LicenseInformationOrigin": 2
   },
   {
+    "PackageId": "Microsoft.AspNetCore.Authentication.JwtBearer",
+    "PackageVersion": "9.0.7",
+    "PackageProjectUrl": "https://asp.net/",
+    "Copyright": "\u00A9 Microsoft Corporation. All rights reserved.",
+    "Authors": "Microsoft",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
     "PackageId": "Microsoft.AspNetCore.OpenApi",
     "PackageVersion": "9.0.4",
     "PackageProjectUrl": "https://asp.net/",
@@ -119,7 +129,17 @@
   },
   {
     "PackageId": "ModelContextProtocol",
-    "PackageVersion": "0.3.0-preview.2",
+    "PackageVersion": "0.3.0-preview.3",
+    "PackageProjectUrl": "https://github.com/modelcontextprotocol/csharp-sdk",
+    "Copyright": "\u00A9 Anthropic and Contributors.",
+    "Authors": "ModelContextProtocolOfficial",
+    "License": "MIT",
+    "LicenseUrl": "https://licenses.nuget.org/MIT",
+    "LicenseInformationOrigin": 0
+  },
+  {
+    "PackageId": "ModelContextProtocol.AspNetCore",
+    "PackageVersion": "0.3.0-preview.3",
     "PackageProjectUrl": "https://github.com/modelcontextprotocol/csharp-sdk",
     "Copyright": "\u00A9 Anthropic and Contributors.",
     "Authors": "ModelContextProtocolOfficial",

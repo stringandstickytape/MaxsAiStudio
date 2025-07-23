@@ -26,7 +26,9 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Workspaces.MSBuild" Version="4.13.0" />
 		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
-		<PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.2" />
+		<PackageReference Include="ModelContextProtocol" Version="0.3.0-preview.3" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.7" />
+		<PackageReference Include="ModelContextProtocol.AspNetCore" Version="0.3.0-preview.3" />
 		<PackageReference Include="OpenAI" Version="2.2.0-beta.4" />
 	</ItemGroup>
 

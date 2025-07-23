@@ -67,6 +67,9 @@
                     Click="UploadToGoogleDriveMenuItem_Click"/>
                 <!-- More import/export options can be added later -->
             </MenuItem>
+            <MenuItem Header="_MCP Server">
+                <MenuItem Header="_Protected MCP Server..." Name="ProtectedMcpServerMenuItem" Click="ProtectedMcpServerMenuItem_Click"/>
+            </MenuItem>
             <MenuItem Header="Update Available" Name="UpdateAvailableMenuItem" Click="UpdateAvailableMenuItem_Click" Visibility="Collapsed" Foreground="DarkRed" FontWeight="Bold"/>
         </Menu>
         <controls:AiStudioWebView2 x:Name="webView" Grid.Row="1" />
