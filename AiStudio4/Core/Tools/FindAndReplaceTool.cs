@@ -5,6 +5,9 @@
 
 
 using SharedClasses.Git;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -18,6 +21,7 @@ namespace AiStudio4.Core.Tools
     
     
     
+    [McpServerToolType]
     public class FindAndReplaceTool : BaseToolImplementation
     {
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
@@ -547,6 +551,26 @@ namespace AiStudio4.Core.Tools
                 _logger.LogError(ex, "Error processing FindAndReplace tool");
                 SendStatusUpdate($"Error processing FindAndReplace tool: {ex.Message}");
                 return Task.FromResult(CreateResult(true, true, $"Error processing FindAndReplace tool: {ex.Message}"));
+            }
+        }
+
+        [McpServerTool, Description("Finds and replaces text in files within a directory tree.")]
+        public async Task<string> FindAndReplace([Description("JSON parameters for FindAndReplace")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

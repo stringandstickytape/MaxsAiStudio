@@ -112,10 +112,10 @@ For each tool file in `AiStudio4\Core\Tools\`:
 **Main Tools** (located in `AiStudio4\Core\Tools\`):
 - [X] `CreateNewFileTool.cs` ✅ **COMPLETED**
 - [X] `DeleteFileTool.cs` ✅ **COMPLETED**
-- [ ] `DirectoryTreeTool.cs`
-- [ ] `FileRegExSearch.cs`
-- [ ] `FileSearchTool.cs`
-- [ ] `FindAndReplaceTool.cs`
+- [X] `DirectoryTreeTool.cs` ✅ **COMPLETED**
+- [X] `FileRegExSearch.cs` ✅ **COMPLETED**
+- [X] `FileSearchTool.cs` ✅ **COMPLETED**
+- [X] `FindAndReplaceTool.cs` ✅ **COMPLETED**
 - [ ] `GeminiGoogleSearchTool.cs`
 - [ ] `GoogleCustomSearchApiTool.cs`
 - [ ] `LaunchUrlTool.cs`
@@ -196,7 +196,7 @@ For each tool file in `AiStudio4\Core\Tools\`:
 **YouTube Tools** (located in `AiStudio4\Core\Tools\YouTube\`):
 - [ ] `YouTubeSearchTool.cs`
 
-**Total: ~70+ tools to convert (1 completed, 69+ remaining)**
+**Total: ~70+ tools to convert (7 completed, 63+ remaining)**
 
 ## MCP Server Registration 
 

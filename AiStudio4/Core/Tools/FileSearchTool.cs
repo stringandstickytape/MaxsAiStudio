@@ -5,6 +5,9 @@
 
  // Needed for JArray parsing
 using SharedClasses.Git;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -18,6 +21,7 @@ namespace AiStudio4.Core.Tools
     /// <summary>
     /// Implementation of the FileSearch tool
     /// </summary>
+    [McpServerToolType]
     public class FileSearchTool : BaseToolImplementation
     {
         private readonly IProjectFileWatcherService _projectFileWatcherService;
@@ -335,6 +339,26 @@ namespace AiStudio4.Core.Tools
                 _logger.LogError(ex, "Error processing FileSearch tool");
                 SendStatusUpdate($"Error processing FileSearch tool: {ex.Message}");
                 return Task.FromResult(CreateResult(true, true, $"Error processing FileSearch tool: {ex.Message}"));
+            }
+        }
+
+        [McpServerTool, Description("Searches for files containing specific terms within a directory tree.")]
+        public async Task<string> FileSearch([Description("JSON parameters for FileSearch")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }
