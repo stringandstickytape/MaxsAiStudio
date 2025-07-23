@@ -4,15 +4,10 @@
 using AiStudio4.Core.Tools.CodeDiff;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
-
-
-
-
-
-
-
-
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+using Newtonsoft.Json.Linq; // Added for JObject.Parse
 
 
 namespace AiStudio4.Core.Tools
@@ -20,6 +15,7 @@ namespace AiStudio4.Core.Tools
     /// <summary>
     /// Implementation of the CreateNewFile tool that creates new files.
     /// </summary>
+    [McpServerToolType] // <- ADDED THIS
     public class CreateNewFileTool : BaseToolImplementation
     {
         private readonly StringBuilder _validationErrorMessages;
@@ -162,6 +158,26 @@ namespace AiStudio4.Core.Tools
                 SendStatusUpdate("CreateNewFile failed with an unexpected error.");
                 MessageBox.Show(errorMessage, "CreateNewFile Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return CreateResult(true, false, toolParameters, errorMessage);
+            }
+        }
+
+        [McpServerTool, Description("Creates a new file with the specified content.")]
+        public async Task<string> CreateNewFile([Description("JSON parameters for CreateNewFile")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }
