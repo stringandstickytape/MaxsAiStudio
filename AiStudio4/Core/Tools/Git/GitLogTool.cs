@@ -1,23 +1,15 @@
 // AiStudio4.Core\Tools\Git\GitLogTool.cs
 
-
-
-
-
-
-
-
-
-
-
-
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.Git
 {
     /// <summary>
     /// Implementation of the GitLog tool
     /// </summary>
+    [McpServerToolType]
     public class GitLogTool : BaseToolImplementation
     {
         private const int MAX_MESSAGE_LENGTH = 150;
@@ -300,6 +292,26 @@ namespace AiStudio4.Core.Tools.Git
             catch (Exception ex)
             {
                 return (false, null, $"Exception running git command: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Retrieves git commit history between two references (tags, branches, commits) without showing diffs. Commit messages are automatically truncated to prevent excessive output. Useful for understanding what changed between versions or getting an overview of recent development.")]
+        public async Task<string> GitLog([Description("JSON parameters for GitLog")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

@@ -1,23 +1,15 @@
 // AiStudio4.Core\Tools\GitCommitTool.cs
 
-
-
-
-
-
-
-
-
-
-
-
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.Git
 {
     /// <summary>
     /// Implementation of the GitCommit tool
     /// </summary>
+    [McpServerToolType]
     public class GitCommitTool : BaseToolImplementation
     {
         public GitCommitTool(ILogger<GitCommitTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService)
@@ -351,6 +343,26 @@ namespace AiStudio4.Core.Tools.Git
         private string EscapeForCmd(string input)
         {
             return input?.Replace("\"", "\\\"");
+        }
+
+        [McpServerTool, Description("Commits a specified set of files to the git repository with a provided commit message and pushes changes by default. Only files within the project root may be committed.")]
+        public async Task<string> GitCommit([Description("JSON parameters for GitCommit")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

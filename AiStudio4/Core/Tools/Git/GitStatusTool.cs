@@ -1,23 +1,15 @@
 // AiStudio4.Core\Tools\Git\GitStatusTool.cs
 
-
-
-
-
-
-
-
-
-
-
-
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.Git
 {
     /// <summary>
     /// Implementation of the GitStatus tool for repository state information
     /// </summary>
+    [McpServerToolType]
     public class GitStatusTool : BaseToolImplementation
     {
         public GitStatusTool(ILogger<GitStatusTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService)
@@ -446,6 +438,26 @@ namespace AiStudio4.Core.Tools.Git
             catch (Exception ex)
             {
                 return (false, null, $"Exception running git command: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Shows working directory status, current branch, and repository state information including ahead/behind remote status.")]
+        public async Task<string> GitStatus([Description("JSON parameters for GitStatus")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

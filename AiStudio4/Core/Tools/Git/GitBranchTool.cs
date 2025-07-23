@@ -1,23 +1,15 @@
 // AiStudio4.Core\Tools\Git\GitBranchTool.cs
 
-
-
-
-
-
-
-
-
-
-
-
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.Git
 {
     /// <summary>
     /// Implementation of the GitBranch tool for branch management operations
     /// </summary>
+    [McpServerToolType]
     public class GitBranchTool : BaseToolImplementation
     {
         public GitBranchTool(ILogger<GitBranchTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService)
@@ -353,6 +345,26 @@ namespace AiStudio4.Core.Tools.Git
             catch (Exception ex)
             {
                 return (false, null, $"Exception running git command: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Manages git branches including creating, switching, listing, and deleting branches within the project repository.")]
+        public async Task<string> GitBranch([Description("JSON parameters for GitBranch")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }
