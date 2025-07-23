@@ -318,14 +318,25 @@ public async Task StopServerAsync(string serverId)
                 else
                 {
                     // For SSE transport (HTTP-based MCP servers)
-                    newClient = await McpClientFactory.CreateAsync(
-                        new SseClientTransport(new ()
-                        {
-                            Endpoint = new Uri(definition.Command),
-                            Name = definition.Name,
-                            
+                    var sseConfig = new SseClientTransportOptions
+                    {
+                        Endpoint = new Uri(definition.Command),
+                        Name = definition.Name,
+                    };
 
-                        }));
+                    // Add OAuth configuration if provided
+                    if (!string.IsNullOrEmpty(definition.ClientName) && 
+                        !string.IsNullOrEmpty(definition.AuthorizationEndpoint))
+                    {
+                        sseConfig.OAuth = new()
+                        {
+                            ClientName = definition.ClientName,
+                            RedirectUri = new Uri(definition.RedirectUri),
+                            AuthorizationRedirectDelegate = HandleAuthorizationUrlAsync
+                        };
+                    }
+
+                    newClient = await McpClientFactory.CreateAsync(new SseClientTransport(sseConfig));
                 }
                 
                 if (_activeClients.TryAdd(serverId, newClient))
@@ -376,6 +387,54 @@ public async Task StopServerAsync(string serverId)
             {
                 await InitializeAsync();
             }
+        }
+
+        private static async Task<string?> HandleAuthorizationUrlAsync(Uri authorizationUrl, Uri redirectUri, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Open the authorization URL in the default browser
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = authorizationUrl.ToString(),
+                    UseShellExecute = true
+                });
+
+                // Start HTTP listener for the callback
+                using var listener = new System.Net.HttpListener();
+                var prefix = redirectUri.ToString();
+                if (!prefix.EndsWith("/"))
+                    prefix += "/";
+                listener.Prefixes.Add(prefix);
+                listener.Start();
+
+                // Wait for the authorization callback
+                var context = await listener.GetContextAsync();
+                var query = context.Request.Url?.Query;
+                
+                // Send a response to the browser
+                var response = context.Response;
+                string responseString = "<html><body>Authorization complete. You can close this window.</body></html>";
+                byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
+                response.ContentLength64 = buffer.Length;
+                response.OutputStream.Write(buffer, 0, buffer.Length);
+                response.OutputStream.Close();
+
+                // Extract authorization code from query parameters
+                if (!string.IsNullOrEmpty(query))
+                {
+                    var queryParams = System.Web.HttpUtility.ParseQueryString(query);
+                    return queryParams["code"];
+                }
+            }
+            catch (Exception ex)
+            {
+                // If we can't open the browser automatically, log the URL for manual access
+                Console.WriteLine($"Please open the following URL in your browser to authorize: {authorizationUrl}");
+                Console.WriteLine($"Error during authorization: {ex.Message}");
+            }
+            
+            return null;
         }
     }
 }

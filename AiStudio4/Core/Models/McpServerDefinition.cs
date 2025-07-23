@@ -19,5 +19,13 @@ namespace AiStudio4.Core.Models
         public bool StdIo { get; set; } = true;
         public List<string> Categories { get; set; } = new List<string>();
         public List<string> SelectedTools { get; set; } = new List<string>();
+        
+        // OAuth configuration for SSE transport (defaults for test server)
+        public string ClientName { get; set; } = "ProtectedMcpClient";
+        public string RedirectUri { get; set; } = "http://localhost:1179/callback";
+        public string AuthorizationEndpoint { get; set; } = "https://localhost:7029";
+        public string TokenEndpoint { get; set; } = "https://localhost:7029/connect/token";
+        public string ClientId { get; set; } = string.Empty;
+        public string ClientSecret { get; set; } = string.Empty;
     }
 }
