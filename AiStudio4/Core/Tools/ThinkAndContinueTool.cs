@@ -1,17 +1,13 @@
-﻿
-
-
-
-
-
-
-
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools
 {
     /// <summary>
     /// Implementation of the Think tool
     /// </summary>
+    [McpServerToolType]
     public class ThinkAndContinueTool : BaseToolImplementation
     {
         public ThinkAndContinueTool(ILogger<ThinkAndContinueTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
@@ -66,6 +62,26 @@ namespace AiStudio4.Core.Tools
             _logger.LogInformation("ThinkAndContinue tool called with parameters: {Parameters}, continueProcessing: {ContinueProcessing}", thought, continueProcessing);
             SendStatusUpdate("ThinkAndContinue tool completed.");
             return Task.FromResult(CreateResult(true, continueProcessing, thought));
+        }
+
+        [McpServerTool, Description("Use the tool to think about something without pausing for user input. It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed. This tool's operation allows for continued processing by the AI after the thought is logged. For example, if you explore the repo and discover the source of a bug, call this tool to brainstorm several unique ways of fixing the bug, and assess which change(s) are likely to be simplest and most effective. Alternatively, if you receive some test results, call this tool to brainstorm ways to fix the failing tests.")]
+        public async Task<string> ThinkAndContinue([Description("JSON parameters for ThinkAndContinue")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

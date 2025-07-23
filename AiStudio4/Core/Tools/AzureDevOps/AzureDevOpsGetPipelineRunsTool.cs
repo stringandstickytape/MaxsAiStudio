@@ -9,12 +9,16 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
     /// <summary>
     /// Implementation of the Azure DevOps Get Pipeline Runs tool
     /// </summary>
+    [McpServerToolType]
     public class AzureDevOpsGetPipelineRunsTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -1199,6 +1203,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             keyExcerpts = keyExcerpts.Take(15).ToList();
             
             return (lineCount, errors.Count, warnings.Count, errors, warnings, keyExcerpts);
+        }
+
+        [McpServerTool, Description("Retrieves pipeline execution data with granular analysis capabilities including detailed timeline data, task-level performance metrics, log analysis with error/warning detection, and execution bottleneck identification.")]
+        public async Task<string> AzureDevOpsGetPipelineRuns([Description("JSON parameters for AzureDevOpsGetPipelineRuns")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

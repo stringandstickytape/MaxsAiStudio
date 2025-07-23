@@ -8,15 +8,20 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
-
-
 using System.Web;
+using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
     /// <summary>
     /// Implementation of the Azure DevOps Get Wiki Page Content tool
     /// </summary>
+    [McpServerToolType]
     public class AzureDevOpsGetWikiPageContentTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -210,6 +215,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             sb.AppendLine("```");
             
             return sb.ToString();
+        }
+
+        [McpServerTool, Description("Retrieves the content of a specific wiki page from Azure DevOps.")]
+        public async Task<string> AzureDevOpsGetWikiPageContent([Description("JSON parameters for AzureDevOpsGetWikiPageContent")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

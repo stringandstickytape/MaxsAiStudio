@@ -13,10 +13,13 @@ using SharedClasses.Providers;
 
 
 using System.Threading;
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools
 {
+    [McpServerToolType]
     public class SecondAiOpinionTool : BaseToolImplementation
     {
 
@@ -138,6 +141,26 @@ namespace AiStudio4.Core.Tools
 
             SendStatusUpdate($"Received response from {modelGuid}.");
             return CreateResult(true, true, resultBuilder.ToString());
+        }
+
+        [McpServerTool, Description("Gets a second opinion from another configured AI model on a given prompt. The secondary model will have no access to the current conversation history or any tools. All necessary context must be provided in the prompt.")]
+        public async Task<string> SecondAiOpinion([Description("JSON parameters for SecondAiOpinion")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

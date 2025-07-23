@@ -5,6 +5,9 @@ using System.Text;
 using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools
 {
@@ -12,6 +15,7 @@ namespace AiStudio4.Core.Tools
     /// Implementation of the Windows Sandbox tool that provides safe, isolated Windows environments for testing and execution.
     /// All file operations are constrained to %APPDATA%\WSBTool\ for security.
     /// </summary>
+    [McpServerToolType]
     public class WindowsSandboxTool : BaseToolImplementation
     {
         private readonly StringBuilder _validationErrorMessages;
@@ -726,6 +730,26 @@ namespace AiStudio4.Core.Tools
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to write sandbox operation log");
+            }
+        }
+
+        [McpServerTool, Description("Creates and manages Windows Sandbox environments for safe testing and execution. All file operations are constrained to %APPDATA%\\WSBTool\\ for security.")]
+        public async Task<string> WindowsSandbox([Description("JSON parameters for WindowsSandbox")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
 

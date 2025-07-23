@@ -9,12 +9,16 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
     /// <summary>
     /// Implementation of the Azure DevOps Get Pipeline Resources tool
     /// </summary>
+    [McpServerToolType]
     public class AzureDevOpsGetPipelineResourcesTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -621,6 +625,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             {
                 _logger.LogError(ex, "Error formatting pipeline resources information");
                 return $"Error formatting pipeline resources information: {ex.Message}\n\nRaw data: {JsonConvert.SerializeObject(allResources, Formatting.Indented)}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves pipeline-related resources including variable groups, service connections, agent pools, environments, and deployment groups.")]
+        public async Task<string> AzureDevOpsGetPipelineResources([Description("JSON parameters for AzureDevOpsGetPipelineResources")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

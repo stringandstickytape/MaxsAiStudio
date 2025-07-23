@@ -19,10 +19,10 @@ using System.Threading.Tasks;
 namespace AiStudio4.Core.Tools
 {
     [McpServerToolType]
-    public class ModifyFileUsingMorph : BaseToolImplementation
+    public class ModifyFileUsingMorphTool : BaseToolImplementation
     {
-        public ModifyFileUsingMorph(
-            ILogger<ModifyFileUsingMorph> logger,
+        public ModifyFileUsingMorphTool(
+            ILogger<ModifyFileUsingMorphTool> logger,
             IGeneralSettingsService generalSettingsService,
             IStatusMessageService statusMessageService
             )

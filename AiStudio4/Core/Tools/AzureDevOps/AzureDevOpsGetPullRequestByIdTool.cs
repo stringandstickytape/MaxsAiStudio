@@ -4,18 +4,20 @@
 
 
 
-
-
 using System.Net.Http;
 using System.Net.Http.Headers;
-
-
-
+using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
     /// <summary>
     /// Implementation of the Azure DevOps Get Pull Request By ID tool
     /// </summary>
+    [McpServerToolType]
     public class AzureDevOpsGetPullRequestByIdTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -372,6 +374,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             {
                 _logger.LogError(ex, "Error formatting pull request information");
                 return $"Error formatting pull request information: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves detailed information about a specific pull request in an Azure DevOps repository.")]
+        public async Task<string> AzureDevOpsGetPullRequestById([Description("JSON parameters for AzureDevOpsGetPullRequestById")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

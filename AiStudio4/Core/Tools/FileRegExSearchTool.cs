@@ -24,12 +24,12 @@ namespace AiStudio4.Core.Tools
     /// Implementation of the FileRegExSearch tool
     /// </summary>
     [McpServerToolType]
-    public class FileRegExSearch : BaseToolImplementation
+    public class FileRegExSearchTool : BaseToolImplementation
     {
         private readonly IProjectFileWatcherService _projectFileWatcherService;
         private Dictionary<string, string> _extraProperties { get; set; } = new Dictionary<string, string>();
 
-        public FileRegExSearch(ILogger<FileRegExSearch> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IProjectFileWatcherService projectFileWatcherService) : base(logger, generalSettingsService, statusMessageService)
+        public FileRegExSearchTool(ILogger<FileRegExSearchTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService, IProjectFileWatcherService projectFileWatcherService) : base(logger, generalSettingsService, statusMessageService)
         {
             _projectFileWatcherService = projectFileWatcherService ?? throw new ArgumentNullException(nameof(projectFileWatcherService));
         }

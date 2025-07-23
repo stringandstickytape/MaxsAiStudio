@@ -4,19 +4,22 @@
 
 
 
-
-
 using System.Net.Http;
 using System.Net.Http.Headers;
-
-
 using System.Web;
+using System.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
-    
-    
-    
+    /// <summary>
+    /// Implementation of the Azure DevOps Get Item Content tool
+    /// </summary>
+    [McpServerToolType]
     public class AzureDevOpsGetItemContentTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -293,6 +296,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 ".sql" => "sql",
                 _ => ""
             };
+        }
+
+        [McpServerTool, Description("Retrieves the content of a specific file from an Azure DevOps repository.")]
+        public async Task<string> AzureDevOpsGetItemContent([Description("JSON parameters for AzureDevOpsGetItemContent")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }
