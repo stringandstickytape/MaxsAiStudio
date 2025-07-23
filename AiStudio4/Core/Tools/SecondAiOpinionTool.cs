@@ -147,24 +147,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Gets a second opinion from another configured AI model on a given prompt. The secondary model will have no access to the current conversation history or any tools. All necessary context must be provided in the prompt.")]
         public async Task<string> SecondAiOpinion([Description("JSON parameters for SecondAiOpinion")] string parameters = "{}")
         {
-            try
-            {
-                var service = (IBuiltInToolExtraPropertiesService)Activator.CreateInstance(typeof(BuiltInToolExtraPropertiesService));
-                var latestExtraProps = service.GetExtraProperties("secondAiOpinion");
-
-                var result = await ProcessAsync(parameters, latestExtraProps);
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

@@ -127,6 +127,9 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             // Register all tools using the same registration pattern as the main app
             builder.Services.AddToolServices();
             
+            // Register the extra properties service for MCP wrapper
+            builder.Services.AddSingleton<IBuiltInToolExtraPropertiesService, BuiltInToolExtraPropertiesService>();
+            
             // Register all required services for tools (copy from main app DI)
             
             // Core services
