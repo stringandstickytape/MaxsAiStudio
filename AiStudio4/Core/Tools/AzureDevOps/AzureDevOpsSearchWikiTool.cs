@@ -4,12 +4,16 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Web;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
     /// <summary>
     /// Implementation of the Azure DevOps Search Wiki tool
     /// </summary>
+    [McpServerToolType]
     public class AzureDevOpsSearchWikiTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -419,6 +423,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 20 => "Wildcard queries with code type filters not supported",
                 _ => $"Info code: {infoCode}"
             };
+        }
+
+        [McpServerTool, Description("Searches for content across Azure DevOps wiki pages using the Azure DevOps Search API.")]
+        public async Task<string> AzureDevOpsSearchWiki([Description("JSON parameters for AzureDevOpsSearchWiki")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

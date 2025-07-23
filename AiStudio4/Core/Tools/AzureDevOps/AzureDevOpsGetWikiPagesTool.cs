@@ -11,12 +11,16 @@ using System.Net.Http.Headers;
 
 
 using System.Web;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.AzureDevOps
 {
     /// <summary>
     /// Implementation of the Azure DevOps Get Wiki Pages tool
     /// </summary>
+    [McpServerToolType]
     public class AzureDevOpsGetWikiPagesTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -286,6 +290,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
                 {
                     FormatSinglePageInfo(subPage, sb, level + 1, wasContentRequested);
                 }
+            }
+        }
+
+        [McpServerTool, Description("Retrieves a list of wiki pages from an Azure DevOps wiki, potentially with their hierarchy and content.")]
+        public async Task<string> AzureDevOpsGetWikiPages([Description("JSON parameters for AzureDevOpsGetWikiPages")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

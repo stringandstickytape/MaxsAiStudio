@@ -9,6 +9,9 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -17,6 +20,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
     
     
     
+    [McpServerToolType]
     public class AzureDevOpsGetWorkItemsTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -333,6 +337,26 @@ namespace AiStudio4.Core.Tools.AzureDevOps
             {
                 _logger.LogError(ex, "Error formatting work items information");
                 return $"Error formatting work items information: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves detailed information about specific work items by their IDs from Azure DevOps.")]
+        public async Task<string> AzureDevOpsGetWorkItems([Description("JSON parameters for AzureDevOpsGetWorkItems")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }
