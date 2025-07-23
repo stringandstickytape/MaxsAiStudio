@@ -88,7 +88,6 @@ namespace SharedClasses.Providers
         public string Guid {
             get { return guid; }
             set {
-                Debug.WriteLine(guid);
                 guid = value; 
             }
         }

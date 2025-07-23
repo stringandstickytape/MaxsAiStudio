@@ -478,5 +478,43 @@ namespace AiStudio4.InjectedDependencies
             CurrentSettings.TopP = topP;
             SaveSettings();
         }
+
+        // MCP Server Tool Management Methods
+        public void UpdateMcpToolEnabled(string toolGuid, bool enabled)
+        {
+            lock (_lock)
+            {
+                CurrentSettings.McpServerEnabledTools[toolGuid] = enabled;
+                SaveSettings();
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public bool IsMcpToolEnabled(string toolGuid)
+        {
+            lock (_lock)
+            {
+                // Return false by default for new tools (opt-in behavior)
+                return CurrentSettings.McpServerEnabledTools.TryGetValue(toolGuid, out bool enabled) && enabled;
+            }
+        }
+
+        public Dictionary<string, bool> GetMcpEnabledTools()
+        {
+            lock (_lock)
+            {
+                return new Dictionary<string, bool>(CurrentSettings.McpServerEnabledTools);
+            }
+        }
+
+        public void SetMcpEnabledTools(Dictionary<string, bool> enabledTools)
+        {
+            lock (_lock)
+            {
+                CurrentSettings.McpServerEnabledTools = new Dictionary<string, bool>(enabledTools);
+                SaveSettings();
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
     }
 }

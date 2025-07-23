@@ -44,5 +44,11 @@ namespace AiStudio4.InjectedDependencies
         void UpdateConversationDeleteZippedRetentionDays(int days);
 
         void UpdateTopP(float topP);
+
+        // MCP Server Tool Management Methods
+        void UpdateMcpToolEnabled(string toolGuid, bool enabled);
+        bool IsMcpToolEnabled(string toolGuid);
+        Dictionary<string, bool> GetMcpEnabledTools();
+        void SetMcpEnabledTools(Dictionary<string, bool> enabledTools);
     }
 }

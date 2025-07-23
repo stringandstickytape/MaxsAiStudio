@@ -16,6 +16,7 @@ using System.Threading;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
+using AiStudio4.Services.Interfaces;
 
 namespace AiStudio4.Core.Tools
 {
@@ -148,7 +149,10 @@ namespace AiStudio4.Core.Tools
         {
             try
             {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                var service = (IBuiltInToolExtraPropertiesService)Activator.CreateInstance(typeof(BuiltInToolExtraPropertiesService));
+                var latestExtraProps = service.GetExtraProperties("secondAiOpinion");
+
+                var result = await ProcessAsync(parameters, latestExtraProps);
                 
                 if (!result.WasProcessed)
                 {

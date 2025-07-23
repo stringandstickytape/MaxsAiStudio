@@ -1,6 +1,7 @@
 ﻿using AiStudio4.Dialogs; 
  
 using AiStudio4.Services;
+using AiStudio4.InjectedDependencies;
 
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
@@ -1463,8 +1464,9 @@ private void SetPackerExcludeFolderNamesMenuItem_Click(object sender, RoutedEven
                 return;
             }
 
+            var settingsService = _serviceProvider.GetService<IGeneralSettingsService>();
             var logger = _serviceProvider.GetService<ILogger<ProtectedMcpServerWindow>>();
-            var protectedMcpWindow = new ProtectedMcpServerWindow(mcpServerService, logger)
+            var protectedMcpWindow = new ProtectedMcpServerWindow(mcpServerService, settingsService, _serviceProvider, logger)
             {
                 Owner = this
             };

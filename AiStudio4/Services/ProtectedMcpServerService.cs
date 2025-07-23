@@ -13,6 +13,8 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Services.ProtectedMcpServer;
+using AiStudio4.InjectedDependencies;
+using AiStudio4.Core;
 using System.Linq;
 using AiStudio4.InjectedDependencies.WebSocket;
 
@@ -31,6 +33,7 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
 {
     private readonly ILogger<ProtectedMcpServerService> _logger;
     private readonly IBuiltinToolService _builtinToolService;
+    private readonly IGeneralSettingsService _settingsService;
     private WebApplication? _app;
     private readonly CancellationTokenSource _cancellationTokenSource;
     private Task? _runningTask;
@@ -39,10 +42,11 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
     public string OAuthServerUrl { get; } = "http://localhost:7029";
     public bool IsServerRunning => _app != null && _runningTask != null && !_runningTask.IsCompleted;
 
-    public ProtectedMcpServerService(ILogger<ProtectedMcpServerService> logger, IBuiltinToolService builtinToolService)
+    public ProtectedMcpServerService(ILogger<ProtectedMcpServerService> logger, IBuiltinToolService builtinToolService, IGeneralSettingsService settingsService)
     {
         _logger = logger;
         _builtinToolService = builtinToolService;
+        _settingsService = settingsService;
         _cancellationTokenSource = new CancellationTokenSource();
     }
 
@@ -120,6 +124,9 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             // Register the builtin tool service as a singleton in the MCP server
             builder.Services.AddSingleton(_builtinToolService);
             
+            // Register all tools using the same registration pattern as the main app
+            builder.Services.AddToolServices();
+            
             // Register all required services for tools (copy from main app DI)
             
             // Core services
@@ -142,7 +149,10 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IPinnedCommandService, AiStudio4.Services.PinnedCommandService>();
             builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IUserPromptService, AiStudio4.Services.UserPromptService>();
             builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IInterjectionService, AiStudio4.Services.InterjectionService>();
-            
+            builder.Services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
+            builder.Services.AddSingleton<IMcpService, McpService>();
+            builder.Services.AddSingleton<IDialogService, WpfDialogService>();
+
             // Tool and processing services
             builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IToolProcessorService, AiStudio4.Services.ToolProcessorService>();
             builder.Services.AddSingleton<AiStudio4.Core.Interfaces.ISecondaryAiService, AiStudio4.Services.SecondaryAiService>();
@@ -170,14 +180,47 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             
 
             // Find all ITool implementations with MCP attributes in our own assembly
-            var toolTypes = typeof(ITool).Assembly.GetTypes()
+            var allToolTypes = typeof(ITool).Assembly.GetTypes()
                 .Where(type => type.IsClass && 
                               !type.IsAbstract &&
                               typeof(ITool).IsAssignableFrom(type) &&
                               type.GetCustomAttribute<McpServerToolTypeAttribute>() != null)
                 .ToList();
-                
-            _logger.LogInformation("Found {Count} ITool classes with MCP attributes", toolTypes.Count);
+
+            // Filter tools based on user settings - only include enabled tools
+            var enabledToolTypes = new List<Type>();
+            foreach (var toolType in allToolTypes)
+            {
+                try
+                {
+                    // Use service locator pattern to create instance with dependencies
+                    var toolInstance = builder.Services.BuildServiceProvider().GetService(toolType) as ITool;
+                    if (toolInstance != null)
+                    {
+                        var toolDefinition = toolInstance.GetToolDefinition();
+                        if (toolDefinition != null && _settingsService.IsMcpToolEnabled(toolDefinition.Guid))
+                        {
+                            enabledToolTypes.Add(toolType);
+                            _logger.LogInformation("Tool {ToolName} ({ToolGuid}) is enabled and will be registered", toolDefinition.Name, toolDefinition.Guid);
+                        }
+                        else if (toolDefinition != null)
+                        {
+                            _logger.LogInformation("Tool {ToolName} ({ToolGuid}) is disabled and will be skipped", toolDefinition.Name, toolDefinition.Guid);
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Could not resolve tool instance for {ToolType}", toolType.Name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to check tool enablement status for {ToolType}", toolType.Name);
+                }
+            }
+            
+            var toolTypes = enabledToolTypes;
+            _logger.LogInformation("Found {TotalCount} total MCP tools, {EnabledCount} enabled for registration", allToolTypes.Count, toolTypes.Count);
             
             // Build MCP server configuration string and compile dynamically
             var registrationCode = "builder.Services.AddMcpServer()";

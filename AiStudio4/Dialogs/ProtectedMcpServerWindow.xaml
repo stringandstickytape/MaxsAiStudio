@@ -14,6 +14,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -66,13 +67,29 @@
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="Supported Scopes:" VerticalAlignment="Center" Margin="0,5"/>
                 <TextBox x:Name="SupportedScopesTextBox" Grid.Row="4" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="mcp:tools"/>
 
-                <TextBlock Grid.Row="5" Grid.Column="0" Text="Available Tools:" VerticalAlignment="Center" Margin="0,5"/>
-                <TextBox x:Name="AvailableToolsTextBox" Grid.Row="5" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="WeatherTools: GetAlerts, GetForecast"/>
             </Grid>
         </GroupBox>
 
+        <!-- Tool Selection -->
+        <GroupBox Grid.Row="3" Header="Available Tools" Margin="10">
+            <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="200">
+                <ItemsControl x:Name="ToolsItemsControl" Margin="10">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <CheckBox Content="{Binding Name}" 
+                                      IsChecked="{Binding IsEnabled}" 
+                                      Margin="5,2"
+                                      Checked="ToolCheckBox_Changed"
+                                      Unchecked="ToolCheckBox_Changed"
+                                      Tag="{Binding Guid}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </GroupBox>
+
         <!-- Log Output -->
-        <GroupBox Grid.Row="3" Header="Server Logs" Margin="10">
+        <GroupBox Grid.Row="4" Header="Server Logs" Margin="10">
             <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto">
                 <TextBox x:Name="LogTextBox" 
                          IsReadOnly="True" 
@@ -88,7 +105,7 @@
         </GroupBox>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
             <Button x:Name="ClearLogsButton" Content="Clear Logs" Width="80" Height="30" Margin="5" Click="ClearLogsButton_Click"/>
             <Button x:Name="CloseButton" Content="Close" Width="80" Height="30" Margin="5" Click="CloseButton_Click"/>
         </StackPanel>
