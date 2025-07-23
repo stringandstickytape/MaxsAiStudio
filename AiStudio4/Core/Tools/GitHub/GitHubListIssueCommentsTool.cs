@@ -9,8 +9,9 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
-
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Web;
 
 namespace AiStudio4.Core.Tools.GitHub
@@ -18,6 +19,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub List Issue Comments API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubListIssueCommentsTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -227,6 +229,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Error formatting comments list");
                 return $"Error formatting comments list: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves all comments for a specific issue, ordered by creation date.")]
+        public async Task<string> GitHubListIssueComments([Description("JSON parameters for GitHubListIssueComments")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

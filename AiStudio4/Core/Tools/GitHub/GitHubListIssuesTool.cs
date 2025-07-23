@@ -9,8 +9,9 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
-
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Web;
 
 namespace AiStudio4.Core.Tools.GitHub
@@ -18,6 +19,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub List Issues API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubListIssuesTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -244,6 +246,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Error formatting issues list");
                 return $"Error formatting issues list: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves a list of issues for the specified repository. Supports filtering by state, labels, assignee, milestone, etc.")]
+        public async Task<string> GitHubListIssues([Description("JSON parameters for GitHubListIssues")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

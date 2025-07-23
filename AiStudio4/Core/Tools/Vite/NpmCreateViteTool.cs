@@ -1,5 +1,7 @@
 // AiStudio4/Core/Tools/Vite/NpmCreateViteTool.cs
-﻿
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -15,6 +17,7 @@ namespace AiStudio4.Core.Tools.Vite
     /// <summary>
     /// Implementation of the NpmCreateVite tool
     /// </summary>
+    [McpServerToolType]
     public class NpmCreateViteTool : BaseToolImplementation
     {
         private readonly IDialogService _dialogService;
@@ -160,6 +163,26 @@ namespace AiStudio4.Core.Tools.Vite
                 _logger.LogError(ex, "Error processing NpmCreateVite tool");
                 SendStatusUpdate($"Error processing NpmCreateVite tool: {ex.Message}");
                 return CreateResult(false, true, $"Error processing NpmCreateVite tool: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Creates a new Vite project")]
+        public async Task<string> NpmCreateVite([Description("JSON parameters for NpmCreateVite")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

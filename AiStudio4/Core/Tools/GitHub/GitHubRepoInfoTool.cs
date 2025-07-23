@@ -6,6 +6,9 @@
 
 
 
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -16,6 +19,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub Repository Info API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubRepoInfoTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -186,6 +190,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Error formatting repository information");
                 return $"Error formatting repository information: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves basic metadata about a GitHub repository using the /repos/{owner}/{repo} endpoint.")]
+        public async Task<string> GitHubRepoInfo([Description("JSON parameters for GitHubRepoInfo")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

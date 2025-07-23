@@ -9,6 +9,9 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -17,6 +20,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub Update Issue API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubUpdateIssueTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -246,6 +250,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Error updating issue");
                 return CreateResult(true, true, $"Error updating issue: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Updates an existing issue's title, body, state, labels, assignees, or milestone. Provide only the fields to be changed.")]
+        public async Task<string> GitHubUpdateIssue([Description("JSON parameters for GitHubUpdateIssue")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

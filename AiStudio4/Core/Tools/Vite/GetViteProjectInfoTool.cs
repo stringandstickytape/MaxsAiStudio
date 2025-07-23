@@ -1,20 +1,13 @@
-﻿
-
-
-
-
-
-
-
-
-
-
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.Vite
 {
     /// <summary>
     /// Implementation of the GetViteProjectInfo tool
     /// </summary>
+    [McpServerToolType]
     public class GetViteProjectInfoTool : BaseToolImplementation
     {
         public GetViteProjectInfoTool(ILogger<GetViteProjectInfoTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
@@ -163,6 +156,26 @@ namespace AiStudio4.Core.Tools.Vite
                 _logger.LogError(ex, "Error processing GetViteProjectInfo tool");
                 SendStatusUpdate($"Error processing GetViteProjectInfo tool: {ex.Message}");
                 return Task.FromResult(CreateResult(false, true, $"Error processing GetViteProjectInfo tool: {ex.Message}"));
+            }
+        }
+
+        [McpServerTool, Description("Returns information about the Vite project")]
+        public async Task<string> GetViteProjectInfo([Description("JSON parameters for GetViteProjectInfo")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

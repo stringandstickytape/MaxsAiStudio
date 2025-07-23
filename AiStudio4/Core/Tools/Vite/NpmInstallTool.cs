@@ -1,5 +1,7 @@
 // AiStudio4/Core/Tools/Vite/NpmInstallTool.cs
-﻿
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -15,6 +17,7 @@ namespace AiStudio4.Core.Tools.Vite
     /// <summary>
     /// Implementation of the NpmInstall tool
     /// </summary>
+    [McpServerToolType]
     public class NpmInstallTool : BaseToolImplementation
     {
         private readonly IDialogService _dialogService;
@@ -147,6 +150,26 @@ namespace AiStudio4.Core.Tools.Vite
                 _logger.LogError(ex, "Error processing NpmInstall tool");
                 SendStatusUpdate($"Error processing NpmInstall tool: {ex.Message}");
                 return CreateResult(false, true, $"Error processing NpmInstall tool: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Installs npm dependencies")]
+        public async Task<string> NpmInstall([Description("JSON parameters for NpmInstall")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

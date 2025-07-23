@@ -9,6 +9,9 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -17,6 +20,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub Create Issue Comment API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubCreateIssueCommentTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -158,6 +162,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Error creating comment");
                 return CreateResult(true, true, $"Error creating comment: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Adds a new comment to a specified issue.")]
+        public async Task<string> GitHubCreateIssueComment([Description("JSON parameters for GitHubCreateIssueComment")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

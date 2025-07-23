@@ -1,21 +1,14 @@
-﻿
-
-
-
-
-
-
-
-
-
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
-
 
 namespace AiStudio4.Core.Tools.Vite
 {
-    
-    
-    
+    /// <summary>
+    /// Implementation of the InstallVitePlugin tool
+    /// </summary>
+    [McpServerToolType]
     public class InstallVitePluginTool : BaseToolImplementation
     {
         private readonly IDialogService _dialogService;
@@ -221,6 +214,26 @@ namespace AiStudio4.Core.Tools.Vite
                 _logger.LogError(ex, "Error processing InstallVitePlugin tool");
                 SendStatusUpdate($"Error processing InstallVitePlugin tool: {ex.Message}");
                 return CreateResult(false, true, $"Error processing InstallVitePlugin tool: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Installs a Vite plugin and updates the configuration to use it")]
+        public async Task<string> InstallVitePlugin([Description("JSON parameters for InstallVitePlugin")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

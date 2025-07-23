@@ -1,18 +1,13 @@
-﻿
-
-
-
-
-
-
-
-
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools.Vite
 {
     /// <summary>
     /// Implementation of the CheckNodeVersion tool
     /// </summary>
+    [McpServerToolType]
     public class CheckNodeVersionTool : BaseToolImplementation
     {
         public CheckNodeVersionTool(ILogger<CheckNodeVersionTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) 
@@ -92,6 +87,26 @@ namespace AiStudio4.Core.Tools.Vite
             bool useCmd = command.Equals("npm", StringComparison.OrdinalIgnoreCase);
             
             return await ViteCommandHelper.GetCommandOutputAsync(command, arguments, useCmd, _logger);
+        }
+
+        [McpServerTool, Description("Checks if Node.js and npm are installed and returns their versions")]
+        public async Task<string> CheckNodeVersion([Description("JSON parameters for CheckNodeVersion")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

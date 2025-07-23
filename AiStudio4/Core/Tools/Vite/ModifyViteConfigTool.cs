@@ -1,19 +1,14 @@
-﻿
-
-
-
-
-
-
-
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Text.RegularExpressions;
-
 
 namespace AiStudio4.Core.Tools.Vite
 {
-    
-    
-    
+    /// <summary>
+    /// Implementation of the ModifyViteConfig tool
+    /// </summary>
+    [McpServerToolType]
     public class ModifyViteConfigTool : BaseToolImplementation
     {
         private readonly IDialogService _dialogService;
@@ -200,6 +195,26 @@ namespace AiStudio4.Core.Tools.Vite
                 return Regex.Replace(configContent, 
                     @"(defineConfig\s*\(\s*\{)([^\}]*)(\}\s*\))", 
                     $"$1$2  plugins: {pluginsValue},$3");
+            }
+        }
+
+        [McpServerTool, Description("Modifies the Vite configuration file")]
+        public async Task<string> ModifyViteConfig([Description("JSON parameters for ModifyViteConfig")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

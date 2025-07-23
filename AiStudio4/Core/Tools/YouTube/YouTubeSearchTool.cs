@@ -7,6 +7,9 @@
 
 
 
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Net.Http;
 
 
@@ -17,6 +20,7 @@ namespace AiStudio4.Core.Tools.YouTube
     
     
     
+    [McpServerToolType]
     public class YouTubeSearchTool : BaseToolImplementation, IDisposable
     {
         
@@ -264,6 +268,26 @@ namespace AiStudio4.Core.Tools.YouTube
 
             string jsonResponse = await response.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<YouTubeSearchResult>(jsonResponse);
+        }
+
+        [McpServerTool, Description("Searches YouTube for videos, channels, or playlists based on a query.")]
+        public async Task<string> YouTubeSearch([Description("JSON parameters for YouTubeSearch")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
 
         public void Dispose()

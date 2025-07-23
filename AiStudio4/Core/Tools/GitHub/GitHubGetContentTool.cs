@@ -6,6 +6,9 @@
 
 
 
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -16,6 +19,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub Get Content API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubGetContentTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -208,6 +212,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Error extracting file content");
                 return $"Error extracting file content: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves the content of a specific file from a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint.")]
+        public async Task<string> GitHubGetContent([Description("JSON parameters for GitHubGetContent")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

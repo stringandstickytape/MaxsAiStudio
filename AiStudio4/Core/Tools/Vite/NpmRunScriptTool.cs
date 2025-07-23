@@ -1,5 +1,7 @@
 // AiStudio4/Core/Tools/Vite/NpmRunScriptTool.cs
-﻿
+﻿using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -16,6 +18,7 @@ namespace AiStudio4.Core.Tools.Vite
     /// <summary>
     /// Implementation of the NpmRunScript tool
     /// </summary>
+    [McpServerToolType]
     public class NpmRunScriptTool : BaseToolImplementation
     {
         private readonly IDialogService _dialogService;
@@ -151,6 +154,26 @@ namespace AiStudio4.Core.Tools.Vite
                 _logger.LogError(ex, "Error processing NpmRunScript tool");
                 SendStatusUpdate($"Error processing NpmRunScript tool: {ex.Message}");
                 return CreateResult(false, true, $"Error processing NpmRunScript tool: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Runs an npm script from package.json")]
+        public async Task<string> NpmRunScript([Description("JSON parameters for NpmRunScript")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

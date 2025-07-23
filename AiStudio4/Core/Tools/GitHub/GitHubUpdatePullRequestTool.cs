@@ -8,6 +8,9 @@
 
 
 using System.Net.Http;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -16,6 +19,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub Update Pull Request API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubUpdatePullRequestTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -168,6 +172,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Unexpected error in GitHub Update Pull Request tool");
                 return CreateResult(false, false, $"Unexpected error: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Updates an existing pull request in a GitHub repository. Requires GitHub Personal Access Token with repo permissions.")]
+        public async Task<string> GitHubUpdatePullRequest([Description("JSON parameters for GitHubUpdatePullRequest")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

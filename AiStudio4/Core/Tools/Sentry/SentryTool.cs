@@ -6,6 +6,9 @@
 
 
 
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 using System.Net.Http;
 using System.Net.Http.Headers;
 
@@ -16,6 +19,7 @@ namespace AiStudio4.Core.Tools.Sentry
     /// <summary>
     /// Implementation of the Sentry API tool
     /// </summary>
+    [McpServerToolType]
     public class SentryTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -347,6 +351,26 @@ namespace AiStudio4.Core.Tools.Sentry
             {
                 _logger.LogError(ex, "Error formatting issues list");
                 return $"Error formatting issues list: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Retrieves information from Sentry API including organization, project, and issue details.")]
+        public async Task<string> Sentry([Description("JSON parameters for Sentry")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

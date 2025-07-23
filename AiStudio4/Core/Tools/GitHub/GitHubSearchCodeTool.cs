@@ -8,6 +8,9 @@
 
 using System.Net.Http;
 using System.Net.Http.Headers;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -16,6 +19,7 @@ namespace AiStudio4.Core.Tools.GitHub
     /// <summary>
     /// Implementation of the GitHub Search Code API tool
     /// </summary>
+    [McpServerToolType]
     public class GitHubSearchCodeTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -307,6 +311,26 @@ namespace AiStudio4.Core.Tools.GitHub
             {
                 _logger.LogError(ex, "Error formatting search results");
                 return $"Error formatting search results: {ex.Message}\n\nRaw JSON:\n{jsonContent}";
+            }
+        }
+
+        [McpServerTool, Description("Searches for code using GitHub's code search API via the /search/code endpoint.")]
+        public async Task<string> GitHubSearchCode([Description("JSON parameters for GitHubSearchCode")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return "Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }
