@@ -4,6 +4,9 @@
 
 
 using Microsoft.Data.SqlClient;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -14,6 +17,7 @@ namespace AiStudio4.Core.Tools
     /// <summary>
     /// Implementation of the ReadSchemaDetails tool
     /// </summary>
+    [McpServerToolType]
     public class ReadDatabaseSchemaTool : BaseToolImplementation
     {
         public ReadDatabaseSchemaTool(ILogger<ReadDatabaseSchemaTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
@@ -226,6 +230,26 @@ namespace AiStudio4.Core.Tools
                         resultBuilder.AppendLine($"{schema} | {tableName} | {columnName} | {dataType} | {length} | {isNullable} | {defaultValue}");
                     }
                 }
+            }
+        }
+
+        [McpServerTool, Description("Read database schema details from SQL Server.")]
+        public async Task<string> ReadDatabaseSchema([Description("JSON parameters for ReadDatabaseSchema")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

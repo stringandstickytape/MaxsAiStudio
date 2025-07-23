@@ -9,6 +9,9 @@
 
 
 using System.Runtime.InteropServices;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -17,6 +20,7 @@ namespace AiStudio4.Core.Tools
     /// <summary>
     /// Implementation of the LaunchUrl tool
     /// </summary>
+    [McpServerToolType]
     public class LaunchUrlTool : BaseToolImplementation
     {
         public LaunchUrlTool(ILogger<LaunchUrlTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
@@ -105,6 +109,26 @@ namespace AiStudio4.Core.Tools
             _logger.LogInformation("LaunchUrl tool finished processing {Count} URLs.", urls.Count);
             SendStatusUpdate(overallSuccess ? "All URLs launched successfully." : "Completed with some errors. See details.");
             return Task.FromResult(CreateResult(overallSuccess, false, results.ToString()));
+        }
+
+        [McpServerTool, Description("Launches one or more URLs in the default web browser.")]
+        public async Task<string> LaunchUrl([Description("JSON parameters for LaunchUrl")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

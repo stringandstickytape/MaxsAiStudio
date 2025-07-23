@@ -4,6 +4,9 @@
 using AiStudio4.Core.Tools.CodeDiff;
 using AiStudio4.Core.Tools.CodeDiff.FileOperationHandlers;
 using AiStudio4.Core.Tools.CodeDiff.Models;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 
 
@@ -20,6 +23,7 @@ namespace AiStudio4.Core.Tools
     /// <summary>
     /// Implementation of the RenameFile tool that renames existing files.
     /// </summary>
+    [McpServerToolType]
     public class RenameFileTool : BaseToolImplementation
     {
         private readonly StringBuilder _validationErrorMessages;
@@ -180,6 +184,26 @@ namespace AiStudio4.Core.Tools
                 SendStatusUpdate("RenameFile failed with an unexpected error.");
                 MessageBox.Show(errorMessage, "RenameFile Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return CreateResult(true, false, toolParameters, errorMessage);
+            }
+        }
+
+        [McpServerTool, Description("Renames an existing file to a new path.")]
+        public async Task<string> RenameFile([Description("JSON parameters for RenameFile")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }

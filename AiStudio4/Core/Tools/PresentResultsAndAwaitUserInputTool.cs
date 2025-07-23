@@ -1,5 +1,9 @@
 // AiStudio4/Core/Tools/PresentResultsAndAwaitUserInputTool.cs
 
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+
 
 
 
@@ -13,6 +17,7 @@ namespace AiStudio4.Core.Tools
     /// <summary>
     /// Implementation of the PresentResultsAndAwaitUserInput tool
     /// </summary>
+    [McpServerToolType]
     public class PresentResultsAndAwaitUserInputTool : BaseToolImplementation
     {
         public PresentResultsAndAwaitUserInputTool(ILogger<PresentResultsAndAwaitUserInputTool> logger, IGeneralSettingsService generalSettingsService, IStatusMessageService statusMessageService) : base(logger, generalSettingsService, statusMessageService)
@@ -67,6 +72,26 @@ namespace AiStudio4.Core.Tools
             _logger.LogInformation("PresentResultsAndAwaitUserInput tool called with parameters: {Parameters}, continueProcessing: {ContinueProcessing}", results, continueProcessing);
             SendStatusUpdate("PresentResultsAndAwaitUserInput tool completed - awaiting user input.");
             return Task.FromResult(CreateResult(true, continueProcessing, results));
+        }
+
+        [McpServerTool, Description("Use the tool to present results, findings, or completed work to the user and then explicitly await their input. This tool is for delivering final outputs, summaries, or conclusions and then pausing to wait for user feedback, approval, or next instructions. This tool's operation will stop AI processing to wait for the user.")]
+        public async Task<string> PresentResultsAndAwaitUserInput([Description("JSON parameters for PresentResultsAndAwaitUserInput")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

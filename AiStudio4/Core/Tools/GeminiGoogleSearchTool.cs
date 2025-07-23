@@ -17,6 +17,9 @@ using SharedClasses.Providers;
 using System.Threading;
 
 using Azure;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools
 {
@@ -24,6 +27,7 @@ namespace AiStudio4.Core.Tools
     /// Tool that performs Google Search using a configured Gemini model that has built-in search capabilities.
     /// This allows other AIs to leverage Gemini's Google Search functionality indirectly.
     /// </summary>
+    [McpServerToolType]
     public class GeminiGoogleSearchTool : BaseToolImplementation
     {
         public GeminiGoogleSearchTool(
@@ -224,6 +228,26 @@ namespace AiStudio4.Core.Tools
             // --- 4. Format and return the result ---
             SendStatusUpdate("Gemini search completed. Returning results.");
             return CreateResult(true, true, string.Join("\n\n", geminiApiResponse.ContentBlocks.Where(x => x.ContentType == ContentType.Text).Select(x => x.Content)));
+        }
+
+        [McpServerTool, Description("Performs a Google Search using a configured Gemini model that has built-in search capabilities. Returns a summary of the search results and key information. Useful for finding up-to-date information or specific web content when other search tools are not appropriate or when Gemini's specific search integration is desired.")]
+        public async Task<string> GeminiGoogleSearch([Description("JSON parameters for GeminiGoogleSearch")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
     }
 }

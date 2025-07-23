@@ -9,16 +9,17 @@
 
 
 using System.Net.Http;
-
 using System.Text.RegularExpressions;
-
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
 
 namespace AiStudio4.Core.Tools
 {
-    
-    
-    
-    
+    /// <summary>
+    /// Implementation of the RetrieveTextFromUrl tool
+    /// </summary>
+    [McpServerToolType]
     public class RetrieveTextFromUrlTool : BaseToolImplementation
     {
         private readonly HttpClient _httpClient;
@@ -217,9 +218,26 @@ namespace AiStudio4.Core.Tools
             }
         }
 
-        
-        
-        
+        [McpServerTool, Description("Fetches text content from URLs by removing HTML tags.")]
+        public async Task<string> RetrieveTextFromUrl([Description("JSON parameters for RetrieveTextFromUrl")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
+        }
+
         public void Dispose()
         {
             _httpClient?.Dispose();

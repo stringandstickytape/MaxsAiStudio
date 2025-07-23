@@ -2,11 +2,14 @@
 using AiStudio4.AiServices;
 using AiStudio4.Convs;
 using AiStudio4.DataModels;
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
 using Newtonsoft.Json;
 using SharedClasses;
 using SharedClasses.Providers;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -15,6 +18,7 @@ using System.Threading.Tasks;
 
 namespace AiStudio4.Core.Tools
 {
+    [McpServerToolType]
     public class ModifyFileUsingMorph : BaseToolImplementation
     {
         public ModifyFileUsingMorph(
@@ -24,6 +28,26 @@ namespace AiStudio4.Core.Tools
             )
             : base(logger, generalSettingsService, statusMessageService)
         {
+        }
+
+        [McpServerTool, Description("Use this tool to propose an edit to an existing file. This will be read by a less intelligent model, which will quickly apply the edit. You should make it clear what the edit is, while also minimizing the unchanged code you write. You must not submit the original content, only its filename. When writing the edit, you should specify each edit in sequence, with the special comment // ... existing. You should specify the following arguments before the others: [target_file]")]
+        public async Task<string> ModifyFileUsingMorph([Description("JSON parameters for ModifyFileUsingMorph")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
+            }
         }
 
         public override Tool GetToolDefinition()

@@ -10,11 +10,16 @@
 
 
 
+using ModelContextProtocol;
+using ModelContextProtocol.Server;
+using System.ComponentModel;
+
 namespace AiStudio4.Core.Tools
 {
     /// <summary>
     /// Implementation of the RecordMistake tool for logging AI mistakes
     /// </summary>
+    [McpServerToolType]
     public class RecordMistakeTool : BaseToolImplementation
     {
         private const string MISTAKES_FILE_PATH = "CommonAiMistakes.md";
@@ -205,6 +210,26 @@ namespace AiStudio4.Core.Tools
             {
                 _logger.LogError(ex, "Error consolidating mistakes");
                 SendStatusUpdate($"Error during mistake consolidation: {ex.Message}");
+            }
+        }
+
+        [McpServerTool, Description("Records AI mistakes for future reference")]
+        public async Task<string> RecordMistake([Description("JSON parameters for RecordMistake")] string parameters = "{}")
+        {
+            try
+            {
+                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
+                
+                if (!result.WasProcessed)
+                {
+                    return $"Tool was not processed successfully.";
+                }
+                
+                return result.ResultMessage ?? "Tool executed successfully with no output.";
+            }
+            catch (Exception ex)
+            {
+                return $"Error executing tool: {ex.Message}";
             }
         }
     }
