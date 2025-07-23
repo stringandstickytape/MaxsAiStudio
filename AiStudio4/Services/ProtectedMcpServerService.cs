@@ -14,6 +14,7 @@ using System.Security.Claims;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Services.ProtectedMcpServer;
 using System.Linq;
+using AiStudio4.InjectedDependencies.WebSocket;
 
 namespace AiStudio4.Services;
 
@@ -35,7 +36,7 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
     private Task? _runningTask;
 
     public string ServerUrl { get; } = "http://localhost:7071/";
-    public string OAuthServerUrl { get; } = "https://localhost:7029";
+    public string OAuthServerUrl { get; } = "http://localhost:7029";
     public bool IsServerRunning => _app != null && _runningTask != null && !_runningTask.IsCompleted;
 
     public ProtectedMcpServerService(ILogger<ProtectedMcpServerService> logger, IBuiltinToolService builtinToolService)
@@ -68,6 +69,7 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             {
                 // Configure to validate tokens from our in-memory OAuth server
                 options.Authority = OAuthServerUrl;
+                options.RequireHttpsMetadata = false; // Allow HTTP for development
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -118,6 +120,55 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             // Register the builtin tool service as a singleton in the MCP server
             builder.Services.AddSingleton(_builtinToolService);
             
+            // Register all required services for tools (copy from main app DI)
+            
+            // Core services
+            builder.Services.AddSingleton<IConvStorage, FileSystemConvStorage>();
+            builder.Services.AddSingleton<AiStudio4.InjectedDependencies.IGeneralSettingsService, AiStudio4.InjectedDependencies.GeneralSettingsService>();
+            builder.Services.AddSingleton<AiStudio4.InjectedDependencies.IAppearanceSettingsService, AiStudio4.InjectedDependencies.AppearanceSettingsService>();
+            
+            // WebSocket services
+            builder.Services.AddSingleton<AiStudio4.InjectedDependencies.WebSocketManagement.WebSocketConnectionManager>();
+            builder.Services.AddSingleton<AiStudio4.InjectedDependencies.WebSocket.WebSocketMessageHandler>();
+            builder.Services.AddSingleton<AiStudio4.InjectedDependencies.WebSocketServer>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IWebSocketNotificationService, AiStudio4.Services.WebSocketNotificationService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IStatusMessageService, AiStudio4.Services.StatusMessageService>();
+            
+            // Chat and conversation services
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IChatService, AiStudio4.Services.DefaultChatService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IToolService, AiStudio4.Services.ToolService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.ISystemPromptService, AiStudio4.Services.SystemPromptService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IProjectService, AiStudio4.Services.ProjectService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IPinnedCommandService, AiStudio4.Services.PinnedCommandService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IUserPromptService, AiStudio4.Services.UserPromptService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IInterjectionService, AiStudio4.Services.InterjectionService>();
+            
+            // Tool and processing services
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IToolProcessorService, AiStudio4.Services.ToolProcessorService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.ISecondaryAiService, AiStudio4.Services.SecondaryAiService>();
+            builder.Services.AddSingleton<LicenseService>();
+            builder.Services.AddSingleton<Interfaces.IDotNetProjectAnalyzerService, AiStudio4.Services.DotNetProjectAnalyzerService>();
+            
+            // Conversation and archive services
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IConversationArchivingService, AiStudio4.Services.ConversationArchivingService>();
+            builder.Services.AddSingleton<ITipOfTheDayService, TipOfTheDayService>();
+            builder.Services.AddSingleton<AiStudio4.Core.Interfaces.IBuiltInToolExtraPropertiesService, BuiltInToolExtraPropertiesService>();
+            
+            // Processing services
+            builder.Services.AddSingleton<ConvService>();
+            builder.Services.AddSingleton<AiStudio4.Services.ChatProcessingService>();
+            builder.Services.AddSingleton<AiStudio4.InjectedDependencies.ChatManager>();
+            builder.Services.AddSingleton<AiStudio4.InjectedDependencies.FileServer>();
+            
+            // Tool executor and cost strategies
+            builder.Services.AddScoped<AiStudio4.Core.Interfaces.IToolExecutor, AiStudio4.Services.ToolExecutor>();
+            builder.Services.AddSingleton<AiStudio4.Services.CostingStrategies.NoCachingTokenCostStrategy>();
+            builder.Services.AddSingleton<AiStudio4.Services.CostingStrategies.ClaudeCachingTokenCostStrategy>();
+            builder.Services.AddSingleton<AiStudio4.Services.CostingStrategies.OpenAICachingTokenCostStrategy>();
+            builder.Services.AddSingleton<AiStudio4.Services.CostingStrategies.GeminiCachingTokenCostStrategy>();
+            builder.Services.AddSingleton<AiStudio4.Services.CostingStrategies.ITokenCostStrategyFactory, AiStudio4.Services.CostingStrategies.TokenCostStrategyFactory>();
+            
+
             // Find all ITool implementations with MCP attributes in our own assembly
             var toolTypes = typeof(ITool).Assembly.GetTypes()
                 .Where(type => type.IsClass && 

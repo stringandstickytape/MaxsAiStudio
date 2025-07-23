@@ -12,7 +12,7 @@ namespace ModelContextProtocol.TestOAuthServer;
 public sealed class Program
 {
     private const int _port = 7029;
-    private static readonly string _url = $"https://localhost:{_port}";
+    private static readonly string _url = $"http://localhost:{_port}";
 
     // Port 5000 is used by tests and port 7071 is used by the ProtectedMCPServer sample
     private static readonly string[] ValidResources = ["http://localhost:5000/", "http://localhost:7071/"];
@@ -74,10 +74,7 @@ public sealed class Program
 
         builder.WebHost.UseKestrel(kestrelOptions =>
         {
-            kestrelOptions.ListenLocalhost(_port, listenOptions =>
-            {
-                listenOptions.UseHttps();
-            });
+            kestrelOptions.ListenLocalhost(_port);
         });
 
         builder.Services.AddRoutingCore();

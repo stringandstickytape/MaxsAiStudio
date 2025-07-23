@@ -23,8 +23,8 @@ namespace AiStudio4.Core.Models
         // OAuth configuration for SSE transport (defaults for test server)
         public string ClientName { get; set; } = "ProtectedMcpClient";
         public string RedirectUri { get; set; } = "http://localhost:1179/callback";
-        public string AuthorizationEndpoint { get; set; } = "https://localhost:7029";
-        public string TokenEndpoint { get; set; } = "https://localhost:7029/connect/token";
+        public string AuthorizationEndpoint { get; set; } = "http://localhost:7029";
+        public string TokenEndpoint { get; set; } = "http://localhost:7029/connect/token";
         public string ClientId { get; set; } = string.Empty;
         public string ClientSecret { get; set; } = string.Empty;
     }

@@ -55,7 +55,7 @@
                 <TextBox x:Name="ServerUrlTextBox" Grid.Row="0" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="http://localhost:7071/"/>
 
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="OAuth Server URL:" VerticalAlignment="Center" Margin="0,5"/>
-                <TextBox x:Name="OAuthServerUrlTextBox" Grid.Row="1" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="https://localhost:7029"/>
+                <TextBox x:Name="OAuthServerUrlTextBox" Grid.Row="1" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="http://localhost:7029"/>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Resource Metadata:" VerticalAlignment="Center" Margin="0,5"/>
                 <TextBox x:Name="ResourceMetadataTextBox" Grid.Row="2" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="http://localhost:7071/.well-known/oauth-protected-resource"/>
