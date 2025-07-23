@@ -7,10 +7,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.AspNetCore.Authentication;
 using ModelContextProtocol.Server;
+using System.Reflection;
+using System.Linq;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Services.ProtectedMcpServer;
+using System.Linq;
 
 namespace AiStudio4.Services;
 
@@ -26,6 +29,7 @@ public interface IProtectedMcpServerService
 public class ProtectedMcpServerService : IProtectedMcpServerService
 {
     private readonly ILogger<ProtectedMcpServerService> _logger;
+    private readonly IBuiltinToolService _builtinToolService;
     private WebApplication? _app;
     private readonly CancellationTokenSource _cancellationTokenSource;
     private Task? _runningTask;
@@ -34,9 +38,10 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
     public string OAuthServerUrl { get; } = "https://localhost:7029";
     public bool IsServerRunning => _app != null && _runningTask != null && !_runningTask.IsCompleted;
 
-    public ProtectedMcpServerService(ILogger<ProtectedMcpServerService> logger)
+    public ProtectedMcpServerService(ILogger<ProtectedMcpServerService> logger, IBuiltinToolService builtinToolService)
     {
         _logger = logger;
+        _builtinToolService = builtinToolService;
         _cancellationTokenSource = new CancellationTokenSource();
     }
 
@@ -101,7 +106,7 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
                 options.ResourceMetadata = new()
                 {
                     Resource = new Uri(ServerUrl),
-                    ResourceDocumentation = new Uri("https://docs.example.com/api/weather"),
+                    ResourceDocumentation = new Uri("https://docs.example.com/api/builtin-tools"),
                     AuthorizationServers = { new Uri(OAuthServerUrl) },
                     ScopesSupported = ["mcp:tools"],
                 };
@@ -110,16 +115,59 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             builder.Services.AddAuthorization();
             builder.Services.AddHttpContextAccessor();
             
-            builder.Services.AddMcpServer()
-                .WithTools<WeatherTools>()
-                .WithHttpTransport();
-
-            // Configure HttpClientFactory for weather.gov API
-            builder.Services.AddHttpClient("WeatherApi", client =>
+            // Register the builtin tool service as a singleton in the MCP server
+            builder.Services.AddSingleton(_builtinToolService);
+            
+            // Find all ITool implementations with MCP attributes in our own assembly
+            var toolTypes = typeof(ITool).Assembly.GetTypes()
+                .Where(type => type.IsClass && 
+                              !type.IsAbstract &&
+                              typeof(ITool).IsAssignableFrom(type) &&
+                              type.GetCustomAttribute<McpServerToolTypeAttribute>() != null)
+                .ToList();
+                
+            _logger.LogInformation("Found {Count} ITool classes with MCP attributes", toolTypes.Count);
+            
+            // Build MCP server configuration string and compile dynamically
+            var registrationCode = "builder.Services.AddMcpServer()";
+            foreach (var toolType in toolTypes)
             {
-                client.BaseAddress = new Uri("https://api.weather.gov");
-                client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("weather-tool", "1.0"));
-            });
+                registrationCode += $".WithTools<{toolType.FullName}>()";
+                _logger.LogInformation("Will register MCP tool: {ToolType}", toolType.Name);
+            }
+            registrationCode += ".WithHttpTransport();";
+            
+            _logger.LogInformation("MCP Registration chain: {Chain}", registrationCode);
+            
+            // Manually register tools based on discovery
+            var mcpBuilder = builder.Services.AddMcpServer();
+            
+            // Register discovered tools dynamically
+            foreach (var toolType in toolTypes)
+            {
+                try
+                {
+                    // Find the WithTools extension method
+                    var withToolsMethod = typeof(Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions)
+                        .GetMethods(BindingFlags.Static | BindingFlags.Public)
+                        .Where(m => m.Name == "WithTools" && m.IsGenericMethodDefinition)
+                        .FirstOrDefault();
+                        
+                    if (withToolsMethod != null)
+                    {
+                        var genericMethod = withToolsMethod.MakeGenericMethod(toolType);
+                        // Extension method: first param is 'this', second is the optional JsonSerializerOptions (null)
+                        mcpBuilder = (IMcpServerBuilder)genericMethod.Invoke(null, new object[] { mcpBuilder, null });
+                        _logger.LogInformation("Successfully registered MCP tool: {ToolType}", toolType.Name);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to register MCP tool: {ToolType}", toolType.Name);
+                }
+            }
+            
+            mcpBuilder.WithHttpTransport();
 
             // Configure the server URLs
             builder.WebHost.UseUrls(ServerUrl);
