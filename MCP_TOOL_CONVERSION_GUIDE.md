@@ -151,18 +151,18 @@ For each tool file in `AiStudio4\Core\Tools\`:
 - [X] `AzureDevOpsGetPullRequestThreadsTool.cs` ✅ **COMPLETED**
 - [X] `AzureDevOpsGetRepositoriesTool.cs` ✅ **COMPLETED**
 - [X] `AzureDevOpsGetWikiPageContentTool.cs` ✅ **COMPLETED**
-- [ ] `AzureDevOpsGetWikiPagesTool.cs`
-- [ ] `AzureDevOpsGetWorkItemCommentsTool.cs`
-- [ ] `AzureDevOpsGetWorkItemsTool.cs`
-- [ ] `AzureDevOpsGetWorkItemUpdatesTool.cs`
-- [ ] `AzureDevOpsQueryWorkItemsTool.cs`
-- [ ] `AzureDevOpsSearchWikiTool.cs`
+- [X] `AzureDevOpsGetWikiPagesTool.cs` ✅ **COMPLETED**
+- [X] `AzureDevOpsGetWorkItemCommentsTool.cs` ✅ **COMPLETED**
+- [X] `AzureDevOpsGetWorkItemsTool.cs` ✅ **COMPLETED**
+- [X] `AzureDevOpsGetWorkItemUpdatesTool.cs` ✅ **COMPLETED**
+- [X] `AzureDevOpsQueryWorkItemsTool.cs` ✅ **COMPLETED**
+- [X] `AzureDevOpsSearchWikiTool.cs` ✅ **COMPLETED**
 
 **Git Tools** (located in `AiStudio4\Core\Tools\Git\`):
-- [ ] `GitBranchTool.cs`
-- [ ] `GitCommitTool.cs`
-- [ ] `GitLogTool.cs`
-- [ ] `GitStatusTool.cs`
+- [X] `GitBranchTool.cs` ✅ **COMPLETED**
+- [X] `GitCommitTool.cs` ✅ **COMPLETED**
+- [X] `GitLogTool.cs` ✅ **COMPLETED**
+- [X] `GitStatusTool.cs` ✅ **COMPLETED**
 
 **GitHub Tools** (located in `AiStudio4\Core\Tools\GitHub\`):
 - [ ] `GitHubCreateIssueCommentTool.cs`
@@ -196,7 +196,7 @@ For each tool file in `AiStudio4\Core\Tools\`:
 **YouTube Tools** (located in `AiStudio4\Core\Tools\YouTube\`):
 - [ ] `YouTubeSearchTool.cs`
 
-**Total: ~70+ tools to convert (23 completed, 47+ remaining)**
+**Total: ~70+ tools to convert (38 completed, 32+ remaining)**
 
 ## MCP Server Registration 
 
