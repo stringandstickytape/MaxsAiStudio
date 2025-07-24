@@ -19,6 +19,7 @@ using System.Linq;
 using AiStudio4.InjectedDependencies.WebSocket;
 using System.Text.Json;
 using ModelContextProtocol.Protocol;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace AiStudio4.Services;
 
@@ -319,7 +320,24 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
                                 var wrapper = new McpToolWrapper(toolInstance, extraPropertiesService);
                                 
                                 // Convert arguments to JSON string
-                                var parametersJson = request.Params.Arguments?.ToString() ?? "{}";
+                                var parametersJson = "{}";
+                                if (request.Params.Arguments != null)
+                                {
+                                    var argsDict = new Dictionary<string, object>();
+                                    foreach (var kvp in request.Params.Arguments)
+                                    {
+                                        argsDict[kvp.Key] = kvp.Value.ValueKind switch
+                                        {
+                                            JsonValueKind.String => kvp.Value.GetString(),
+                                            JsonValueKind.Number => kvp.Value.GetDecimal(),
+                                            JsonValueKind.True => true,
+                                            JsonValueKind.False => false,
+                                            JsonValueKind.Null => null,
+                                            _ => kvp.Value.GetRawText()
+                                        };
+                                    }
+                                    parametersJson = JsonSerializer.Serialize(argsDict);
+                                }
                                 
                                 var result = await wrapper.ProcessAsync(parametersJson, new Dictionary<string, string>());
                                 

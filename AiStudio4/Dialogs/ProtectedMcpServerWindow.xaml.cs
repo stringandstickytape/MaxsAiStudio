@@ -46,6 +46,7 @@ public partial class ProtectedMcpServerWindow : Window
         ServerUrlTextBox.Text = _mcpServerService.ServerUrl;
         OAuthServerUrlTextBox.Text = _mcpServerService.OAuthServerUrl;
         ResourceMetadataTextBox.Text = $"{_mcpServerService.ServerUrl}.well-known/oauth-protected-resource";
+        ClaudeCodeInstallTextBox.Text = $"claude mcp add --transport http AiStudio4 {_mcpServerService.ServerUrl}";
         
         // Setup status timer to update UI periodically
         _statusTimer = new DispatcherTimer

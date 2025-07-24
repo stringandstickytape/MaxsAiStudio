@@ -46,6 +46,7 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
@@ -61,11 +62,14 @@
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Resource Metadata:" VerticalAlignment="Center" Margin="0,5"/>
                 <TextBox x:Name="ResourceMetadataTextBox" Grid.Row="2" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="http://localhost:7071/.well-known/oauth-protected-resource"/>
 
-                <TextBlock Grid.Row="3" Grid.Column="0" Text="Resource Documentation:" VerticalAlignment="Center" Margin="0,5"/>
-                <TextBox x:Name="ResourceDocumentationTextBox" Grid.Row="3" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="https://docs.example.com/api/weather"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Claude Code Install:" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBox x:Name="ClaudeCodeInstallTextBox" Grid.Row="3" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="claude mcp add --transport http AiStudio4 http://localhost:7071/"/>
 
-                <TextBlock Grid.Row="4" Grid.Column="0" Text="Supported Scopes:" VerticalAlignment="Center" Margin="0,5"/>
-                <TextBox x:Name="SupportedScopesTextBox" Grid.Row="4" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="mcp:tools"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="Resource Documentation:" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBox x:Name="ResourceDocumentationTextBox" Grid.Row="4" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="https://docs.example.com/api/weather"/>
+
+                <TextBlock Grid.Row="5" Grid.Column="0" Text="Supported Scopes:" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBox x:Name="SupportedScopesTextBox" Grid.Row="5" Grid.Column="1" Margin="10,5" IsReadOnly="True" Text="mcp:tools"/>
 
             </Grid>
         </GroupBox>
