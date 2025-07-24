@@ -75,21 +75,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Use the tool to think about something and then explicitly await user input. It will not obtain new information or make any changes to the repository, but just log the thought. Use it when complex reasoning or brainstorming is needed, and you require user feedback or confirmation before proceeding. This tool's operation will stop AI processing to wait for the user.")]
         public async Task<string> ThinkAndAwaitUserInput([Description("JSON parameters for ThinkAndAwaitUserInput")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

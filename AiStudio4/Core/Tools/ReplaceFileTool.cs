@@ -177,21 +177,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Replaces existing files with new content.")]
         public async Task<string> ReplaceFile([Description("JSON parameters for ReplaceFile")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

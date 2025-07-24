@@ -631,21 +631,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         [McpServerTool, Description("Retrieves pipeline-related resources including variable groups, service connections, agent pools, environments, and deployment groups.")]
         public async Task<string> AzureDevOpsGetPipelineResources([Description("JSON parameters for AzureDevOpsGetPipelineResources")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

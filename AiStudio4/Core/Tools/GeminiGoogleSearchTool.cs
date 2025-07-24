@@ -233,21 +233,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Performs a Google Search using a configured Gemini model that has built-in search capabilities. Returns a summary of the search results and key information. Useful for finding up-to-date information or specific web content when other search tools are not appropriate or when Gemini's specific search integration is desired.")]
         public async Task<string> GeminiGoogleSearch([Description("JSON parameters for GeminiGoogleSearch")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

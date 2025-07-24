@@ -114,21 +114,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Launches one or more URLs in the default web browser.")]
         public async Task<string> LaunchUrl([Description("JSON parameters for LaunchUrl")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

@@ -33,21 +33,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Use this tool to propose an edit to an existing file. This will be read by a less intelligent model, which will quickly apply the edit. You should make it clear what the edit is, while also minimizing the unchanged code you write. You must not submit the original content, only its filename. When writing the edit, you should specify each edit in sequence, with the special comment // ... existing. You should specify the following arguments before the others: [target_file]")]
         public async Task<string> ModifyFileUsingMorph([Description("JSON parameters for ModifyFileUsingMorph")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
 
         public override Tool GetToolDefinition()

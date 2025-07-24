@@ -298,21 +298,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Read specified line ranges or character ranges from one or multiple files. Each file request must specify either line-based parameters (start_line, line_count) or character-based parameters (start_character, length).")]
         public async Task<string> ReadPartialFiles([Description("JSON parameters for ReadPartialFiles")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

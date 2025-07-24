@@ -298,21 +298,7 @@ namespace AiStudio4.Core.Tools.Git
         [McpServerTool, Description("Retrieves git commit history between two references (tags, branches, commits) without showing diffs. Commit messages are automatically truncated to prevent excessive output. Useful for understanding what changed between versions or getting an overview of recent development.")]
         public async Task<string> GitLog([Description("JSON parameters for GitLog")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

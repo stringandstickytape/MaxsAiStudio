@@ -77,21 +77,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Use the tool to present results, findings, or completed work to the user and then explicitly await their input. This tool is for delivering final outputs, summaries, or conclusions and then pausing to wait for user feedback, approval, or next instructions. This tool's operation will stop AI processing to wait for the user.")]
         public async Task<string> PresentResultsAndAwaitUserInput([Description("JSON parameters for PresentResultsAndAwaitUserInput")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

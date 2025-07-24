@@ -24,7 +24,6 @@ namespace AiStudio4.Core.Tools
             return new Tool
             {
                 Guid = ToolGuids.READ_FILES_TOOL_GUID,
-                Name = "ReadFiles",
                 ExtraProperties = new Dictionary<string, string> {
                     { "excludedFileExtensions (CSV)", "" }, //".cs" }
                 },
@@ -166,21 +165,7 @@ namespace AiStudio4.Core.Tools
         [McpServerTool, Description("Read the contents of one or multiple files.")]
         public async Task<string> ReadFiles([Description("JSON parameters for ReadFiles")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

@@ -220,21 +220,7 @@ namespace AiStudio4.Core.Tools.AzureDevOps
         [McpServerTool, Description("Retrieves the content of a specific wiki page from Azure DevOps.")]
         public async Task<string> AzureDevOpsGetWikiPageContent([Description("JSON parameters for AzureDevOpsGetWikiPageContent")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

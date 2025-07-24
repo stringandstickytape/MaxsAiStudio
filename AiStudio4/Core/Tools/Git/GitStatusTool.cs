@@ -444,21 +444,7 @@ namespace AiStudio4.Core.Tools.Git
         [McpServerTool, Description("Shows working directory status, current branch, and repository state information including ahead/behind remote status.")]
         public async Task<string> GitStatus([Description("JSON parameters for GitStatus")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return $"Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

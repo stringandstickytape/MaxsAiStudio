@@ -218,21 +218,7 @@ namespace AiStudio4.Core.Tools.GitHub
         [McpServerTool, Description("Retrieves the content of a specific file from a GitHub repository using the /repos/{owner}/{repo}/contents/{path} endpoint.")]
         public async Task<string> GitHubGetContent([Description("JSON parameters for GitHubGetContent")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return "Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }

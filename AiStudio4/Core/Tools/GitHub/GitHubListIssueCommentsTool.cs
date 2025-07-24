@@ -235,21 +235,7 @@ namespace AiStudio4.Core.Tools.GitHub
         [McpServerTool, Description("Retrieves all comments for a specific issue, ordered by creation date.")]
         public async Task<string> GitHubListIssueComments([Description("JSON parameters for GitHubListIssueComments")] string parameters = "{}")
         {
-            try
-            {
-                var result = await ProcessAsync(parameters, new Dictionary<string, string>());
-                
-                if (!result.WasProcessed)
-                {
-                    return "Tool was not processed successfully.";
-                }
-                
-                return result.ResultMessage ?? "Tool executed successfully with no output.";
-            }
-            catch (Exception ex)
-            {
-                return $"Error executing tool: {ex.Message}";
-            }
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }
