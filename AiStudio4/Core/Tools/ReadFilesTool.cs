@@ -28,6 +28,7 @@ namespace AiStudio4.Core.Tools
                     { "excludedFileExtensions (CSV)", "" }, //".cs" }
                 },
                 Description = "Read the contents of one or multiple files.",
+                Name="ReadFiles",
                 Schema = """
 {
   "name": "ReadFiles",

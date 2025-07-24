@@ -17,6 +17,8 @@ using AiStudio4.InjectedDependencies;
 using AiStudio4.Core;
 using System.Linq;
 using AiStudio4.InjectedDependencies.WebSocket;
+using System.Text.Json;
+using ModelContextProtocol.Protocol;
 
 namespace AiStudio4.Services;
 
@@ -236,33 +238,112 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             
             _logger.LogInformation("MCP Registration chain: {Chain}", registrationCode);
             
-            // Manually register tools based on discovery
-            var mcpBuilder = builder.Services.AddMcpServer();
-            
-            // Register discovered tools dynamically
-            foreach (var toolType in toolTypes)
+            // Use manual configuration to provide proper schemas from GetToolDefinition()
+            var mcpBuilder = builder.Services.AddMcpServer(options =>
             {
-                try
+                options.ServerInfo = new ModelContextProtocol.Protocol.Implementation 
+                { 
+                    Name = "AiStudio4-MCP-Server", 
+                    Version = "1.0.0" 
+                };
+                
+                options.Capabilities = new ModelContextProtocol.Protocol.ServerCapabilities
                 {
-                    // Find the WithTools extension method
-                    var withToolsMethod = typeof(Microsoft.Extensions.DependencyInjection.McpServerBuilderExtensions)
-                        .GetMethods(BindingFlags.Static | BindingFlags.Public)
-                        .Where(m => m.Name == "WithTools" && m.IsGenericMethodDefinition)
-                        .FirstOrDefault();
-                        
-                    if (withToolsMethod != null)
+                    Tools = new ModelContextProtocol.Protocol.ToolsCapability
                     {
-                        var genericMethod = withToolsMethod.MakeGenericMethod(toolType);
-                        // Extension method: first param is 'this', second is the optional JsonSerializerOptions (null)
-                        mcpBuilder = (IMcpServerBuilder)genericMethod.Invoke(null, new object[] { mcpBuilder, null });
-                        _logger.LogInformation("Successfully registered MCP tool: {ToolType}", toolType.Name);
+                        ListToolsHandler = (request, cancellationToken) =>
+                        {
+                            var tools = new List<ModelContextProtocol.Protocol.Tool>();
+                            
+                            // Build tools list from enabled ITool implementations
+                            foreach (var toolType in toolTypes)
+                            {
+                                try
+                                {
+                                    var toolInstance = builder.Services.BuildServiceProvider().GetService(toolType) as ITool;
+                                    if (toolInstance != null)
+                                    {
+                                        var toolDefinition = toolInstance.GetToolDefinition();
+                                        if (toolDefinition != null && !string.IsNullOrEmpty(toolDefinition.Schema))
+                                        {
+                                            var schemaJson = JsonDocument.Parse(toolDefinition.Schema);
+                                            var inputSchema = schemaJson.RootElement.GetProperty("input_schema");
+                                            
+                                            tools.Add(new ModelContextProtocol.Protocol.Tool
+                                            {
+                                                Name = toolDefinition.Name,
+                                                Description = toolDefinition.Description,
+                                                InputSchema = inputSchema.Clone()
+                                            });
+                                            
+                                            _logger.LogInformation("Added tool {ToolName} with proper schema", toolDefinition.Name);
+                                        }
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    _logger.LogWarning(ex, "Failed to add tool {ToolType}", toolType.Name);
+                                }
+                            }
+                            
+                            return ValueTask.FromResult(new ModelContextProtocol.Protocol.ListToolsResult
+                            {
+                                Tools = tools
+                            });
+                        },
+                        
+                        CallToolHandler = async (request, cancellationToken) =>
+                        {
+                            var toolName = request.Params?.Name;
+                            if (string.IsNullOrEmpty(toolName))
+                            {
+                                throw new Exception("Tool name is required");
+                            }
+                            
+                            // Find the tool type and execute it
+                            var toolType = toolTypes.FirstOrDefault(t =>
+                            {
+                                var instance = builder.Services.BuildServiceProvider().GetService(t) as ITool;
+                                return instance?.GetToolDefinition()?.Name == toolName;
+                            });
+                            
+                            if (toolType == null)
+                            {
+                                throw new Exception($"Unknown tool: '{toolName}'");
+                            }
+                            
+                            try
+                            {
+                                var toolInstance = builder.Services.BuildServiceProvider().GetService(toolType) as ITool;
+                                var extraPropertiesService = builder.Services.BuildServiceProvider().GetService<IBuiltInToolExtraPropertiesService>();
+                                var wrapper = new McpToolWrapper(toolInstance, extraPropertiesService);
+                                
+                                // Convert arguments to JSON string
+                                var parametersJson = request.Params.Arguments?.ToString() ?? "{}";
+                                
+                                var result = await wrapper.ProcessAsync(parametersJson, new Dictionary<string, string>());
+                                
+                                return new ModelContextProtocol.Protocol.CallToolResult
+                                {
+                                    Content = new[]
+                                    {
+                                        new ModelContextProtocol.Protocol.TextContentBlock
+                                        {
+                                            Text = result.ResultMessage ?? "Tool executed successfully",
+                                            Type = "text"
+                                        }
+                                    }
+                                };
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, "Error executing tool {ToolName}", toolName);
+                                throw new Exception($"Tool execution error: {ex.Message}");
+                            }
+                        }
                     }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to register MCP tool: {ToolType}", toolType.Name);
-                }
-            }
+                };
+            });
             
             mcpBuilder.WithHttpTransport();
 
