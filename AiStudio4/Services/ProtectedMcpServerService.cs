@@ -38,7 +38,7 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
     private readonly IBuiltinToolService _builtinToolService;
     private readonly IGeneralSettingsService _settingsService;
     private WebApplication? _app;
-    private readonly CancellationTokenSource _cancellationTokenSource;
+    private CancellationTokenSource _cancellationTokenSource;
     private Task? _runningTask;
 
     public string ServerUrl { get; } = "http://localhost:7071/";
@@ -61,6 +61,14 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
             {
                 _logger.LogWarning("MCP server is already running");
                 return true;
+            }
+
+            // Create a new cancellation token source if the current one is cancelled
+            if (_cancellationTokenSource.IsCancellationRequested)
+            {
+                _cancellationTokenSource?.Dispose();
+                _cancellationTokenSource = new CancellationTokenSource();
+                _logger.LogInformation("Created new cancellation token source for MCP server restart");
             }
 
             _logger.LogInformation("Starting MCP server with authorization at {ServerUrl}", ServerUrl);
