@@ -263,8 +263,9 @@ public sealed class Program
             var code = GenerateRandomToken();
             var requestedScopes = scope?.Split(' ').ToList() ?? [];
 
-            // Store code information for later verification
-            _authCodes[code] = new AuthorizationCodeInfo
+            // Store session information for user confirmation (don't store the actual code yet)
+            var sessionId = Guid.NewGuid().ToString();
+            _authCodes[sessionId] = new AuthorizationCodeInfo
             {
                 ClientId = client_id,
                 RedirectUri = redirect_uri,
@@ -273,18 +274,432 @@ public sealed class Program
                 Resource = !string.IsNullOrEmpty(resource) ? new Uri(resource) : null,
                 IssuedAt = DateTimeOffset.UtcNow
             };
+
+            // Show confirmation page instead of immediately redirecting
+            var confirmationHtml = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AIStudio4 - Authorization</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }}
+        body::before {{
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 20% 30%, rgba(0, 255, 136, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, rgba(0, 204, 255, 0.08) 0%, transparent 50%);
+            animation: float 20s ease-in-out infinite;
+        }}
+        @keyframes float {{
+            0%, 100% {{ transform: translate(0, 0) rotate(0deg); }}
+            50% {{ transform: translate(-30px, -30px) rotate(180deg); }}
+        }}
+        .container {{ 
+            max-width: 480px;
+            width: 90%;
+            background: rgba(16, 16, 16, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 40px rgba(0, 255, 136, 0.1),
+                        0 0 80px rgba(0, 204, 255, 0.05),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+            position: relative;
+            z-index: 1;
+        }}
+        h2 {{ 
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }}
+        .message {{ 
+            margin: 20px 0;
+            color: #b0b0b0;
+            line-height: 1.6;
+            text-align: center;
+            font-size: 15px;
+        }}
+        .client-info {{ 
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 24px 0;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', monospace;
+            font-size: 14px;
+        }}
+        .client-info-item {{
+            margin: 8px 0;
+            display: flex;
+            align-items: baseline;
+        }}
+        .client-info strong {{ 
+            color: #00ff88;
+            margin-right: 12px;
+            min-width: 80px;
+            display: inline-block;
+        }}
+        .client-info-value {{
+            color: #e0e0e0;
+            word-break: break-word;
+        }}
+        .button-group {{
+            display: flex;
+            gap: 16px;
+            margin-top: 32px;
+            justify-content: center;
+        }}
+        button {{ 
+            padding: 14px 32px;
+            font-size: 15px;
+            font-weight: 500;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }}
+        button::before {{
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }}
+        button:active::before {{
+            width: 300px;
+            height: 300px;
+        }}
+        .authorize-btn {{ 
+            background: linear-gradient(135deg, #00ff88 0%, #00d975 100%);
+            color: #0a0a0a;
+            box-shadow: 0 4px 20px rgba(0, 255, 136, 0.3);
+        }}
+        .authorize-btn:hover {{ 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 255, 136, 0.4);
+        }}
+        .deny-btn {{ 
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }}
+        .deny-btn:hover {{ 
+            background: rgba(255, 67, 54, 0.1);
+            border-color: rgba(255, 67, 54, 0.3);
+            color: #ff4336;
+        }}
+        .status {{ 
+            margin-top: 24px;
+            font-weight: 500;
+            text-align: center;
+            height: 24px;
+            color: #00ff88;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }}
+        .status.visible {{ opacity: 1; }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <h2>AIStudio4 Authorization</h2>
+        <div class='message'>
+            An application is requesting access to your AIStudio4 resources
+        </div>
+        <div class='client-info'>
+            <div class='client-info-item'>
+                <strong>Client:</strong>
+                <span class='client-info-value'>{client_id}</span>
+            </div>
+            <div class='client-info-item'>
+                <strong>Scopes:</strong>
+                <span class='client-info-value'>{(string.IsNullOrEmpty(scope) ? "Default access" : scope)}</span>
+            </div>
+            <div class='client-info-item'>
+                <strong>Resource:</strong>
+                <span class='client-info-value'>{resource}</span>
+            </div>
+        </div>
+        <div class='message'>
+            Grant this application access to the requested resources?
+        </div>
+        <div class='button-group'>
+            <button class='authorize-btn' onclick='authorize(""{sessionId}"", ""{code}"", ""{redirect_uri}"", ""{state}"")'>Authorize</button>
+            <button class='deny-btn' onclick='deny(""{redirect_uri}"", ""{state}"")'>Deny</button>
+        </div>
+        <div id='status' class='status'></div>
+    </div>
+    <script>
+        function authorize(sessionId, code, redirectUri, state) {{
+            var status = document.getElementById('status');
+            status.innerHTML = 'Authorizing...';
+            status.classList.add('visible');
+            
+            var url = '/authorize/confirm?session_id=' + encodeURIComponent(sessionId) + 
+                     '&code=' + encodeURIComponent(code) + 
+                     '&redirect_uri=' + encodeURIComponent(redirectUri);
+            if (state) {{
+                url += '&state=' + encodeURIComponent(state);
+            }}
+            
+            setTimeout(() => {{
+                window.location.href = url;
+            }}, 300);
+        }}
+        
+        function deny(redirectUri, state) {{
+            var status = document.getElementById('status');
+            status.innerHTML = 'Access denied';
+            status.style.color = '#ff4336';
+            status.classList.add('visible');
+            
+            var url = redirectUri + '?error=access_denied&error_description=User+denied+authorization';
+            if (state) {{
+                url += '&state=' + encodeURIComponent(state);
+            }}
+            
+            setTimeout(() => {{
+                window.location.href = url;
+            }}, 500);
+        }}
+    </script>
+</body>
+</html>";
+
+            return Results.Content(confirmationHtml, "text/html");
+        });
+
+        // Authorization confirmation endpoint
+        app.MapGet("/authorize/confirm", (
+            [FromQuery] string session_id,
+            [FromQuery] string code,
+            [FromQuery] string redirect_uri,
+            [FromQuery] string? state) =>
+        {
+            // Validate session
+            if (!_authCodes.TryRemove(session_id, out var sessionInfo))
+            {
+                return Results.BadRequest("Invalid or expired session");
+            }
+
+            // Now that user has approved, store the actual authorization code
+            _authCodes[code] = sessionInfo;
             
             // Persist authorization codes
             _persistenceManager.SaveAuthorizationCodes(_authCodes);
 
-            // Redirect back to client with the code
+            // Build the redirect URL with the authorization code
             var redirectUrl = $"{redirect_uri}?code={code}";
             if (!string.IsNullOrEmpty(state))
             {
                 redirectUrl += $"&state={Uri.EscapeDataString(state)}";
             }
 
-            return Results.Redirect(redirectUrl);
+            // Show success page and redirect
+            var successHtml = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AIStudio4 - Authorization Complete</title>
+    <style>
+        * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+        body {{ 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }}
+        body::before {{
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.15) 0%, transparent 50%);
+            animation: pulse 3s ease-in-out infinite;
+        }}
+        @keyframes pulse {{
+            0%, 100% {{ transform: scale(1) rotate(0deg); opacity: 0.8; }}
+            50% {{ transform: scale(1.1) rotate(10deg); opacity: 1; }}
+        }}
+        .container {{ 
+            max-width: 480px;
+            width: 90%;
+            background: rgba(16, 16, 16, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.2),
+                        0 0 120px rgba(0, 255, 136, 0.1),
+                        inset 0 0 0 1px rgba(0, 255, 136, 0.3);
+            position: relative;
+            z-index: 1;
+            animation: slideIn 0.5s ease-out;
+        }}
+        @keyframes slideIn {{
+            from {{
+                opacity: 0;
+                transform: scale(0.95);
+            }}
+            to {{
+                opacity: 1;
+                transform: scale(1);
+            }}
+        }}
+        .checkmark {{
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            position: relative;
+            animation: checkmarkScale 0.6s ease-out;
+        }}
+        @keyframes checkmarkScale {{
+            0% {{ transform: scale(0); }}
+            50% {{ transform: scale(1.2); }}
+            100% {{ transform: scale(1); }}
+        }}
+        .checkmark svg {{
+            width: 100%;
+            height: 100%;
+        }}
+        .checkmark-circle {{
+            stroke: #00ff88;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: checkmarkCircle 0.6s ease-out forwards;
+        }}
+        @keyframes checkmarkCircle {{
+            to {{ stroke-dashoffset: 0; }}
+        }}
+        .checkmark-check {{
+            stroke: #00ff88;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkmarkCheck 0.6s ease-out 0.3s forwards;
+        }}
+        @keyframes checkmarkCheck {{
+            to {{ stroke-dashoffset: 0; }}
+        }}
+        h2 {{ 
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }}
+        .message {{ 
+            margin: 20px 0;
+            color: #b0b0b0;
+            line-height: 1.6;
+            text-align: center;
+            font-size: 15px;
+        }}
+        .redirect-notice {{
+            margin-top: 32px;
+            padding: 16px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #00ff88;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out 0.5s both;
+        }}
+        @keyframes fadeIn {{
+            from {{ opacity: 0; }}
+            to {{ opacity: 1; }}
+        }}
+        .progress-bar {{
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 16px;
+            overflow: hidden;
+        }}
+        .progress-fill {{
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88 0%, #00ccff 100%);
+            animation: progress 2s linear forwards;
+        }}
+        @keyframes progress {{
+            from {{ width: 0%; }}
+            to {{ width: 100%; }}
+        }}
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='checkmark'>
+            <svg viewBox='0 0 52 52'>
+                <circle class='checkmark-circle' cx='26' cy='26' r='25'/>
+                <path class='checkmark-check' d='M14.1 27.2l7.1 7.2 16.7-16.8'/>
+            </svg>
+        </div>
+        <h2>Authorization Complete</h2>
+        <div class='message'>
+            You have successfully authorized the application. This window will close automatically.
+        </div>
+        <div class='redirect-notice'>
+            This window will close automatically...
+            <div class='progress-bar'>
+                <div class='progress-fill'></div>
+            </div>
+        </div>
+    </div>
+    <script>
+        // First redirect to complete the OAuth flow
+        window.location.href = '{redirectUrl}';
+        
+        // Then close the window after a short delay
+        setTimeout(function() {{
+            window.close();
+        }}, 2000);
+    </script>
+</body>
+</html>";
+
+            return Results.Content(successHtml, "text/html");
         });
 
         // Token endpoint

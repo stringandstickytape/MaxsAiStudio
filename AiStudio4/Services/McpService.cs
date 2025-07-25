@@ -393,11 +393,69 @@ public async Task StopServerAsync(string serverId)
         {
             try
             {
-                // Open the authorization URL in the default browser
+                // Create a temporary HTML file that opens the authorization URL in a popup window
+                var tempHtml = $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Opening Authorization...</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }}
+        .message {{
+            text-align: center;
+        }}
+    </style>
+</head>
+<body>
+    <div class='message'>
+        <p>Opening authorization window...</p>
+        <p>If the window doesn't open, <a href='{authorizationUrl}' target='_blank'>click here</a>.</p>
+    </div>
+    <script>
+        // Open OAuth authorization in a popup window that we can control
+        var width = 600;
+        var height = 700;
+        var left = (screen.width - width) / 2;
+        var top = (screen.height - height) / 2;
+        
+        var authWindow = window.open(
+            '{authorizationUrl}',
+            'AIStudio4_OAuth',
+            'width=' + width + ',height=' + height + ',left=' + left + ',top=' + top + ',toolbar=no,menubar=no,location=no,status=no'
+        );
+        
+        // Close this launcher window after a moment
+        setTimeout(function() {{
+            window.close();
+        }}, 1000);
+    </script>
+</body>
+</html>";
+                
+                var tempFile = Path.Combine(Path.GetTempPath(), $"aistudio4_oauth_{Guid.NewGuid()}.html");
+                File.WriteAllText(tempFile, tempHtml);
+                
+                // Open the temporary HTML file
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
                 {
-                    FileName = authorizationUrl.ToString(),
+                    FileName = tempFile,
                     UseShellExecute = true
+                });
+                
+                // Clean up temp file after a delay
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(5000);
+                    try { File.Delete(tempFile); } catch { }
                 });
 
                 // Start HTTP listener for the callback
@@ -414,7 +472,158 @@ public async Task StopServerAsync(string serverId)
                 
                 // Send a response to the browser
                 var response = context.Response;
-                string responseString = "<html><body>Authorization complete. You can close this window.</body></html>";
+                string responseString = @"
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AIStudio4 - Authentication Complete</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.15) 0%, transparent 50%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: scale(1.1) rotate(10deg); opacity: 1; }
+        }
+        .container { 
+            max-width: 480px;
+            width: 90%;
+            background: rgba(16, 16, 16, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 0 60px rgba(0, 255, 136, 0.2),
+                        0 0 120px rgba(0, 255, 136, 0.1),
+                        inset 0 0 0 1px rgba(0, 255, 136, 0.3);
+            position: relative;
+            z-index: 1;
+            animation: slideIn 0.5s ease-out;
+        }
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            position: relative;
+            animation: checkmarkScale 0.6s ease-out;
+        }
+        @keyframes checkmarkScale {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        .checkmark svg {
+            width: 100%;
+            height: 100%;
+        }
+        .checkmark-circle {
+            stroke: #00ff88;
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 166;
+            stroke-dashoffset: 166;
+            animation: checkmarkCircle 0.6s ease-out forwards;
+        }
+        @keyframes checkmarkCircle {
+            to { stroke-dashoffset: 0; }
+        }
+        .checkmark-check {
+            stroke: #00ff88;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 48;
+            stroke-dashoffset: 48;
+            animation: checkmarkCheck 0.6s ease-out 0.3s forwards;
+        }
+        @keyframes checkmarkCheck {
+            to { stroke-dashoffset: 0; }
+        }
+        h2 { 
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            background: linear-gradient(135deg, #00ff88 0%, #00ccff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+        }
+        .message { 
+            margin: 20px 0;
+            color: #b0b0b0;
+            line-height: 1.6;
+            text-align: center;
+            font-size: 15px;
+        }
+        .close-notice {
+            margin-top: 32px;
+            padding: 16px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 8px;
+            font-size: 14px;
+            color: #00ff88;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out 0.5s both;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='checkmark'>
+            <svg viewBox='0 0 52 52'>
+                <circle class='checkmark-circle' cx='26' cy='26' r='25'/>
+                <path class='checkmark-check' d='M14.1 27.2l7.1 7.2 16.7-16.8'/>
+            </svg>
+        </div>
+        <h2>Authentication Successful</h2>
+        <div class='message'>
+            You can close this window and return to AIStudio4.
+        </div>
+        <div class='close-notice'>
+            Window will close automatically in a moment...
+        </div>
+    </div>
+    <script>
+        // Try to close the window after a short delay
+        setTimeout(function() {
+            window.close();
+        }, 1500);
+    </script>
+</body>
+</html>";
                 byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
                 response.ContentLength64 = buffer.Length;
                 response.OutputStream.Write(buffer, 0, buffer.Length);
