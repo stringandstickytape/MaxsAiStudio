@@ -83,12 +83,25 @@ public partial class ProtectedMcpServerWindow : Window
 
     private void UpdateServerStatus()
     {
-        bool isRunning = _mcpServerService.IsServerRunning;
+        bool mcpRunning = _mcpServerService.IsServerRunning;
+        bool oauthRunning = _oauthServerManager.IsRunning;
         
-        StatusTextBlock.Text = isRunning ? "Running" : "Stopped";
-        StatusTextBlock.Foreground = isRunning ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
+        StatusTextBlock.Text = mcpRunning ? "Running" : "Stopped";
+        StatusTextBlock.Foreground = mcpRunning ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
         
-        StartStopButton.Content = isRunning ? "Stop Server" : "Start Server";
+        OAuthStatusTextBlock.Text = oauthRunning ? "Running" : "Stopped";
+        OAuthStatusTextBlock.Foreground = oauthRunning ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
+        
+        // Button text based on the state - if either is running, show "Stop Servers"
+        if (mcpRunning || oauthRunning)
+        {
+            StartStopButton.Content = "Stop Servers";
+        }
+        else
+        {
+            StartStopButton.Content = "Start Servers";
+        }
+        
         StartStopButton.IsEnabled = true;
     }
 
@@ -98,14 +111,50 @@ public partial class ProtectedMcpServerWindow : Window
         
         try
         {
-            if (_mcpServerService.IsServerRunning)
+            bool mcpRunning = _mcpServerService.IsServerRunning;
+            bool oauthRunning = _oauthServerManager.IsRunning;
+            
+            if (mcpRunning || oauthRunning)
             {
-                LogMessage("Stopping MCP server...");
-                await _mcpServerService.StopServerAsync();
-                LogMessage("MCP server stopped successfully");
+                // Stop servers in reverse order: MCP first, then OAuth
+                if (mcpRunning)
+                {
+                    LogMessage("Stopping MCP server...");
+                    await _mcpServerService.StopServerAsync();
+                    LogMessage("✓ MCP server stopped successfully");
+                }
+                
+                if (oauthRunning)
+                {
+                    LogMessage("Stopping OAuth server...");
+                    await _oauthServerManager.StopAsync();
+                    LogMessage("✓ OAuth server stopped successfully");
+                }
+                
+                LogMessage("");
+                LogMessage("All servers stopped.");
             }
             else
             {
+                // Start servers in order: OAuth first, then MCP
+                LogMessage("Starting OAuth server...");
+                LogMessage($"OAuth server will bind to: {_oauthServerManager.BaseUrl}");
+                LogMessage("Configuring OAuth endpoints...");
+                LogMessage("Setting up demo clients...");
+                
+                await _oauthServerManager.StartAsync();
+                LogMessage("✓ OAuth server started successfully");
+                LogMessage($"✓ OAuth server listening on: {_oauthServerManager.BaseUrl}");
+                LogMessage("✓ Authorization endpoint: /authorize");
+                LogMessage("✓ Token endpoint: /token");
+                LogMessage("✓ Metadata endpoint: /.well-known/oauth-authorization-server");
+                LogMessage("✓ JWKS endpoint: /.well-known/jwks.json");
+                LogMessage("✓ Demo client configured (ID: demo-client)");
+                LogMessage("");
+                
+                // Wait a moment for OAuth server to be fully ready
+                await Task.Delay(2000);
+                
                 LogMessage("Starting MCP server...");
                 LogMessage($"Server will bind to: {_mcpServerService.ServerUrl}");
                 LogMessage($"Using OAuth server: {_mcpServerService.OAuthServerUrl}");
@@ -121,11 +170,14 @@ public partial class ProtectedMcpServerWindow : Window
                     LogMessage($"✓ Resource metadata available at: {_mcpServerService.ServerUrl}.well-known/oauth-protected-resource");
                     LogMessage("✓ WeatherTools registered and ready");
                     LogMessage("");
-                    LogMessage("Server is ready to accept authenticated MCP requests!");
+                    LogMessage("🚀 Both servers are running and ready to accept authenticated MCP requests!");
                 }
                 else
                 {
                     LogMessage("✗ Failed to start MCP server. Check application logs for details.");
+                    LogMessage("Stopping OAuth server due to MCP server failure...");
+                    await _oauthServerManager.StopAsync();
+                    LogMessage("✓ OAuth server stopped");
                 }
             }
         }
@@ -133,6 +185,26 @@ public partial class ProtectedMcpServerWindow : Window
         {
             _logger.LogError(ex, "Error during server start/stop operation");
             LogMessage($"Error: {ex.Message}");
+            
+            // Attempt to stop both servers on error
+            try
+            {
+                if (_mcpServerService.IsServerRunning)
+                {
+                    await _mcpServerService.StopServerAsync();
+                    LogMessage("✓ MCP server stopped after error");
+                }
+                if (_oauthServerManager.IsRunning)
+                {
+                    await _oauthServerManager.StopAsync();
+                    LogMessage("✓ OAuth server stopped after error");
+                }
+            }
+            catch (Exception cleanupEx)
+            {
+                _logger.LogError(cleanupEx, "Error during cleanup after failure");
+                LogMessage($"Cleanup error: {cleanupEx.Message}");
+            }
         }
         finally
         {
@@ -226,16 +298,8 @@ public partial class ProtectedMcpServerWindow : Window
 
     private void UpdateOAuthServerStatus()
     {
-        bool isRunning = _oauthServerManager.IsRunning;
-        
-        OAuthStatusTextBlock.Text = isRunning ? "Running" : "Stopped";
-        OAuthStatusTextBlock.Foreground = isRunning ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
-        
-        OAuthStartStopButton.Content = isRunning ? "Stop OAuth" : "Start OAuth";
-        OAuthStartStopButton.IsEnabled = true;
-        
         // Update URL display
-        OAuthServerUrlDisplayTextBlock.Text = _oauthServerManager.BaseUrl;
+        OAuthServerUrlDisplayTextBox.Text = _oauthServerManager.BaseUrl;
     }
 
     private void UpdateOAuthParametersDisplay()
@@ -244,47 +308,6 @@ public partial class ProtectedMcpServerWindow : Window
         HasIssuedRefreshTokenCheckBox.IsChecked = _oauthServerManager.HasIssuedRefreshToken;
     }
 
-    private async void OAuthStartStopButton_Click(object sender, RoutedEventArgs e)
-    {
-        OAuthStartStopButton.IsEnabled = false;
-        
-        try
-        {
-            if (_oauthServerManager.IsRunning)
-            {
-                LogMessage("Stopping OAuth server...");
-                await _oauthServerManager.StopAsync();
-                LogMessage("OAuth server stopped successfully");
-            }
-            else
-            {
-                LogMessage("Starting OAuth server...");
-                LogMessage($"OAuth server will bind to: {_oauthServerManager.BaseUrl}");
-                LogMessage("Configuring OAuth endpoints...");
-                LogMessage("Setting up demo clients...");
-                
-                await _oauthServerManager.StartAsync();
-                LogMessage("✓ OAuth server started successfully");
-                LogMessage($"✓ OAuth server listening on: {_oauthServerManager.BaseUrl}");
-                LogMessage("✓ Authorization endpoint: /authorize");
-                LogMessage("✓ Token endpoint: /token");
-                LogMessage("✓ Metadata endpoint: /.well-known/oauth-authorization-server");
-                LogMessage("✓ JWKS endpoint: /.well-known/jwks.json");
-                LogMessage("✓ Demo client configured (ID: demo-client)");
-                LogMessage("");
-                LogMessage("OAuth server is ready to issue JWT tokens!");
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during OAuth server start/stop operation");
-            LogMessage($"OAuth Error: {ex.Message}");
-        }
-        finally
-        {
-            UpdateOAuthServerStatus();
-        }
-    }
 
     private void OAuthParameter_Changed(object sender, RoutedEventArgs e)
     {

@@ -30,15 +30,32 @@
 
         <!-- Server Status -->
         <GroupBox Grid.Row="1" Header="Server Status" Margin="10">
-            <StackPanel Orientation="Horizontal" Margin="10">
-                <TextBlock Text="Status: " FontWeight="Bold" VerticalAlignment="Center"/>
-                <TextBlock x:Name="StatusTextBlock" Text="Stopped" Foreground="Red" VerticalAlignment="Center" Margin="5,0"/>
-                <Button x:Name="StartStopButton" Content="Start Server" Width="100" Height="30" Margin="20,0" Click="StartStopButton_Click"/>
-            </StackPanel>
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal">
+                    <TextBlock Text="OAuth Server: " FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="OAuthStatusTextBlock" Text="Stopped" Foreground="Red" VerticalAlignment="Center" Margin="5,0"/>
+                    <TextBlock Text=" | MCP Server: " FontWeight="Bold" VerticalAlignment="Center" Margin="10,0,0,0"/>
+                    <TextBlock x:Name="StatusTextBlock" Text="Stopped" Foreground="Red" VerticalAlignment="Center" Margin="5,0"/>
+                </StackPanel>
+                
+                <Button x:Name="StartStopButton" Grid.Row="0" Grid.Column="1" Content="Start Servers" Width="120" Height="30" Click="StartStopButton_Click"/>
+                
+                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="OAuth server starts first, then MCP server. Stopping reverses the order." 
+                          FontStyle="Italic" Foreground="Gray" Margin="0,5,0,0"/>
+            </Grid>
         </GroupBox>
 
-        <!-- OAuth Server Management -->
-        <GroupBox Grid.Row="2" Header="OAuth Server Management" Margin="10">
+        <!-- OAuth Server Configuration -->
+        <GroupBox Grid.Row="2" Header="OAuth Server Configuration" Margin="10">
             <Grid Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -52,18 +69,17 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="OAuth Server Status:" VerticalAlignment="Center" Margin="0,5"/>
-                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="10,5">
-                    <TextBlock x:Name="OAuthStatusTextBlock" Text="Stopped" Foreground="Red" VerticalAlignment="Center"/>
-                    <TextBlock Text=" | " Margin="10,0" VerticalAlignment="Center"/>
-                    <TextBlock x:Name="OAuthServerUrlDisplayTextBlock" Text="http://localhost:7029" VerticalAlignment="Center"/>
-                </StackPanel>
-                <Button x:Name="OAuthStartStopButton" Grid.Row="0" Grid.Column="2" Content="Start OAuth" Width="100" Height="25" Click="OAuthStartStopButton_Click"/>
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="Server URL:" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBox x:Name="OAuthServerUrlDisplayTextBox" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,5" IsReadOnly="True" Text="http://localhost:7029"/>
 
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="OAuth Parameters:" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="Test Parameters:" VerticalAlignment="Center" Margin="0,5"/>
                 <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="10,5">
-                    <CheckBox x:Name="HasIssuedExpiredTokenCheckBox" Content="Expired Token Issued" Margin="0,0,15,0" Checked="OAuthParameter_Changed" Unchecked="OAuthParameter_Changed"/>
-                    <CheckBox x:Name="HasIssuedRefreshTokenCheckBox" Content="Refresh Token Issued" Checked="OAuthParameter_Changed" Unchecked="OAuthParameter_Changed"/>
+                    <CheckBox x:Name="HasIssuedExpiredTokenCheckBox" Content="Expired Token Issued" Margin="0,0,15,0" 
+                              Checked="OAuthParameter_Changed" Unchecked="OAuthParameter_Changed"
+                              ToolTip="Forces first token for test-refresh-client to be expired (for testing refresh flow)"/>
+                    <CheckBox x:Name="HasIssuedRefreshTokenCheckBox" Content="Refresh Token Issued" 
+                              Checked="OAuthParameter_Changed" Unchecked="OAuthParameter_Changed"
+                              ToolTip="Tracks whether a refresh token has been issued (read-only state indicator)"/>
                 </StackPanel>
                 <Button x:Name="ResetOAuthParametersButton" Grid.Row="1" Grid.Column="2" Content="Reset Params" Width="100" Height="25" Click="ResetOAuthParametersButton_Click"/>
 
