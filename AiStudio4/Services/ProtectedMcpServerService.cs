@@ -427,7 +427,16 @@ public class ProtectedMcpServerService : IProtectedMcpServerService
                 
                 if (_runningTask != null)
                 {
-                    await _runningTask;
+                    // Wait max 5 seconds for graceful shutdown
+                    try
+                    {
+                        await _runningTask.WaitAsync(TimeSpan.FromSeconds(5));
+                    }
+                    catch (TimeoutException)
+                    {
+                        // Graceful shutdown timed out, but that's OK
+                        _logger.LogWarning("MCP server graceful shutdown timed out after 5 seconds, proceeding with forced shutdown");
+                    }
                 }
 
                 await _app.DisposeAsync();
