@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using ModelContextProtocol.TestOAuthServer.Persistence;
 
 namespace ModelContextProtocol.TestOAuthServer;
 
@@ -17,12 +18,13 @@ public sealed class Program
     // Port 5000 is used by tests and port 7071 is used by the ProtectedMCPServer sample
     private static readonly string[] ValidResources = ["http://localhost:5000/", "http://localhost:7071/"];
 
-    private readonly ConcurrentDictionary<string, AuthorizationCodeInfo> _authCodes = new();
-    private readonly ConcurrentDictionary<string, TokenInfo> _tokens = new();
+    private readonly ConcurrentDictionary<string, AuthorizationCodeInfo> _authCodes;
+    private readonly ConcurrentDictionary<string, TokenInfo> _tokens;
     private readonly ConcurrentDictionary<string, ClientInfo> _clients = new();
 
     private readonly RSA _rsa;
     private readonly string _keyId;
+    private readonly OAuthPersistenceManager _persistenceManager;
 
     private readonly ILoggerProvider? _loggerProvider;
     private readonly IConnectionListenerFactory? _kestrelTransport;
@@ -32,12 +34,33 @@ public sealed class Program
     /// </summary>
     /// <param name="loggerProvider">Optional logger provider for logging.</param>
     /// <param name="kestrelTransport">Optional Kestrel transport for in-memory connections.</param>
-    public Program(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null)
+    /// <param name="persistenceDataDirectory">Optional directory for persistence data. If null, uses default AppData location.</param>
+    public Program(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null, string? persistenceDataDirectory = null)
     {
         _rsa = RSA.Create(2048);
         _keyId = Guid.NewGuid().ToString();
         _loggerProvider = loggerProvider;
         _kestrelTransport = kestrelTransport;
+        
+        // Set up persistence
+        if (string.IsNullOrEmpty(persistenceDataDirectory))
+        {
+            var appDataFolder = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            persistenceDataDirectory = Path.Combine(appDataFolder, "AiStudio4", "OAuth");
+        }
+        
+        _persistenceManager = new OAuthPersistenceManager(persistenceDataDirectory);
+        
+        // Load persisted data
+        _tokens = _persistenceManager.LoadTokens();
+        _authCodes = _persistenceManager.LoadAuthorizationCodes();
+        
+        // Load dynamic clients
+        var dynamicClients = _persistenceManager.LoadDynamicClients();
+        foreach (var kvp in dynamicClients)
+        {
+            _clients[kvp.Key] = kvp.Value;
+        }
     }
 
     // Track if we've already issued an already-expired token for the CanAuthenticate_WithTokenRefresh test which uses the test-refresh-client registration.
@@ -247,8 +270,12 @@ public sealed class Program
                 RedirectUri = redirect_uri,
                 CodeChallenge = code_challenge,
                 Scope = requestedScopes,
-                Resource = !string.IsNullOrEmpty(resource) ? new Uri(resource) : null
+                Resource = !string.IsNullOrEmpty(resource) ? new Uri(resource) : null,
+                IssuedAt = DateTimeOffset.UtcNow
             };
+            
+            // Persist authorization codes
+            _persistenceManager.SaveAuthorizationCodes(_authCodes);
 
             // Redirect back to client with the code
             var redirectUrl = $"{redirect_uri}?code={code}";
@@ -304,6 +331,9 @@ public sealed class Program
                         ErrorDescription = "Invalid authorization code"
                     });
                 }
+                
+                // Persist authorization codes after removal
+                _persistenceManager.SaveAuthorizationCodes(_authCodes);
 
                 // Validate client_id
                 if (codeInfo.ClientId != client.ClientId)
@@ -337,6 +367,10 @@ public sealed class Program
 
                 // Generate JWT token response
                 var response = GenerateJwtTokenResponse(client.ClientId, codeInfo.Scope, codeInfo.Resource);
+                
+                // Persist tokens after generation
+                _persistenceManager.SaveTokens(_tokens);
+                
                 return Results.Ok(response);
             }
             else if (grant_type == "refresh_token")
@@ -363,6 +397,10 @@ public sealed class Program
                 }
 
                 HasIssuedRefreshToken = true;
+                
+                // Persist tokens after refresh
+                _persistenceManager.SaveTokens(_tokens);
+                
                 return Results.Ok(response);
             }
             else
@@ -465,6 +503,9 @@ public sealed class Program
                 ClientSecret = clientSecret,
                 RedirectUris = registrationRequest.RedirectUris,
             };
+            
+            // Persist dynamic clients
+            _persistenceManager.SaveDynamicClients(_clients.ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
             var registrationResponse = new ClientRegistrationResponse
             {
@@ -621,5 +662,41 @@ public sealed class Program
         var computedChallenge = WebEncoders.Base64UrlEncode(challengeBytes);
 
         return computedChallenge == codeChallenge;
+    }
+
+    /// <summary>
+    /// Clears all persisted OAuth data.
+    /// </summary>
+    public void ClearPersistedData()
+    {
+        _persistenceManager.ClearPersistedData();
+        
+        // Clear in-memory data for dynamic clients only (keep demo clients)
+        var keysToRemove = _clients.Keys.Where(k => k.StartsWith("dyn-")).ToList();
+        foreach (var key in keysToRemove)
+        {
+            _clients.TryRemove(key, out _);
+        }
+        
+        // Clear tokens and auth codes
+        _tokens.Clear();
+        _authCodes.Clear();
+        
+        // Reset test flags
+        HasIssuedExpiredToken = false;
+        HasIssuedRefreshToken = false;
+    }
+
+    /// <summary>
+    /// Gets information about the persistent storage.
+    /// </summary>
+    /// <returns>Dictionary containing storage information.</returns>
+    public Dictionary<string, object> GetPersistenceInfo()
+    {
+        var info = _persistenceManager.GetStorageInfo();
+        info["InMemoryTokenCount"] = _tokens.Count;
+        info["InMemoryAuthCodeCount"] = _authCodes.Count;
+        info["InMemoryDynamicClientCount"] = _clients.Count(kvp => kvp.Key.StartsWith("dyn-"));
+        return info;
     }
 }

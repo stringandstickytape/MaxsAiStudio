@@ -5,7 +5,7 @@ namespace ModelContextProtocol.TestOAuthServer;
 /// <summary>
 /// Represents token information for OAuth flow.
 /// </summary>
-internal sealed class TokenInfo
+public sealed class TokenInfo
 {
     /// <summary>
     /// Gets or sets the client ID associated with this token.

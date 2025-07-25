@@ -5,7 +5,7 @@ namespace ModelContextProtocol.TestOAuthServer;
 /// <summary>
 /// Represents authorization code information for OAuth flow.
 /// </summary>
-internal sealed class AuthorizationCodeInfo
+public sealed class AuthorizationCodeInfo
 {
     /// <summary>
     /// Gets or sets the client ID associated with this authorization code.
@@ -31,4 +31,9 @@ internal sealed class AuthorizationCodeInfo
     /// Gets or sets the optional resource URI this authorization code is for.
     /// </summary>
     public Uri? Resource { get; init; }
+
+    /// <summary>
+    /// Gets or sets the time when this authorization code was issued.
+    /// </summary>
+    public DateTimeOffset IssuedAt { get; init; } = DateTimeOffset.UtcNow;
 }

@@ -56,9 +56,10 @@ public sealed class OAuthServerManager : IDisposable
     /// </summary>
     /// <param name="loggerProvider">Optional logger provider for logging.</param>
     /// <param name="kestrelTransport">Optional Kestrel transport for in-memory connections.</param>
-    public OAuthServerManager(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null)
+    /// <param name="persistenceDataDirectory">Optional directory for persistence data. If null, uses default AppData location.</param>
+    public OAuthServerManager(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null, string? persistenceDataDirectory = null)
     {
-        _oauthServer = new Program(loggerProvider, kestrelTransport);
+        _oauthServer = new Program(loggerProvider, kestrelTransport, persistenceDataDirectory);
     }
 
     /// <summary>
@@ -259,6 +260,23 @@ public sealed class OAuthServerManager : IDisposable
         {
             await taskToWait;
         }
+    }
+
+    /// <summary>
+    /// Clears all persisted OAuth data.
+    /// </summary>
+    public void ClearPersistedData()
+    {
+        _oauthServer.ClearPersistedData();
+    }
+
+    /// <summary>
+    /// Gets information about the persistent storage.
+    /// </summary>
+    /// <returns>Dictionary containing storage information.</returns>
+    public Dictionary<string, object> GetPersistenceInfo()
+    {
+        return _oauthServer.GetPersistenceInfo();
     }
 
     /// <summary>

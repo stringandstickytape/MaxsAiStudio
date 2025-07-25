@@ -81,7 +81,11 @@
                               Checked="OAuthParameter_Changed" Unchecked="OAuthParameter_Changed"
                               ToolTip="Tracks whether a refresh token has been issued (read-only state indicator)"/>
                 </StackPanel>
-                <Button x:Name="ResetOAuthParametersButton" Grid.Row="1" Grid.Column="2" Content="Reset Params" Width="100" Height="25" Click="ResetOAuthParametersButton_Click"/>
+                <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Vertical">
+                    <Button x:Name="ResetOAuthParametersButton" Content="Reset Params" Width="100" Height="25" Click="ResetOAuthParametersButton_Click"/>
+                    <Button x:Name="ClearPersistedDataButton" Content="Clear Data" Width="100" Height="25" Margin="0,5,0,0" Click="ClearPersistedDataButton_Click" 
+                            ToolTip="Clears all persisted OAuth tokens, codes, and dynamic clients"/>
+                </StackPanel>
 
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="Demo Client:" VerticalAlignment="Center" Margin="0,5"/>
                 <TextBox x:Name="DemoClientInfoTextBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,5" IsReadOnly="True" Text="ID: demo-client | Secret: demo-secret"/>

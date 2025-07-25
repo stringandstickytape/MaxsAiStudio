@@ -1,4 +1,5 @@
 ﻿using System.Text.Json.Serialization;
+using ModelContextProtocol.TestOAuthServer.Persistence;
 
 namespace ModelContextProtocol.TestOAuthServer;
 
@@ -12,4 +13,10 @@ namespace ModelContextProtocol.TestOAuthServer;
 [JsonSerializable(typeof(ClientRegistrationRequest))]
 [JsonSerializable(typeof(ClientRegistrationResponse))]
 [JsonSerializable(typeof(Dictionary<string, string>))]
+[JsonSerializable(typeof(Dictionary<string, PersistentTokenInfo>))]
+[JsonSerializable(typeof(Dictionary<string, PersistentAuthorizationCodeInfo>))]
+[JsonSerializable(typeof(Dictionary<string, PersistentClientInfo>))]
+[JsonSerializable(typeof(PersistentTokenInfo))]
+[JsonSerializable(typeof(PersistentAuthorizationCodeInfo))]
+[JsonSerializable(typeof(PersistentClientInfo))]
 internal sealed partial class OAuthJsonContext : JsonSerializerContext;

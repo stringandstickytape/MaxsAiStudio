@@ -1,6 +1,7 @@
 using AiStudio4.Services;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Interfaces;
+using AiStudio4.Core.Models;
 using Microsoft.Extensions.Logging;
 using System.Windows;
 using System.Windows.Controls;
@@ -38,7 +39,10 @@ public partial class ProtectedMcpServerWindow : Window
         _serviceProvider = serviceProvider;
         _logger = logger;
         _availableTools = new ObservableCollection<ToolDisplayModel>();
-        _oauthServerManager = new OAuthServerManager();
+        
+        // Initialize OAuth server manager with PathHelper directory
+        var oauthDataDirectory = PathHelper.GetProfileSubPath("OAuth");
+        _oauthServerManager = new OAuthServerManager(persistenceDataDirectory: oauthDataDirectory);
         
         InitializeComponent();
         
@@ -73,6 +77,24 @@ public partial class ProtectedMcpServerWindow : Window
         LogMessage("Authentication: Tokens must be validated from the OAuth server");
         LogMessage("Required scope: mcp:tools");
         LogMessage("");
+        
+        // Show persistence info
+        try
+        {
+            var persistenceInfo = _oauthServerManager.GetPersistenceInfo();
+            LogMessage("OAuth Persistence Status:");
+            LogMessage($"  • Storage directory: {persistenceInfo.GetValueOrDefault("DataDirectory", "Unknown")}");
+            LogMessage($"  • Persisted tokens: {persistenceInfo.GetValueOrDefault("TokenCount", 0)}");
+            LogMessage($"  • Persisted dynamic clients: {persistenceInfo.GetValueOrDefault("DynamicClientCount", 0)}");
+            LogMessage($"  • In-memory tokens: {persistenceInfo.GetValueOrDefault("InMemoryTokenCount", 0)}");
+            LogMessage("");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not retrieve OAuth persistence info");
+            LogMessage("Could not retrieve OAuth persistence information");
+            LogMessage("");
+        }
     }
 
     private void StatusTimer_Tick(object? sender, EventArgs e)
@@ -364,6 +386,46 @@ public partial class ProtectedMcpServerWindow : Window
         {
             _logger.LogError(ex, "Error resetting OAuth parameters");
             LogMessage($"Error resetting OAuth parameters: {ex.Message}");
+        }
+    }
+
+    private void ClearPersistedDataButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            // Show confirmation dialog
+            var result = MessageBox.Show(
+                "This will permanently delete all persisted OAuth data including:\n\n" +
+                "• All issued tokens and refresh tokens\n" +
+                "• Authorization codes\n" +
+                "• Dynamically registered clients\n\n" +
+                "Are you sure you want to continue?",
+                "Clear Persisted OAuth Data", 
+                MessageBoxButton.YesNo, 
+                MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                var persistenceInfo = _oauthServerManager.GetPersistenceInfo();
+                _oauthServerManager.ClearPersistedData();
+                UpdateOAuthParametersDisplay();
+                
+                LogMessage("Persisted OAuth data cleared successfully");
+                LogMessage($"Cleared from: {persistenceInfo.GetValueOrDefault("DataDirectory", "Unknown")}");
+                LogMessage($"• Tokens: {persistenceInfo.GetValueOrDefault("TokenCount", 0)}");
+                LogMessage($"• Dynamic clients: {persistenceInfo.GetValueOrDefault("DynamicClientCount", 0)}");
+                LogMessage("• OAuth test parameters reset to defaults");
+                LogMessage("");
+            }
+            else
+            {
+                LogMessage("Clear persisted data operation cancelled by user");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error clearing persisted OAuth data");
+            LogMessage($"Error clearing persisted data: {ex.Message}");
         }
     }
 

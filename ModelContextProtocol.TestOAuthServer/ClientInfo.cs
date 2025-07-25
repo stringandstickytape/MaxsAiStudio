@@ -5,7 +5,7 @@ namespace ModelContextProtocol.TestOAuthServer;
 /// <summary>
 /// Represents client information for OAuth flow.
 /// </summary>
-internal sealed class ClientInfo
+public sealed class ClientInfo
 {
     /// <summary>
     /// Gets or sets the client ID.
