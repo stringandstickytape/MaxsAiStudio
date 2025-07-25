@@ -1,4 +1,5 @@
 using AiStudio4.Services;
+using AiStudio4.Services.Interfaces;
 using AiStudio4.InjectedDependencies;
 using AiStudio4.Core.Interfaces;
 using AiStudio4.Core.Models;
@@ -31,6 +32,7 @@ public partial class ProtectedMcpServerWindow : Window
     private readonly DispatcherTimer _statusTimer;
     private readonly ObservableCollection<ToolDisplayModel> _availableTools;
     private readonly OAuthServerManager _oauthServerManager;
+    private readonly bool _ownsOAuthServerManager;
 
     public ProtectedMcpServerWindow(IProtectedMcpServerService mcpServerService, IGeneralSettingsService settingsService, IServiceProvider serviceProvider, ILogger<ProtectedMcpServerWindow> logger)
     {
@@ -40,9 +42,21 @@ public partial class ProtectedMcpServerWindow : Window
         _logger = logger;
         _availableTools = new ObservableCollection<ToolDisplayModel>();
         
-        // Initialize OAuth server manager with PathHelper directory
-        var oauthDataDirectory = PathHelper.GetProfileSubPath("OAuth");
-        _oauthServerManager = new OAuthServerManager(persistenceDataDirectory: oauthDataDirectory);
+        // Use the auto-start OAuth server service, or create a new manager if not available
+        var autoStartOAuthService = serviceProvider.GetService(typeof(IAutoStartOAuthServerService)) as IAutoStartOAuthServerService;
+        if (autoStartOAuthService?.GetOAuthServerManager() != null)
+        {
+            // Use the existing OAuth server manager from auto-start service
+            _oauthServerManager = autoStartOAuthService.GetOAuthServerManager()!;
+            _ownsOAuthServerManager = false; // Don't dispose this - it's owned by the service
+        }
+        else
+        {
+            // Create new OAuth server manager if auto-start service isn't available or hasn't created one
+            var oauthDataDirectory = PathHelper.GetProfileSubPath("OAuth");
+            _oauthServerManager = new OAuthServerManager(persistenceDataDirectory: oauthDataDirectory);
+            _ownsOAuthServerManager = true; // We created it, so we own it
+        }
         
         InitializeComponent();
         
@@ -463,7 +477,13 @@ public partial class ProtectedMcpServerWindow : Window
     protected override void OnClosed(EventArgs e)
     {
         _statusTimer?.Stop();
-        _oauthServerManager?.Dispose();
+        
+        // Only dispose the OAuth server manager if we own it
+        if (_ownsOAuthServerManager)
+        {
+            _oauthServerManager?.Dispose();
+        }
+        
         base.OnClosed(e);
     }
 }
