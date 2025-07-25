@@ -516,5 +516,23 @@ namespace AiStudio4.InjectedDependencies
                 SettingsChanged?.Invoke(this, EventArgs.Empty);
             }
         }
+
+        public void UpdateAutoStartProtectedMcpServers(bool autoStart)
+        {
+            lock (_lock)
+            {
+                CurrentSettings.AutoStartProtectedMcpServers = autoStart;
+                SaveSettings();
+                SettingsChanged?.Invoke(this, EventArgs.Empty);
+            }
+        }
+
+        public bool GetAutoStartProtectedMcpServers()
+        {
+            lock (_lock)
+            {
+                return CurrentSettings.AutoStartProtectedMcpServers;
+            }
+        }
     }
 }

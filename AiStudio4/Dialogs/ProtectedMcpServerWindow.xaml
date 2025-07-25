@@ -49,8 +49,13 @@
                 
                 <Button x:Name="StartStopButton" Grid.Row="0" Grid.Column="1" Content="Start Servers" Width="120" Height="30" Click="StartStopButton_Click"/>
                 
-                <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Text="OAuth server starts first, then MCP server. Stopping reverses the order." 
-                          FontStyle="Italic" Foreground="Gray" Margin="0,5,0,0"/>
+                <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="0,5,0,0">
+                    <TextBlock Text="OAuth server starts first, then MCP server. Stopping reverses the order." 
+                              FontStyle="Italic" Foreground="Gray"/>
+                    <CheckBox x:Name="AutoStartServersCheckBox" Content="Start servers automatically on app startup" 
+                              Margin="0,5,0,0" Checked="AutoStartServersCheckBox_Changed" Unchecked="AutoStartServersCheckBox_Changed"
+                              ToolTip="When enabled, OAuth and MCP servers will start automatically when the application starts"/>
+                </StackPanel>
             </Grid>
         </GroupBox>
 

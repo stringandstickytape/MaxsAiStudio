@@ -68,6 +68,9 @@ public partial class ProtectedMcpServerWindow : Window
         UpdateOAuthServerStatus();
         UpdateOAuthParametersDisplay();
         
+        // Load auto-start setting
+        AutoStartServersCheckBox.IsChecked = _settingsService.GetAutoStartProtectedMcpServers();
+        
         // Subscribe to log events (if implemented)
         LogMessage("Protected MCP Server Management Window initialized");
         LogMessage("This server provides weather tools with OAuth JWT authentication:");
@@ -95,6 +98,7 @@ public partial class ProtectedMcpServerWindow : Window
             LogMessage("Could not retrieve OAuth persistence information");
             LogMessage("");
         }
+
     }
 
     private void StatusTimer_Tick(object? sender, EventArgs e)
@@ -158,49 +162,7 @@ public partial class ProtectedMcpServerWindow : Window
             }
             else
             {
-                // Start servers in order: OAuth first, then MCP
-                LogMessage("Starting OAuth server...");
-                LogMessage($"OAuth server will bind to: {_oauthServerManager.BaseUrl}");
-                LogMessage("Configuring OAuth endpoints...");
-                LogMessage("Setting up demo clients...");
-                
-                await _oauthServerManager.StartAsync();
-                LogMessage("✓ OAuth server started successfully");
-                LogMessage($"✓ OAuth server listening on: {_oauthServerManager.BaseUrl}");
-                LogMessage("✓ Authorization endpoint: /authorize");
-                LogMessage("✓ Token endpoint: /token");
-                LogMessage("✓ Metadata endpoint: /.well-known/oauth-authorization-server");
-                LogMessage("✓ JWKS endpoint: /.well-known/jwks.json");
-                LogMessage("✓ Demo client configured (ID: demo-client)");
-                LogMessage("");
-                
-                // Wait a moment for OAuth server to be fully ready
-                await Task.Delay(2000);
-                
-                LogMessage("Starting MCP server...");
-                LogMessage($"Server will bind to: {_mcpServerService.ServerUrl}");
-                LogMessage($"Using OAuth server: {_mcpServerService.OAuthServerUrl}");
-                LogMessage("Configuring JWT Bearer authentication...");
-                LogMessage("Registering WeatherTools with MCP server...");
-                
-                bool success = await _mcpServerService.StartServerAsync();
-                if (success)
-                {
-                    LogMessage("✓ MCP server started successfully");
-                    LogMessage($"✓ Server listening on: {_mcpServerService.ServerUrl}");
-                    LogMessage($"✓ OAuth validation from: {_mcpServerService.OAuthServerUrl}");
-                    LogMessage($"✓ Resource metadata available at: {_mcpServerService.ServerUrl}.well-known/oauth-protected-resource");
-                    LogMessage("✓ WeatherTools registered and ready");
-                    LogMessage("");
-                    LogMessage("🚀 Both servers are running and ready to accept authenticated MCP requests!");
-                }
-                else
-                {
-                    LogMessage("✗ Failed to start MCP server. Check application logs for details.");
-                    LogMessage("Stopping OAuth server due to MCP server failure...");
-                    await _oauthServerManager.StopAsync();
-                    LogMessage("✓ OAuth server stopped");
-                }
+                await StartServersAsync();
             }
         }
         catch (Exception ex)
@@ -426,6 +388,75 @@ public partial class ProtectedMcpServerWindow : Window
         {
             _logger.LogError(ex, "Error clearing persisted OAuth data");
             LogMessage($"Error clearing persisted data: {ex.Message}");
+        }
+    }
+
+    private void AutoStartServersCheckBox_Changed(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            bool autoStart = AutoStartServersCheckBox.IsChecked ?? false;
+            _settingsService.UpdateAutoStartProtectedMcpServers(autoStart);
+            
+            LogMessage($"Auto-start servers on app startup setting changed to: {(autoStart ? "enabled" : "disabled")}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating auto-start servers setting");
+            LogMessage($"Error updating auto-start setting: {ex.Message}");
+        }
+    }
+
+    private async Task StartServersAsync()
+    {
+        bool mcpRunning = _mcpServerService.IsServerRunning;
+        bool oauthRunning = _oauthServerManager.IsRunning;
+        
+        if (!mcpRunning && !oauthRunning)
+        {
+            // Start servers in order: OAuth first, then MCP
+            LogMessage("Starting OAuth server...");
+            LogMessage($"OAuth server will bind to: {_oauthServerManager.BaseUrl}");
+            LogMessage("Configuring OAuth endpoints...");
+            LogMessage("Setting up demo clients...");
+            
+            await _oauthServerManager.StartAsync();
+            LogMessage("✓ OAuth server started successfully");
+            LogMessage($"✓ OAuth server listening on: {_oauthServerManager.BaseUrl}");
+            LogMessage("✓ Authorization endpoint: /authorize");
+            LogMessage("✓ Token endpoint: /token");
+            LogMessage("✓ Metadata endpoint: /.well-known/oauth-authorization-server");
+            LogMessage("✓ JWKS endpoint: /.well-known/jwks.json");
+            LogMessage("✓ Demo client configured (ID: demo-client)");
+            LogMessage("");
+            
+            // Wait a moment for OAuth server to be fully ready
+            await Task.Delay(2000);
+            
+            LogMessage("Starting MCP server...");
+            LogMessage($"Server will bind to: {_mcpServerService.ServerUrl}");
+            LogMessage($"Using OAuth server: {_mcpServerService.OAuthServerUrl}");
+            LogMessage("Configuring JWT Bearer authentication...");
+            LogMessage("Registering WeatherTools with MCP server...");
+            
+            bool success = await _mcpServerService.StartServerAsync();
+            if (success)
+            {
+                LogMessage("✓ MCP server started successfully");
+                LogMessage($"✓ Server listening on: {_mcpServerService.ServerUrl}");
+                LogMessage($"✓ OAuth validation from: {_mcpServerService.OAuthServerUrl}");
+                LogMessage($"✓ Resource metadata available at: {_mcpServerService.ServerUrl}.well-known/oauth-protected-resource");
+                LogMessage("✓ WeatherTools registered and ready");
+                LogMessage("");
+                LogMessage("🚀 Both servers are running and ready to accept authenticated MCP requests!");
+            }
+            else
+            {
+                LogMessage("✗ Failed to start MCP server. Check application logs for details.");
+                LogMessage("Stopping OAuth server due to MCP server failure...");
+                await _oauthServerManager.StopAsync();
+                LogMessage("✓ OAuth server stopped");
+            }
         }
     }
 

@@ -50,5 +50,9 @@ namespace AiStudio4.InjectedDependencies
         bool IsMcpToolEnabled(string toolGuid);
         Dictionary<string, bool> GetMcpEnabledTools();
         void SetMcpEnabledTools(Dictionary<string, bool> enabledTools);
+
+        // Protected MCP Server Auto-Start Methods
+        void UpdateAutoStartProtectedMcpServers(bool autoStart);
+        bool GetAutoStartProtectedMcpServers();
     }
 }

@@ -53,6 +53,9 @@ namespace AiStudio4.InjectedDependencies
         // Only tools explicitly set to true will be enabled (new tools default to disabled)
         public Dictionary<string, bool> McpServerEnabledTools { get; set; } = new Dictionary<string, bool>();
 
+        // Protected MCP Server Auto-Start Setting
+        public bool AutoStartProtectedMcpServers { get; set; } = false;
+
         // Remove obsolete plaintext properties if you are doing a clean break
         // Otherwise, keep them for migration (see GeneralSettingsService.cs)
         [Obsolete("Use EncryptedYouTubeApiKey. This property is for migration only.")]

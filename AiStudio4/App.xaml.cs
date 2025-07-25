@@ -23,7 +23,8 @@ using AiStudio4.Core;
 
 using AiStudio4.Services.Interfaces;
 using AiStudio4.Core.Interfaces;
-using System.Net.Http; 
+using System.Net.Http;
+using ModelContextProtocol.TestOAuthServer; 
 namespace AiStudio4
 {
     public partial class App : Application
@@ -75,6 +76,7 @@ namespace AiStudio4
             services.AddSingleton<HttpClient>(); // Added for GitHubReleaseService
             services.AddSingleton<IGoogleDriveService, GoogleDriveService>();
             services.AddSingleton<ILlamaServerService, LlamaServerService>(); // Add LlamaServerService
+            services.AddSingleton<IAutoStartOAuthServerService, AutoStartOAuthServerService>(); // OAuth server for auto-start
 
             services.AddSingleton<FileSystemChangeHandler>();
             services.AddSingleton<IProjectFileWatcherService, ProjectFileWatcherService>();
@@ -189,6 +191,45 @@ namespace AiStudio4
             // Get settings manager
             var generalSettingsService = _serviceProvider.GetRequiredService<IGeneralSettingsService>();
             var appearanceSettingsService = _serviceProvider.GetRequiredService<IAppearanceSettingsService>();
+
+            // Auto-start protected MCP servers if enabled
+            if (generalSettingsService.GetAutoStartProtectedMcpServers())
+            {
+                try
+                {
+                    var protectedMcpServerService = _serviceProvider.GetRequiredService<IProtectedMcpServerService>();
+                    var autoStartOAuthService = _serviceProvider.GetRequiredService<IAutoStartOAuthServerService>();
+                    
+                    // Start the servers in the background
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            // Small delay to let other services initialize
+                            await Task.Delay(2000);
+                            
+                            // Start OAuth server first
+                            await autoStartOAuthService.StartAsync();
+                            
+                            // Wait for OAuth server to be ready
+                            await Task.Delay(2000);
+                            
+                            // Start MCP server
+                            await protectedMcpServerService.StartServerAsync();
+                        }
+                        catch (Exception autoStartEx)
+                        {
+                            // Log error but don't crash the app
+                            System.Diagnostics.Debug.WriteLine($"Auto-start of protected MCP servers failed: {autoStartEx.Message}");
+                        }
+                    });
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't crash the app
+                    System.Diagnostics.Debug.WriteLine($"Error setting up auto-start for protected MCP servers: {ex.Message}");
+                }
+            }
 
             var webViewWindow = _serviceProvider.GetRequiredService<WebViewWindow>();
             webViewWindow.Show();
