@@ -15,6 +15,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
@@ -36,8 +37,46 @@
             </StackPanel>
         </GroupBox>
 
+        <!-- OAuth Server Management -->
+        <GroupBox Grid.Row="2" Header="OAuth Server Management" Margin="10">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="OAuth Server Status:" VerticalAlignment="Center" Margin="0,5"/>
+                <StackPanel Grid.Row="0" Grid.Column="1" Orientation="Horizontal" Margin="10,5">
+                    <TextBlock x:Name="OAuthStatusTextBlock" Text="Stopped" Foreground="Red" VerticalAlignment="Center"/>
+                    <TextBlock Text=" | " Margin="10,0" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="OAuthServerUrlDisplayTextBlock" Text="http://localhost:7029" VerticalAlignment="Center"/>
+                </StackPanel>
+                <Button x:Name="OAuthStartStopButton" Grid.Row="0" Grid.Column="2" Content="Start OAuth" Width="100" Height="25" Click="OAuthStartStopButton_Click"/>
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="OAuth Parameters:" VerticalAlignment="Center" Margin="0,5"/>
+                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="10,5">
+                    <CheckBox x:Name="HasIssuedExpiredTokenCheckBox" Content="Expired Token Issued" Margin="0,0,15,0" Checked="OAuthParameter_Changed" Unchecked="OAuthParameter_Changed"/>
+                    <CheckBox x:Name="HasIssuedRefreshTokenCheckBox" Content="Refresh Token Issued" Checked="OAuthParameter_Changed" Unchecked="OAuthParameter_Changed"/>
+                </StackPanel>
+                <Button x:Name="ResetOAuthParametersButton" Grid.Row="1" Grid.Column="2" Content="Reset Params" Width="100" Height="25" Click="ResetOAuthParametersButton_Click"/>
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="Demo Client:" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBox x:Name="DemoClientInfoTextBox" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,5" IsReadOnly="True" Text="ID: demo-client | Secret: demo-secret"/>
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="Endpoints:" VerticalAlignment="Center" Margin="0,5"/>
+                <TextBox x:Name="OAuthEndpointsTextBox" Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Margin="10,5" IsReadOnly="True" Text="/.well-known/oauth-authorization-server | /authorize | /token"/>
+            </Grid>
+        </GroupBox>
+
         <!-- Server Configuration -->
-        <GroupBox Grid.Row="2" Header="Server Configuration" Margin="10">
+        <GroupBox Grid.Row="3" Header="Server Configuration" Margin="10">
             <Grid Margin="10">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
@@ -75,7 +114,7 @@
         </GroupBox>
 
         <!-- Tool Selection -->
-        <GroupBox Grid.Row="3" Header="Available Tools" Margin="10">
+        <GroupBox Grid.Row="4" Header="Available Tools" Margin="10">
             <ScrollViewer VerticalScrollBarVisibility="Auto" MaxHeight="200">
                 <ItemsControl x:Name="ToolsItemsControl" Margin="10">
                     <ItemsControl.ItemTemplate>
@@ -93,7 +132,7 @@
         </GroupBox>
 
         <!-- Log Output -->
-        <GroupBox Grid.Row="4" Header="Server Logs" Margin="10">
+        <GroupBox Grid.Row="5" Header="Server Logs" Margin="10">
             <ScrollViewer x:Name="LogScrollViewer" VerticalScrollBarVisibility="Auto">
                 <TextBox x:Name="LogTextBox" 
                          IsReadOnly="True" 
@@ -109,7 +148,7 @@
         </GroupBox>
 
         <!-- Action Buttons -->
-        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
             <Button x:Name="ClearLogsButton" Content="Clear Logs" Width="80" Height="30" Margin="5" Click="ClearLogsButton_Click"/>
             <Button x:Name="CloseButton" Content="Close" Width="80" Height="30" Margin="5" Click="CloseButton_Click"/>
         </StackPanel>

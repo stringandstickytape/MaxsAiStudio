@@ -44,12 +44,6 @@ public sealed class Program
     public bool HasIssuedExpiredToken { get; set; }
     public bool HasIssuedRefreshToken { get; set; }
 
-    /// <summary>
-    /// Entry point for the application.
-    /// </summary>
-    /// <param name="args">Command line arguments.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    public static Task Main(string[] args) => new Program().RunServerAsync(args);
 
     /// <summary>
     /// Runs the OAuth server with the specified parameters.

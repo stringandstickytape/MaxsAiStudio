@@ -8,6 +8,8 @@ using System.Windows.Threading;
 using System.Collections.ObjectModel;
 using System.Reflection;
 using ModelContextProtocol.Server;
+using ModelContextProtocol.TestOAuthServer;
+using ModelContextProtocol;
 
 namespace AiStudio4.Dialogs;
 
@@ -27,6 +29,7 @@ public partial class ProtectedMcpServerWindow : Window
     private readonly ILogger<ProtectedMcpServerWindow> _logger;
     private readonly DispatcherTimer _statusTimer;
     private readonly ObservableCollection<ToolDisplayModel> _availableTools;
+    private readonly OAuthServerManager _oauthServerManager;
 
     public ProtectedMcpServerWindow(IProtectedMcpServerService mcpServerService, IGeneralSettingsService settingsService, IServiceProvider serviceProvider, ILogger<ProtectedMcpServerWindow> logger)
     {
@@ -35,6 +38,7 @@ public partial class ProtectedMcpServerWindow : Window
         _serviceProvider = serviceProvider;
         _logger = logger;
         _availableTools = new ObservableCollection<ToolDisplayModel>();
+        _oauthServerManager = new OAuthServerManager();
         
         InitializeComponent();
         
@@ -57,6 +61,8 @@ public partial class ProtectedMcpServerWindow : Window
         _statusTimer.Start();
         
         UpdateServerStatus();
+        UpdateOAuthServerStatus();
+        UpdateOAuthParametersDisplay();
         
         // Subscribe to log events (if implemented)
         LogMessage("Protected MCP Server Management Window initialized");
@@ -72,6 +78,7 @@ public partial class ProtectedMcpServerWindow : Window
     private void StatusTimer_Tick(object? sender, EventArgs e)
     {
         UpdateServerStatus();
+        UpdateOAuthServerStatus();
     }
 
     private void UpdateServerStatus()
@@ -217,9 +224,130 @@ public partial class ProtectedMcpServerWindow : Window
         }
     }
 
+    private void UpdateOAuthServerStatus()
+    {
+        bool isRunning = _oauthServerManager.IsRunning;
+        
+        OAuthStatusTextBlock.Text = isRunning ? "Running" : "Stopped";
+        OAuthStatusTextBlock.Foreground = isRunning ? System.Windows.Media.Brushes.Green : System.Windows.Media.Brushes.Red;
+        
+        OAuthStartStopButton.Content = isRunning ? "Stop OAuth" : "Start OAuth";
+        OAuthStartStopButton.IsEnabled = true;
+        
+        // Update URL display
+        OAuthServerUrlDisplayTextBlock.Text = _oauthServerManager.BaseUrl;
+    }
+
+    private void UpdateOAuthParametersDisplay()
+    {
+        HasIssuedExpiredTokenCheckBox.IsChecked = _oauthServerManager.HasIssuedExpiredToken;
+        HasIssuedRefreshTokenCheckBox.IsChecked = _oauthServerManager.HasIssuedRefreshToken;
+    }
+
+    private async void OAuthStartStopButton_Click(object sender, RoutedEventArgs e)
+    {
+        OAuthStartStopButton.IsEnabled = false;
+        
+        try
+        {
+            if (_oauthServerManager.IsRunning)
+            {
+                LogMessage("Stopping OAuth server...");
+                await _oauthServerManager.StopAsync();
+                LogMessage("OAuth server stopped successfully");
+            }
+            else
+            {
+                LogMessage("Starting OAuth server...");
+                LogMessage($"OAuth server will bind to: {_oauthServerManager.BaseUrl}");
+                LogMessage("Configuring OAuth endpoints...");
+                LogMessage("Setting up demo clients...");
+                
+                await _oauthServerManager.StartAsync();
+                LogMessage("✓ OAuth server started successfully");
+                LogMessage($"✓ OAuth server listening on: {_oauthServerManager.BaseUrl}");
+                LogMessage("✓ Authorization endpoint: /authorize");
+                LogMessage("✓ Token endpoint: /token");
+                LogMessage("✓ Metadata endpoint: /.well-known/oauth-authorization-server");
+                LogMessage("✓ JWKS endpoint: /.well-known/jwks.json");
+                LogMessage("✓ Demo client configured (ID: demo-client)");
+                LogMessage("");
+                LogMessage("OAuth server is ready to issue JWT tokens!");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during OAuth server start/stop operation");
+            LogMessage($"OAuth Error: {ex.Message}");
+        }
+        finally
+        {
+            UpdateOAuthServerStatus();
+        }
+    }
+
+    private void OAuthParameter_Changed(object sender, RoutedEventArgs e)
+    {
+        if (_oauthServerManager == null) return;
+
+        try
+        {
+            var parameters = new Dictionary<string, object>();
+            
+            if (sender == HasIssuedExpiredTokenCheckBox)
+            {
+                parameters["HasIssuedExpiredToken"] = HasIssuedExpiredTokenCheckBox.IsChecked ?? false;
+            }
+            else if (sender == HasIssuedRefreshTokenCheckBox)
+            {
+                parameters["HasIssuedRefreshToken"] = HasIssuedRefreshTokenCheckBox.IsChecked ?? false;
+            }
+
+            _oauthServerManager.SetParameters(parameters);
+            
+            string paramName = sender == HasIssuedExpiredTokenCheckBox ? "HasIssuedExpiredToken" : "HasIssuedRefreshToken";
+            bool isChecked = sender == HasIssuedExpiredTokenCheckBox ? 
+                (HasIssuedExpiredTokenCheckBox.IsChecked ?? false) : 
+                (HasIssuedRefreshTokenCheckBox.IsChecked ?? false);
+            
+            LogMessage($"OAuth parameter {paramName} set to: {isChecked}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting OAuth parameters");
+            LogMessage($"Error setting OAuth parameters: {ex.Message}");
+            
+            // Revert the checkbox state
+            UpdateOAuthParametersDisplay();
+        }
+    }
+
+    private void ResetOAuthParametersButton_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                ["HasIssuedExpiredToken"] = false,
+                ["HasIssuedRefreshToken"] = false
+            };
+
+            _oauthServerManager.SetParameters(parameters);
+            UpdateOAuthParametersDisplay();
+            
+            LogMessage("OAuth parameters reset to default values");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting OAuth parameters");
+            LogMessage($"Error resetting OAuth parameters: {ex.Message}");
+        }
+    }
+
     protected override void OnClosed(EventArgs e)
     {
         _statusTimer?.Stop();
+        _oauthServerManager?.Dispose();
         base.OnClosed(e);
     }
 }
