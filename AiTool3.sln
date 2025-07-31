@@ -18,8 +18,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiStudio4", "AiStudio4\AiSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelContextProtocol.TestOAuthServer", "ModelContextProtocol.TestOAuthServer\ModelContextProtocol.TestOAuthServer.csproj", "{3061BCFC-EC62-B2D3-D833-824E3659F562}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProtectedMCPServer", "ProtectedMCPServer\ProtectedMCPServer.csproj", "{D610F2F8-98D9-FD61-33FB-954BB58CC24F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		CleanCublas|Any CPU = CleanCublas|Any CPU
@@ -222,42 +220,6 @@ Global
 		{3061BCFC-EC62-B2D3-D833-824E3659F562}.TestingProfile|arm64.Build.0 = Debug|Any CPU
 		{3061BCFC-EC62-B2D3-D833-824E3659F562}.TestingProfile|x86.ActiveCfg = Debug|Any CPU
 		{3061BCFC-EC62-B2D3-D833-824E3659F562}.TestingProfile|x86.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.CleanCublas|Any CPU.ActiveCfg = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.CleanCublas|Any CPU.Build.0 = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.CleanCublas|arm64.ActiveCfg = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.CleanCublas|arm64.Build.0 = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.CleanCublas|x86.ActiveCfg = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.CleanCublas|x86.Build.0 = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Debug|arm64.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Debug|arm64.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Debug|x86.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugCublas|Any CPU.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugCublas|Any CPU.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugCublas|arm64.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugCublas|arm64.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugCublas|x86.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugCublas|x86.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugWithZip|Any CPU.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugWithZip|Any CPU.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugWithZip|arm64.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugWithZip|arm64.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugWithZip|x86.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.DebugWithZip|x86.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Release|arm64.ActiveCfg = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Release|arm64.Build.0 = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Release|x86.ActiveCfg = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.Release|x86.Build.0 = Release|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.TestingProfile|Any CPU.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.TestingProfile|Any CPU.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.TestingProfile|arm64.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.TestingProfile|arm64.Build.0 = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.TestingProfile|x86.ActiveCfg = Debug|Any CPU
-		{D610F2F8-98D9-FD61-33FB-954BB58CC24F}.TestingProfile|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
