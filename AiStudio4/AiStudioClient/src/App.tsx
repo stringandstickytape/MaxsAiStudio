@@ -1,9 +1,9 @@
-﻿// AiStudioClient/src/App.tsx
+// AiStudioClient/src/App.tsx
 import { NavigationContainer } from './components/navigation/NavigationContainer';
 import { CommandInitializer } from './components/commands/CommandInitializer';
 import { ChatSpace } from './components/ChatSpace';
 import { FontSizeProvider } from './components/FontSizeProvider'; 
-import { windowEventService } from '@/services/windowEvents';
+import { windowEventService, WindowEvents } from '@/services/windowEvents';
 import { CommandInitializationPlugin } from './CommandInitializationPlugin';
 import { ModalManager } from './components/modals/ModalManager'; // Import the new manager
 import { useEffect } from 'react';
@@ -17,6 +17,7 @@ import { UserPromptProvider } from './services/providers/userPromptProvider';
 import { FileNameProvider } from './services/providers/fileNameProvider';
 import { useInputBarStore } from '@/stores/useInputBarStore';
 import { useTipOfTheDayStore } from '@/stores/useTipOfTheDayStore';
+import { useUserPromptStore } from '@/stores/useUserPromptStore';
 
 const PANEL_EVENTS = {
   BEFORE_UNLOAD: 'beforeunload',
@@ -28,6 +29,7 @@ import { webSocketService } from '@/services/websocket/WebSocketService';
 
 function App() {
   const { createConv, activeConvId } = useConvStore();
+  const { prompts: userPrompts } = useUserPromptStore();
   
   
   useEffect(() => {
@@ -169,30 +171,28 @@ function App() {
     initializeTipOfTheDay();
   }, []);
   
-  // Destructure modal state from useModalStore
-  const { currentModal, closeModal } = useModalStore();
-
-  // Assuming userPrompts is available in this scope; if not, it should be imported or passed as prop
-  const userPrompts = []; // Placeholder, replace with actual user prompts source
-
-  // Set up event listeners
+  // Remove placeholder local array and use centralized windowEventService
+  // Listen for a standardized event that loads a user prompt into the input bar
   useEffect(() => {
-    
-    // Add listener for the load-associated-user-prompt event
-    const handleLoadUserPrompt = (e: CustomEvent) => {
-      const { userPromptId } = e.detail;
-      if (userPromptId) {
-        const userPrompt = userPrompts.find(up => up.guid === userPromptId);
-        if (userPrompt) {
-          useInputBarStore.getState().setInputText(userPrompt.content);
-        }
-      }
-    };
+    const unsubscribe = windowEventService.on(WindowEvents.USER_PROMPTS_UPDATED, () => {
+      // No action needed here for now; kept to show how to subscribe if future logic is added
+    });
 
-    window.addEventListener('load-associated-user-prompt', handleLoadUserPrompt as EventListener);
-    
+    // Support explicit loading by id via a dedicated event name
+    const unsubscribeLoad = windowEventService.on('load-associated-user-prompt', (detail: { userPromptId?: string }) => {
+      const userPromptId = detail?.userPromptId;
+      if (!userPromptId) return;
+      const prompt = userPrompts.find(up => up.guid === userPromptId);
+      if (prompt && prompt.content) {
+        useInputBarStore.getState().setInputText(prompt.content);
+      } else {
+        console.warn('User prompt not found for id:', userPromptId);
+      }
+    });
+
     return () => {
-      window.removeEventListener('load-associated-user-prompt', handleLoadUserPrompt as EventListener);
+      unsubscribe();
+      unsubscribeLoad();
     };
   }, [userPrompts]);
 
