@@ -348,7 +348,6 @@ namespace AiStudio4.Services
                 // *** THE BIG CHANGE: Single call replaces entire tool loop ***
                 // Capture start time to compute duration for the assistant message (output duration)
                 var assistantStartUtc = DateTime.UtcNow;
-                _logger.LogInformation("⏱️ Assistant timing start at {Start}", assistantStartUtc.ToString("O"));
                 AiResponse response = await aiService.FetchResponseWithToolLoop(requestOptions, toolExecutor, request.BranchedConv, request.MessageId, assistantMessageId, request.ClientId);
 
                 // Process the final response
@@ -357,7 +356,6 @@ namespace AiStudio4.Services
                 // Compute durationMs from the moment we started the assistant call until completion
                 var assistantEndUtc = DateTime.UtcNow;
                 var durationMs = (long)Math.Max(0, (assistantEndUtc - assistantStartUtc).TotalMilliseconds);
-                _logger.LogInformation("⏱️ Assistant timing end at {End}, durationMs={Duration}", assistantEndUtc.ToString("O"), durationMs);
 
                 // Handle final message - use the CURRENT assistant message ID from the loop
                 // The assistantMessageId may have been updated during the tool loop

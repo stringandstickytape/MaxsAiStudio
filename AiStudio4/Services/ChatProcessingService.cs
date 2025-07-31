@@ -177,11 +177,6 @@ namespace AiStudio4.Services
 
                     // Notify client to create the placeholder AI MessageItem
                     await _notificationService.NotifyConvPlaceholderUpdate(clientId, conv, placeholderMessage);
-                    // Record assistant start time now (right after placeholder creation, before streaming begins)
-                    var assistantStartUtc = DateTime.UtcNow;
-                    _logger.LogInformation("⏱️ [ChatProcessingService] Assistant timing start at {Start} for {MsgId}", assistantStartUtc.ToString("O"), assistantMessageId);
-
-                    
                     var messagesForClient = BuildFlatMessageStructure(conv);
 
                     var summaryText = conv.Summary;

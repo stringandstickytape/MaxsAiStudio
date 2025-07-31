@@ -158,11 +158,22 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
         </span>
     );
 
-    // Duration (if available)
+    // Duration and TPS (output-only) combined with no splitter between
     if (typeof message.durationMs === 'number' && message.durationMs >= 0) {
+        const durationText = formatDuration(message, 'durationMs');
+        let tpsText: string | null = null;
+        if (message.costInfo && message.durationMs > 0) {
+            const outputTokens = message.costInfo.tokenUsage?.outputTokens ?? 0;
+            if (outputTokens > 0) {
+                const seconds = message.durationMs / 1000;
+                const tps = seconds > 0 ? (outputTokens / seconds) : 0;
+                tpsText = `${tps.toFixed(1)} t/s`;
+            }
+        }
         metadataItems.push(
-            <span key="duration" title={`Processing time: ${message.durationMs} ms`}>
-                {formatDuration(message, 'durationMs')}
+            <span key="duration-tps" title={`Processing time: ${message.durationMs} ms`} className="inline-flex items-center gap-1">
+                <span>{durationText}</span>
+                {tpsText && <span>{tpsText}</span>}
             </span>
         );
     }
@@ -182,20 +193,6 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
                 {message.costInfo.tokenUsage.inputTokens} ⬆️ {message.costInfo.tokenUsage.outputTokens} ⬇️
             </span>
         );
-    }
-
-    // Tokens per second (output-only), only if durationMs > 0 and outputTokens available
-    if (message.costInfo && typeof message.durationMs === 'number' && message.durationMs > 0) {
-        const outputTokens = message.costInfo.tokenUsage?.outputTokens ?? 0;
-        if (outputTokens > 0) {
-            const seconds = message.durationMs / 1000;
-            const tps = seconds > 0 ? (outputTokens / seconds) : 0;
-            metadataItems.push(
-                <span key="tps" title={`Output TPS over ${seconds.toFixed(2)}s`}>
-                    {tps.toFixed(1)} t/s
-                </span>
-            );
-        }
     }
 
     if (metadataItems.length === 0 && !message.id) {

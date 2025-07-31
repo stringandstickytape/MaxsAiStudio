@@ -43,17 +43,6 @@ export const useConvStore = create<ConvState>((set, get) => {
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             
-            try {
-                console.debug('conv:upd incoming', {
-                    id: content.id,
-                    source: content.source,
-                    durationMs: content.durationMs,
-                    tokenUsage: content.costInfo?.tokenUsage,
-                    totalCost: content.costInfo?.totalCost,
-                    cumulativeCost: content.cumulativeCost
-                });
-            } catch {}
-            
             // Get the convId from the message if available, otherwise use activeConvId
             const targetConvId = content.convId || activeConvId;
             
@@ -127,20 +116,6 @@ export const useConvStore = create<ConvState>((set, get) => {
                         };
 
                         updatedMessages[existingMessageIndex] = merged;
-                        try {
-                            console.debug('conv:upd applied (detail)', {
-                                id: content.id,
-                                source: merged.source,
-                                durationMs_before: existingDuration,
-                                durationMs_after: merged.durationMs,
-                                hasCostInfo_before: !!existingCostInfo,
-                                hasCostInfo_after: !!merged.costInfo,
-                                tokenUsage_before: existingTokenUsage,
-                                tokenUsage_after: merged.costInfo?.tokenUsage,
-                                cumulativeCost_after: merged.cumulativeCost
-                            });
-                        } catch {}
-                        
                         return {
                             convs: {
                                 ...state.convs,
