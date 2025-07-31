@@ -1,5 +1,3 @@
-﻿
-
 // This is a test comment added by AI on user request
 using AiStudio4.Core.Exceptions;
 
@@ -11,8 +9,6 @@ using AiStudio4.Convs;
 
 using System.Linq;
 using System.Text.Json;
-
-
 
 using AiStudio4.Core.Tools;
 using Microsoft.Extensions.DependencyInjection;
@@ -350,12 +346,19 @@ namespace AiStudio4.Services
                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
 
                 // *** THE BIG CHANGE: Single call replaces entire tool loop ***
+                // Capture start time to compute duration for the assistant message (output duration)
+                var assistantStartUtc = DateTime.UtcNow;
+                _logger.LogInformation("⏱️ Assistant timing start at {Start}", assistantStartUtc.ToString("O"));
                 AiResponse response = await aiService.FetchResponseWithToolLoop(requestOptions, toolExecutor, request.BranchedConv, request.MessageId, assistantMessageId, request.ClientId);
 
                 // Process the final response
                 var costStrategy = _strategyFactory.GetStrategy(service.ChargingStrategy);
                 var costInfo = new TokenCost(response.TokenUsage, model, costStrategy);
-                
+                // Compute durationMs from the moment we started the assistant call until completion
+                var assistantEndUtc = DateTime.UtcNow;
+                var durationMs = (long)Math.Max(0, (assistantEndUtc - assistantStartUtc).TotalMilliseconds);
+                _logger.LogInformation("⏱️ Assistant timing end at {End}, durationMs={Duration}", assistantEndUtc.ToString("O"), durationMs);
+
                 // Handle final message - use the CURRENT assistant message ID from the loop
                 // The assistantMessageId may have been updated during the tool loop
                 var finalAssistantMessageId = requestOptions.AssistantMessageId ?? assistantMessageId;
@@ -428,6 +431,9 @@ namespace AiStudio4.Services
                         attachments: (existingMessage.Attachments ?? new List<Attachment>()).Concat(response.Attachments ?? new List<Attachment>()).ToList(),
                         costInfo: costInfo
                     );
+                    // Update duration on the final message object in conversation state
+                    finalMessage.DurationMs = durationMs;
+                    _logger.LogInformation("🧩 Updated existing finalMessage.DurationMs={Duration}", finalMessage.DurationMs);
                 }
                 else
                 {
@@ -442,12 +448,15 @@ namespace AiStudio4.Services
                         attachments: response.Attachments,
                         costInfo: costInfo
                     );
+                    finalMessage.DurationMs = durationMs;
+                    _logger.LogInformation("🧩 Created finalMessage with DurationMs={Duration}", finalMessage.DurationMs);
                 }
 
                 finalMessage.Temperature = requestOptions.ApiSettings.Temperature;
 
                 
                 // Always send final update with complete cost information
+                _logger.LogInformation("📣 Notifying client with DurationMs={Duration}, OutputTokens={OutTokens}", finalMessage.DurationMs, response.TokenUsage?.OutputTokens);
                 await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                 {
                     ConvId = request.BranchedConv.ConvId,
@@ -457,7 +466,7 @@ namespace AiStudio4.Services
                     Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                     Source = "assistant",
                     Attachments = finalMessage.Attachments,
-                    DurationMs = 0,
+                    DurationMs = finalMessage.DurationMs,
                     CostInfo = costInfo,
                     CumulativeCost = finalMessage.CumulativeCost,
                     TokenUsage = response.TokenUsage,
