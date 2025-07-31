@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 using System.Text.RegularExpressions;
 using SharedClasses;
 using SharedClasses.Helpers;
@@ -188,8 +177,11 @@ namespace AiStudio4.Services
 
                     // Notify client to create the placeholder AI MessageItem
                     await _notificationService.NotifyConvPlaceholderUpdate(clientId, conv, placeholderMessage);
+                    // Record assistant start time now (right after placeholder creation, before streaming begins)
+                    var assistantStartUtc = DateTime.UtcNow;
+                    _logger.LogInformation("⏱️ [ChatProcessingService] Assistant timing start at {Start} for {MsgId}", assistantStartUtc.ToString("O"), assistantMessageId);
 
-
+                    
                     var messagesForClient = BuildFlatMessageStructure(conv);
 
                     var summaryText = conv.Summary;
@@ -231,8 +223,8 @@ namespace AiStudio4.Services
                     
 
                     var response = await _chatService.ProcessChatRequest(chatRequest, assistantMessageId, cancellationToken);
-
-
+                    // Note: DefaultChatService computes and logs end time and duration. This log ensures start was captured here.
+                    _logger.LogInformation("⏱️ [ChatProcessingService] Assistant request completed for {MsgId}", assistantMessageId);
 
                     // Save the conversation state *before* returning the response, 
                     // but potentially before the background summary task completes.
@@ -287,7 +279,7 @@ namespace AiStudio4.Services
                                             {
                                                 var responseText = string.Join("\n\n", summaryResponse.ContentBlocks?.Where(b => b.ContentType == ContentType.Text)?.Select(b => b.Content) ?? new string[0]);
                                                 var summary = responseText.Length > 100
-                                                    ? responseText.Substring(0, 97) + "..."
+                                                    ? responseText.Substring(0, 97) + "..." 
                                                     : responseText;
 
                                                 // Re-load the conversation within the scope before modifying/saving
