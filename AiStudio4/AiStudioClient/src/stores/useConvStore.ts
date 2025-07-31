@@ -1,4 +1,4 @@
-﻿import { create } from 'zustand';
+import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { Message, Conv } from '@/types/conv';
 import { MessageGraph } from '@/utils/messageGraph';
@@ -43,6 +43,17 @@ export const useConvStore = create<ConvState>((set, get) => {
             if (!content) return;
             const { activeConvId, slctdMsgId, addMessage, createConv, setActiveConv, getConv } = get();
             
+            try {
+                console.debug('conv:upd incoming', {
+                    id: content.id,
+                    source: content.source,
+                    durationMs: content.durationMs,
+                    tokenUsage: content.costInfo?.tokenUsage,
+                    totalCost: content.costInfo?.totalCost,
+                    cumulativeCost: content.cumulativeCost
+                });
+            } catch {}
+            
             // Get the convId from the message if available, otherwise use activeConvId
             const targetConvId = content.convId || activeConvId;
             
@@ -84,14 +95,51 @@ export const useConvStore = create<ConvState>((set, get) => {
                     set(state => {
                         const updatedMessages = [...conv.messages];
                         const existingMessage = updatedMessages[existingMessageIndex];
-                        updatedMessages[existingMessageIndex] = { 
-                            ...existingMessage, 
-                            contentBlocks: contentBlocks,
-                            durationMs: content.durationMs,
-                            costInfo: content.costInfo || existingMessage.costInfo,
-                            cumulativeCost: content.cumulativeCost || existingMessage.cumulativeCost,
-                            temperature: content.temperature || existingMessage.temperature
+                        // Defensive: ensure existing message has explicit defaults to avoid undefined merging issues
+                        const existingDuration = (typeof existingMessage.durationMs === 'number') ? existingMessage.durationMs : 0;
+                        const existingCostInfo = existingMessage.costInfo ?? null;
+                        const existingTokenUsage = existingCostInfo?.tokenUsage;
+
+                        // Compute next contentBlocks (replace fully from server payload)
+                        const nextBlocks = contentBlocks;
+
+                        // Duration: only increase or set if previously zero/missing
+                        let nextDuration = existingDuration;
+                        if (typeof content.durationMs === 'number') {
+                            if (existingDuration === 0 || content.durationMs >= existingDuration) {
+                                nextDuration = content.durationMs;
+                            }
+                        }
+
+                        // CostInfo: only set if provided; otherwise preserve existing
+                        const nextCostInfo = (content.costInfo != null) ? content.costInfo : existingCostInfo;
+
+                        // cumulativeCost: only update if provided
+                        const nextCumulative = (typeof content.cumulativeCost === 'number') ? content.cumulativeCost : existingMessage.cumulativeCost;
+
+                        const merged = {
+                            ...existingMessage,
+                            contentBlocks: nextBlocks,
+                            durationMs: nextDuration,
+                            costInfo: nextCostInfo,
+                            cumulativeCost: nextCumulative,
+                            temperature: (typeof content.temperature !== 'undefined') ? content.temperature : existingMessage.temperature
                         };
+
+                        updatedMessages[existingMessageIndex] = merged;
+                        try {
+                            console.debug('conv:upd applied (detail)', {
+                                id: content.id,
+                                source: merged.source,
+                                durationMs_before: existingDuration,
+                                durationMs_after: merged.durationMs,
+                                hasCostInfo_before: !!existingCostInfo,
+                                hasCostInfo_after: !!merged.costInfo,
+                                tokenUsage_before: existingTokenUsage,
+                                tokenUsage_after: merged.costInfo?.tokenUsage,
+                                cumulativeCost_after: merged.cumulativeCost
+                            });
+                        } catch {}
                         
                         return {
                             convs: {
@@ -542,7 +590,7 @@ export const debugConvStore = () => {
     return state; // handy if you want to inspect it further in the console
 };
 
-/* Expose globally only when we’re in a browser */
+/* Expose globally only when we're in a browser */
 if (typeof window !== 'undefined') {
     (window as any).debugConvStore = debugConvStore;
 }

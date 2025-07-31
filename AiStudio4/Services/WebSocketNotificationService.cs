@@ -85,6 +85,12 @@ namespace AiStudio4.Services
 
                 if (hasContentBlocks)
                 {
+                    _logger.LogInformation("📨 FINAL CONV UPDATE (blocks) - MsgId={MessageId}, DurationMs={Duration}, TotalCost={Cost}, In={InTok}, Out={OutTok}",
+                        update.MessageId,
+                        update.DurationMs,
+                        update.CostInfo?.TotalCost,
+                        update.TokenUsage?.InputTokens,
+                        update.TokenUsage?.OutputTokens);
                     var message = new
                     {
                         messageType = "conv",
@@ -108,6 +114,12 @@ namespace AiStudio4.Services
                 }
                 else if (hasPlainContent)
                 {
+                    _logger.LogInformation("📨 FINAL CONV UPDATE (plain) - MsgId={MessageId}, DurationMs={Duration}, TotalCost={Cost}, In={InTok}, Out={OutTok}",
+                        update.MessageId,
+                        update.DurationMs,
+                        update.CostInfo?.TotalCost,
+                        update.TokenUsage?.InputTokens,
+                        update.TokenUsage?.OutputTokens);
                     var message = new
                     {
                         messageType = "conv",

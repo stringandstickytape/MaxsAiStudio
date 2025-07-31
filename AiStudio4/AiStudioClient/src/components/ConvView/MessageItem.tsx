@@ -1,4 +1,4 @@
-﻿// AiStudioClient\src\components\ConvView\MessageItem.tsx
+// AiStudioClient\src\components\ConvView\MessageItem.tsx
 import React from 'react';
 import { MessageAttachments } from '@/components/MessageAttachments';
 import { MessageActions } from './MessageActions';
@@ -124,6 +124,13 @@ const formatTimestamp = (timestamp?: number | null) => {
 
 // MessageMetadata component
 const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
+    // Debug logging to verify values arriving at the component
+    try {
+        const out = message?.costInfo?.tokenUsage?.outputTokens;
+        if (typeof message?.durationMs !== 'undefined') {
+            console.debug('MessageMetadata:', message?.id, 'durationMs=', message?.durationMs, 'outputTokens=', out);
+        }
+    } catch {}
     const metadataItems = [];
 
     // Timestamp
@@ -151,6 +158,15 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
         </span>
     );
 
+    // Duration (if available)
+    if (typeof message.durationMs === 'number' && message.durationMs >= 0) {
+        metadataItems.push(
+            <span key="duration" title={`Processing time: ${message.durationMs} ms`}>
+                {formatDuration(message, 'durationMs')}
+            </span>
+        );
+    }
+
     if (message.costInfo && (message.costInfo.tokenUsage.cacheCreationInputTokens > 0 || message.costInfo.tokenUsage.cacheReadInputTokens > 0)) {
         metadataItems.push(
             <span key="cache">
@@ -166,17 +182,21 @@ const MessageMetadata = React.memo(({ message }: MessageMetadataProps) => {
                 {message.costInfo.tokenUsage.inputTokens} ⬆️ {message.costInfo.tokenUsage.outputTokens} ⬇️
             </span>
         );
+    }
 
-
-
-
-
-    
-
-
-
-
-}
+    // Tokens per second (output-only), only if durationMs > 0 and outputTokens available
+    if (message.costInfo && typeof message.durationMs === 'number' && message.durationMs > 0) {
+        const outputTokens = message.costInfo.tokenUsage?.outputTokens ?? 0;
+        if (outputTokens > 0) {
+            const seconds = message.durationMs / 1000;
+            const tps = seconds > 0 ? (outputTokens / seconds) : 0;
+            metadataItems.push(
+                <span key="tps" title={`Output TPS over ${seconds.toFixed(2)}s`}>
+                    {tps.toFixed(1)} t/s
+                </span>
+            );
+        }
+    }
 
     if (metadataItems.length === 0 && !message.id) {
         return null;
@@ -218,6 +238,28 @@ const arePropsEqual = (prevProps: MessageItemProps, nextProps: MessageItemProps)
   if (prevMsg.id !== nextMsg.id) return false;
   if (prevMsg.source !== nextMsg.source) return false;
   if (prevMsg.timestamp !== nextMsg.timestamp) return false;
+  
+  // Ensure metadata changes trigger rerender
+  if ((prevMsg.durationMs ?? null) !== (nextMsg.durationMs ?? null)) return false;
+  if ((prevMsg.cumulativeCost ?? null) !== (nextMsg.cumulativeCost ?? null)) return false;
+  const prevCost = prevMsg.costInfo;
+  const nextCost = nextMsg.costInfo;
+  if (!!prevCost !== !!nextCost) return false; // one is null, other not
+  if (prevCost && nextCost) {
+    if ((prevCost.totalCost ?? null) !== (nextCost.totalCost ?? null)) return false;
+    if ((prevCost.inputCostPer1M ?? null) !== (nextCost.inputCostPer1M ?? null)) return false;
+    if ((prevCost.outputCostPer1M ?? null) !== (nextCost.outputCostPer1M ?? null)) return false;
+    if ((prevCost.modelGuid ?? null) !== (nextCost.modelGuid ?? null)) return false;
+    const prevTok = prevCost.tokenUsage;
+    const nextTok = nextCost.tokenUsage;
+    if (!!prevTok !== !!nextTok) return false;
+    if (prevTok && nextTok) {
+      if ((prevTok.inputTokens ?? null) !== (nextTok.inputTokens ?? null)) return false;
+      if ((prevTok.outputTokens ?? null) !== (nextTok.outputTokens ?? null)) return false;
+      if ((prevTok.cacheCreationInputTokens ?? null) !== (nextTok.cacheCreationInputTokens ?? null)) return false;
+      if ((prevTok.cacheReadInputTokens ?? null) !== (nextTok.cacheReadInputTokens ?? null)) return false;
+    }
+  }
   
   // Compare contentBlocks array
   if (prevMsg.contentBlocks?.length !== nextMsg.contentBlocks?.length) return false;
@@ -394,7 +436,8 @@ export const MessageItem = React.memo(({ message, activeConvId, isStreamingTarge
               scrollMarginTop: '100px', // Ensures the element is visible when scrolled to
               boxShadow: '0 0 0 2px var(--convview-accent-color, #2563eb)'
             }),
-            ...(window?.theme?.ConvView?.style || {})          }}>
+            ...(window?.theme?.ConvView?.style || {})          }}
+        >
           {/* Always render content with block editing capabilities */}
           {renderContent()}
           
