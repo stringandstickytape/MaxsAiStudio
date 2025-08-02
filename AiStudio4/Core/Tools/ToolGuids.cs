@@ -1,4 +1,4 @@
-namespace AiStudio4.Core.Tools
+﻿namespace AiStudio4.Core.Tools
 {
     /// <summary>
     /// Contains unique GUID constants for all tools in the AI Studio application.
@@ -66,6 +66,7 @@ namespace AiStudio4.Core.Tools
         public const string FIND_AND_REPLACE_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef08";
         public const string LAUNCH_URL_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-56789abcdef04";
         public const string MODIFY_FILES_TOOL_GUID = "a1b2c3d4-e5f6-7890-1234-567890abcd43";
+        public const string MODIFY_FILE_MODERN_TOOL_GUID = "b3c4d5e6-f7a8-9012-3456-7890abcdef11";
         public const string PRESENT_RESULTS_AND_AWAIT_USER_INPUT_TOOL_GUID = "b2c4d4e5-f6a7-8901-2345-67890abcdef05";
         public const string YOUTUBE_SEARCH_TOOL_GUID = "d1e2f3a4-b5c6-7890-1234-567890abcdef10";
         
