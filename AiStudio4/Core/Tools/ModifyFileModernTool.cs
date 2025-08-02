@@ -1,6 +1,8 @@
 ﻿// AiStudio4/Core/Tools/ModifyFileModernTool.cs
+// Note: Test comment updated to validate ModifyFileModern tool behavior.
 
 using AiStudio4.Core.Tools.CodeDiff;
+using AiStudio4.Core.Models;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
@@ -79,6 +81,12 @@ namespace AiStudio4.Core.Tools
             }
             catch (Exception ex)
             {
+                var details = new JObject
+                {
+                    ["message"] = "Invalid JSON parameters",
+                    ["exception"] = ex.ToString()
+                };
+                WriteFailureDebugLog(null, null, toolParameters, null, null, details);
                 return CreateResult(false, true, $"Invalid JSON parameters: {ex.Message}");
             }
 
@@ -101,6 +109,17 @@ namespace AiStudio4.Core.Tools
 
             if (validation.Length > 0)
             {
+                var details = new JObject
+                {
+                    ["message"] = "Validation failed",
+                    ["validationErrors"] = validation.ToString()
+                };
+                WriteFailureDebugLog(path, null, parameters.ToString(Formatting.None), new JObject
+                {
+                    ["whitespaceTolerant"] = whitespaceTolerant,
+                    ["strictMultipleMatches"] = strictMultipleMatches,
+                    ["applyAllOccurrences"] = applyAllOccurrences
+                }, changesArray, details);
                 return CreateResult(false, true, validation.ToString());
             }
 
@@ -124,6 +143,16 @@ namespace AiStudio4.Core.Tools
             }
             catch (Exception ex)
             {
+                var details = new JObject
+                {
+                    ["message"] = "Failed to read file",
+                    ["exception"] = ex.ToString()
+                };
+                WriteFailureDebugLog(path, null, changesArray?.ToString(Formatting.None), new JObject
+                {
+                    ["whitespaceTolerant"] = whitespaceTolerant,
+                    ["strictMultipleMatches"] = strictMultipleMatches
+                }, changesArray, details);
                 return CreateResult(false, true, $"Failed to read file: {ex.Message}");
             }
 
@@ -154,6 +183,12 @@ namespace AiStudio4.Core.Tools
                 if (string.IsNullOrEmpty(oldContent))
                 {
                     var details = BuildErrorObject($"Change {index} failed: oldContent is empty.", index, description, 0, null, oldContent);
+                    WriteFailureDebugLog(path, originalContent, parameters: null, flags: new JObject
+                    {
+                        ["whitespaceTolerant"] = whitespaceTolerant,
+                        ["strictMultipleMatches"] = strictMultipleMatches,
+                        ["applyAllOccurrences"] = applyAllOccurrences
+                    }, changesArray: changesArray, errorDetails: details);
                     return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
                 }
 
@@ -168,6 +203,12 @@ namespace AiStudio4.Core.Tools
                 {
                     var fuzzy = BuildFuzzyNoMatchDiagnostics(current, oldBlock, whitespaceTolerant);
                     var details = BuildErrorObject("Change failed: oldContent not found as whole-line block.", index, description, 0, null, oldContent, fuzzy);
+                    WriteFailureDebugLog(path, originalContent, null, new JObject
+                    {
+                        ["whitespaceTolerant"] = whitespaceTolerant,
+                        ["strictMultipleMatches"] = strictMultipleMatches,
+                        ["applyAllOccurrences"] = applyAllOccurrences
+                    }, changesArray, details);
                     return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
                 }
 
@@ -176,6 +217,12 @@ namespace AiStudio4.Core.Tools
                     if (matchedCount > 1 && strictMultipleMatches)
                     {
                         var details = BuildErrorObject($"Change {index} failed: oldContent matches {matchedCount} times and strictMultipleMatches=true.", index, description, matchedCount, null, oldContent);
+                        WriteFailureDebugLog(path, originalContent, null, new JObject
+                        {
+                            ["whitespaceTolerant"] = whitespaceTolerant,
+                            ["strictMultipleMatches"] = strictMultipleMatches,
+                            ["applyAllOccurrences"] = applyAllOccurrences
+                        }, changesArray, details);
                         return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
                     }
 
@@ -233,6 +280,12 @@ namespace AiStudio4.Core.Tools
             catch (Exception ex)
             {
                 var details = BuildErrorObject($"Failed to write modified file: {ex.Message}", null, null, null, null, null);
+                WriteFailureDebugLog(path, originalContent, null, new JObject
+                {
+                    ["whitespaceTolerant"] = whitespaceTolerant,
+                    ["strictMultipleMatches"] = strictMultipleMatches,
+                    ["applyAllOccurrences"] = applyAllOccurrences
+                }, changesArray, details);
                 return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
             }
 
@@ -253,6 +306,84 @@ namespace AiStudio4.Core.Tools
             };
 
             return CreateResult(true, true, summary.ToString(Formatting.Indented), "File modified successfully.");
+        }
+
+        private void WriteFailureDebugLog(string? path, string? originalContent, string? parameters = null, JObject? flags = null, JArray? changesArray = null, JObject? errorDetails = null)
+        {
+            try
+            {
+                string debugDir = PathHelper.GetProfileSubPath("DebugLogs", "ModifyFileModernFailures");
+                Directory.CreateDirectory(debugDir);
+                string fileName = $"failure_{DateTime.UtcNow:yyyyMMdd_HHmmss_fff}_{Guid.NewGuid().ToString("N").Substring(0,8)}.json";
+                string fullPath = System.IO.Path.Combine(debugDir, fileName);
+
+                var payload = new JObject
+                {
+                    ["timestampUtc"] = DateTime.UtcNow.ToString("o"),
+                    ["tool"] = "ModifyFileModern",
+                    ["sourceFilePath"] = path,
+                    ["parameters"] = parameters,
+                    ["flags"] = flags,
+                    ["changes"] = changesArray,
+                    ["errorDetails"] = errorDetails,
+                    ["environment"] = new JObject
+                    {
+                        ["osVersion"] = Environment.OSVersion.ToString(),
+                        ["processArch"] = System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture.ToString(),
+                        ["framework"] = System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription
+                    }
+                };
+
+                if (originalContent != null)
+                {
+                    payload["originalContentInfo"] = new JObject
+                    {
+                        ["length"] = originalContent.Length,
+                        ["sha256"] = ComputeSha256(originalContent),
+                        ["fullContent"] = originalContent
+                    };
+                }
+
+                File.WriteAllText(fullPath, payload.ToString(Formatting.Indented), Encoding.UTF8);
+
+                // Retention policy: delete logs older than 7 days
+                TryApplyLogRetention(debugDir, TimeSpan.FromDays(7));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to write ModifyFileModern failure debug log for {Path}", path);
+            }
+        }
+
+        private static string ComputeSha256(string content)
+        {
+            using var sha = System.Security.Cryptography.SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(content);
+            var hash = sha.ComputeHash(bytes);
+            return BitConverter.ToString(hash).Replace("-", string.Empty).ToLowerInvariant();
+        }
+
+        private static void TryApplyLogRetention(string directory, TimeSpan maxAge)
+        {
+            try
+            {
+                var cutoff = DateTime.UtcNow - maxAge;
+                var files = Directory.GetFiles(directory, "failure_*.json", SearchOption.TopDirectoryOnly);
+                foreach (var f in files)
+                {
+                    try
+                    {
+                        var info = new FileInfo(f);
+                        var ts = info.LastWriteTimeUtc;
+                        if (ts < cutoff)
+                        {
+                            File.Delete(f);
+                        }
+                    }
+                    catch { /* ignore per-file errors */ }
+                }
+            }
+            catch { /* ignore retention errors */ }
         }
 
         private static void ApplyReplacement(List<string> current, int start, int oldCount, List<string> newBlock)
