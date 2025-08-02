@@ -36,5 +36,5 @@ Or, if the AI is providing a path relative to the project root:
 ## Notes
 
 -   The tool will create any necessary parent directories if they don't exist, as long as the path is within the project root.
--   If a file already exists at the specified `path`, this tool will **fail**. Use `ReplaceFileTool` or `ModifyFilesTool` if you intend to overwrite or change an existing file.
+-   If a file already exists at the specified `path`, this tool will **fail**. Use `ReplaceFileTool` or `ModifyFilesTool` (or [ModifyFileModern](modify-file-modern-tool.md) for precise line-based edits) if you intend to overwrite or change an existing file.
 -   The `description` parameter is for logging and auditing purposes and helps understand the AI's intent.

@@ -40,5 +40,5 @@ To add or modify the `plugins` array:
 
 -   **User Confirmation Required:** This tool will prompt you for confirmation before modifying the Vite configuration file, as it can significantly alter your project's build and development behavior.
 -   The tool first tries to find and replace existing properties. If a property doesn't exist, it attempts to add it to the main `defineConfig` object.
--   Modifying complex structures like the `plugins` array via simple key-value replacement can be tricky. The tool has special handling for `plugins` but for very complex manipulations, using `ModifyFilesTool` with the exact code changes might be more reliable.
+-   Modifying complex structures like the `plugins` array via simple key-value replacement can be tricky. The tool has special handling for `plugins` but for very complex manipulations, using `ModifyFilesTool` (or [ModifyFileModern](modify-file-modern-tool.md) for targeted line-based edits) with the exact code changes might be more reliable.
 -   It looks for `vite.config.js` first, then `vite.config.ts`.

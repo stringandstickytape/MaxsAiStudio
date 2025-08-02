@@ -72,6 +72,7 @@ AiStudio4 includes a variety of built-in tools. Click on a tool name to learn mo
 *   [InfoRequestTool](tools/info-request-tool.md)
 *   [LaunchUrlTool](tools/launch-url-tool.md)
 *   [ModifyFilesTool](tools/modify-files-tool.md)
+*   [ModifyFileModern](tools/modify-file-modern-tool.md)
 *   [ModifyFileUsingMorph](tools/modify-file-using-morph.md)
 *   [ReadFilesTool](tools/read-files-tool.md)
 *   [ReadPartialFilesTool](tools/read-partial-files-tool.md)

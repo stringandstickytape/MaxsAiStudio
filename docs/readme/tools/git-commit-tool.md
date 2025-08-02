@@ -4,7 +4,7 @@
 
 ## Usage
 
-This tool allows the AI to create a new commit in your project's local Git repository. It's designed for committing changes that the AI might have made using tools like `ModifyFilesTool`, `CreateNewFileTool`, etc. The AI must specify the files to be included in the commit and a commit message.
+This tool allows the AI to create a new commit in your project's local Git repository. It's designed for committing changes that the AI might have made using tools like `ModifyFilesTool` (or [ModifyFileModern](modify-file-modern-tool.md) for precise line-based edits), `CreateNewFileTool`, etc. The AI must specify the files to be included in the commit and a commit message.
 
 **Parameters:**
 -   `commit` (object, required): An object containing the commit details.

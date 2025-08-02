@@ -10,7 +10,11 @@ Max's AI Studio 4 (AiStudio4) is a feature-rich desktop application engineered t
 
 ## 1.3 Highlights
 *   **Unified AI Chat:** Seamlessly chat with OpenAI, Anthropic Claude, Google Gemini models, local Llama.cpp instances, and custom Model Context Protocol (MCP) servers from one interface. Supports Ollama through OpenAI API compatibility.
-*   **Powerful Tool Ecosystem:** Leverage built-in tools for file operations (read, write, search, diff, modify using morph), web tasks (DuckDuckGo, YouTube, URL scraping), developer integrations (Git, GitHub, Azure DevOps with new pipeline and wiki search tools, Sentry, Vite), and more. Allows AI to iterate over your code, edit it, and even launch it.
+*   **Powerful Tool Ecosystem:** Leverage built-in tools for file operations (read, write, search, diff, modify via three approaches), web tasks (DuckDuckGo, YouTube, URL scraping), developer integrations (Git, GitHub, Azure DevOps with new pipeline and wiki search tools, Sentry, Vite), and more. Allows AI to iterate over your code, edit it, and even launch it.
+    -   File modifications:
+        -   [ModifyFilesTool](tools/modify-files-tool.md): Batch targeted changes across multiple files.
+        -   [ModifyFileModern](tools/modify-file-modern-tool.md): Precise, atomic line-based edits with encoding/newline preservation and detailed diagnostics.
+        -   [ModifyFileUsingMorph](tools/modify-file-using-morph.md): AST-aware diffs using Morph for structural code refactors.
 *   **Extensible & Customizable AI:** Define new tools with JSON schemas or connect to external MCP-compliant tool servers.
 *   **Enhanced Reliability:** Automatically detects and handles malformed tool calls from AI models, improving robustness.
 *   **Deep Project Integration:** Define multiple projects and switch between them. The active project provides context for AI tasks, file operations, and more.

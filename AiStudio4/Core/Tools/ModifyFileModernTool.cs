@@ -38,6 +38,7 @@ namespace AiStudio4.Core.Tools
       "path": { "type": "string", "description": "Absolute path to the file to modify (must be inside the project root)" },
       "whitespaceTolerant": { "type": "boolean", "description": "If true, match compares lines using TrimEnd() (ignore trailing whitespace). Default: true.", "default": true },
       "strictMultipleMatches": { "type": "boolean", "description": "If true, fail (and revert) when oldContent matches more than once. If false, apply to first and warn. Default: false.", "default": false },
+      "applyAllOccurrences": { "type": "boolean", "description": "If true, replaces all occurrences of oldContent blocks; otherwise only the first match is replaced.", "default": false },
       "changes": {
         "type": "array",
         "description": "Array of line-based changes to apply sequentially to this single file.",
@@ -154,7 +155,7 @@ namespace AiStudio4.Core.Tools
                 if (string.IsNullOrEmpty(oldContent))
                 {
                     var details = BuildErrorObject($"Change {index} failed: oldContent is empty.", index, description, 0, null, oldContent);
-                    return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
+                    return RevertWithError(path, originalContent, details, encodingUsed).GetAwaiter().GetResult();
                 }
 
                 // Prepare blocks: match may be whitespace tolerant; insertion should preserve provided whitespace
@@ -168,7 +169,7 @@ namespace AiStudio4.Core.Tools
                 {
                     var fuzzy = BuildFuzzyNoMatchDiagnostics(current, oldBlock, whitespaceTolerant);
                     var details = BuildErrorObject("Change failed: oldContent not found as whole-line block.", index, description, 0, null, oldContent, fuzzy);
-                    return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
+                    return RevertWithError(path, originalContent, details, encodingUsed).GetAwaiter().GetResult();
                 }
 
                 if (!applyAllOccurrences)
@@ -176,7 +177,7 @@ namespace AiStudio4.Core.Tools
                     if (matchedCount > 1 && strictMultipleMatches)
                     {
                         var details = BuildErrorObject($"Change {index} failed: oldContent matches {matchedCount} times and strictMultipleMatches=true.", index, description, matchedCount, null, oldContent);
-                        return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
+                        return RevertWithError(path, originalContent, details, encodingUsed).GetAwaiter().GetResult();
                     }
 
                     int appliedAtIndex = matchIndices[0];
@@ -190,6 +191,10 @@ namespace AiStudio4.Core.Tools
                         ["appliedAtIndex"] = appliedAtIndex,
                         ["replacedLineCount"] = oldBlock.Count,
                     };
+                    if (oldBlock.Count < 3)
+                    {
+                        result["warningOldContentTooSmall"] = "oldContent block is small (<3 lines). Provide 3-5 lines of context before and after to uniquely identify the change.";
+                    }
                     if (matchedCount > 1 && !strictMultipleMatches)
                     {
                         result["warning"] = "Multiple matches found; applied to first occurrence.";
@@ -215,6 +220,10 @@ namespace AiStudio4.Core.Tools
                         ["appliedAtIndices"] = appliedIndices,
                         ["replacedLineCountPerOccurrence"] = oldBlock.Count,
                     };
+                    if (oldBlock.Count < 3)
+                    {
+                        result["warningOldContentTooSmall"] = "oldContent block is small (<3 lines). Provide 3-5 lines of context before and after to uniquely identify the change.";
+                    }
                     changeResults.Add(result);
                 }
             }
@@ -233,7 +242,7 @@ namespace AiStudio4.Core.Tools
             catch (Exception ex)
             {
                 var details = BuildErrorObject($"Failed to write modified file: {ex.Message}", null, null, null, null, null);
-                return RevertWithError(path, originalContent, details).GetAwaiter().GetResult();
+                return RevertWithError(path, originalContent, details, encodingUsed).GetAwaiter().GetResult();
             }
 
             var summary = new JObject
@@ -261,11 +270,20 @@ namespace AiStudio4.Core.Tools
             current.InsertRange(start, newBlock);
         }
 
-        private async Task<BuiltinToolResult> RevertWithError(string path, string originalContent, JObject errorDetails)
+        private async Task<BuiltinToolResult> RevertWithError(string path, string originalContent, JObject errorDetails, Encoding? encoding = null)
         {
             try
             {
-                await File.WriteAllTextAsync(path, originalContent, Encoding.UTF8);
+                // Preserve original encoding if provided
+                if (encoding != null)
+                {
+                    using var fs = new FileStream(path, FileMode.Create, FileAccess.Write, FileShare.None);
+                    WriteAllTextWithBom(fs, originalContent, encoding);
+                }
+                else
+                {
+                    await File.WriteAllTextAsync(path, originalContent, Encoding.UTF8);
+                }
             }
             catch (Exception ex)
             {
