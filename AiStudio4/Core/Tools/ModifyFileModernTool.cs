@@ -79,7 +79,7 @@ namespace AiStudio4.Core.Tools
             }
             catch (Exception ex)
             {
-                return CreateResult(false, false, $"Invalid JSON parameters: {ex.Message}");
+                return CreateResult(false, true, $"Invalid JSON parameters: {ex.Message}");
             }
 
             var path = parameters["path"]?.ToString();
@@ -101,7 +101,7 @@ namespace AiStudio4.Core.Tools
 
             if (validation.Length > 0)
             {
-                return CreateResult(false, false, validation.ToString());
+                return CreateResult(false, true, validation.ToString());
             }
 
             // Concurrency guard per file
@@ -124,7 +124,7 @@ namespace AiStudio4.Core.Tools
             }
             catch (Exception ex)
             {
-                return CreateResult(false, false, $"Failed to read file: {ex.Message}");
+                return CreateResult(false, true, $"Failed to read file: {ex.Message}");
             }
 
             // Detect newline style and whether the file ends with a trailing newline
@@ -280,7 +280,7 @@ namespace AiStudio4.Core.Tools
                 ["errorDetails"] = errorDetails
             };
 
-            return CreateResult(true, false, output.ToString(Formatting.Indented), (string?)errorDetails["message"] ?? "Change failed");
+            return CreateResult(true, true, output.ToString(Formatting.Indented), (string?)errorDetails["message"] ?? "Change failed");
         }
 
         private static JObject BuildErrorObject(string message, int? index, string? description, int? matchedCount, int? appliedAtIndex, string? oldContentSnippet, JObject? fuzzy = null)
