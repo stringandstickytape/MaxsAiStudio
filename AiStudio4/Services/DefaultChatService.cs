@@ -1,4 +1,4 @@
-// This is a test comment added by AI on user request
+﻿// This is a test comment added by AI on user request
 using AiStudio4.Core.Exceptions;
 
 
@@ -232,6 +232,9 @@ namespace AiStudio4.Services
                     ClientId = request.ClientId
                 };
 
+                // Capture start time to compute duration for the assistant message (output duration)
+                var assistantStartUtc = DateTime.UtcNow;
+
                 // Set up callbacks that reference requestOptions after it's created
                 requestOptions.GetCurrentAssistantMessageId = () => requestOptions.AssistantMessageId ?? assistantMessageId;
                 requestOptions.OnStreamingUpdate = (text) => _notificationService.NotifyStreamingUpdate(request.ClientId, new StreamingUpdateDto 
@@ -309,6 +312,8 @@ namespace AiStudio4.Services
                 {
                     // Message is already added to branched conversation by the callback
                     // Just notify the client
+                    // Include elapsed duration for interim assistant updates (time since assistant started)
+                    var interimElapsedMs = (long)Math.Max(0, (DateTime.UtcNow - assistantStartUtc).TotalMilliseconds);
                     await _notificationService.NotifyConvUpdate(request.ClientId, new ConvUpdateDto
                     {
                         ConvId = request.BranchedConv.ConvId,
@@ -318,7 +323,7 @@ namespace AiStudio4.Services
                         Timestamp = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds(),
                         Source = "assistant",
                         Attachments = message.Attachments,
-                        DurationMs = 0,
+                        DurationMs = interimElapsedMs,
                         CostInfo = message.CostInfo,
                         CumulativeCost = message.CumulativeCost,
                         TokenUsage = message.CostInfo?.TokenUsage,
@@ -346,8 +351,6 @@ namespace AiStudio4.Services
                 await _statusMessageService.SendStatusMessageAsync(request.ClientId, $"Sending request...");
 
                 // *** THE BIG CHANGE: Single call replaces entire tool loop ***
-                // Capture start time to compute duration for the assistant message (output duration)
-                var assistantStartUtc = DateTime.UtcNow;
                 AiResponse response = await aiService.FetchResponseWithToolLoop(requestOptions, toolExecutor, request.BranchedConv, request.MessageId, assistantMessageId, request.ClientId);
 
                 // Process the final response
