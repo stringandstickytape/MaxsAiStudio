@@ -24,7 +24,7 @@ Clone Azure DevOps wiki repositories locally and perform git operations directly
 %APPDATA%/AiStudio4/wikis/
 └── {organization}/
     └── {project}/
-        └── {wiki_id}/
+        └── {wiki_name}/  # Using wiki name instead of ID
             ├── .git/
             ├── .order files
             └── wiki pages (.md files)
@@ -32,9 +32,9 @@ Clone Azure DevOps wiki repositories locally and perform git operations directly
 
 ### Authentication
 
-- Use existing Azure DevOps PAT from `GeneralSettingsService`
+- Retrieve PAT using `_generalSettingsService.GetDecryptedAzureDevOpsPAT()`
 - Format for git operations: `https://{PAT}@dev.azure.com/{org}/{project}/_git/{wiki}.wiki`
-- Alternative: Username = anything, Password = PAT
+- Set credentials in git command environment or URL encoding
 
 ## Primary Tool: AzureDevOpsCreateOrUpdateWikiPageViaLocalTool
 
@@ -46,14 +46,13 @@ Create or update wiki pages using local git repository operations for efficient 
 {
   "organization": "string",
   "project": "string", 
-  "wiki_id": "string",
+  "wiki_name": "string",  // Changed from wiki_id
   "path": "string",
-  "edits": [
+  "changes": [  // Aligned with ModifyFileModernTool pattern
     {
-      "type": "replace|append|prepend|delete",
-      "old_content": "string (for replace)",
-      "new_content": "string",
-      "line_range": [start, end] // optional, for line-based edits
+      "oldContent": "string",
+      "newContent": "string",
+      "description": "string"
     }
   ],
   "comment": "string (optional)",
@@ -64,33 +63,37 @@ Create or update wiki pages using local git repository operations for efficient 
 ### Process Flow
 
 1. **Repository Management**
-   - Check if local repo exists at `PathHelper.GetProfileSubPath("wikis", organization, project, wiki_id)`
-   - If not exists: Clone repository
+   - Check if local repo exists at `PathHelper.GetProfileSubPath("wikis", organization, project, wiki_name)`
+   - If not exists: Clone repository using ProcessStartInfo (shell out to git)
    - If exists and `auto_pull`: Pull latest changes
 
 2. **Apply Edits**
-   - Load target file from local repo
-   - Apply edit operations in sequence
-   - Save modified file
+   - Call ModifyFileModernTool internally with the file path and changes
+   - Leverage existing line-based matching and atomic operations
+   - All changes must succeed or entire operation is reverted
 
-3. **Commit and Push**
+3. **Commit and Push (Atomic)**
+   - Every tool call that modifies the wiki MUST commit and push as part of its operation
+   - Use RunGitCommand pattern from GitCommitTool
    - Stage changed file(s)
    - Commit with provided comment or auto-generated message
    - Push to remote
+   - If any step fails, revert all changes
 
 4. **Error Handling**
-   - **Merge conflicts**: Show conflict, offer options:
-     - Abort and revert local changes
-     - Keep local changes uncommitted for manual resolution
-     - Force push (with confirmation)
+   - **Merge conflicts**: Fail immediately and inform user to resolve manually
+   - **Concurrent access**: Not handled - inform user and stop
    - **Authentication failures**: Return clear error about PAT
-   - **Network issues**: Keep changes locally, inform user
+   - **Network issues**: Fail the operation completely (no partial success)
 
 ### Implementation Notes
 
-- Reuse `RunGitCommand` pattern from `GitCommitTool`
-- Use `ProcessStartInfo` for git operations
-- Implement proper file locking for concurrent operations
+- Shell out to git using `ProcessStartInfo` (following GitCommitTool pattern)
+- Reuse `RunGitCommand` method pattern from `GitCommitTool`
+- Call ModifyFileModernTool for file editing operations
+- Use FileLockProvider pattern from ModifyFileModernTool for file locking
+- PAT retrieved via `_generalSettingsService.GetDecryptedAzureDevOpsPAT()`
+- All operations are atomic - either fully succeed or fully fail
 - Log all git operations for debugging
 
 ## Additional Proposed Tools
@@ -104,7 +107,7 @@ Create or update wiki pages using local git repository operations for efficient 
 {
   "organization": "string",
   "project": "string",
-  "wiki_id": "string",
+  "wiki_name": "string",  // Changed from wiki_id
   "search_pattern": "string",
   "regex": false,
   "case_sensitive": false
@@ -125,7 +128,7 @@ Create or update wiki pages using local git repository operations for efficient 
 {
   "organization": "string",
   "project": "string",
-  "wiki_id": "string",
+  "wiki_name": "string",  // Changed from wiki_id
   "operations": [
     {
       "path_pattern": "glob pattern",
@@ -137,6 +140,8 @@ Create or update wiki pages using local git repository operations for efficient 
   "comment": "string"
 }
 ```
+
+**Note**: All changes are committed and pushed atomically as a single operation.
 
 **Benefits**:
 - Batch operations in single commit
@@ -152,7 +157,7 @@ Create or update wiki pages using local git repository operations for efficient 
 {
   "organization": "string",
   "project": "string",
-  "wiki_id": "string",
+  "wiki_name": "string",  // Changed from wiki_id
   "path": "string",
   "limit": 10
 }
@@ -172,11 +177,13 @@ Create or update wiki pages using local git repository operations for efficient 
 {
   "organization": "string",
   "project": "string",
-  "wiki_id": "string",
+  "wiki_name": "string",  // Changed from wiki_id
   "path": "string",
   "commit_sha": "string (optional, defaults to HEAD~1)"
 }
 ```
+
+**Note**: Revert operation commits and pushes changes atomically.
 
 ## Migration Path
 
@@ -189,7 +196,8 @@ Create or update wiki pages using local git repository operations for efficient 
 ## Security Considerations
 
 - Local repositories are stored in user's AppData (same security as current app data)
-- PAT never stored in git config, only used at runtime
+- PAT retrieved at runtime via `_generalSettingsService.GetDecryptedAzureDevOpsPAT()`
+- PAT never stored in git config, only passed via command line or environment
 - No additional security implications beyond current REST approach
 - Option to clear local cache through UI if needed
 
@@ -226,6 +234,47 @@ Create or update wiki pages using local git repository operations for efficient 
 4. `AzureDevOpsWikiHistoryViaLocalTool` - Nice to have
 5. `AzureDevOpsRevertWikiPageViaLocalTool` - Nice to have
 
+## Key Design Decisions
+
+1. **Shell Out to Git**: Use ProcessStartInfo to execute git commands (trusted, proven approach)
+2. **Wiki Name vs ID**: Use wiki name for folder structure (matches Azure DevOps URLs)
+3. **Atomic Operations**: Every modification commits and pushes - no partial states
+4. **Reuse Existing Tools**: Leverage ModifyFileModernTool for edits, GitCommitTool patterns for git
+5. **No Concurrent Access Handling**: Fail fast and inform user of conflicts
+6. **PAT Security**: Retrieve at runtime, never persist in git config
+
 ## Conclusion
 
-This git-based approach provides significant efficiency improvements for wiki operations while maintaining compatibility with existing REST-based tools. The implementation leverages existing patterns from the codebase (git operations, PAT authentication, PathHelper) to minimize complexity and ensure consistency.
+This git-based approach provides significant efficiency improvements for wiki operations while maintaining compatibility with existing REST-based tools. The implementation leverages existing patterns from the codebase (ModifyFileModernTool for edits, GitCommitTool for git operations, PAT authentication from GeneralSettingsService) to minimize complexity and ensure consistency.
+
+## Detailed Implementation Task List
+
+### Core Infrastructure
+- [ ] Create base infrastructure for local wiki repository management
+- [ ] Implement repository cloning functionality with PAT authentication
+- [ ] Add proper file locking mechanism for concurrent operations
+- [ ] Implement comprehensive logging for all git operations
+
+### Primary Tool Implementation
+- [ ] Create AzureDevOpsCreateOrUpdateWikiPageViaLocalTool class structure
+- [ ] Implement edit operations (replace, append, prepend, delete) for wiki pages
+- [ ] Add git commit and push functionality with error handling
+- [ ] Implement merge conflict detection and resolution options
+
+### Additional Tools
+- [ ] Create AzureDevOpsSearchWikiViaLocalTool with grep/ripgrep integration
+- [ ] Implement AzureDevOpsBulkUpdateWikiViaLocalTool for batch operations
+- [ ] Add preview functionality for bulk updates
+- [ ] Create AzureDevOpsWikiHistoryViaLocalTool using git log
+- [ ] Implement AzureDevOpsRevertWikiPageViaLocalTool for version rollback
+
+### Testing
+- [ ] Create unit tests for git operations and edit functions
+- [ ] Add integration tests with test Azure DevOps instance
+- [ ] Implement error simulation tests (network failures, conflicts)
+- [ ] Create performance benchmarks comparing REST vs Local approaches
+
+### UI and Documentation
+- [ ] Add UI option to choose between REST and ViaLocal tools
+- [ ] Implement local cache clearing functionality in UI
+- [ ] Create documentation for new ViaLocal tools usage
