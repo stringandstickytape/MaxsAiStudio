@@ -39,75 +39,44 @@
                 <ColumnDefinition Width="400"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left Panel - Server List -->
+            <!-- Left Panel - Server Status -->
             <ui:Card Grid.Column="0" Margin="12,12,6,12">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0" Margin="12,12,12,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Text="MCP Servers" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                        <ui:Button Grid.Column="1" 
-                                   Icon="{ui:SymbolIcon Add24}" 
-                                   Command="{Binding AddServerCommand}"
-                                   ToolTip="Add New Server"/>
-                    </Grid>
-
-                    <ListBox Grid.Row="1" 
-                             ItemsSource="{Binding Servers}"
-                             SelectedItem="{Binding SelectedServer}"
-                             Margin="8,0">
-                        <ListBox.ItemTemplate>
-                            <DataTemplate>
-                                <Border Padding="12,8" CornerRadius="4">
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition Width="Auto"/>
-                                            <ColumnDefinition Width="*"/>
-                                            <ColumnDefinition Width="Auto"/>
-                                        </Grid.ColumnDefinitions>
-                                        <ui:SymbolIcon Grid.Column="0" 
-                                                      Symbol="Server24" 
-                                                      Margin="0,0,12,0"
-                                                      VerticalAlignment="Center"/>
-                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"/>
-                                            <TextBlock Text="{Binding Description}" 
-                                                      FontSize="11" 
-                                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                                        </StackPanel>
-                                        <ui:ToggleSwitch Grid.Column="2" 
-                                                        IsChecked="{Binding IsEnabled}"
-                                                        VerticalAlignment="Center"/>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ListBox.ItemTemplate>
-                    </ListBox>
-
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="12,8,12,12" HorizontalAlignment="Center">
-                        <ui:Button Icon="{ui:SymbolIcon Play24}" 
-                                   Content="Start" 
-                                   Command="{Binding StartServerCommand}"
-                                   Appearance="Primary"
-                                   Margin="0,0,8,0"/>
-                        <ui:Button Icon="{ui:SymbolIcon Stop24}" 
-                                   Content="Stop" 
-                                   Command="{Binding StopServerCommand}"
-                                   Appearance="Danger"
-                                   Margin="0,0,8,0"/>
-                        <ui:Button Icon="{ui:SymbolIcon Delete24}" 
-                                   Command="{Binding RemoveServerCommand}"
-                                   ToolTip="Remove Server"/>
+                <StackPanel Margin="20">
+                    <TextBlock Text="MCP Server" 
+                              FontSize="18" 
+                              FontWeight="SemiBold" 
+                              Margin="0,0,0,16"/>
+                    
+                    <ui:InfoBar IsOpen="True" 
+                               IsClosable="False"
+                               Severity="{Binding IsMcpServerRunning, Converter={StaticResource BoolToSeverityConverter}}"
+                               Title="Server Status"
+                               Message="{Binding McpServerStatus}"
+                               Margin="0,0,0,12"/>
+                    
+                    <StackPanel Margin="0,12,0,0">
+                        <Grid Margin="0,0,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" 
+                                          Symbol="Server24" 
+                                          Margin="0,0,12,0"
+                                          VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding SelectedServer.Name}" FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding SelectedServer.Description}" 
+                                          FontSize="11" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                        
+                        <CheckBox Content="Enabled" 
+                                 IsChecked="{Binding SelectedServer.IsEnabled}"
+                                 Margin="0,8,0,0"/>
                     </StackPanel>
-                </Grid>
+                </StackPanel>
             </ui:Card>
 
             <!-- Center Panel - Configuration -->
@@ -125,19 +94,6 @@
                                 </StackPanel>
                             </Expander.Header>
                             <StackPanel Margin="32,12,0,0">
-                                <!-- Readonly fields -->
-                                <ui:TextBox PlaceholderText="Server ID" 
-                                           Text="{Binding SelectedServer.Id}"
-                                           Icon="{ui:SymbolIcon Key24}"
-                                           IsReadOnly="True"
-                                           Margin="0,0,0,12"/>
-                                <ui:TextBox PlaceholderText="Last Modified" 
-                                           Text="{Binding SelectedServer.LastModified, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
-                                           Icon="{ui:SymbolIcon Clock24}"
-                                           IsReadOnly="True"
-                                           Margin="0,0,0,12"/>
-                                
-                                <!-- Editable fields -->
                                 <ui:TextBox PlaceholderText="Server Name" 
                                            Text="{Binding SelectedServer.Name}"
                                            Icon="{ui:SymbolIcon Tag24}"
@@ -146,17 +102,6 @@
                                            Text="{Binding SelectedServer.Description}"
                                            Icon="{ui:SymbolIcon Info24}"
                                            Margin="0,0,0,12"/>
-                                <ui:TextBox PlaceholderText="Command (e.g., node, python)" 
-                                           Text="{Binding SelectedServer.Command}"
-                                           Icon="{ui:SymbolIcon Code24}"
-                                           Margin="0,0,0,12"/>
-                                <ui:TextBox PlaceholderText="Arguments (e.g., server.js)" 
-                                           Text="{Binding SelectedServer.Arguments}"
-                                           Icon="{ui:SymbolIcon Document24}"
-                                           Margin="0,0,0,12"/>
-                                <CheckBox Content="Use Standard I/O (StdIo)" 
-                                         IsChecked="{Binding SelectedServer.StdIo}"
-                                         Margin="0,0,0,8"/>
                             </StackPanel>
                         </Expander>
 
@@ -237,48 +182,6 @@
                             </StackPanel>
                         </Expander>
 
-                        <!-- Categories -->
-                        <Expander Margin="0,0,0,12">
-                            <Expander.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Tag24" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Categories" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </Expander.Header>
-                            <StackPanel Margin="32,12,0,0">
-                                <ui:InfoBar IsOpen="True" 
-                                           IsClosable="False"
-                                           Severity="Informational"
-                                           Message="Add categories to organize your server (comma-separated)"/>
-                                <ui:TextBox PlaceholderText="Categories (e.g., development, production, testing)" 
-                                           Margin="0,12,0,0"/>
-                            </StackPanel>
-                        </Expander>
-
-                        <!-- Environment Variables -->
-                        <Expander Margin="0,0,0,12">
-                            <Expander.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Code24" Margin="0,0,8,0"/>
-                                    <TextBlock Text="Environment Variables (Env)" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </Expander.Header>
-                            <StackPanel Margin="32,12,0,0">
-                                <ui:InfoBar IsOpen="True" 
-                                           IsClosable="False"
-                                           Severity="Informational"
-                                           Message="Add environment variables as key=value pairs"/>
-                                <ui:TextBox PlaceholderText="Add environment variables (KEY=VALUE)" 
-                                           Margin="0,12,0,0"/>
-                            </StackPanel>
-                        </Expander>
-
-                        <ui:Button Content="Save Configuration" 
-                                  Icon="{ui:SymbolIcon Save24}"
-                                  Command="{Binding SaveConfigurationCommand}"
-                                  Appearance="Primary"
-                                  Margin="0,16,0,0"
-                                  HorizontalAlignment="Left"/>
                     </StackPanel>
                 </ScrollViewer>
             </ui:Card>
@@ -364,15 +267,6 @@
                     <TextBlock Text="{Binding McpServerStatus}" FontWeight="SemiBold"/>
                 </StackPanel>
 
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <ui:Button Icon="{ui:SymbolIcon Settings24}" 
-                              ToolTip="Settings"
-                              Appearance="Secondary"
-                              Margin="0,0,8,0"/>
-                    <ui:Button Icon="{ui:SymbolIcon Question24}" 
-                              ToolTip="Help"
-                              Appearance="Secondary"/>
-                </StackPanel>
             </Grid>
         </ui:Card>
     </Grid>

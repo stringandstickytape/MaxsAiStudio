@@ -14,19 +14,11 @@ namespace AiStudio4.McpStandalone.ViewModels
         private readonly ISimpleMcpServerService _mcpServerService;
         private readonly ILogger<MainViewModel> _logger;
         [ObservableProperty]
-        private ObservableCollection<McpServerConfiguration> servers = new();
-
-        [ObservableProperty]
-        private McpServerConfiguration? selectedServer;
+        private McpServerConfiguration selectedServer = new();
 
         [ObservableProperty]
         private ObservableCollection<McpTool> availableTools = new();
 
-        [ObservableProperty]
-        private bool isServerRunning;
-
-        [ObservableProperty]
-        private string serverStatus = "Stopped";
 
         [ObservableProperty]
         private bool isOAuthConfigVisible;
@@ -46,12 +38,7 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private string mcpServerStatus = "MCP Server: Checking...";
 
-        public ICommand StartServerCommand { get; }
-        public ICommand StopServerCommand { get; }
-        public ICommand AddServerCommand { get; }
-        public ICommand RemoveServerCommand { get; }
         public ICommand ConfigureOAuthCommand { get; }
-        public ICommand SaveConfigurationCommand { get; }
 
         public MainViewModel(IAutoStartOAuthServerService oauthServerService, ISimpleMcpServerService mcpServerService, ILogger<MainViewModel> logger)
         {
@@ -59,12 +46,7 @@ namespace AiStudio4.McpStandalone.ViewModels
             _mcpServerService = mcpServerService;
             _logger = logger;
 
-            StartServerCommand = new RelayCommand(StartServer, CanStartServer);
-            StopServerCommand = new RelayCommand(StopServer, CanStopServer);
-            AddServerCommand = new RelayCommand(AddServer);
-            RemoveServerCommand = new RelayCommand(RemoveServer, CanRemoveServer);
             ConfigureOAuthCommand = new RelayCommand(ConfigureOAuth);
-            SaveConfigurationCommand = new RelayCommand(SaveConfiguration);
 
             LoadSampleData();
             UpdateOAuthServerStatus();
@@ -73,14 +55,12 @@ namespace AiStudio4.McpStandalone.ViewModels
 
         private void LoadSampleData()
         {
-            Servers.Add(new McpServerConfiguration
+            SelectedServer = new McpServerConfiguration
             {
-                Name = "Sample MCP Server",
-                Command = "node",
-                Arguments = "server.js",
-                Description = "A sample MCP server for demonstration",
+                Name = "MCP Standalone Server",
+                Description = "MCP server with OAuth authentication",
                 IsEnabled = true
-            });
+            };
 
             AvailableTools.Add(new McpTool 
             { 
@@ -105,54 +85,12 @@ namespace AiStudio4.McpStandalone.ViewModels
             });
         }
 
-        private bool CanStartServer() => SelectedServer != null && !IsServerRunning;
-        private bool CanStopServer() => IsServerRunning;
-        private bool CanRemoveServer() => SelectedServer != null;
-
-        private void StartServer()
-        {
-            if (SelectedServer == null) return;
-            IsServerRunning = true;
-            ServerStatus = $"Running: {SelectedServer.Name}";
-        }
-
-        private void StopServer()
-        {
-            IsServerRunning = false;
-            ServerStatus = "Stopped";
-        }
-
-        private void AddServer()
-        {
-            var newServer = new McpServerConfiguration
-            {
-                Name = "New MCP Server",
-                Command = "",
-                Arguments = "",
-                Description = "Configure this new server"
-            };
-            Servers.Add(newServer);
-            SelectedServer = newServer;
-        }
-
-        private void RemoveServer()
-        {
-            if (SelectedServer != null)
-            {
-                Servers.Remove(SelectedServer);
-                SelectedServer = Servers.FirstOrDefault();
-            }
-        }
 
         private void ConfigureOAuth()
         {
             IsOAuthConfigVisible = !IsOAuthConfigVisible;
         }
 
-        private void SaveConfiguration()
-        {
-            ServerStatus = "Configuration saved";
-        }
 
         partial void OnSearchTextChanged(string value)
         {
