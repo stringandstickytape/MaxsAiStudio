@@ -2,12 +2,16 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
 using AiStudio4.McpStandalone.Models;
+using AiStudio4.McpStandalone.Services;
 using System.Windows.Input;
+using Microsoft.Extensions.Logging;
 
 namespace AiStudio4.McpStandalone.ViewModels
 {
     public partial class MainViewModel : ObservableObject
     {
+        private readonly IAutoStartOAuthServerService _oauthServerService;
+        private readonly ILogger<MainViewModel> _logger;
         [ObservableProperty]
         private ObservableCollection<McpServerConfiguration> servers = new();
 
@@ -29,6 +33,12 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private string searchText = string.Empty;
 
+        [ObservableProperty]
+        private bool isOAuthServerRunning;
+
+        [ObservableProperty]
+        private string oAuthServerStatus = "OAuth Server: Checking...";
+
         public ICommand StartServerCommand { get; }
         public ICommand StopServerCommand { get; }
         public ICommand AddServerCommand { get; }
@@ -36,8 +46,11 @@ namespace AiStudio4.McpStandalone.ViewModels
         public ICommand ConfigureOAuthCommand { get; }
         public ICommand SaveConfigurationCommand { get; }
 
-        public MainViewModel()
+        public MainViewModel(IAutoStartOAuthServerService oauthServerService, ILogger<MainViewModel> logger)
         {
+            _oauthServerService = oauthServerService;
+            _logger = logger;
+
             StartServerCommand = new RelayCommand(StartServer, CanStartServer);
             StopServerCommand = new RelayCommand(StopServer, CanStopServer);
             AddServerCommand = new RelayCommand(AddServer);
@@ -46,6 +59,7 @@ namespace AiStudio4.McpStandalone.ViewModels
             SaveConfigurationCommand = new RelayCommand(SaveConfiguration);
 
             LoadSampleData();
+            UpdateOAuthServerStatus();
         }
 
         private void LoadSampleData()
@@ -144,6 +158,21 @@ namespace AiStudio4.McpStandalone.ViewModels
                 {
                     tool.IsSelected = tool.IsSelected;
                 }
+            }
+        }
+
+        private void UpdateOAuthServerStatus()
+        {
+            IsOAuthServerRunning = _oauthServerService.IsRunning;
+            if (IsOAuthServerRunning)
+            {
+                OAuthServerStatus = "OAuth Server: Running on http://localhost:7029";
+                _logger.LogInformation("OAuth server is running");
+            }
+            else
+            {
+                OAuthServerStatus = "OAuth Server: Not Running";
+                _logger.LogWarning("OAuth server is not running");
             }
         }
     }

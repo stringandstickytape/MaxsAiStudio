@@ -172,7 +172,8 @@
                                 <ui:InfoBar IsOpen="True" 
                                            IsClosable="False"
                                            Severity="Informational"
-                                           Message="OAuth authentication is required for secure MCP server communication"
+                                           Title="OAuth Server Status"
+                                           Message="{Binding OAuthServerStatus}"
                                            Margin="0,0,0,12"/>
                                 
                                 <ui:TextBox PlaceholderText="Client Name" 
@@ -322,8 +323,12 @@
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <ui:SymbolIcon Symbol="{Binding IsServerRunning, Converter={StaticResource BoolToIconConverter}}" 
                                   Margin="0,0,8,0"/>
-                    <TextBlock Text="Status:" FontWeight="SemiBold" Margin="0,0,4,0"/>
-                    <TextBlock Text="{Binding ServerStatus}"/>
+                    <TextBlock Text="MCP:" FontWeight="SemiBold" Margin="0,0,4,0"/>
+                    <TextBlock Text="{Binding ServerStatus}" Margin="0,0,16,0"/>
+                    
+                    <ui:SymbolIcon Symbol="{Binding IsOAuthServerRunning, Converter={StaticResource BoolToIconConverter}}" 
+                                  Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding OAuthServerStatus}" FontWeight="SemiBold"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
