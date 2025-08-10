@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using ModelContextProtocol.AspNetCore.Authentication;
 using ModelContextProtocol.Server;
 using AiStudio4.McpStandalone.McpServer;
 
@@ -61,8 +62,12 @@ namespace AiStudio4.McpStandalone.Services
                 // Configure Kestrel to listen on the specific port
                 builder.WebHost.UseUrls(ServerUrl);
                 
-                // Add authentication services
-                builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                // Add authentication services - matching the original app
+                builder.Services.AddAuthentication(options =>
+                {
+                    options.DefaultChallengeScheme = McpAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                })
                 .AddJwtBearer(options =>
                 {
                     // Configure to validate tokens from our OAuth server
@@ -71,9 +76,10 @@ namespace AiStudio4.McpStandalone.Services
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
                         ValidateIssuer = true,
-                        ValidateAudience = false, // Set to false for testing
+                        ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
+                        ValidAudience = ServerUrl, // Validate that the audience matches the resource metadata
                         ValidIssuer = OAuthServerUrl,
                         NameClaimType = "name",
                         RoleClaimType = "roles"
@@ -97,6 +103,16 @@ namespace AiStudio4.McpStandalone.Services
                             _logger.LogInformation("Authentication challenge issued");
                             return Task.CompletedTask;
                         }
+                    };
+                })
+                .AddMcp(options =>
+                {
+                    options.ResourceMetadata = new()
+                    {
+                        Resource = new Uri(ServerUrl),
+                        ResourceDocumentation = new Uri("https://docs.example.com/api/mcp-standalone"),
+                        AuthorizationServers = { new Uri(OAuthServerUrl) },
+                        ScopesSupported = ["mcp:*", "mcp:tools"],
                     };
                 });
 

@@ -23,4 +23,18 @@ public partial class MainWindow : FluentWindow
         InitializeComponent();
         DataContext = viewModel;
     }
+
+    private void CopyClaudeCommand_Click(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            Clipboard.SetText("claude mcp add --transport http McpStandalone http://localhost:7071/");
+            // Optionally show a snackbar or notification that it was copied
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to copy to clipboard: {ex.Message}", "Copy Error", 
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 }

@@ -160,6 +160,40 @@
                             </StackPanel>
                         </Expander>
 
+                        <!-- Claude Code Installation -->
+                        <Expander IsExpanded="True" Margin="0,0,0,12">
+                            <Expander.Header>
+                                <StackPanel Orientation="Horizontal">
+                                    <ui:SymbolIcon Symbol="Code24" Margin="0,0,8,0"/>
+                                    <TextBlock Text="Claude Code Installation" FontWeight="SemiBold"/>
+                                </StackPanel>
+                            </Expander.Header>
+                            <StackPanel Margin="32,12,0,0">
+                                <ui:InfoBar IsOpen="True" 
+                                           IsClosable="False"
+                                           Severity="Success"
+                                           Title="Install MCP Server in Claude Code"
+                                           Message="Copy and run this command in Claude Code to connect to this MCP server"
+                                           Margin="0,0,0,12"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0" 
+                                               Text="claude mcp add --transport http McpStandalone http://localhost:7071/"
+                                               IsReadOnly="True"
+                                               Icon="{ui:SymbolIcon Code24}"
+                                               FontFamily="Cascadia Code, Consolas, monospace"/>
+                                    <ui:Button Grid.Column="1" 
+                                              Content="Copy"
+                                              Icon="{ui:SymbolIcon Copy24}"
+                                              Margin="8,0,0,0"
+                                              Click="CopyClaudeCommand_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </Expander>
+
                         <!-- OAuth Configuration (Mandatory) -->
                         <Expander IsExpanded="{Binding IsOAuthConfigVisible}" Margin="0,0,0,12">
                             <Expander.Header>
