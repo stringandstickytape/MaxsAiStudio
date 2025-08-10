@@ -8,12 +8,12 @@ namespace AiStudio4.McpStandalone.Services;
 /// <summary>
 /// Helper class to initialize the OAuth server with default clients
 /// </summary>
-public class OAuthServerInitializer
+public class OAuthServerInitializer : IDisposable
 {
-    private readonly ILogger<OAuthServerInitializer> _logger;
+    private readonly ILogger _logger;
     private readonly HttpClient _httpClient;
 
-    public OAuthServerInitializer(ILogger<OAuthServerInitializer> logger)
+    public OAuthServerInitializer(ILogger logger)
     {
         _logger = logger;
         _httpClient = new HttpClient();
