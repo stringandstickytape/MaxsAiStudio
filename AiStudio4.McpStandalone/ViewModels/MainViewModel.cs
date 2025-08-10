@@ -11,6 +11,7 @@ namespace AiStudio4.McpStandalone.ViewModels
     public partial class MainViewModel : ObservableObject
     {
         private readonly IAutoStartOAuthServerService _oauthServerService;
+        private readonly ISimpleMcpServerService _mcpServerService;
         private readonly ILogger<MainViewModel> _logger;
         [ObservableProperty]
         private ObservableCollection<McpServerConfiguration> servers = new();
@@ -39,6 +40,12 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private string oAuthServerStatus = "OAuth Server: Checking...";
 
+        [ObservableProperty]
+        private bool isMcpServerRunning;
+
+        [ObservableProperty]
+        private string mcpServerStatus = "MCP Server: Checking...";
+
         public ICommand StartServerCommand { get; }
         public ICommand StopServerCommand { get; }
         public ICommand AddServerCommand { get; }
@@ -46,9 +53,10 @@ namespace AiStudio4.McpStandalone.ViewModels
         public ICommand ConfigureOAuthCommand { get; }
         public ICommand SaveConfigurationCommand { get; }
 
-        public MainViewModel(IAutoStartOAuthServerService oauthServerService, ILogger<MainViewModel> logger)
+        public MainViewModel(IAutoStartOAuthServerService oauthServerService, ISimpleMcpServerService mcpServerService, ILogger<MainViewModel> logger)
         {
             _oauthServerService = oauthServerService;
+            _mcpServerService = mcpServerService;
             _logger = logger;
 
             StartServerCommand = new RelayCommand(StartServer, CanStartServer);
@@ -60,6 +68,7 @@ namespace AiStudio4.McpStandalone.ViewModels
 
             LoadSampleData();
             UpdateOAuthServerStatus();
+            UpdateMcpServerStatus();
         }
 
         private void LoadSampleData()
@@ -173,6 +182,21 @@ namespace AiStudio4.McpStandalone.ViewModels
             {
                 OAuthServerStatus = "OAuth Server: Not Running";
                 _logger.LogWarning("OAuth server is not running");
+            }
+        }
+
+        private void UpdateMcpServerStatus()
+        {
+            IsMcpServerRunning = _mcpServerService.IsServerRunning;
+            if (IsMcpServerRunning)
+            {
+                McpServerStatus = "MCP Server: Running on http://localhost:7071";
+                _logger.LogInformation("MCP server is running");
+            }
+            else
+            {
+                McpServerStatus = "MCP Server: Not Running";
+                _logger.LogWarning("MCP server is not running");
             }
         }
     }

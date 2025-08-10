@@ -17,6 +17,7 @@ public partial class App : Application
 {
     private readonly IHost _host;
     private IAutoStartOAuthServerService? _oauthServerService;
+    private ISimpleMcpServerService? _mcpServerService;
 
     public App()
     {
@@ -31,6 +32,9 @@ public partial class App : Application
             {
                 // OAuth Server
                 services.AddSingleton<IAutoStartOAuthServerService, AutoStartOAuthServerService>();
+                
+                // MCP Server
+                services.AddSingleton<ISimpleMcpServerService, SimpleMcpServerService>();
                 
                 // UI Services
                 services.AddSingleton<MainWindow>();
@@ -60,6 +64,18 @@ public partial class App : Application
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
+        // Start MCP server (after OAuth server is running)
+        _mcpServerService = _host.Services.GetRequiredService<ISimpleMcpServerService>();
+        try
+        {
+            await _mcpServerService.StartServerAsync();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Failed to start MCP server: {ex.Message}", "MCP Server Error", 
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
         var mainWindow = _host.Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
 
@@ -68,6 +84,12 @@ public partial class App : Application
 
     protected override async void OnExit(ExitEventArgs e)
     {
+        // Stop MCP server
+        if (_mcpServerService != null)
+        {
+            await _mcpServerService.StopServerAsync();
+        }
+
         // Stop OAuth server
         if (_oauthServerService != null)
         {

@@ -321,14 +321,13 @@
                 </Grid.ColumnDefinitions>
                 
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <ui:SymbolIcon Symbol="{Binding IsServerRunning, Converter={StaticResource BoolToIconConverter}}" 
-                                  Margin="0,0,8,0"/>
-                    <TextBlock Text="MCP:" FontWeight="SemiBold" Margin="0,0,4,0"/>
-                    <TextBlock Text="{Binding ServerStatus}" Margin="0,0,16,0"/>
-                    
                     <ui:SymbolIcon Symbol="{Binding IsOAuthServerRunning, Converter={StaticResource BoolToIconConverter}}" 
                                   Margin="0,0,8,0"/>
-                    <TextBlock Text="{Binding OAuthServerStatus}" FontWeight="SemiBold"/>
+                    <TextBlock Text="{Binding OAuthServerStatus}" Margin="0,0,16,0"/>
+                    
+                    <ui:SymbolIcon Symbol="{Binding IsMcpServerRunning, Converter={StaticResource BoolToIconConverter}}" 
+                                  Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding McpServerStatus}" FontWeight="SemiBold"/>
                 </StackPanel>
 
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
