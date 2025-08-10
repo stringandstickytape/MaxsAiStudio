@@ -134,7 +134,10 @@ namespace AiStudio4.McpStandalone.Services
                 _app.UseAuthentication();
                 _app.UseAuthorization();
                 
-                // Map MCP endpoints
+                // Map MCP endpoints - both at root and /mcp for compatibility
+                _app.MapMcp("/")
+                    .RequireAuthorization(); // Require OAuth authentication
+                
                 _app.MapMcp("/mcp")
                     .RequireAuthorization(); // Require OAuth authentication
 

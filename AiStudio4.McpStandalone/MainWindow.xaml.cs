@@ -33,8 +33,8 @@ public partial class MainWindow : FluentWindow
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Failed to copy to clipboard: {ex.Message}", "Copy Error", 
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show($"Failed to copy to clipboard: {ex.Message}", "Copy Error", 
+                System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }
