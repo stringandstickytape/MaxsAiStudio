@@ -13,6 +13,7 @@ namespace AiStudio4.McpStandalone.Services;
 public class OAuthClientManager
 {
     private readonly ILogger<OAuthClientManager> _logger;
+    private readonly StandaloneSettingsService _settingsService;
     private readonly HttpClient _httpClient;
     private const string CLIENT_CREDENTIALS_FILE = "mcp_oauth_client.json";
     private const string CLIENT_NAME = "MCP Standalone Client";
@@ -22,9 +23,10 @@ public class OAuthClientManager
     public string? ClientId => _clientId;
     public string? ClientSecret => _clientSecret;
 
-    public OAuthClientManager(ILogger<OAuthClientManager> logger)
+    public OAuthClientManager(ILogger<OAuthClientManager> logger, StandaloneSettingsService settingsService)
     {
         _logger = logger;
+        _settingsService = settingsService;
         _httpClient = new HttpClient();
     }
 
@@ -104,7 +106,8 @@ public class OAuthClientManager
                 new KeyValuePair<string, string>("scope", "mcp:*")
             });
 
-            var response = await _httpClient.PostAsync("http://localhost:7029/token", tokenRequest);
+            var oauthPort = _settingsService.GetOAuthServerPort();
+            var response = await _httpClient.PostAsync($"http://localhost:{oauthPort}/token", tokenRequest);
             
             // If we get 400 with invalid_client, the client doesn't exist
             if (!response.IsSuccessStatusCode)
@@ -141,7 +144,8 @@ public class OAuthClientManager
             var json = JsonSerializer.Serialize(registrationRequest);
             var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync("http://localhost:7029/register", content);
+            var oauthPort = _settingsService.GetOAuthServerPort();
+            var response = await _httpClient.PostAsync($"http://localhost:{oauthPort}/register", content);
             
             if (response.IsSuccessStatusCode)
             {

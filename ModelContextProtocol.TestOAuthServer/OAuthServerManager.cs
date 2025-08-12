@@ -13,11 +13,12 @@ public sealed class OAuthServerManager : IDisposable
     private Task? _serverTask;
     private bool _isRunning;
     private readonly object _lock = new();
+    private readonly int _port;
 
     /// <summary>
     /// Gets the base URL of the OAuth server.
     /// </summary>
-    public string BaseUrl => "http://localhost:7029";
+    public string BaseUrl => $"http://localhost:{_port}";
 
     /// <summary>
     /// Gets a value indicating whether the server is currently running.
@@ -57,9 +58,12 @@ public sealed class OAuthServerManager : IDisposable
     /// <param name="loggerProvider">Optional logger provider for logging.</param>
     /// <param name="kestrelTransport">Optional Kestrel transport for in-memory connections.</param>
     /// <param name="persistenceDataDirectory">Optional directory for persistence data. If null, uses default AppData location.</param>
-    public OAuthServerManager(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null, string? persistenceDataDirectory = null)
+    /// <param name="port">Optional OAuth server port. Defaults to 7029.</param>
+    /// <param name="mcpPort">Optional MCP server port. Defaults to 7071.</param>
+    public OAuthServerManager(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null, string? persistenceDataDirectory = null, int? port = null, int? mcpPort = null)
     {
-        _oauthServer = new Program(loggerProvider, kestrelTransport, persistenceDataDirectory);
+        _port = port ?? 7029;
+        _oauthServer = new Program(loggerProvider, kestrelTransport, persistenceDataDirectory, _port, mcpPort);
     }
 
     /// <summary>

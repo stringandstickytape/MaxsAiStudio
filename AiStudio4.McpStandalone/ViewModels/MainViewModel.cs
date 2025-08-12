@@ -12,6 +12,7 @@ namespace AiStudio4.McpStandalone.ViewModels
     {
         private readonly IAutoStartOAuthServerService _oauthServerService;
         private readonly ISimpleMcpServerService _mcpServerService;
+        private readonly StandaloneSettingsService _settingsService;
         private readonly ILogger<MainViewModel> _logger;
         [ObservableProperty]
         private McpServerConfiguration selectedServer = new();
@@ -38,12 +39,16 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private string mcpServerStatus = "MCP Server: Checking...";
 
+        [ObservableProperty]
+        private string claudeInstallCommand = "claude mcp add --transport http McpStandalone http://localhost:7071/";
+
         public ICommand ConfigureOAuthCommand { get; }
 
-        public MainViewModel(IAutoStartOAuthServerService oauthServerService, ISimpleMcpServerService mcpServerService, ILogger<MainViewModel> logger)
+        public MainViewModel(IAutoStartOAuthServerService oauthServerService, ISimpleMcpServerService mcpServerService, StandaloneSettingsService settingsService, ILogger<MainViewModel> logger)
         {
             _oauthServerService = oauthServerService;
             _mcpServerService = mcpServerService;
+            _settingsService = settingsService;
             _logger = logger;
 
             ConfigureOAuthCommand = new RelayCommand(ConfigureOAuth);
@@ -51,6 +56,7 @@ namespace AiStudio4.McpStandalone.ViewModels
             LoadSampleData();
             UpdateOAuthServerStatus();
             UpdateMcpServerStatus();
+            UpdateClaudeInstallCommand();
         }
 
         private void LoadSampleData()
@@ -113,8 +119,9 @@ namespace AiStudio4.McpStandalone.ViewModels
             IsOAuthServerRunning = _oauthServerService.IsRunning;
             if (IsOAuthServerRunning)
             {
-                OAuthServerStatus = "OAuth Server: Running on http://localhost:7029";
-                _logger.LogInformation("OAuth server is running");
+                var port = _settingsService.GetOAuthServerPort();
+                OAuthServerStatus = $"OAuth Server: Running on http://localhost:{port}";
+                _logger.LogInformation("OAuth server is running on port {Port}", port);
             }
             else
             {
@@ -128,14 +135,21 @@ namespace AiStudio4.McpStandalone.ViewModels
             IsMcpServerRunning = _mcpServerService.IsServerRunning;
             if (IsMcpServerRunning)
             {
-                McpServerStatus = "MCP Server: Running on http://localhost:7071";
-                _logger.LogInformation("MCP server is running");
+                var port = _settingsService.GetMcpServerPort();
+                McpServerStatus = $"MCP Server: Running on http://localhost:{port}";
+                _logger.LogInformation("MCP server is running on port {Port}", port);
             }
             else
             {
                 McpServerStatus = "MCP Server: Not Running";
                 _logger.LogWarning("MCP server is not running");
             }
+        }
+
+        private void UpdateClaudeInstallCommand()
+        {
+            var port = _settingsService.GetMcpServerPort();
+            ClaudeInstallCommand = $"claude mcp add --transport http McpStandalone http://localhost:{port}/";
         }
     }
 }

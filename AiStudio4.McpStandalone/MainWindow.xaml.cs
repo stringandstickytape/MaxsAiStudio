@@ -22,19 +22,22 @@ namespace AiStudio4.McpStandalone;
 public partial class MainWindow : FluentWindow
 {
     private readonly IServiceProvider _serviceProvider;
+    private readonly StandaloneSettingsService _settingsService;
     
-    public MainWindow(MainViewModel viewModel, IServiceProvider serviceProvider)
+    public MainWindow(MainViewModel viewModel, IServiceProvider serviceProvider, StandaloneSettingsService settingsService)
     {
         InitializeComponent();
         DataContext = viewModel;
         _serviceProvider = serviceProvider;
+        _settingsService = settingsService;
     }
 
     private void CopyClaudeCommand_Click(object sender, RoutedEventArgs e)
     {
         try
         {
-            Clipboard.SetText("claude mcp add --transport http McpStandalone http://localhost:7071/");
+            var port = _settingsService.GetMcpServerPort();
+            Clipboard.SetText($"claude mcp add --transport http McpStandalone http://localhost:{port}/");
             // Optionally show a snackbar or notification that it was copied
         }
         catch (Exception ex)

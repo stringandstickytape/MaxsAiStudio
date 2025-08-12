@@ -12,6 +12,7 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
 {
     private readonly ILogger<AutoStartOAuthServerService> _logger;
     private readonly ILoggerFactory _loggerFactory;
+    private readonly StandaloneSettingsService _settingsService;
     private OAuthServerManager? _oauthServerManager;
     private bool _disposed = false;
 
@@ -24,10 +25,11 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
     /// Initializes a new instance of the <see cref="AutoStartOAuthServerService"/> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
-    public AutoStartOAuthServerService(ILogger<AutoStartOAuthServerService> logger, ILoggerFactory loggerFactory)
+    public AutoStartOAuthServerService(ILogger<AutoStartOAuthServerService> logger, ILoggerFactory loggerFactory, StandaloneSettingsService settingsService)
     {
         _logger = logger;
         _loggerFactory = loggerFactory;
+        _settingsService = settingsService;
     }
 
     /// <summary>
@@ -67,10 +69,17 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
                 }
             }
             
-            // Create OAuth server manager with persistence directory
-            _oauthServerManager = new OAuthServerManager(persistenceDataDirectory: oauthDataDirectory);
+            // Create OAuth server manager with persistence directory and configured ports
+            var oauthPort = _settingsService.GetOAuthServerPort();
+            var mcpPort = _settingsService.GetMcpServerPort();
+            _oauthServerManager = new OAuthServerManager(
+                persistenceDataDirectory: oauthDataDirectory,
+                port: oauthPort,
+                mcpPort: mcpPort);
             
             await _oauthServerManager.StartAsync();
+            
+            _logger.LogInformation("OAuth server started on port {Port} with MCP port {McpPort}", oauthPort, mcpPort);
             
             _logger.LogInformation("OAuth server started successfully for auto-start");
             
@@ -79,7 +88,7 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
             _logger.LogInformation("OAuth persistence directory being used: {Directory}", oauthDataDirectory);
             
             // Ensure we have a registered OAuth client
-            var clientManager = new OAuthClientManager(_loggerFactory.CreateLogger<OAuthClientManager>());
+            var clientManager = new OAuthClientManager(_loggerFactory.CreateLogger<OAuthClientManager>(), _settingsService);
             var registered = await clientManager.EnsureClientRegisteredAsync();
             
             if (registered)

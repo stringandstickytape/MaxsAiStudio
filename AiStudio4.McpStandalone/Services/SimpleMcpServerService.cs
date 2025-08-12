@@ -24,17 +24,19 @@ namespace AiStudio4.McpStandalone.Services
     public class SimpleMcpServerService : ISimpleMcpServerService
     {
         private readonly ILogger<SimpleMcpServerService> _logger;
+        private readonly StandaloneSettingsService _settingsService;
         private WebApplication? _app;
         private CancellationTokenSource _cancellationTokenSource;
         private Task? _runningTask;
 
-        public string ServerUrl { get; } = "http://localhost:7071/";
-        public string OAuthServerUrl { get; } = "http://localhost:7029";
+        public string ServerUrl => $"http://localhost:{_settingsService.GetMcpServerPort()}/";
+        public string OAuthServerUrl => $"http://localhost:{_settingsService.GetOAuthServerPort()}";
         public bool IsServerRunning => _app != null && _runningTask != null && !_runningTask.IsCompleted;
 
-        public SimpleMcpServerService(ILogger<SimpleMcpServerService> logger)
+        public SimpleMcpServerService(ILogger<SimpleMcpServerService> logger, StandaloneSettingsService settingsService)
         {
             _logger = logger;
+            _settingsService = settingsService;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 

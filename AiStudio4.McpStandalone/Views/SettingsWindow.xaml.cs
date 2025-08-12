@@ -26,12 +26,16 @@ namespace AiStudio4.McpStandalone.Views
             _originalAzurePat = _settingsService.GetDecryptedAzureDevOpsPAT();
             _originalGitHubToken = _settingsService.GetDecryptedGitHubToken();
             var projectPath = _settingsService.GetProjectPath();
+            var mcpPort = _settingsService.GetMcpServerPort();
+            var oauthPort = _settingsService.GetOAuthServerPort();
 
             // Load the actual keys into the password boxes
             YouTubeApiKeyBox.Password = _originalYouTubeKey ?? string.Empty;
             AzureDevOpsPATBox.Password = _originalAzurePat ?? string.Empty;
             GitHubTokenBox.Password = _originalGitHubToken ?? string.Empty;
             ProjectPathBox.Text = projectPath ?? string.Empty;
+            McpPortBox.Value = mcpPort;
+            OAuthPortBox.Value = oauthPort;
         }
 
 
@@ -70,6 +74,16 @@ namespace AiStudio4.McpStandalone.Views
             }
 
             _settingsService.SetProjectPath(ProjectPathBox.Text);
+            
+            // Save port settings
+            if (McpPortBox.Value.HasValue)
+            {
+                _settingsService.SetMcpServerPort((int)McpPortBox.Value.Value);
+            }
+            if (OAuthPortBox.Value.HasValue)
+            {
+                _settingsService.SetOAuthServerPort((int)OAuthPortBox.Value.Value);
+            }
 
             MessageBox.Show("Settings saved successfully!", "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;

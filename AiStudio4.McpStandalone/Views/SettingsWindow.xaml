@@ -114,6 +114,56 @@
                     </StackPanel>
                 </ui:CardExpander>
 
+                <!-- Server Ports -->
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Server24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Server Ports" FontWeight="SemiBold"/>
+                                <TextBlock Text="Configure MCP and OAuth server ports" 
+                                          FontSize="11" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="MCP Server Port:" VerticalAlignment="Center" Margin="0,0,0,8"/>
+                            <ui:NumberBox Grid.Row="0" Grid.Column="1" 
+                                         Name="McpPortBox" 
+                                         PlaceholderText="7071"
+                                         Minimum="1024"
+                                         Maximum="65535"
+                                         SpinButtonPlacementMode="Inline"
+                                         Icon="{ui:SymbolIcon Globe24}"
+                                         Margin="0,0,0,8"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="OAuth Server Port:" VerticalAlignment="Center"/>
+                            <ui:NumberBox Grid.Row="1" Grid.Column="1" 
+                                         Name="OAuthPortBox" 
+                                         PlaceholderText="5000"
+                                         Minimum="1024"
+                                         Maximum="65535"
+                                         SpinButtonPlacementMode="Inline"
+                                         Icon="{ui:SymbolIcon Shield24}"/>
+                        </Grid>
+                    </StackPanel>
+                </ui:CardExpander>
+
                 <!-- Working Directory -->
                 <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
                     <ui:CardExpander.Header>

@@ -135,6 +135,28 @@ namespace AiStudio4.McpStandalone.Services
             SaveSettings();
         }
 
+        public int GetMcpServerPort()
+        {
+            return _settings.McpServerPort;
+        }
+
+        public void SetMcpServerPort(int port)
+        {
+            _settings.McpServerPort = port;
+            SaveSettings();
+        }
+
+        public int GetOAuthServerPort()
+        {
+            return _settings.OAuthServerPort;
+        }
+
+        public void SetOAuthServerPort(int port)
+        {
+            _settings.OAuthServerPort = port;
+            SaveSettings();
+        }
+
         private void LoadSettings()
         {
             if (File.Exists(_settingsPath))
@@ -167,6 +189,8 @@ namespace AiStudio4.McpStandalone.Services
             public string EncryptedYouTubeApiKey { get; set; }
             public string EncryptedAzureDevOpsPAT { get; set; }
             public string EncryptedGitHubToken { get; set; }
+            public int McpServerPort { get; set; } = 7071;
+            public int OAuthServerPort { get; set; } = 7029;
         }
     }
 }

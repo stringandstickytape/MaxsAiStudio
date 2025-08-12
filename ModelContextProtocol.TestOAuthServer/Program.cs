@@ -12,11 +12,13 @@ namespace ModelContextProtocol.TestOAuthServer;
 
 public sealed class Program
 {
-    private const int _port = 7029;
-    private static readonly string _url = $"http://localhost:{_port}";
+    private readonly int _port;
+    private string _url => $"http://localhost:{_port}";
 
     // Port 5000 is used by tests and port 7071 is used by the ProtectedMCPServer sample
-    private static readonly string[] ValidResources = ["http://localhost:5000/", "http://localhost:7071/"];
+    // These will be updated based on the configured MCP port
+    private readonly string[] _validResources;
+    private readonly int _mcpPort;
 
     private readonly ConcurrentDictionary<string, AuthorizationCodeInfo> _authCodes;
     private readonly ConcurrentDictionary<string, TokenInfo> _tokens;
@@ -35,10 +37,15 @@ public sealed class Program
     /// <param name="loggerProvider">Optional logger provider for logging.</param>
     /// <param name="kestrelTransport">Optional Kestrel transport for in-memory connections.</param>
     /// <param name="persistenceDataDirectory">Optional directory for persistence data. If null, uses default AppData location.</param>
-    public Program(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null, string? persistenceDataDirectory = null)
+    public Program(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null, string? persistenceDataDirectory = null, int? port = null, int? mcpPort = null)
     {
         _loggerProvider = loggerProvider;
         _kestrelTransport = kestrelTransport;
+        
+        // Set configurable ports with defaults
+        _port = port ?? 7029;
+        _mcpPort = mcpPort ?? 7071;
+        _validResources = ["http://localhost:5000/", $"http://localhost:{_mcpPort}/"];
         
         // Set up persistence
         if (string.IsNullOrEmpty(persistenceDataDirectory))
@@ -255,7 +262,7 @@ public sealed class Program
             }
 
             // Validate resource in accordance with RFC 8707
-            if (string.IsNullOrEmpty(resource) || !ValidResources.Contains(resource))
+            if (string.IsNullOrEmpty(resource) || !_validResources.Contains(resource))
             {
                 return Results.Redirect($"{redirect_uri}?error=invalid_target&error_description=The+specified+resource+is+not+valid&state={state}");
             }
@@ -722,7 +729,7 @@ public sealed class Program
 
             // Validate resource in accordance with RFC 8707
             var resource = form["resource"].ToString();
-            if (string.IsNullOrEmpty(resource) || !ValidResources.Contains(resource))
+            if (string.IsNullOrEmpty(resource) || !_validResources.Contains(resource))
             {
                 return Results.BadRequest(new OAuthErrorResponse
                 {

@@ -146,7 +146,7 @@
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
                                     <ui:TextBox Grid.Column="0" 
-                                               Text="claude mcp add --transport http McpStandalone http://localhost:7071/"
+                                               Text="{Binding ClaudeInstallCommand, Mode=OneWay}"
                                                IsReadOnly="True"
                                                Icon="{ui:SymbolIcon Code24}"
                                                FontFamily="Cascadia Code, Consolas, monospace"/>
