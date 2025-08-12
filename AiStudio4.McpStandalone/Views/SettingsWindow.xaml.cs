@@ -8,9 +8,9 @@ namespace AiStudio4.McpStandalone.Views
     public partial class SettingsWindow : Window
     {
         private readonly StandaloneSettingsService _settingsService;
-        private bool _showingYouTubeKey = false;
-        private bool _showingAzurePat = false;
-        private bool _showingGitHubToken = false;
+        private string? _originalYouTubeKey;
+        private string? _originalAzurePat;
+        private string? _originalGitHubToken;
 
         public SettingsWindow(StandaloneSettingsService settingsService)
         {
@@ -22,93 +22,18 @@ namespace AiStudio4.McpStandalone.Views
         private void LoadSettings()
         {
             // Load existing settings
-            var youtubeKey = _settingsService.GetDecryptedYouTubeApiKey();
-            var azurePat = _settingsService.GetDecryptedAzureDevOpsPAT();
-            var githubToken = _settingsService.GetDecryptedGitHubToken();
+            _originalYouTubeKey = _settingsService.GetDecryptedYouTubeApiKey();
+            _originalAzurePat = _settingsService.GetDecryptedAzureDevOpsPAT();
+            _originalGitHubToken = _settingsService.GetDecryptedGitHubToken();
             var projectPath = _settingsService.GetProjectPath();
 
-            // Set placeholders for existing keys (don't show actual values)
-            if (!string.IsNullOrEmpty(youtubeKey))
-            {
-                YouTubeApiKeyBox.Password = "********";
-            }
-            if (!string.IsNullOrEmpty(azurePat))
-            {
-                AzureDevOpsPATBox.Password = "********";
-            }
-            if (!string.IsNullOrEmpty(githubToken))
-            {
-                GitHubTokenBox.Password = "********";
-            }
-
+            // Load the actual keys into the password boxes
+            YouTubeApiKeyBox.Password = _originalYouTubeKey ?? string.Empty;
+            AzureDevOpsPATBox.Password = _originalAzurePat ?? string.Empty;
+            GitHubTokenBox.Password = _originalGitHubToken ?? string.Empty;
             ProjectPathBox.Text = projectPath ?? string.Empty;
         }
 
-        private void ShowYouTubeKey_Click(object sender, RoutedEventArgs e)
-        {
-            if (_showingYouTubeKey)
-            {
-                // Hide the key
-                YouTubeApiKeyBox.Password = "********";
-                ShowYouTubeKeyButton.Content = "Show";
-                _showingYouTubeKey = false;
-            }
-            else
-            {
-                // Show the actual key
-                var key = _settingsService.GetDecryptedYouTubeApiKey();
-                if (!string.IsNullOrEmpty(key))
-                {
-                    YouTubeApiKeyBox.Password = key;
-                    ShowYouTubeKeyButton.Content = "Hide";
-                    _showingYouTubeKey = true;
-                }
-            }
-        }
-
-        private void ShowAzurePat_Click(object sender, RoutedEventArgs e)
-        {
-            if (_showingAzurePat)
-            {
-                // Hide the PAT
-                AzureDevOpsPATBox.Password = "********";
-                ShowAzurePatButton.Content = "Show";
-                _showingAzurePat = false;
-            }
-            else
-            {
-                // Show the actual PAT
-                var pat = _settingsService.GetDecryptedAzureDevOpsPAT();
-                if (!string.IsNullOrEmpty(pat))
-                {
-                    AzureDevOpsPATBox.Password = pat;
-                    ShowAzurePatButton.Content = "Hide";
-                    _showingAzurePat = true;
-                }
-            }
-        }
-
-        private void ShowGitHubToken_Click(object sender, RoutedEventArgs e)
-        {
-            if (_showingGitHubToken)
-            {
-                // Hide the token
-                GitHubTokenBox.Password = "********";
-                ShowGitHubTokenButton.Content = "Show";
-                _showingGitHubToken = false;
-            }
-            else
-            {
-                // Show the actual token
-                var token = _settingsService.GetDecryptedGitHubToken();
-                if (!string.IsNullOrEmpty(token))
-                {
-                    GitHubTokenBox.Password = token;
-                    ShowGitHubTokenButton.Content = "Hide";
-                    _showingGitHubToken = true;
-                }
-            }
-        }
 
         private void Browse_Click(object sender, RoutedEventArgs e)
         {
@@ -126,33 +51,22 @@ namespace AiStudio4.McpStandalone.Views
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
-            // Only save if the value was changed (not placeholder)
-            if (YouTubeApiKeyBox.Password != "********" && !string.IsNullOrEmpty(YouTubeApiKeyBox.Password))
+            // Save YouTube API Key if changed
+            if (YouTubeApiKeyBox.Password != _originalYouTubeKey)
             {
-                _settingsService.SetYouTubeApiKey(YouTubeApiKeyBox.Password);
-            }
-            else if (string.IsNullOrEmpty(YouTubeApiKeyBox.Password))
-            {
-                // Clear the key if empty
-                _settingsService.SetYouTubeApiKey(null);
+                _settingsService.SetYouTubeApiKey(string.IsNullOrEmpty(YouTubeApiKeyBox.Password) ? null : YouTubeApiKeyBox.Password);
             }
 
-            if (AzureDevOpsPATBox.Password != "********" && !string.IsNullOrEmpty(AzureDevOpsPATBox.Password))
+            // Save Azure DevOps PAT if changed
+            if (AzureDevOpsPATBox.Password != _originalAzurePat)
             {
-                _settingsService.SetAzureDevOpsPAT(AzureDevOpsPATBox.Password);
-            }
-            else if (string.IsNullOrEmpty(AzureDevOpsPATBox.Password))
-            {
-                _settingsService.SetAzureDevOpsPAT(null);
+                _settingsService.SetAzureDevOpsPAT(string.IsNullOrEmpty(AzureDevOpsPATBox.Password) ? null : AzureDevOpsPATBox.Password);
             }
 
-            if (GitHubTokenBox.Password != "********" && !string.IsNullOrEmpty(GitHubTokenBox.Password))
+            // Save GitHub Token if changed
+            if (GitHubTokenBox.Password != _originalGitHubToken)
             {
-                _settingsService.SetGitHubToken(GitHubTokenBox.Password);
-            }
-            else if (string.IsNullOrEmpty(GitHubTokenBox.Password))
-            {
-                _settingsService.SetGitHubToken(null);
+                _settingsService.SetGitHubToken(string.IsNullOrEmpty(GitHubTokenBox.Password) ? null : GitHubTokenBox.Password);
             }
 
             _settingsService.SetProjectPath(ProjectPathBox.Text);

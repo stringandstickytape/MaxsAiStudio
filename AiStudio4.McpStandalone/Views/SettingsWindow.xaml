@@ -5,92 +5,171 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         mc:Ignorable="d"
-        Title="Settings" Height="500" Width="650" MinHeight="450" MinWidth="600"
-        WindowStartupLocation="CenterOwner">
-    <Grid Margin="10">
+        Title="Settings" 
+        Height="650" 
+        Width="700" 
+        MinHeight="500" 
+        MinWidth="650"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource ApplicationBackgroundBrush}"
+        Foreground="{DynamicResource TextFillColorPrimaryBrush}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ui:ThemesDictionary Theme="Dark" />
+                <ui:ControlsDictionary />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Background="{DynamicResource ApplicationBackgroundBrush}">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="60"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="MCP Server Settings" FontSize="18" FontWeight="Bold" Margin="0,0,0,10"/>
+        <!-- Header -->
+        <ui:Card Grid.Row="0" Margin="20,20,20,10" Padding="16">
+            <StackPanel Orientation="Horizontal">
+                <ui:SymbolIcon Symbol="Settings24" Margin="0,0,12,0" VerticalAlignment="Center"/>
+                <TextBlock Text="MCP Server Settings" FontSize="20" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            </StackPanel>
+        </ui:Card>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="20,10,20,10">
             <StackPanel>
                 <!-- YouTube API Key -->
-                <GroupBox Header="YouTube API" Margin="0,0,0,10">
-                    <Grid Margin="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="80"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <Label Grid.Column="0" Content="API Key:" VerticalAlignment="Center"/>
-                        <PasswordBox Grid.Column="1" Name="YouTubeApiKeyBox" VerticalAlignment="Center" Margin="5,0"/>
-                        <Button Grid.Column="2" Content="Show" Name="ShowYouTubeKeyButton" 
-                                Click="ShowYouTubeKey_Click" Margin="5,0,0,0"/>
-                    </Grid>
-                </GroupBox>
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Video24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="YouTube API" FontWeight="SemiBold"/>
+                                <TextBlock Text="Configure YouTube Data API v3 Key" 
+                                          FontSize="11" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <ui:PasswordBox Name="YouTubeApiKeyBox" 
+                                       PlaceholderText="Enter YouTube API Key"
+                                       Password=""
+                                       Icon="{ui:SymbolIcon Key24}"/>
+                    </StackPanel>
+                </ui:CardExpander>
 
                 <!-- Azure DevOps PAT -->
-                <GroupBox Header="Azure DevOps" Margin="0,0,0,10">
-                    <Grid Margin="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="80"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <Label Grid.Column="0" Content="PAT:" VerticalAlignment="Center"/>
-                        <PasswordBox Grid.Column="1" Name="AzureDevOpsPATBox" VerticalAlignment="Center" Margin="5,0"/>
-                        <Button Grid.Column="2" Content="Show" Name="ShowAzurePatButton" 
-                                Click="ShowAzurePat_Click" Margin="5,0,0,0"/>
-                    </Grid>
-                </GroupBox>
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Cloud24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Azure DevOps" FontWeight="SemiBold"/>
+                                <TextBlock Text="Configure Personal Access Token" 
+                                          FontSize="11" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <ui:PasswordBox Name="AzureDevOpsPATBox" 
+                                       PlaceholderText="Enter Azure DevOps PAT"
+                                       Password=""
+                                       Icon="{ui:SymbolIcon Key24}"/>
+                    </StackPanel>
+                </ui:CardExpander>
 
                 <!-- GitHub Token -->
-                <GroupBox Header="GitHub" Margin="0,0,0,10">
-                    <Grid Margin="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="80"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <Label Grid.Column="0" Content="Token:" VerticalAlignment="Center"/>
-                        <PasswordBox Grid.Column="1" Name="GitHubTokenBox" VerticalAlignment="Center" Margin="5,0"/>
-                        <Button Grid.Column="2" Content="Show" Name="ShowGitHubTokenButton" 
-                                Click="ShowGitHubToken_Click" Margin="5,0,0,0"/>
-                    </Grid>
-                </GroupBox>
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Code24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="GitHub" FontWeight="SemiBold"/>
+                                <TextBlock Text="Configure GitHub Personal Access Token" 
+                                          FontSize="11" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <ui:PasswordBox Name="GitHubTokenBox" 
+                                       PlaceholderText="Enter GitHub Token"
+                                       Password=""
+                                       Icon="{ui:SymbolIcon Key24}"/>
+                    </StackPanel>
+                </ui:CardExpander>
 
                 <!-- Working Directory -->
-                <GroupBox Header="Working Directory" Margin="0,0,0,10">
-                    <Grid Margin="5">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="120"/>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="80"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <Label Grid.Column="0" Content="Path:" VerticalAlignment="Center"/>
-                        <TextBox Grid.Column="1" Name="ProjectPathBox" VerticalAlignment="Center" Margin="5,0"/>
-                        <Button Grid.Column="2" Content="Browse..." Name="BrowseButton" 
-                                Click="Browse_Click" Margin="5,0,0,0"/>
-                    </Grid>
-                </GroupBox>
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Folder24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Working Directory" FontWeight="SemiBold"/>
+                                <TextBlock Text="Set the default project path" 
+                                          FontSize="11" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBox Grid.Column="0" 
+                                       Name="ProjectPathBox" 
+                                       PlaceholderText="Enter or browse for project path"
+                                       Text=""
+                                       Icon="{ui:SymbolIcon FolderOpen24}"/>
+                            <ui:Button Grid.Column="1" 
+                                      Content="Browse" 
+                                      Name="BrowseButton" 
+                                      Click="Browse_Click" 
+                                      Margin="8,0,0,0"
+                                      Icon="{ui:SymbolIcon FolderOpen24}"/>
+                        </Grid>
+                    </StackPanel>
+                </ui:CardExpander>
             </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <ui:Button Content="Save" Width="100" Height="35" Margin="0,0,10,0" 
-                      Click="Save_Click" Appearance="Primary"
-                      Icon="{ui:SymbolIcon Save24}"/>
-            <ui:Button Content="Cancel" Width="100" Height="35" 
-                      Click="Cancel_Click"
-                      Icon="{ui:SymbolIcon Dismiss24}"/>
-        </StackPanel>
+        <!-- Action Buttons -->
+        <ui:Card Grid.Row="2" Padding="20,16">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <ui:Button Content="Save" 
+                          Width="100" 
+                          Height="40" 
+                          Margin="0,0,10,0" 
+                          Click="Save_Click" 
+                          Appearance="Primary"
+                          Icon="{ui:SymbolIcon Save24}"/>
+                <ui:Button Content="Cancel" 
+                          Width="100" 
+                          Height="40" 
+                          Click="Cancel_Click"
+                          Icon="{ui:SymbolIcon Dismiss24}"/>
+            </StackPanel>
+        </ui:Card>
     </Grid>
 </Window>
