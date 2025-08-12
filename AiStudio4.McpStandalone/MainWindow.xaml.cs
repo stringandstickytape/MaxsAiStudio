@@ -10,6 +10,9 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using Wpf.Ui.Controls;
 using AiStudio4.McpStandalone.ViewModels;
+using AiStudio4.McpStandalone.Views;
+using AiStudio4.McpStandalone.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace AiStudio4.McpStandalone;
 
@@ -18,10 +21,13 @@ namespace AiStudio4.McpStandalone;
 /// </summary>
 public partial class MainWindow : FluentWindow
 {
-    public MainWindow(MainViewModel viewModel)
+    private readonly IServiceProvider _serviceProvider;
+    
+    public MainWindow(MainViewModel viewModel, IServiceProvider serviceProvider)
     {
         InitializeComponent();
         DataContext = viewModel;
+        _serviceProvider = serviceProvider;
     }
 
     private void CopyClaudeCommand_Click(object sender, RoutedEventArgs e)
@@ -36,5 +42,20 @@ public partial class MainWindow : FluentWindow
             System.Windows.MessageBox.Show($"Failed to copy to clipboard: {ex.Message}", "Copy Error", 
                 System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
         }
+    }
+    
+    private void Settings_Click(object sender, RoutedEventArgs e)
+    {
+        var settingsService = _serviceProvider.GetRequiredService<StandaloneSettingsService>();
+        var settingsWindow = new SettingsWindow(settingsService)
+        {
+            Owner = this
+        };
+        settingsWindow.ShowDialog();
+    }
+    
+    private void Exit_Click(object sender, RoutedEventArgs e)
+    {
+        Application.Current.Shutdown();
     }
 }

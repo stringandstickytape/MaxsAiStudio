@@ -37,8 +37,6 @@ public sealed class Program
     /// <param name="persistenceDataDirectory">Optional directory for persistence data. If null, uses default AppData location.</param>
     public Program(ILoggerProvider? loggerProvider = null, IConnectionListenerFactory? kestrelTransport = null, string? persistenceDataDirectory = null)
     {
-        _rsa = RSA.Create(2048);
-        _keyId = Guid.NewGuid().ToString();
         _loggerProvider = loggerProvider;
         _kestrelTransport = kestrelTransport;
         
@@ -50,6 +48,9 @@ public sealed class Program
         }
         
         _persistenceManager = new OAuthPersistenceManager(persistenceDataDirectory);
+        
+        // Load or create RSA key for token signing
+        (_rsa, _keyId) = _persistenceManager.LoadOrCreateRsaKey();
         
         // Load persisted data
         _tokens = _persistenceManager.LoadTokens();

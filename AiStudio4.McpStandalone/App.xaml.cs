@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using AiStudio4.McpStandalone.ViewModels;
 using AiStudio4.McpStandalone.Services;
 using Wpf.Ui;
+using AiStudio4.Tools.Interfaces;
+using AiStudio4.McpStandalone.Views;
 
 namespace AiStudio4.McpStandalone;
 
@@ -30,6 +32,12 @@ public partial class App : Application
             })
             .ConfigureServices((context, services) =>
             {
+                // Settings and core services for shared tools
+                services.AddSingleton<StandaloneSettingsService>();
+                services.AddSingleton<IGeneralSettingsService>(provider => provider.GetRequiredService<StandaloneSettingsService>());
+                services.AddSingleton<IStatusMessageService, NoOpStatusMessageService>();
+                services.AddSingleton<IBuiltInToolExtraPropertiesService, StandaloneExtraPropertiesService>();
+                
                 // OAuth Server
                 services.AddSingleton<IAutoStartOAuthServerService, AutoStartOAuthServerService>();
                 
@@ -39,6 +47,7 @@ public partial class App : Application
                 // UI Services
                 services.AddSingleton<MainWindow>();
                 services.AddSingleton<MainViewModel>();
+                services.AddSingleton<SettingsWindow>();
                 services.AddSingleton<IThemeService, ThemeService>();
                 services.AddSingleton<ITaskBarService, TaskBarService>();
                 services.AddSingleton<ISnackbarService, SnackbarService>();

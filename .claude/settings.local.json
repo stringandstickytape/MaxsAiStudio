@@ -22,7 +22,13 @@
       "Bash(npx eslint:*)",
       "WebFetch(domain:www.npmjs.com)",
       "Bash(powershell:*)",
-      "Bash(del \"C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\Core\\Tools\\YouTube\\YouTubeSearchTool.cs\")"
+      "Bash(del \"C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\Core\\Tools\\YouTube\\YouTubeSearchTool.cs\")",
+      "Bash(dotnet build:*)",
+      "mcp__McpStandalone__you_tube_search",
+      "Bash(dir:*)",
+      "mcp__McpStandalone__say_hello",
+      "mcp__McpStandalone__calculate",
+      "mcp__McpStandalone__get_current_time"
     ],
     "deny": []
   }

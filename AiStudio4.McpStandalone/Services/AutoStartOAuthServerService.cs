@@ -11,6 +11,7 @@ namespace AiStudio4.McpStandalone.Services;
 public class AutoStartOAuthServerService : IAutoStartOAuthServerService
 {
     private readonly ILogger<AutoStartOAuthServerService> _logger;
+    private readonly ILoggerFactory _loggerFactory;
     private OAuthServerManager? _oauthServerManager;
     private bool _disposed = false;
 
@@ -23,9 +24,10 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
     /// Initializes a new instance of the <see cref="AutoStartOAuthServerService"/> class.
     /// </summary>
     /// <param name="logger">The logger.</param>
-    public AutoStartOAuthServerService(ILogger<AutoStartOAuthServerService> logger)
+    public AutoStartOAuthServerService(ILogger<AutoStartOAuthServerService> logger, ILoggerFactory loggerFactory)
     {
         _logger = logger;
+        _loggerFactory = loggerFactory;
     }
 
     /// <summary>
@@ -52,6 +54,19 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
             Directory.CreateDirectory(oauthDataDirectory);
             _logger.LogInformation("OAuth data directory: {Directory}", oauthDataDirectory);
             
+            // Debug: Check if any existing OAuth files exist
+            if (Directory.Exists(oauthDataDirectory))
+            {
+                var files = Directory.GetFiles(oauthDataDirectory, "*.json");
+                _logger.LogInformation("Found {Count} existing OAuth files in directory:", files.Length);
+                foreach (var file in files)
+                {
+                    var fileInfo = new FileInfo(file);
+                    _logger.LogInformation("  - {FileName} (Size: {Size} bytes, Modified: {Modified})", 
+                        fileInfo.Name, fileInfo.Length, fileInfo.LastWriteTime);
+                }
+            }
+            
             // Create OAuth server manager with persistence directory
             _oauthServerManager = new OAuthServerManager(persistenceDataDirectory: oauthDataDirectory);
             
@@ -59,10 +74,21 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
             
             _logger.LogInformation("OAuth server started successfully for auto-start");
             
-            // Register a default client for testing
-            using (var initializer = new OAuthServerInitializer(_logger))
+            // Debug: Check OAuth server state after startup
+            _logger.LogInformation("OAuth server running status: {IsRunning}", _oauthServerManager.IsRunning);
+            _logger.LogInformation("OAuth persistence directory being used: {Directory}", oauthDataDirectory);
+            
+            // Ensure we have a registered OAuth client
+            var clientManager = new OAuthClientManager(_loggerFactory.CreateLogger<OAuthClientManager>());
+            var registered = await clientManager.EnsureClientRegisteredAsync();
+            
+            if (registered)
             {
-                await initializer.RegisterDefaultClientAsync();
+                _logger.LogInformation("OAuth client ready - ID: {ClientId}", clientManager.ClientId);
+            }
+            else
+            {
+                _logger.LogWarning("Failed to ensure OAuth client registration");
             }
         }
         catch (Exception ex)
@@ -83,8 +109,34 @@ public class AutoStartOAuthServerService : IAutoStartOAuthServerService
             try
             {
                 _logger.LogInformation("Stopping OAuth server...");
+                
+                // Debug: Check OAuth directory contents before stopping
+                var oauthDataDirectory = PathHelper.GetProfileSubPath("OAuth");
+                if (Directory.Exists(oauthDataDirectory))
+                {
+                    var files = Directory.GetFiles(oauthDataDirectory, "*.json");
+                    _logger.LogInformation("OAuth files before shutdown ({Count} files):", files.Length);
+                    foreach (var file in files)
+                    {
+                        var fileInfo = new FileInfo(file);
+                        _logger.LogInformation("  - {FileName} (Size: {Size} bytes)", fileInfo.Name, fileInfo.Length);
+                    }
+                }
+                
                 await _oauthServerManager.StopAsync();
                 _logger.LogInformation("OAuth server stopped successfully");
+                
+                // Debug: Check OAuth directory contents after stopping
+                if (Directory.Exists(oauthDataDirectory))
+                {
+                    var files = Directory.GetFiles(oauthDataDirectory, "*.json");
+                    _logger.LogInformation("OAuth files after shutdown ({Count} files):", files.Length);
+                    foreach (var file in files)
+                    {
+                        var fileInfo = new FileInfo(file);
+                        _logger.LogInformation("  - {FileName} (Size: {Size} bytes)", fileInfo.Name, fileInfo.Length);
+                    }
+                }
             }
             catch (Exception ex)
             {

@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using ModelContextProtocol.AspNetCore.Authentication;
 using ModelContextProtocol.Server;
 using AiStudio4.McpStandalone.McpServer;
+using AiStudio4.Tools.Interfaces;
 
 namespace AiStudio4.McpStandalone.Services
 {
@@ -118,9 +119,22 @@ namespace AiStudio4.McpStandalone.Services
 
                 builder.Services.AddAuthorization();
 
-                // Add MCP server with our hello world tool
+                // Register services for shared tools
+                builder.Services.AddSingleton<IGeneralSettingsService, StandaloneSettingsService>();
+                builder.Services.AddSingleton<IStatusMessageService, NoOpStatusMessageService>();
+                builder.Services.AddSingleton<IBuiltInToolExtraPropertiesService, StandaloneExtraPropertiesService>();
+
+                // Register shared tools dynamically
+                RegisterSharedTools(builder.Services);
+
+                // Add MCP server with HTTP transport
+                // Direct registration of tools - add new tools here as needed
                 builder.Services.AddMcpServer()
-                    .WithTools<HelloWorldTool>()
+                    .WithTools<HelloWorldTool>() // Demo tool
+                    .WithTools<AiStudio4.Tools.YouTube.YouTubeSearchTool>() // YouTube search from shared library
+                    // Add more shared tools here as they're added to AiStudio4.Tools:
+                    // .WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsSearchWikiTool>()
+                    // .WithTools<AiStudio4.Tools.GitHub.GitHubSearchTool>()
                     .WithHttpTransport();
 
                 // Add logging
@@ -235,5 +249,23 @@ namespace AiStudio4.McpStandalone.Services
                 _logger.LogError(ex, "Error stopping MCP server");
             }
         }
+
+        private void RegisterSharedTools(IServiceCollection services)
+        {
+            // Scan the shared library assembly for tools
+            var sharedToolInterfaceType = typeof(ITool);
+            var sharedAssembly = sharedToolInterfaceType.Assembly;
+            
+            var toolTypes = sharedAssembly.GetTypes()
+                .Where(t => sharedToolInterfaceType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            
+            foreach (var toolType in toolTypes)
+            {
+                // Register the concrete type
+                services.AddTransient(toolType);
+                _logger.LogInformation("Registered shared tool: {ToolType}", toolType.Name);
+            }
+        }
+
     }
 }

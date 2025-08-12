@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Collections.Concurrent;
+using System.Security.Cryptography;
 
 namespace ModelContextProtocol.TestOAuthServer.Persistence;
 
@@ -12,6 +13,7 @@ public sealed class OAuthPersistenceManager
     private readonly string _tokensFilePath;
     private readonly string _authCodesFilePath;
     private readonly string _dynamicClientsFilePath;
+    private readonly string _rsaKeyFilePath;
     private readonly object _fileLock = new();
 
     /// <summary>
@@ -24,6 +26,7 @@ public sealed class OAuthPersistenceManager
         _tokensFilePath = Path.Combine(dataDirectory, "oauth_tokens.json");
         _authCodesFilePath = Path.Combine(dataDirectory, "oauth_auth_codes.json");
         _dynamicClientsFilePath = Path.Combine(dataDirectory, "oauth_dynamic_clients.json");
+        _rsaKeyFilePath = Path.Combine(dataDirectory, "oauth_rsa_key.xml");
         
         // Ensure directory exists
         Directory.CreateDirectory(dataDirectory);
@@ -325,6 +328,58 @@ public sealed class OAuthPersistenceManager
             }
 
             return info;
+        }
+    }
+
+    /// <summary>
+    /// Loads or creates an RSA key for token signing.
+    /// </summary>
+    /// <returns>Tuple of RSA key and key ID.</returns>
+    public (RSA rsa, string keyId) LoadOrCreateRsaKey()
+    {
+        lock (_fileLock)
+        {
+            try
+            {
+                if (File.Exists(_rsaKeyFilePath))
+                {
+                    // Load existing key
+                    var xml = File.ReadAllText(_rsaKeyFilePath);
+                    var parts = xml.Split('|');
+                    if (parts.Length == 2)
+                    {
+                        var rsa = RSA.Create();
+                        rsa.FromXmlString(parts[0]);
+                        return (rsa, parts[1]);
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // If loading fails, create new key
+            }
+
+            // Create new key
+            var newRsa = RSA.Create(2048);
+            var newKeyId = Guid.NewGuid().ToString();
+            SaveRsaKey(newRsa, newKeyId);
+            return (newRsa, newKeyId);
+        }
+    }
+
+    /// <summary>
+    /// Saves the RSA key to persistent storage.
+    /// </summary>
+    private void SaveRsaKey(RSA rsa, string keyId)
+    {
+        try
+        {
+            var xml = rsa.ToXmlString(true) + "|" + keyId;
+            File.WriteAllText(_rsaKeyFilePath, xml);
+        }
+        catch (Exception)
+        {
+            // Silently fail - persistence is not critical
         }
     }
 }
