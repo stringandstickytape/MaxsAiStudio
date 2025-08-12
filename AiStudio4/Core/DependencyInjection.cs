@@ -38,12 +38,40 @@ namespace AiStudio4.Core
             // Register theme service
             services.AddTransient<IThemeService, ThemeService>();
             
-            // Register individual tools by scanning the assembly for ITool implementations
+            // Register adapters for shared library tools
+            services.AddTransient<AiStudio4.Tools.Interfaces.IGeneralSettingsService>(sp =>
+                new AiStudio4.Services.Adapters.GeneralSettingsServiceAdapter(sp.GetRequiredService<InjectedDependencies.IGeneralSettingsService>()));
+            services.AddTransient<AiStudio4.Tools.Interfaces.IStatusMessageService>(sp =>
+                new AiStudio4.Services.Adapters.StatusMessageServiceAdapter(sp.GetRequiredService<Core.Interfaces.IStatusMessageService>()));
+            services.AddTransient<AiStudio4.Tools.Interfaces.IBuiltInToolExtraPropertiesService>(sp =>
+                new AiStudio4.Services.Adapters.BuiltInToolExtraPropertiesServiceAdapter(sp.GetRequiredService<Core.Interfaces.IBuiltInToolExtraPropertiesService>()));
+            
+            // Register tools from SHARED LIBRARY by scanning the assembly
+            var sharedToolInterfaceType = typeof(AiStudio4.Tools.Interfaces.ITool);
+            var sharedAssembly = sharedToolInterfaceType.Assembly;
+            
+            var sharedToolTypes = sharedAssembly.GetTypes()
+                .Where(t => sharedToolInterfaceType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+            
+            foreach (var toolType in sharedToolTypes)
+            {
+                // Register the concrete type itself
+                services.AddTransient(toolType);
+                // Register as main app's ITool interface using adapter
+                services.AddTransient<ITool>(sp =>
+                {
+                    var sharedTool = (AiStudio4.Tools.Interfaces.ITool)sp.GetRequiredService(toolType);
+                    return new AiStudio4.Services.Adapters.SharedToolAdapter(sharedTool);
+                });
+            }
+            
+            // Register tools from MAIN APP by scanning the assembly for ITool implementations
             var toolInterfaceType = typeof(ITool);
             var assembly = toolInterfaceType.Assembly; // Assuming tools are in the same assembly as ITool
 
             var toolTypes = assembly.GetTypes()
-                .Where(t => toolInterfaceType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                .Where(t => toolInterfaceType.IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract)
+                .Where(t => t != typeof(AiStudio4.Services.Adapters.SharedToolAdapter)); // Exclude the adapter itself
 
             foreach (var toolType in toolTypes)
             {

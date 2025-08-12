@@ -3,58 +3,61 @@
 ## Current Status
 Starting implementation of shared tools library for MCP Standalone server.
 
-## Phase 1: Create Shared Library Structure ⏳
+## Phase 1: Create Shared Library Structure ✅
 
 ### Setup
-- [ ] Create new Class Library project `AiStudio4.Tools` (.NET 9.0)
-- [ ] Add project to solution
-- [ ] Configure project properties and dependencies
+- [x] Create new Class Library project `AiStudio4.Tools` (.NET 9.0)
+- [x] Add project to solution
+- [x] Configure project properties and dependencies (fixed package version to 9.0.5)
 
 ### Create Minimal Interfaces
-- [ ] Create `Interfaces` folder
-- [ ] Create `IGeneralSettingsService.cs` with minimal methods:
-  - [ ] `GetDecryptedAzureDevOpsPAT()`
-  - [ ] `GetDecryptedGitHubToken()`
-  - [ ] `GetProjectPath()`
-- [ ] Create `IStatusMessageService.cs`
-- [ ] Create `ITool.cs`
-- [ ] Create `IBuiltInToolExtraPropertiesService.cs`
+- [x] Create `Interfaces` folder
+- [x] Create `IGeneralSettingsService.cs` with minimal methods:
+  - [x] `GetDecryptedYouTubeApiKey()`
+  - [x] `GetDecryptedAzureDevOpsPAT()`
+  - [x] `GetDecryptedGitHubToken()` (mapped to GetDecryptedGitHubApiKey)
+  - [x] `GetProjectPath()`
+- [x] Create `IStatusMessageService.cs`
+- [x] Create `ITool.cs`
+- [x] Create `IBuiltInToolExtraPropertiesService.cs`
 
 ### Copy Required Models
-- [ ] Create `Models` folder
-- [ ] Copy `Tool.cs` from main app
-- [ ] Copy `BuiltinToolResult.cs`
-- [ ] Copy `ContentBlock.cs` and related enums
-- [ ] Copy `ToolGuids.cs`
-- [ ] Adjust namespaces to `AiStudio4.Tools.Models`
+- [x] Create `Models` folder
+- [x] Copy `Tool.cs` from main app
+- [x] Copy `BuiltinToolResult.cs` with Attachment class
+- [x] Copy `ToolGuids.cs`
+- [x] Adjust namespaces to `AiStudio4.Tools.Models`
 
 ### Copy Base Implementation
-- [ ] Copy `BaseToolImplementation.cs`
-- [ ] Remove UI-specific code
-- [ ] Update to use minimal interfaces
-- [ ] Adjust namespace to `AiStudio4.Tools`
+- [x] Copy `BaseToolImplementation.cs`
+- [x] Remove UI-specific code
+- [x] Update to use minimal interfaces
+- [x] Adjust namespace to `AiStudio4.Tools`
 
 ### Add First Tool
-- [ ] Create `Tools/YouTube` folder
-- [ ] Copy `YouTubeSearchTool.cs`
-- [ ] Update namespace to `AiStudio4.Tools.YouTube`
-- [ ] Verify it compiles with minimal interfaces
+- [x] Create `Tools/YouTube` folder
+- [x] Copy `YouTubeSearchTool.cs`
+- [x] Update namespace to `AiStudio4.Tools.YouTube`
+- [x] Verify it compiles with minimal interfaces
 
-## Phase 2: Update Main App ⏳
+## Phase 2: Update Main App ✅
 
 ### Reference Shared Library
-- [ ] Add project reference to `AiStudio4.Tools`
-- [ ] Remove duplicate models/interfaces
-- [ ] Update using statements
+- [x] Add project reference to `AiStudio4.Tools`
+- [x] Remove duplicate YouTubeSearchTool from main app
+- [x] Update using statements
 
 ### Implement Adapters
-- [ ] Create adapter for existing GeneralSettingsService to implement minimal interface
-- [ ] Create adapter for StatusMessageService
-- [ ] Update DI registration
+- [x] Create `GeneralSettingsServiceAdapter` (maps GetDecryptedGitHubApiKey to GetDecryptedGitHubToken)
+- [x] Create `StatusMessageServiceAdapter`
+- [x] Create `BuiltInToolExtraPropertiesServiceAdapter`
+- [x] Create `SharedToolAdapter` to wrap shared tools for main app's ITool interface
+- [x] Update DI registration with dynamic assembly scanning
+- [x] Exclude SharedToolAdapter from main app tool scan
 
 ### Test
-- [ ] Verify YouTubeSearchTool still works in main app
-- [ ] Check no functionality lost
+- [x] Verify YouTubeSearchTool still works in main app
+- [x] Check no functionality lost
 
 ## Phase 3: Implement Standalone Services ⏳
 

@@ -20,7 +20,9 @@
       "mcp__serena__find_symbol",
       "Bash(pnpm cypress run:*)",
       "Bash(npx eslint:*)",
-      "WebFetch(domain:www.npmjs.com)"
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(powershell:*)",
+      "Bash(del \"C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4\\Core\\Tools\\YouTube\\YouTubeSearchTool.cs\")"
     ],
     "deny": []
   }

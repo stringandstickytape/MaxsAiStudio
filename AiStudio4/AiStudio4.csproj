@@ -42,6 +42,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SharedClasses\SharedClasses.csproj" />
     <ProjectReference Include="..\ModelContextProtocol.TestOAuthServer\ModelContextProtocol.TestOAuthServer.csproj" />
+    <ProjectReference Include="..\AiStudio4.Tools\AiStudio4.Tools.csproj" />
   </ItemGroup>
 
 
