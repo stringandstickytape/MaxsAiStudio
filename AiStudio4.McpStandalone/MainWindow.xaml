@@ -159,49 +159,6 @@
                             </StackPanel>
                         </Expander>
 
-                        <!-- OAuth Configuration (Mandatory) -->
-                        <Expander IsExpanded="{Binding IsOAuthConfigVisible}" Margin="0,0,0,12">
-                            <Expander.Header>
-                                <StackPanel Orientation="Horizontal">
-                                    <ui:SymbolIcon Symbol="Shield24" Margin="0,0,8,0"/>
-                                    <TextBlock Text="OAuth Configuration (Required)" FontWeight="SemiBold"/>
-                                </StackPanel>
-                            </Expander.Header>
-                            <StackPanel Margin="32,12,0,0">
-                                <ui:InfoBar IsOpen="True" 
-                                           IsClosable="False"
-                                           Severity="Informational"
-                                           Title="OAuth Server Status"
-                                           Message="{Binding OAuthServerStatus}"
-                                           Margin="0,0,0,12"/>
-                                
-                                <ui:TextBox PlaceholderText="Client Name" 
-                                           Text="{Binding SelectedServer.ClientName}"
-                                           Icon="{ui:SymbolIcon Person24}"
-                                           Margin="0,0,0,12"/>
-                                <ui:TextBox PlaceholderText="Client ID" 
-                                           Text="{Binding SelectedServer.ClientId}"
-                                           Icon="{ui:SymbolIcon Person24}"
-                                           Margin="0,0,0,12"/>
-                                <ui:PasswordBox PlaceholderText="Client Secret" 
-                                               Password="{Binding SelectedServer.ClientSecret}"
-                                               Icon="{ui:SymbolIcon Key24}"
-                                               Margin="0,0,0,12"/>
-                                <ui:TextBox PlaceholderText="Authorization Endpoint" 
-                                           Text="{Binding SelectedServer.AuthorizationEndpoint}"
-                                           Icon="{ui:SymbolIcon Link24}"
-                                           Margin="0,0,0,12"/>
-                                <ui:TextBox PlaceholderText="Token Endpoint" 
-                                           Text="{Binding SelectedServer.TokenEndpoint}"
-                                           Icon="{ui:SymbolIcon Link24}"
-                                           Margin="0,0,0,12"/>
-                                <ui:TextBox PlaceholderText="Redirect URI" 
-                                           Text="{Binding SelectedServer.RedirectUri}"
-                                           Icon="{ui:SymbolIcon ArrowForward24}"
-                                           Margin="0,0,0,12"/>
-                            </StackPanel>
-                        </Expander>
-
                     </StackPanel>
                 </ScrollViewer>
             </ui:Card>

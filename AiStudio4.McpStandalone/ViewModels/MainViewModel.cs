@@ -20,10 +20,6 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private ObservableCollection<McpTool> availableTools = new();
 
-
-        [ObservableProperty]
-        private bool isOAuthConfigVisible;
-
         [ObservableProperty]
         private string searchText = string.Empty;
 
@@ -42,16 +38,12 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private string claudeInstallCommand = "claude mcp add --transport http McpStandalone http://localhost:7071/";
 
-        public ICommand ConfigureOAuthCommand { get; }
-
         public MainViewModel(IAutoStartOAuthServerService oauthServerService, ISimpleMcpServerService mcpServerService, StandaloneSettingsService settingsService, ILogger<MainViewModel> logger)
         {
             _oauthServerService = oauthServerService;
             _mcpServerService = mcpServerService;
             _settingsService = settingsService;
             _logger = logger;
-
-            ConfigureOAuthCommand = new RelayCommand(ConfigureOAuth);
 
             LoadSampleData();
             UpdateOAuthServerStatus();
@@ -90,13 +82,6 @@ namespace AiStudio4.McpStandalone.ViewModels
                 IsSelected = false
             });
         }
-
-
-        private void ConfigureOAuth()
-        {
-            IsOAuthConfigVisible = !IsOAuthConfigVisible;
-        }
-
 
         partial void OnSearchTextChanged(string value)
         {
