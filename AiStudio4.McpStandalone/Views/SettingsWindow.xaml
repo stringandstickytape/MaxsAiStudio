@@ -39,6 +39,36 @@
         <!-- Main Content -->
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="20,10,20,10">
             <StackPanel>
+                <!-- Server Configuration -->
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Settings24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Server Configuration" FontWeight="SemiBold"/>
+                                <TextBlock Text="Basic server settings" 
+                                          FontSize="11" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <ui:TextBox Name="ServerNameBox" 
+                                   PlaceholderText="Server Name"
+                                   Text=""
+                                   Icon="{ui:SymbolIcon Tag24}"
+                                   Margin="0,0,0,8"/>
+                        <ui:TextBox Name="ServerDescriptionBox" 
+                                   PlaceholderText="Server Description"
+                                   Text=""
+                                   Icon="{ui:SymbolIcon Info24}"/>
+                    </StackPanel>
+                </ui:CardExpander>
+
                 <!-- YouTube API Key -->
                 <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
                     <ui:CardExpander.Header>

@@ -28,8 +28,12 @@ namespace AiStudio4.McpStandalone.Views
             var projectPath = _settingsService.GetProjectPath();
             var mcpPort = _settingsService.GetMcpServerPort();
             var oauthPort = _settingsService.GetOAuthServerPort();
+            var serverName = _settingsService.GetServerName();
+            var serverDescription = _settingsService.GetServerDescription();
 
-            // Load the actual keys into the password boxes
+            // Load the actual values into the controls
+            ServerNameBox.Text = serverName ?? string.Empty;
+            ServerDescriptionBox.Text = serverDescription ?? string.Empty;
             YouTubeApiKeyBox.Password = _originalYouTubeKey ?? string.Empty;
             AzureDevOpsPATBox.Password = _originalAzurePat ?? string.Empty;
             GitHubTokenBox.Password = _originalGitHubToken ?? string.Empty;
@@ -55,6 +59,10 @@ namespace AiStudio4.McpStandalone.Views
 
         private void Save_Click(object sender, RoutedEventArgs e)
         {
+            // Save server configuration
+            _settingsService.SetServerName(ServerNameBox.Text);
+            _settingsService.SetServerDescription(ServerDescriptionBox.Text);
+            
             // Save YouTube API Key if changed
             if (YouTubeApiKeyBox.Password != _originalYouTubeKey)
             {

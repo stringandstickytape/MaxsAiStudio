@@ -157,6 +157,28 @@ namespace AiStudio4.McpStandalone.Services
             SaveSettings();
         }
 
+        public string GetServerName()
+        {
+            return _settings.ServerName;
+        }
+
+        public void SetServerName(string name)
+        {
+            _settings.ServerName = name;
+            SaveSettings();
+        }
+
+        public string GetServerDescription()
+        {
+            return _settings.ServerDescription;
+        }
+
+        public void SetServerDescription(string description)
+        {
+            _settings.ServerDescription = description;
+            SaveSettings();
+        }
+
         private void LoadSettings()
         {
             if (File.Exists(_settingsPath))
@@ -191,6 +213,8 @@ namespace AiStudio4.McpStandalone.Services
             public string EncryptedGitHubToken { get; set; }
             public int McpServerPort { get; set; } = 7071;
             public int OAuthServerPort { get; set; } = 7029;
+            public string ServerName { get; set; } = "MCP Standalone Server";
+            public string ServerDescription { get; set; } = "MCP server with OAuth authentication";
         }
     }
 }

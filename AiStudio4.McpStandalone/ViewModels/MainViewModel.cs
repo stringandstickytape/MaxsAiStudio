@@ -55,8 +55,8 @@ namespace AiStudio4.McpStandalone.ViewModels
         {
             SelectedServer = new McpServerConfiguration
             {
-                Name = "MCP Standalone Server",
-                Description = "MCP server with OAuth authentication",
+                Name = _settingsService.GetServerName(),
+                Description = _settingsService.GetServerDescription(),
                 IsEnabled = true
             };
 
