@@ -1,6 +1,6 @@
 # Tool Migration Guide: Moving Tools to Shared Library
 
-This guide explains how to migrate tools from the main AiStudio4 project to the shared AiStudio4.Tools library, using the Azure DevOps Search Wiki tool as an example.
+This guide explains how to migrate tools from the main AiStudio4 project to the shared AiStudio4.Tools library.
 
 ## Overview
 
@@ -8,24 +8,41 @@ The goal is to move tools to `AiStudio4.Tools` so they can be used by both:
 1. The main AiStudio4 application
 2. The standalone MCP server (AiStudio4.McpStandalone)
 
-## Quick Summary: What Actually Needs to be Done
+## Current Migration Status
 
-For the Azure DevOps Search Wiki tool migration, here's what you need to do:
-
-### ✅ Already Done (Infrastructure):
+### ✅ Completed Migrations:
+- **AzureDevOpsSearchWikiTool** - Successfully migrated and working in both contexts
 - Settings service methods for PAT (`GetDecryptedAzureDevOpsPAT`, `SetAzureDevOpsPAT`)
 - UI for entering Azure DevOps PAT in settings
 - Base classes and interfaces in place
 
-### ⚠️ To Do (Actual Migration):
-1. **MOVE the file**: `AiStudio4\Core\Tools\AzureDevOps\AzureDevOpsSearchWikiTool.cs` → `AiStudio4.Tools\Tools\AzureDevOps\AzureDevOpsSearchWikiTool.cs` (delete from original location)
-2. **Move the GUID**: Find `AZURE_DEV_OPS_SEARCH_WIKI_TOOL_GUID` in the main project's ToolGuids and add it to `AiStudio4.Tools\Models\ToolGuids.cs`
+### 🚧 Next Migration Phase: Azure DevOps Wiki Tools
+
+We are now migrating the remaining Azure DevOps Wiki tools. Since the MCP Standalone has a WPF UI, we can properly support all tool features including dialog confirmations.
+
+#### Tools to Migrate:
+1. **AzureDevOpsGetWikiPageContentTool** - Simple read-only tool (start here)
+2. **AzureDevOpsGetWikiPagesTool** - Simple read-only tool
+3. **AzureDevOpsCreateOrUpdateWikiPageTool** - Requires IDialogService implementation
+4. **AzureDevOpsCreateOrUpdateWikiPageViaLocalTool** - Uses git operations
+
+#### Prerequisites Needed:
+1. **Create IDialogService for Standalone**: 
+   - Create `StandaloneDialogService` implementing `IDialogService`
+   - Use WPF MessageBox or custom dialog window
+   - Register in DI container in App.xaml.cs
+
+2. **Move IDialogService Interface**:
+   - Copy interface to shared library or create equivalent
+   - Update references in migrated tools
+
+### ⚠️ Standard Migration Steps:
+1. **MOVE the file**: From `AiStudio4\Core\Tools\AzureDevOps\` to `AiStudio4.Tools\Tools\AzureDevOps\` (delete from original location)
+2. **Move the GUID**: Find tool GUID in the main project's ToolGuids and add it to `AiStudio4.Tools\Models\ToolGuids.cs`
 3. **Update namespace**: Change `AiStudio4.Core.Tools.AzureDevOps` to `AiStudio4.Tools.AzureDevOps`
 4. **Update imports**: Change any `using AiStudio4.Core.*` to `using AiStudio4.Tools.*`
-5. **Register in server**: Add 3 lines to `SimpleMcpServerService.cs` (see step 6 below)
+5. **Register in server**: Add registration to `SimpleMcpServerService.cs` (see step 6 below)
 6. **Test**: Verify it works in both apps
-
-That's it! Most infrastructure is already in place.
 
 ## Migration Steps
 
