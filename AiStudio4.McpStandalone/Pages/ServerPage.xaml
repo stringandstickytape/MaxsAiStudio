@@ -19,7 +19,8 @@
         <StackPanel Grid.Row="0" Margin="0,0,0,24">
             <TextBlock Text="Server Management" 
                       FontSize="28" 
-                      FontWeight="Bold"/>
+                      FontWeight="Bold"
+                      Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
             <TextBlock Text="Manage your MCP server configuration and status" 
                       FontSize="14" 
                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
