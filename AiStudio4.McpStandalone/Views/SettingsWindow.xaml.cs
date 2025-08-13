@@ -93,7 +93,7 @@ namespace AiStudio4.McpStandalone.Views
                 _settingsService.SetOAuthServerPort((int)OAuthPortBox.Value.Value);
             }
 
-            MessageBox.Show("Settings saved successfully!", "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
+            System.Windows.MessageBox.Show("Settings saved successfully!", "Settings", MessageBoxButton.OK, MessageBoxImage.Information);
             DialogResult = true;
             Close();
         }

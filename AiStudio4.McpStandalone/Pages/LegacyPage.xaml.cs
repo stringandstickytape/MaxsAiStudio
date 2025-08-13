@@ -21,7 +21,7 @@ namespace AiStudio4.McpStandalone.Pages
             try
             {
                 // Get the settings service from the application's service provider
-                var app = Application.Current as App;
+                var app = System.Windows.Application.Current as App;
                 if (app?.ServiceProvider != null)
                 {
                     var settingsService = app.ServiceProvider.GetRequiredService<StandaloneSettingsService>();
@@ -31,13 +31,13 @@ namespace AiStudio4.McpStandalone.Pages
                 }
                 else
                 {
-                    MessageBox.Show("Unable to access application services.", "Error", 
+                    System.Windows.MessageBox.Show("Unable to access application services.", "Error", 
                         MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Failed to open settings: {ex.Message}", "Error", 
+                System.Windows.MessageBox.Show($"Failed to open settings: {ex.Message}", "Error", 
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -46,7 +46,7 @@ namespace AiStudio4.McpStandalone.Pages
         {
             if (DataContext is ViewModels.MainViewModel viewModel)
             {
-                Clipboard.SetText(viewModel.ClaudeInstallCommand);
+                System.Windows.Clipboard.SetText(viewModel.ClaudeInstallCommand);
                 // Could add a notification here that text was copied
             }
         }

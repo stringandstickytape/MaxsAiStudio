@@ -18,7 +18,7 @@ namespace AiStudio4.McpStandalone.Pages
         {
             if (DataContext is MainViewModel viewModel)
             {
-                Clipboard.SetText(viewModel.ClaudeInstallCommand);
+                System.Windows.Clipboard.SetText(viewModel.ClaudeInstallCommand);
                 // Could show a snackbar or tooltip here to indicate success
             }
         }

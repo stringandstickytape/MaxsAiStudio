@@ -25,7 +25,7 @@ namespace AiStudio4.McpStandalone.Pages
         private void SettingsPage_Loaded(object sender, RoutedEventArgs e)
         {
             // Get the settings service and load settings
-            var app = Application.Current as App;
+            var app = System.Windows.Application.Current as App;
             if (app?.ServiceProvider != null)
             {
                 _settingsService = app.ServiceProvider.GetRequiredService<StandaloneSettingsService>();

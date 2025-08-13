@@ -15,7 +15,7 @@ namespace AiStudio4.McpStandalone;
 /// <summary>
 /// Interaction logic for App.xaml
 /// </summary>
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private readonly IHost _host;
     private IAutoStartOAuthServerService? _oauthServerService;
@@ -71,7 +71,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Failed to start OAuth server: {ex.Message}", "OAuth Server Error", 
+            System.Windows.MessageBox.Show($"Failed to start OAuth server: {ex.Message}", "OAuth Server Error", 
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
@@ -83,7 +83,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Failed to start MCP server: {ex.Message}", "MCP Server Error", 
+            System.Windows.MessageBox.Show($"Failed to start MCP server: {ex.Message}", "MCP Server Error", 
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
