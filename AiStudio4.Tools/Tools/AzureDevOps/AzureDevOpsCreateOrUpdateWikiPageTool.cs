@@ -25,29 +25,16 @@ namespace AiStudio4.Tools.AzureDevOps
         private readonly IDialogService? _dialogService;
 
         public AzureDevOpsCreateOrUpdateWikiPageTool(
-            ILogger<AzureDevOpsCreateOrUpdateWikiPageTool> logger, 
-            IGeneralSettingsService generalSettingsService, 
-            IStatusMessageService statusMessageService,
-            IDialogService dialogService)
+            ILogger<AzureDevOpsCreateOrUpdateWikiPageTool>? logger = null, 
+            IGeneralSettingsService? generalSettingsService = null, 
+            IStatusMessageService? statusMessageService = null,
+            IDialogService? dialogService = null)
             : base(logger, generalSettingsService, statusMessageService)
         {
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4-AzureDevOps-Tool");
             _dialogService = dialogService;
-        }
-        
-        // Constructor for tool discovery (without IDialogService)
-        public AzureDevOpsCreateOrUpdateWikiPageTool(
-            ILogger<AzureDevOpsCreateOrUpdateWikiPageTool>? logger, 
-            IGeneralSettingsService generalSettingsService, 
-            IStatusMessageService? statusMessageService)
-            : base(logger, generalSettingsService, statusMessageService)
-        {
-            _httpClient = new HttpClient();
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            _httpClient.DefaultRequestHeaders.Add("User-Agent", "AiStudio4-AzureDevOps-Tool");
-            _dialogService = null;
         }
 
         /// <summary>

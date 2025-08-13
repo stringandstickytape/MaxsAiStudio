@@ -9,6 +9,7 @@ using ModelContextProtocol.AspNetCore.Authentication;
 using ModelContextProtocol.Server;
 using AiStudio4.McpStandalone.McpServer;
 using AiStudio4.Tools.Interfaces;
+using AiStudio4.Tools.Services.SmartFileEditor;
 using System.Linq;
 using System.Reflection;
 
@@ -29,6 +30,8 @@ namespace AiStudio4.McpStandalone.Services
     {
         private readonly ILogger<SimpleMcpServerService> _logger;
         private readonly StandaloneSettingsService _settingsService;
+        private readonly IDialogService _dialogService;
+        private readonly IStatusMessageService _statusMessageService;
         private WebApplication? _app;
         private CancellationTokenSource _cancellationTokenSource;
         private Task? _runningTask;
@@ -37,10 +40,16 @@ namespace AiStudio4.McpStandalone.Services
         public string OAuthServerUrl => $"http://localhost:{_settingsService.GetOAuthServerPort()}";
         public bool IsServerRunning => _app != null && _runningTask != null && !_runningTask.IsCompleted;
 
-        public SimpleMcpServerService(ILogger<SimpleMcpServerService> logger, StandaloneSettingsService settingsService)
+        public SimpleMcpServerService(
+            ILogger<SimpleMcpServerService> logger, 
+            StandaloneSettingsService settingsService,
+            IDialogService dialogService,
+            IStatusMessageService statusMessageService)
         {
             _logger = logger;
             _settingsService = settingsService;
+            _dialogService = dialogService;
+            _statusMessageService = statusMessageService;
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
@@ -68,6 +77,12 @@ namespace AiStudio4.McpStandalone.Services
                 
                 // Configure Kestrel to listen on the specific port
                 builder.WebHost.UseUrls(ServerUrl);
+                
+                // Register services needed by tools
+                builder.Services.AddSingleton<IDialogService>(_dialogService);
+                builder.Services.AddSingleton<IGeneralSettingsService>(_settingsService);
+                builder.Services.AddSingleton<IStatusMessageService>(_statusMessageService);
+                builder.Services.AddSingleton<ISmartFileEditor, SmartFileEditorService>();
                 
                 // Add authentication services - matching the original app
                 builder.Services.AddAuthentication(options =>
@@ -160,13 +175,27 @@ namespace AiStudio4.McpStandalone.Services
                 }
                 if (enabledTools.Contains("AzureDevOpsCreateOrUpdateWikiPageTool"))
                 {
-                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsCreateOrUpdateWikiPageTool>();
-                    _logger.LogInformation("Registered AzureDevOpsCreateOrUpdateWikiPageTool");
+                    try
+                    {
+                        mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsCreateOrUpdateWikiPageTool>();
+                        _logger.LogInformation("Successfully registered AzureDevOpsCreateOrUpdateWikiPageTool");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to register AzureDevOpsCreateOrUpdateWikiPageTool");
+                    }
                 }
                 if (enabledTools.Contains("AzureDevOpsCreateOrUpdateWikiPageViaLocalTool"))
                 {
-                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsCreateOrUpdateWikiPageViaLocalTool>();
-                    _logger.LogInformation("Registered AzureDevOpsCreateOrUpdateWikiPageViaLocalTool");
+                    try
+                    {
+                        mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsCreateOrUpdateWikiPageViaLocalTool>();
+                        _logger.LogInformation("Successfully registered AzureDevOpsCreateOrUpdateWikiPageViaLocalTool");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Failed to register AzureDevOpsCreateOrUpdateWikiPageViaLocalTool");
+                    }
                 }
                 
                 mcpBuilder.WithHttpTransport();
@@ -324,7 +353,13 @@ namespace AiStudio4.McpStandalone.Services
             {
                 // Register the concrete type
                 services.AddTransient(toolType);
-                _logger.LogInformation("Registered shared tool: {ToolType}", toolType.Name);
+                _logger.LogInformation("Registered shared tool type in DI: {ToolType}", toolType.Name);
+                
+                // Also check if it has the MCP attribute
+                if (toolType.GetCustomAttribute<ModelContextProtocol.Server.McpServerToolTypeAttribute>() != null)
+                {
+                    _logger.LogInformation("Tool {ToolType} has McpServerToolType attribute", toolType.Name);
+                }
             }
         }
 

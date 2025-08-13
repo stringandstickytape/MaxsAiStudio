@@ -95,9 +95,37 @@ namespace AiStudio4.McpStandalone.ViewModels
             {
                 try
                 {
-                    // Create an instance to get the tool definition
-                    var toolInstance = Activator.CreateInstance(toolType, 
-                        new object?[] { null, _settingsService, null }) as AiStudio4.Tools.Interfaces.ITool;
+                    // Try to create an instance to get the tool definition
+                    AiStudio4.Tools.Interfaces.ITool? toolInstance = null;
+                    
+                    // First try with 4 parameters (CreateOrUpdate tools)
+                    try
+                    {
+                        toolInstance = Activator.CreateInstance(toolType, 
+                            new object?[] { null, _settingsService, null, null }) as AiStudio4.Tools.Interfaces.ITool;
+                    }
+                    catch
+                    {
+                        // If that fails, try with 3 parameters (most other tools)
+                        try
+                        {
+                            toolInstance = Activator.CreateInstance(toolType, 
+                                new object?[] { null, _settingsService, null }) as AiStudio4.Tools.Interfaces.ITool;
+                        }
+                        catch
+                        {
+                            // If that fails, try parameterless constructor (for tools with all optional parameters)
+                            try
+                            {
+                                toolInstance = Activator.CreateInstance(toolType) as AiStudio4.Tools.Interfaces.ITool;
+                            }
+                            catch
+                            {
+                                // If all fail, log and skip
+                                _logger.LogWarning("Could not instantiate tool {ToolType} for discovery", toolType.Name);
+                            }
+                        }
+                    }
                     
                     if (toolInstance != null)
                     {
@@ -137,8 +165,8 @@ namespace AiStudio4.McpStandalone.ViewModels
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to load tool {ToolType}", toolType.Name);
-                    throw;
+                    _logger.LogWarning(ex, "Failed to load tool {ToolType} for discovery - this tool may require additional services", toolType.Name);
+                    // Don't throw - just skip tools that can't be instantiated for discovery
                 }
             }
             

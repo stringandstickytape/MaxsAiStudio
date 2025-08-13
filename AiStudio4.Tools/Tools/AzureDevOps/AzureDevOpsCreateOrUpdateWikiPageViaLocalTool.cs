@@ -8,6 +8,7 @@ using ModelContextProtocol.Server;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -23,26 +24,16 @@ namespace AiStudio4.Tools.AzureDevOps
     [McpServerToolType]
     public class AzureDevOpsCreateOrUpdateWikiPageViaLocalTool : BaseToolImplementation
     {
-        private readonly IServiceProvider? _serviceProvider;
+        private readonly ISmartFileEditor? _smartFileEditor;
 
         public AzureDevOpsCreateOrUpdateWikiPageViaLocalTool(
-            ILogger<AzureDevOpsCreateOrUpdateWikiPageViaLocalTool> logger,
-            IGeneralSettingsService generalSettingsService,
-            IStatusMessageService statusMessageService,
-            IServiceProvider serviceProvider)
+            ILogger<AzureDevOpsCreateOrUpdateWikiPageViaLocalTool>? logger = null,
+            IGeneralSettingsService? generalSettingsService = null,
+            IStatusMessageService? statusMessageService = null,
+            ISmartFileEditor? smartFileEditor = null)
             : base(logger, generalSettingsService, statusMessageService)
         {
-            _serviceProvider = serviceProvider;
-        }
-        
-        // Constructor for tool discovery (without IServiceProvider)
-        public AzureDevOpsCreateOrUpdateWikiPageViaLocalTool(
-            ILogger<AzureDevOpsCreateOrUpdateWikiPageViaLocalTool>? logger,
-            IGeneralSettingsService generalSettingsService,
-            IStatusMessageService? statusMessageService)
-            : base(logger, generalSettingsService, statusMessageService)
-        {
-            _serviceProvider = null;
+            _smartFileEditor = smartFileEditor;
         }
 
         public override Tool GetToolDefinition()
@@ -328,10 +319,9 @@ The tool automatically handles:
             try
             {
                 // Try to use SmartFileEditor first
-                var smartEditor = _serviceProvider.GetService<ISmartFileEditor>();
-                if (smartEditor != null)
+                if (_smartFileEditor != null)
                 {
-                    return await ApplyChangesWithSmartEditor(smartEditor, filePath, changes);
+                    return await ApplyChangesWithSmartEditor(_smartFileEditor, filePath, changes);
                 }
                 
                 // Fallback to manual file modification if SmartFileEditor not available
@@ -612,6 +602,12 @@ The tool automatically handles:
             public string OldContent { get; set; }
             public string NewContent { get; set; }
             public string Description { get; set; }
+        }
+
+        [McpServerTool, Description("Create or update Azure DevOps wiki pages using local git repository operations for efficient partial updates")]
+        public async Task<string> AzureDevOpsCreateOrUpdateWikiPageViaLocal([Description("JSON parameters for AzureDevOpsCreateOrUpdateWikiPageViaLocal")] string parameters = "{}")
+        {
+            return await ExecuteWithExtraProperties(parameters);
         }
     }
 }
