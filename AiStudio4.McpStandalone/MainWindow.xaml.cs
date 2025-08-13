@@ -72,6 +72,9 @@ public partial class MainWindow : FluentWindow
                 case "Server":
                     frame.Navigate(new ServerPage() { DataContext = _viewModel });
                     break;
+                case "Tools":
+                    frame.Navigate(new ToolsPage() { DataContext = _viewModel });
+                    break;
                 case "Settings":
                     frame.Navigate(new SettingsPage() { DataContext = _viewModel });
                     break;

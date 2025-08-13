@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:AiStudio4.McpStandalone"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         mc:Ignorable="d"
-        Title="MCP Server Manager" 
+        Title="AiStudio4 Standalone MCP Server" 
         Height="800" 
         Width="1400"
         WindowStartupLocation="CenterScreen"
@@ -23,7 +23,7 @@
 
         <!-- Title Bar -->
         <ui:TitleBar Grid.Row="0" 
-                    Title="MCP Server Manager" 
+                    Title="AiStudio4 Standalone MCP Server" 
                     ShowMaximize="True"
                     CanMaximize="True"/>
 
@@ -41,6 +41,10 @@
                 <ui:NavigationViewItem Content="Server" 
                                       Tag="Server"
                                       Icon="{ui:SymbolIcon Server24}"
+                                      Click="NavigationItem_Click"/>
+                <ui:NavigationViewItem Content="Tools" 
+                                      Tag="Tools"
+                                      Icon="{ui:SymbolIcon Apps24}"
                                       Click="NavigationItem_Click"/>
                 <ui:NavigationViewItem Content="Settings" 
                                       Tag="Settings"
