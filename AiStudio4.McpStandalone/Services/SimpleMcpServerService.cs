@@ -143,11 +143,11 @@ namespace AiStudio4.McpStandalone.Services
                     mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.YouTube.YouTubeSearchTool>();
                     _logger.LogInformation("Registered YouTubeSearchTool");
                 }
-                // Add more tools here as they become available:
-                // if (enabledTools.Contains("AzureDevOpsSearchWikiTool"))
-                // {
-                //     mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsSearchWikiTool>();
-                // }
+                if (enabledTools.Contains("AzureDevOpsSearchWikiTool"))
+                {
+                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsSearchWikiTool>();
+                    _logger.LogInformation("Registered AzureDevOpsSearchWikiTool");
+                }
                 
                 mcpBuilder.WithHttpTransport();
                 

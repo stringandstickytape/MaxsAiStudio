@@ -1,4 +1,4 @@
-// C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4/Core/Tools/AzureDevOps/AzureDevOpsSearchWikiTool.cs
+// C:/Users/maxhe/source/repos/MaxsAiStudio/AiStudio4.Tools/Tools/AzureDevOps/AzureDevOpsSearchWikiTool.cs
 
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -7,8 +7,13 @@ using System.Web;
 using ModelContextProtocol;
 using ModelContextProtocol.Server;
 using System.ComponentModel;
+using AiStudio4.Tools.Models;
+using AiStudio4.Tools.Interfaces;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
-namespace AiStudio4.Core.Tools.AzureDevOps
+namespace AiStudio4.Tools.AzureDevOps
 {
     /// <summary>
     /// Implementation of the Azure DevOps Search Wiki tool

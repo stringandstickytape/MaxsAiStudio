@@ -30,7 +30,10 @@
       "mcp__McpStandalone__calculate",
       "mcp__McpStandalone__get_current_time",
       "WebSearch",
-      "Bash(del \"C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4.McpStandalone\\Services\\DynamicToolManager.cs\")"
+      "Bash(del \"C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4.McpStandalone\\Services\\DynamicToolManager.cs\")",
+      "Bash(move:*)",
+      "Bash(cmd /c move:*)",
+      "mcp__McpStandalone__azure_dev_ops_search_wiki"
     ],
     "deny": []
   }
