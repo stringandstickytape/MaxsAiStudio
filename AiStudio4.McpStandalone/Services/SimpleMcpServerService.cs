@@ -9,6 +9,8 @@ using ModelContextProtocol.AspNetCore.Authentication;
 using ModelContextProtocol.Server;
 using AiStudio4.McpStandalone.McpServer;
 using AiStudio4.Tools.Interfaces;
+using System.Linq;
+using System.Reflection;
 
 namespace AiStudio4.McpStandalone.Services
 {
@@ -16,9 +18,11 @@ namespace AiStudio4.McpStandalone.Services
     {
         Task<bool> StartServerAsync();
         Task StopServerAsync();
+        Task RestartServerAsync();
         bool IsServerRunning { get; }
         string ServerUrl { get; }
         string OAuthServerUrl { get; }
+        void UpdateToolState(string toolId, bool isEnabled);
     }
 
     public class SimpleMcpServerService : ISimpleMcpServerService
@@ -130,14 +134,24 @@ namespace AiStudio4.McpStandalone.Services
                 RegisterSharedTools(builder.Services);
 
                 // Add MCP server with HTTP transport
-                // Direct registration of tools - add new tools here as needed
-                builder.Services.AddMcpServer()
-                    .WithTools<HelloWorldTool>() // Demo tool
-                    .WithTools<AiStudio4.Tools.YouTube.YouTubeSearchTool>() // YouTube search from shared library
-                    // Add more shared tools here as they're added to AiStudio4.Tools:
-                    // .WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsSearchWikiTool>()
-                    // .WithTools<AiStudio4.Tools.GitHub.GitHubSearchTool>()
-                    .WithHttpTransport();
+                var mcpBuilder = builder.Services.AddMcpServer();
+                
+                // Only register tools that are enabled
+                var enabledTools = _settingsService.GetEnabledTools();
+                if (enabledTools.Contains("YouTubeSearchTool"))
+                {
+                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.YouTube.YouTubeSearchTool>();
+                    _logger.LogInformation("Registered YouTubeSearchTool");
+                }
+                // Add more tools here as they become available:
+                // if (enabledTools.Contains("AzureDevOpsSearchWikiTool"))
+                // {
+                //     mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsSearchWikiTool>();
+                // }
+                
+                mcpBuilder.WithHttpTransport();
+                
+                _logger.LogInformation("MCP server configured with {Count} enabled tools", enabledTools.Count);
 
                 // Add logging
                 builder.Logging.ClearProviders();
@@ -222,11 +236,27 @@ namespace AiStudio4.McpStandalone.Services
                 // Request cancellation
                 _cancellationTokenSource.Cancel();
 
-                // Stop the application
+                // Stop the application with a timeout
                 if (_app != null)
                 {
-                    await _app.StopAsync();
-                    await _app.DisposeAsync();
+                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
+                    try
+                    {
+                        await _app.StopAsync(cts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogWarning("MCP server stop timed out, forcing shutdown");
+                    }
+                    
+                    try
+                    {
+                        await _app.DisposeAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error disposing MCP server app");
+                    }
                     _app = null;
                 }
 
@@ -235,21 +265,45 @@ namespace AiStudio4.McpStandalone.Services
                 {
                     try
                     {
-                        await _runningTask.WaitAsync(TimeSpan.FromSeconds(5));
+                        await _runningTask.WaitAsync(TimeSpan.FromSeconds(2));
                     }
                     catch (TimeoutException)
                     {
-                        _logger.LogWarning("MCP server did not stop within timeout");
+                        _logger.LogWarning("MCP server background task did not stop within timeout");
                     }
                     _runningTask = null;
                 }
 
-                _logger.LogInformation("MCP server stopped successfully");
+                _logger.LogInformation("MCP server stopped");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error stopping MCP server");
+                // Force cleanup
+                _app = null;
+                _runningTask = null;
             }
+        }
+
+        public void UpdateToolState(string toolId, bool isEnabled)
+        {
+            // Tool state is already persisted by the ViewModel
+            // Server needs to be restarted for changes to take effect
+            _logger.LogInformation("Tool {ToolId} state changed to {IsEnabled}. Server restart required.", 
+                toolId, isEnabled);
+        }
+        
+        public async Task RestartServerAsync()
+        {
+            _logger.LogInformation("Restarting MCP server to apply tool changes...");
+            
+            if (IsServerRunning)
+            {
+                await StopServerAsync();
+                await Task.Delay(500); // Small delay to ensure clean shutdown
+            }
+            
+            await StartServerAsync();
         }
 
         private void RegisterSharedTools(IServiceCollection services)

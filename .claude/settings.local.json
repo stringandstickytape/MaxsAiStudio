@@ -28,7 +28,9 @@
       "Bash(dir:*)",
       "mcp__McpStandalone__say_hello",
       "mcp__McpStandalone__calculate",
-      "mcp__McpStandalone__get_current_time"
+      "mcp__McpStandalone__get_current_time",
+      "WebSearch",
+      "Bash(del \"C:\\Users\\maxhe\\source\\repos\\MaxsAiStudio\\AiStudio4.McpStandalone\\Services\\DynamicToolManager.cs\")"
     ],
     "deny": []
   }

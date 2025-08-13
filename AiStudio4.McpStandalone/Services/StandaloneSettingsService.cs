@@ -1,4 +1,5 @@
 using AiStudio4.Tools.Interfaces;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
@@ -179,6 +180,22 @@ namespace AiStudio4.McpStandalone.Services
             SaveSettings();
         }
 
+        public List<string> GetEnabledTools()
+        {
+            return _settings.EnabledTools ?? new List<string>();
+        }
+
+        public void SetEnabledTools(List<string> tools)
+        {
+            _settings.EnabledTools = tools;
+            SaveSettings();
+        }
+
+        public bool IsToolEnabled(string toolName)
+        {
+            return _settings.EnabledTools?.Contains(toolName) ?? false;
+        }
+
         private void LoadSettings()
         {
             if (File.Exists(_settingsPath))
@@ -215,6 +232,7 @@ namespace AiStudio4.McpStandalone.Services
             public int OAuthServerPort { get; set; } = 7029;
             public string ServerName { get; set; } = "MCP Standalone Server";
             public string ServerDescription { get; set; } = "MCP server with OAuth authentication";
+            public List<string> EnabledTools { get; set; } = new List<string> { "YouTubeSearchTool" };
         }
     }
 }

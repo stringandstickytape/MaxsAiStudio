@@ -5,6 +5,8 @@ using AiStudio4.McpStandalone.Models;
 using AiStudio4.McpStandalone.Services;
 using System.Windows.Input;
 using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Collections.Generic;
 
 namespace AiStudio4.McpStandalone.ViewModels
 {
@@ -51,6 +53,12 @@ namespace AiStudio4.McpStandalone.ViewModels
             UpdateClaudeInstallCommand();
         }
 
+        [ObservableProperty]
+        private bool needsRestart = false;
+        
+        [ObservableProperty]
+        private string restartMessage = string.Empty;
+        
         private void LoadSampleData()
         {
             SelectedServer = new McpServerConfiguration
@@ -60,27 +68,72 @@ namespace AiStudio4.McpStandalone.ViewModels
                 IsEnabled = true
             };
 
-            AvailableTools.Add(new McpTool 
+            // Load the real YouTube Search Tool
+            var enabledTools = _settingsService.GetEnabledTools();
+            var youtubeSearchTool = new McpTool 
             { 
-                Name = "File Reader", 
-                Description = "Reads files from the filesystem",
-                Category = "File Operations",
-                IsSelected = false
-            });
-            AvailableTools.Add(new McpTool 
-            { 
-                Name = "Web Search", 
-                Description = "Searches the web for information",
-                Category = "Web",
-                IsSelected = false
-            });
-            AvailableTools.Add(new McpTool 
-            { 
-                Name = "Calculator", 
-                Description = "Performs mathematical calculations",
-                Category = "Utilities",
-                IsSelected = false
-            });
+                Name = "YouTube Search", 
+                Description = "Search YouTube for videos, channels, and playlists",
+                Category = "Web APIs",
+                IsSelected = enabledTools.Contains("YouTubeSearchTool"),
+                ToolId = "YouTubeSearchTool"
+            };
+            
+            // Subscribe to property changes to persist selection and update server
+            youtubeSearchTool.PropertyChanged += (sender, e) => 
+            {
+                if (e.PropertyName == nameof(McpTool.IsSelected) && sender is McpTool tool)
+                {
+                    SaveToolSelection();
+                    // Update the tool state in the running server
+                    _mcpServerService.UpdateToolState(tool.ToolId, tool.IsSelected);
+                    _logger.LogInformation("Updated tool state: {ToolId} = {IsSelected}", tool.ToolId, tool.IsSelected);
+                    
+                    // Show restart needed message
+                    NeedsRestart = true;
+                    RestartMessage = "Tool selection changed. Restart the MCP server to apply changes.";
+                }
+            };
+            
+            AvailableTools.Add(youtubeSearchTool);
+        }
+        
+        [ObservableProperty]
+        private bool isRestarting = false;
+        
+        [RelayCommand]
+        private async Task RestartServer()
+        {
+            try
+            {
+                IsRestarting = true;
+                RestartMessage = "Restarting server...";
+                
+                await _mcpServerService.RestartServerAsync();
+                
+                NeedsRestart = false;
+                RestartMessage = string.Empty;
+                IsRestarting = false;
+                UpdateMcpServerStatus();
+                _logger.LogInformation("MCP server restarted successfully");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to restart MCP server");
+                RestartMessage = "Failed to restart server: " + ex.Message;
+                IsRestarting = false;
+            }
+        }
+
+        private void SaveToolSelection()
+        {
+            var enabledTools = AvailableTools
+                .Where(t => t.IsSelected && !string.IsNullOrEmpty(t.ToolId))
+                .Select(t => t.ToolId)
+                .ToList();
+            
+            _settingsService.SetEnabledTools(enabledTools);
+            _logger.LogInformation("Saved tool selection: {Tools}", string.Join(", ", enabledTools));
         }
 
         partial void OnSearchTextChanged(string value)

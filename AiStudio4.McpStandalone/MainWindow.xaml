@@ -217,6 +217,19 @@
                                   Margin="0,0,8,0"/>
                     <TextBlock Text="{Binding McpServerStatus}" FontWeight="SemiBold"/>
                 </StackPanel>
+                
+                <!-- Restart notification and button -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" 
+                           Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="{Binding RestartMessage}" 
+                              VerticalAlignment="Center"
+                              Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                              Margin="0,0,8,0"/>
+                    <ui:Button Content="Restart Server" 
+                              Command="{Binding RestartServerCommand}"
+                              Appearance="Primary"
+                              Height="32"/>
+                </StackPanel>
 
             </Grid>
         </ui:Card>
