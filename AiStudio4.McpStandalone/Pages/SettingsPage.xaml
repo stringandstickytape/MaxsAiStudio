@@ -22,7 +22,7 @@
                           FontSize="28" 
                           FontWeight="Bold"
                           Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-                <TextBlock Text="Configure your MCP server and tools" 
+                <TextBlock Text="Configure your MCP server settings and API keys" 
                           FontSize="14" 
                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                           Margin="0,4,0,0"/>
@@ -189,86 +189,6 @@
                                       Icon="{ui:SymbolIcon FolderOpen24}"/>
                         </Grid>
                     </StackPanel>
-                </ui:CardExpander>
-
-                <!-- Tool Selection -->
-                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
-                    <ui:CardExpander.Header>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <ui:SymbolIcon Grid.Column="0" Symbol="Apps24" Margin="0,0,12,0"/>
-                            <StackPanel Grid.Column="1">
-                                <TextBlock Text="Available Tools" FontWeight="SemiBold"/>
-                                <TextBlock Text="Select which tools should be available in the MCP server" 
-                                          FontSize="12" 
-                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
-                            </StackPanel>
-                        </Grid>
-                    </ui:CardExpander.Header>
-                    <Grid Margin="52,12,12,12">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        
-                        <ui:TextBox Grid.Row="0" 
-                                   PlaceholderText="Search tools..." 
-                                   Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                   Icon="{ui:SymbolIcon Search24}"
-                                   Margin="0,0,0,12"/>
-                        
-                        <ItemsControl Grid.Row="1" 
-                                     ItemsSource="{Binding AvailableTools}" 
-                                     MaxHeight="300">
-                            <ItemsControl.Template>
-                                <ControlTemplate>
-                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
-                                        <ItemsPresenter/>
-                                    </ScrollViewer>
-                                </ControlTemplate>
-                            </ItemsControl.Template>
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <StackPanel/>
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <ui:CardAction Margin="4,2" IsChevronVisible="False">
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto"/>
-                                                <ColumnDefinition Width="*"/>
-                                                <ColumnDefinition Width="Auto"/>
-                                            </Grid.ColumnDefinitions>
-                                            
-                                            <ui:ToggleSwitch Grid.Column="0" 
-                                                           IsChecked="{Binding IsSelected}"
-                                                           VerticalAlignment="Center"
-                                                           Margin="8,0,12,0"/>
-                                            
-                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Name}" 
-                                                          FontWeight="SemiBold"/>
-                                                <TextBlock Text="{Binding Description}" 
-                                                          FontSize="11" 
-                                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                                          TextWrapping="Wrap"/>
-                                            </StackPanel>
-                                            
-                                            <ui:Badge Grid.Column="2" 
-                                                     Content="{Binding Category}"
-                                                     Appearance="Secondary"
-                                                     Margin="8,0"/>
-                                        </Grid>
-                                    </ui:CardAction>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </Grid>
                 </ui:CardExpander>
             </StackPanel>
 
