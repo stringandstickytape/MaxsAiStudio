@@ -1,4 +1,6 @@
+using System.Windows;
 using System.Windows.Controls;
+using AiStudio4.McpStandalone.ViewModels;
 
 namespace AiStudio4.McpStandalone.Pages
 {
@@ -10,6 +12,15 @@ namespace AiStudio4.McpStandalone.Pages
         public ServerPage()
         {
             InitializeComponent();
+        }
+        
+        private void CopyCommand_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is MainViewModel viewModel)
+            {
+                Clipboard.SetText(viewModel.ClaudeInstallCommand);
+                // Could show a snackbar or tooltip here to indicate success
+            }
         }
     }
 }

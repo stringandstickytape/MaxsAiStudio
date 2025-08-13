@@ -8,171 +8,205 @@
       d:DesignHeight="600" d:DesignWidth="1000"
       Title="Server">
 
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <!-- Page Header -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,24">
-            <TextBlock Text="Server Management" 
-                      FontSize="28" 
-                      FontWeight="Bold"
-                      Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
-            <TextBlock Text="Manage your MCP server configuration and status" 
-                      FontSize="14" 
-                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                      Margin="0,4,0,0"/>
-        </StackPanel>
+            <!-- Page Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock Text="Server Management" 
+                          FontSize="28" 
+                          FontWeight="Bold"
+                          Foreground="{DynamicResource TextFillColorPrimaryBrush}"/>
+                <TextBlock Text="Monitor and control your MCP and OAuth servers" 
+                          FontSize="14" 
+                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                          Margin="0,4,0,0"/>
+            </StackPanel>
 
-        <!-- Server Status Cards -->
-        <Grid Grid.Row="1" Margin="0,0,0,24">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-
-            <!-- MCP Server Status -->
-            <ui:Card Grid.Column="0" Margin="0,0,12,0">
-                <Grid Margin="20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                        <ui:SymbolIcon Symbol="Server24" 
-                                      Margin="0,0,12,0"
-                                      FontSize="24"/>
-                        <TextBlock Text="MCP Server" 
-                                  FontSize="20" 
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"/>
-                    </StackPanel>
-                    
-                    <ui:InfoBar Grid.Row="1"
-                               IsOpen="True" 
-                               IsClosable="False"
-                               Severity="{Binding IsMcpServerRunning, Converter={StaticResource BoolToSeverityConverter}}"
-                               Title="Status"
-                               Message="{Binding McpServerStatus}"
-                               Margin="0,0,0,12"/>
-                    
-                    <StackPanel Grid.Row="2">
-                        <TextBlock Text="Server Details" 
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,0,8"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" MinWidth="100"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" Margin="0,2"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding SelectedServer.Name}" Margin="8,2"/>
-                            
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Port:" Margin="0,2"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding McpServerPort}" Margin="8,2"/>
-                            
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-            </ui:Card>
-
-            <!-- OAuth Server Status -->
-            <ui:Card Grid.Column="1" Margin="12,0,0,0">
-                <Grid Margin="20">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    
-                    <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,12">
-                        <ui:SymbolIcon Symbol="Shield24" 
-                                      Margin="0,0,12,0"
-                                      FontSize="24"/>
-                        <TextBlock Text="OAuth Server" 
-                                  FontSize="20" 
-                                  FontWeight="SemiBold"
-                                  VerticalAlignment="Center"/>
-                    </StackPanel>
-                    
-                    <ui:InfoBar Grid.Row="1"
-                               IsOpen="True" 
-                               IsClosable="False"
-                               Severity="{Binding IsOAuthServerRunning, Converter={StaticResource BoolToSeverityConverter}}"
-                               Title="Status"
-                               Message="{Binding OAuthServerStatus}"
-                               Margin="0,0,0,12"/>
-                    
-                    <StackPanel Grid.Row="2">
-                        <TextBlock Text="OAuth Server Details" 
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,0,8"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto" MinWidth="100"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            
-                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Port:" Margin="0,2"/>
-                            <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OAuthServerPort}" Margin="8,2"/>
-                        </Grid>
-                    </StackPanel>
-                </Grid>
-            </ui:Card>
-        </Grid>
-
-        <!-- Server Actions -->
-        <ui:Card Grid.Row="2">
-            <StackPanel Margin="20">
-                <TextBlock Text="Server Actions" 
-                          FontSize="18" 
-                          FontWeight="SemiBold"
-                          Margin="0,0,0,16"/>
-                
+            <!-- Big Status Indicator -->
+            <ui:Card Grid.Row="1" Margin="0,0,0,24" Padding="24">
                 <Grid>
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     
-                    <ui:Button Grid.Column="0"
-                              Content="Restart Server" 
-                              Command="{Binding RestartServerCommand}"
-                              Icon="{ui:SymbolIcon ArrowClockwise24}"
-                              Appearance="Primary"
-                              IsEnabled="{Binding IsMcpServerRunning}"/>
+                    <!-- Large Server Icon -->
+                    <ui:SymbolIcon Grid.Column="0" 
+                                  Symbol="Server24" 
+                                  FontSize="64"
+                                  Margin="0,0,24,0"
+                                  VerticalAlignment="Center">
+                        <ui:SymbolIcon.Style>
+                            <Style TargetType="ui:SymbolIcon">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsMcpServerRunning}" Value="True">
+                                        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsMcpServerRunning}" Value="False">
+                                        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ui:SymbolIcon.Style>
+                    </ui:SymbolIcon>
+                    
+                    <!-- Status Summary -->
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                        <TextBlock FontSize="20" FontWeight="SemiBold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMcpServerRunning}" Value="True">
+                                            <Setter Property="Text" Value="Server is Running"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsMcpServerRunning}" Value="False">
+                                            <Setter Property="Text" Value="Server is Stopped"/>
+                                            <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        
+                        <TextBlock FontSize="14" 
+                                  Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                  TextWrapping="Wrap"
+                                  Margin="0,8,0,0">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsMcpServerRunning}" Value="True">
+                                            <Setter Property="Text" Value="Your MCP server is operational and ready to accept connections from MCP clients. All configured tools are available for use."/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding IsMcpServerRunning}" Value="False">
+                                            <Setter Property="Text" Value="The MCP server is not currently running. Please check your configuration in the Settings page and ensure all required API keys are configured."/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        
+                        <!-- Restart button if needed -->
+                        <ui:Button Content="Restart Server" 
+                                  Command="{Binding RestartServerCommand}"
+                                  Icon="{ui:SymbolIcon ArrowClockwise24}"
+                                  Appearance="Primary"
+                                  Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}"
+                                  HorizontalAlignment="Left"
+                                  Margin="0,12,0,0"/>
+                    </StackPanel>
                 </Grid>
-                
-                <!-- Restart notification -->
-                <ui:InfoBar IsOpen="{Binding NeedsRestart}" 
-                           IsClosable="False"
-                           Severity="Warning"
-                           Title="Restart Required"
-                           Message="{Binding RestartMessage}"
-                           Margin="0,16,0,0"/>
-                
-                <!-- Reconnect info -->
-                <ui:InfoBar IsOpen="{Binding ShowReconnectInfo}"
-                           IsClosable="True"
-                           Severity="Success"
-                           Title="Server Restarted"
-                           Message="{Binding ReconnectInfoMessage}"
-                           Margin="0,16,0,0"/>
+            </ui:Card>
+
+            <!-- Server Content -->
+            <StackPanel Grid.Row="2">
+                <!-- MCP Server Status -->
+                <ui:CardExpander IsExpanded="False" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <ui:SymbolIcon Grid.Column="0" 
+                                          Symbol="Server24" 
+                                          Margin="0,0,12,0"/>
+                            
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="MCP Server Details" 
+                                          FontWeight="SemiBold"/>
+                                <TextBlock Text="{Binding McpServerStatus}" 
+                                          FontSize="12" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    
+                    <StackPanel Margin="52,12,12,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" 
+                                      Text="Server Name:" 
+                                      Margin="0,4"/>
+                            <TextBlock Grid.Row="0" Grid.Column="1" 
+                                      Text="{Binding SelectedServer.Name}" 
+                                      FontWeight="SemiBold"
+                                      Margin="0,4"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" 
+                                      Text="Description:" 
+                                      Margin="0,4"/>
+                            <TextBlock Grid.Row="1" Grid.Column="1" 
+                                      Text="{Binding SelectedServer.Description}"
+                                      TextWrapping="Wrap"
+                                      Margin="0,4"/>
+                        </Grid>
+                        
+                        <!-- Claude Installation Command -->
+                        <ui:Card Margin="0,16,0,0" Padding="12">
+                            <StackPanel>
+                                <TextBlock Text="Claude Code Installation Command" 
+                                          FontWeight="SemiBold" 
+                                          Margin="0,0,0,8"/>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                    </Grid.ColumnDefinitions>
+                                    <ui:TextBox Grid.Column="0" 
+                                               Text="{Binding ClaudeInstallCommand, Mode=OneWay}"
+                                               IsReadOnly="True"
+                                               FontFamily="Cascadia Code, Consolas, monospace"
+                                               FontSize="12"/>
+                                    <ui:Button Grid.Column="1" 
+                                              Content="Copy"
+                                              Icon="{ui:SymbolIcon Copy24}"
+                                              Margin="8,0,0,0"
+                                              Click="CopyCommand_Click"/>
+                                </Grid>
+                            </StackPanel>
+                        </ui:Card>
+                    </StackPanel>
+                </ui:CardExpander>
+
+                <!-- OAuth Server Status -->
+                <ui:Card Margin="0,0,0,16" Padding="20">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <ui:SymbolIcon Grid.Column="0" 
+                                      Symbol="Shield24" 
+                                      Margin="0,0,12,0"/>
+                        
+                        <StackPanel Grid.Column="1">
+                            <TextBlock Text="OAuth Server" 
+                                      FontWeight="SemiBold"/>
+                            <TextBlock Text="{Binding OAuthServerStatus}" 
+                                      FontSize="12" 
+                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                        </StackPanel>
+                    </Grid>
+                </ui:Card>
             </StackPanel>
-        </ui:Card>
-    </Grid>
+        </Grid>
+    </ScrollViewer>
 </Page>
