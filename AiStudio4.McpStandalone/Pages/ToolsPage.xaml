@@ -127,21 +127,36 @@
                     </ItemsControl>
                 </ScrollViewer>
                 
-                <!-- Footer with restart notification -->
+                <!-- Footer with restart notification or reconnect info -->
                 <Border Grid.Row="2" 
                         Padding="20,16"
                         BorderBrush="{DynamicResource ControlElevationBorderBrush}"
-                        BorderThickness="0,1,0,0"
-                        Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}">
+                        BorderThickness="0,1,0,0">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding NeedsRestart}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding ShowReconnectInfo}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
+                        <!-- Restart needed message -->
                         <StackPanel Grid.Column="0" 
                                    Orientation="Horizontal"
-                                   VerticalAlignment="Center">
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}">
                             <ui:SymbolIcon Symbol="Warning24" 
                                           Foreground="{DynamicResource SystemFillColorCautionBrush}"
                                           Margin="0,0,8,0"/>
@@ -150,12 +165,26 @@
                                       Foreground="{DynamicResource SystemFillColorCautionBrush}"/>
                         </StackPanel>
                         
+                        <!-- Reconnect info after restart -->
+                        <StackPanel Grid.Column="0"
+                                   Orientation="Horizontal"
+                                   VerticalAlignment="Center"
+                                   Visibility="{Binding ShowReconnectInfo, Converter={StaticResource BoolToVisibilityConverter}}">
+                            <ui:SymbolIcon Symbol="CheckmarkCircle24" 
+                                          Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                                          Margin="0,0,8,0"/>
+                            <TextBlock Text="{Binding ReconnectInfoMessage}" 
+                                      VerticalAlignment="Center"
+                                      Foreground="{DynamicResource SystemFillColorSuccessBrush}"/>
+                        </StackPanel>
+                        
                         <ui:Button Grid.Column="1"
                                   Content="Restart Server" 
                                   Command="{Binding RestartServerCommand}"
                                   Icon="{ui:SymbolIcon ArrowClockwise24}"
                                   Appearance="Primary"
-                                  IsEnabled="{Binding IsMcpServerRunning}"/>
+                                  IsEnabled="{Binding IsMcpServerRunning}"
+                                  Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     </Grid>
                 </Border>
             </Grid>

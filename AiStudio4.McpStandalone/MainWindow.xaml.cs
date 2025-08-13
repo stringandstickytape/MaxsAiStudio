@@ -78,21 +78,8 @@ public partial class MainWindow : FluentWindow
                 case "Settings":
                     frame.Navigate(new SettingsPage() { DataContext = _viewModel });
                     break;
-                case "Legacy":
-                    frame.Navigate(new LegacyPage() { DataContext = _viewModel });
-                    break;
             }
         }
-    }
-    
-    private void Settings_Click(object sender, RoutedEventArgs e)
-    {
-        var settingsService = _serviceProvider.GetRequiredService<StandaloneSettingsService>();
-        var settingsWindow = new SettingsWindow(settingsService)
-        {
-            Owner = this
-        };
-        settingsWindow.ShowDialog();
     }
     
     private void Exit_Click(object sender, RoutedEventArgs e)

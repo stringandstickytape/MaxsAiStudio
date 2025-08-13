@@ -18,7 +18,6 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <!-- Title Bar -->
@@ -50,10 +49,6 @@
                                       Tag="Settings"
                                       Icon="{ui:SymbolIcon Settings24}"
                                       Click="NavigationItem_Click"/>
-                <ui:NavigationViewItem Content="Legacy" 
-                                      Tag="Legacy"
-                                      Icon="{ui:SymbolIcon History24}"
-                                      Click="NavigationItem_Click"/>
             </ui:NavigationView.MenuItems>
 
             <!-- Page Content Frame -->
@@ -62,61 +57,5 @@
                        NavigationUIVisibility="Hidden"/>
             </ui:NavigationView.ContentOverlay>
         </ui:NavigationView>
-
-        <!-- Status Bar - Always visible, full width -->
-        <ui:Card Grid.Row="2" 
-                Padding="12,8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <ui:SymbolIcon Symbol="{Binding IsOAuthServerRunning, Converter={StaticResource BoolToIconConverter}}" 
-                                  Margin="0,0,8,0"
-                                  VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding OAuthServerStatus}" 
-                              Margin="0,0,16,0"
-                              VerticalAlignment="Center"/>
-                    
-                    <ui:SymbolIcon Symbol="{Binding IsMcpServerRunning, Converter={StaticResource BoolToIconConverter}}" 
-                                  Margin="0,0,8,0"
-                                  VerticalAlignment="Center"/>
-                    <TextBlock Text="{Binding McpServerStatus}" 
-                              FontWeight="SemiBold"
-                              VerticalAlignment="Center"/>
-                </StackPanel>
-                
-                <!-- Restart notification and button OR Reconnect info -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal">
-                    <!-- Restart needed -->
-                    <StackPanel Orientation="Horizontal" 
-                               Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <TextBlock Text="{Binding RestartMessage}" 
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                                  Margin="0,0,8,0"/>
-                        <ui:Button Content="Restart Server" 
-                                  Command="{Binding RestartServerCommand}"
-                                  Appearance="Primary"
-                                  Height="32"/>
-                    </StackPanel>
-                    
-                    <!-- Reconnect info after restart -->
-                    <StackPanel Orientation="Horizontal"
-                               Visibility="{Binding ShowReconnectInfo, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <ui:SymbolIcon Symbol="Info16" 
-                                      Foreground="{DynamicResource SystemFillColorSuccessBrush}"
-                                      Margin="0,0,4,0"
-                                      VerticalAlignment="Center"/>
-                        <TextBlock Text="{Binding ReconnectInfoMessage}" 
-                                  VerticalAlignment="Center"
-                                  Foreground="{DynamicResource SystemFillColorSuccessBrush}"/>
-                    </StackPanel>
-                </StackPanel>
-            </Grid>
-        </ui:Card>
     </Grid>
 </ui:FluentWindow>
