@@ -128,6 +128,16 @@ The tool automatically handles:
 
                 // Validate PAT is available
                 var pat = _generalSettingsService.GetDecryptedAzureDevOpsPAT();
+                if (string.IsNullOrEmpty(parameters.WikiId))
+                {
+                    return new BuiltinToolResult
+                    {
+                        WasProcessed = true,
+                        ContinueProcessing = true,
+                        ResultMessage = "Error: wiki_id is required."
+                    };
+                }
+
                 if (string.IsNullOrEmpty(pat))
                 {
                     return new BuiltinToolResult
@@ -140,7 +150,7 @@ The tool automatically handles:
 
                 // Ensure repository exists and is up to date
                 SendStatusUpdate("Setting up local wiki repository...");
-                var repoPath = await EnsureRepositoryExists(parameters.Organization, parameters.Project, parameters.WikiName, pat, parameters.AutoPull);
+                var repoPath = await EnsureRepositoryExists(parameters.Organization, parameters.Project, parameters.WikiId, pat, parameters.AutoPull);
                 
                 if (string.IsNullOrEmpty(repoPath))
                 {
@@ -203,7 +213,7 @@ The tool automatically handles:
                 {
                     WasProcessed = true,
                     ContinueProcessing = true,
-                    ResultMessage = $"Successfully updated wiki page '{parameters.Path}' in {parameters.Organization}/{parameters.Project}/{parameters.WikiName}"
+                    ResultMessage = $"Successfully updated wiki page '{parameters.Path}' in {parameters.Organization}/{parameters.Project}/{parameters.WikiId}"
                 };
             }
             catch (Exception ex)
@@ -218,19 +228,19 @@ The tool automatically handles:
             }
         }
 
-        private async Task<string> EnsureRepositoryExists(string organization, string project, string wikiName, string pat, bool autoPull)
+        private async Task<string> EnsureRepositoryExists(string organization, string project, string wikiId, string pat, bool autoPull)
         {
             try
             {
                 // TODO: PathHelper needs to be migrated or replaced with a different approach
                 // var wikisPath = PathHelper.GetProfileSubPath("wikis", organization, project, wikiName);
-                var wikisPath = Path.Combine(Path.GetTempPath(), "wikis", organization, project, wikiName);
+                var wikisPath = Path.Combine(Path.GetTempPath(), "wikis", organization, project, wikiId);
                 
                 if (!Directory.Exists(wikisPath))
                 {
                     // Clone the repository
-                    SendStatusUpdate($"Cloning wiki repository {wikiName}...");
-                    var cloneUrl = $"https://{pat}@dev.azure.com/{organization}/{project}/_git/{wikiName}.wiki";
+                    SendStatusUpdate($"Cloning wiki repository {wikiId}...");
+                    var cloneUrl = $"https://{pat}@dev.azure.com/{organization}/{project}/_git/{wikiId}";
                     
                     var parentDir = Path.GetDirectoryName(wikisPath);
                     if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
@@ -564,7 +574,7 @@ The tool automatically handles:
             {
                 Organization = json.organization,
                 Project = json.project,
-                WikiName = json.wiki_name,
+                WikiId = json.wiki_id,
                 Path = json.path,
                 Comment = json.comment,
                 AutoPull = json.auto_pull ?? true,
@@ -591,7 +601,7 @@ The tool automatically handles:
         {
             public string Organization { get; set; }
             public string Project { get; set; }
-            public string WikiName { get; set; }
+            public string WikiId { get; set; }
             public string Path { get; set; }
             public string Comment { get; set; }
             public bool AutoPull { get; set; }
