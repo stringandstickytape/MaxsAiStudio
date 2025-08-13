@@ -138,6 +138,7 @@ namespace AiStudio4.McpStandalone.ViewModels
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Failed to load tool {ToolType}", toolType.Name);
+                    throw;
                 }
             }
             

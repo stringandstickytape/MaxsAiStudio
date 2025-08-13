@@ -148,6 +148,26 @@ namespace AiStudio4.McpStandalone.Services
                     mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsSearchWikiTool>();
                     _logger.LogInformation("Registered AzureDevOpsSearchWikiTool");
                 }
+                if (enabledTools.Contains("AzureDevOpsGetWikiPageContentTool"))
+                {
+                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsGetWikiPageContentTool>();
+                    _logger.LogInformation("Registered AzureDevOpsGetWikiPageContentTool");
+                }
+                if (enabledTools.Contains("AzureDevOpsGetWikiPagesTool"))
+                {
+                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsGetWikiPagesTool>();
+                    _logger.LogInformation("Registered AzureDevOpsGetWikiPagesTool");
+                }
+                if (enabledTools.Contains("AzureDevOpsCreateOrUpdateWikiPageTool"))
+                {
+                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsCreateOrUpdateWikiPageTool>();
+                    _logger.LogInformation("Registered AzureDevOpsCreateOrUpdateWikiPageTool");
+                }
+                if (enabledTools.Contains("AzureDevOpsCreateOrUpdateWikiPageViaLocalTool"))
+                {
+                    mcpBuilder = mcpBuilder.WithTools<AiStudio4.Tools.AzureDevOps.AzureDevOpsCreateOrUpdateWikiPageViaLocalTool>();
+                    _logger.LogInformation("Registered AzureDevOpsCreateOrUpdateWikiPageViaLocalTool");
+                }
                 
                 mcpBuilder.WithHttpTransport();
                 

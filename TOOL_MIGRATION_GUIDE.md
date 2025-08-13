@@ -2,6 +2,20 @@
 
 This guide explains how to migrate tools from the main AiStudio4 project to the shared AiStudio4.Tools library.
 
+## Migration Progress Summary
+
+**Total Azure DevOps Wiki Tools Migrated: 5/5** ✅
+- AzureDevOpsSearchWikiTool ✅
+- AzureDevOpsGetWikiPageContentTool ✅
+- AzureDevOpsGetWikiPagesTool ✅
+- AzureDevOpsCreateOrUpdateWikiPageTool ✅
+- AzureDevOpsCreateOrUpdateWikiPageViaLocalTool ✅
+
+**Infrastructure Completed:**
+- IDialogService interface in shared library ✅
+- StandaloneDialogService for WPF dialogs ✅
+- Azure DevOps PAT settings support ✅
+
 ## Overview
 
 The goal is to move tools to `AiStudio4.Tools` so they can be used by both:
@@ -11,30 +25,29 @@ The goal is to move tools to `AiStudio4.Tools` so they can be used by both:
 ## Current Migration Status
 
 ### ✅ Completed Migrations:
+
+#### Azure DevOps Wiki Tools (Phase 1):
 - **AzureDevOpsSearchWikiTool** - Successfully migrated and working in both contexts
+- **AzureDevOpsGetWikiPageContentTool** - Read-only tool for retrieving wiki page content
+- **AzureDevOpsGetWikiPagesTool** - Read-only tool for listing wiki pages
+- **AzureDevOpsCreateOrUpdateWikiPageTool** - Create/update tool with dialog confirmation
+- **AzureDevOpsCreateOrUpdateWikiPageViaLocalTool** - Git-based wiki page operations
+
+#### Infrastructure:
 - Settings service methods for PAT (`GetDecryptedAzureDevOpsPAT`, `SetAzureDevOpsPAT`)
 - UI for entering Azure DevOps PAT in settings
 - Base classes and interfaces in place
+- **IDialogService** interface moved to shared library
+- **StandaloneDialogService** implementation for WPF dialogs
+- Dialog service registered in DI container
 
-### 🚧 Next Migration Phase: Azure DevOps Wiki Tools
+### 🚧 Next Migration Phase: Azure DevOps Repository Tools
 
-We are now migrating the remaining Azure DevOps Wiki tools. Since the MCP Standalone has a WPF UI, we can properly support all tool features including dialog confirmations.
-
-#### Tools to Migrate:
-1. **AzureDevOpsGetWikiPageContentTool** - Simple read-only tool (start here)
-2. **AzureDevOpsGetWikiPagesTool** - Simple read-only tool
-3. **AzureDevOpsCreateOrUpdateWikiPageTool** - Requires IDialogService implementation
-4. **AzureDevOpsCreateOrUpdateWikiPageViaLocalTool** - Uses git operations
-
-#### Prerequisites Needed:
-1. **Create IDialogService for Standalone**: 
-   - Create `StandaloneDialogService` implementing `IDialogService`
-   - Use WPF MessageBox or custom dialog window
-   - Register in DI container in App.xaml.cs
-
-2. **Move IDialogService Interface**:
-   - Copy interface to shared library or create equivalent
-   - Update references in migrated tools
+The following tools are ready for migration:
+1. **AzureDevOpsGetItemContentTool** - Get file content from repository
+2. **AzureDevOpsGetRepositoriesTool** - List repositories
+3. **AzureDevOpsGetCommitsTool** - Get commit history
+4. **AzureDevOpsGetCommitDiffsTool** - Get commit differences
 
 ### ⚠️ Standard Migration Steps:
 1. **MOVE the file**: From `AiStudio4\Core\Tools\AzureDevOps\` to `AiStudio4.Tools\Tools\AzureDevOps\` (delete from original location)
@@ -220,3 +233,26 @@ After migration, test that the tool works in both environments:
 
 **Issue**: Tool works in main app but not standalone  
 **Solution**: Verify the tool is registered in `SimpleMcpServerService` and PAT methods are implemented
+
+**Issue**: Missing using statements after migration  
+**Solution**: Add these common imports:
+- `using Microsoft.Extensions.Logging;`
+- `using AiStudio4.Tools.Interfaces;`
+- `using AiStudio4.Tools.Models;`
+- `using Newtonsoft.Json;` (if using JSON)
+- `using Newtonsoft.Json.Linq;` (if using JObject/JToken)
+
+**Issue**: Tools with dependencies on other tools  
+**Solution**: Tools that depend on other non-migrated tools (like `ModifyFileModernTool`) need to have those dependencies migrated first or the functionality temporarily disabled with TODO comments
+
+**Issue**: PathHelper not available  
+**Solution**: Replace with direct Path.Combine or create a simpler alternative for the shared library
+
+## Known Limitations
+
+### AzureDevOpsCreateOrUpdateWikiPageViaLocalTool
+This tool has partial functionality due to dependencies on:
+- `PathHelper.GetProfileSubPath()` - replaced with temp path approach
+- `ModifyFileModernTool` - functionality disabled with TODO comments
+
+These dependencies need to be migrated or alternatives implemented for full functionality.

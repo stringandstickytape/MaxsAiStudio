@@ -39,6 +39,8 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<IGeneralSettingsService>(provider => provider.GetRequiredService<StandaloneSettingsService>());
                 services.AddSingleton<IStatusMessageService, NoOpStatusMessageService>();
                 services.AddSingleton<IBuiltInToolExtraPropertiesService, StandaloneExtraPropertiesService>();
+                services.AddSingleton<IDialogService, StandaloneDialogService>();
+                services.AddSingleton<AiStudio4.Tools.Services.SmartFileEditor.ISmartFileEditor, AiStudio4.Tools.Services.SmartFileEditor.SmartFileEditorService>();
                 
                 // OAuth Server
                 services.AddSingleton<IAutoStartOAuthServerService, AutoStartOAuthServerService>();
