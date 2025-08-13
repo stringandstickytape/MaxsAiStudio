@@ -12,7 +12,8 @@
         WindowStartupLocation="CenterScreen"
         ExtendsContentIntoTitleBar="True"
         WindowBackdropType="Mica"
-        WindowCornerPreference="Round">
+        WindowCornerPreference="Round"
+        SizeChanged="Window_SizeChanged">
     
     <Grid>
         <Grid.RowDefinitions>
@@ -30,12 +31,11 @@
         <!-- Navigation View with Responsive Sidebar -->
         <ui:NavigationView Grid.Row="1"
                           x:Name="RootNavigation"
-                          PaneDisplayMode="LeftFluent"
-                          IsPaneToggleVisible="True"
+                          PaneDisplayMode="Left"
+                          IsPaneToggleVisible="False"
                           IsBackButtonVisible="Collapsed"
                           OpenPaneLength="250"
-                          CompactPaneLength="48"
-                          PaneTitle="Navigation">
+                          CompactPaneLength="48">
             
             <!-- Navigation Items -->
             <ui:NavigationView.MenuItems>
@@ -52,12 +52,6 @@
                                       Icon="{ui:SymbolIcon History24}"
                                       Click="NavigationItem_Click"/>
             </ui:NavigationView.MenuItems>
-
-            <!-- Navigation View Header -->
-            <ui:NavigationView.AutoSuggestBox>
-                <ui:AutoSuggestBox PlaceholderText="Search..." 
-                                  Visibility="Collapsed"/>
-            </ui:NavigationView.AutoSuggestBox>
 
             <!-- Page Content Frame -->
             <ui:NavigationView.ContentOverlay>
