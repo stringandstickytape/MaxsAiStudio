@@ -29,10 +29,12 @@ That's it! Most infrastructure is already in place.
 
 ## Migration Steps
 
-### 1. Copy Tool Implementation
+### 1. Move Tool Implementation
 
 **From:** `AiStudio4\Core\Tools\AzureDevOps\AzureDevOpsSearchWikiTool.cs`  
 **To:** `AiStudio4.Tools\Tools\AzureDevOps\AzureDevOpsSearchWikiTool.cs`
+
+**Important:** DELETE the original file after moving - don't leave a copy in the main project!
 
 ### 2. Update Namespace and Base Class
 
@@ -125,11 +127,26 @@ if (enabledTools.Contains("AzureDevOpsSearchWikiTool"))
 }
 ```
 
-### 7. Verify Tool GUID
+### 7. Move Tool GUID
 
-✅ **Already Exists** in `AiStudio4.Tools\Models\ToolGuids.cs`:
-- `AZURE_DEV_OPS_SEARCH_WIKI_TOOL_GUID` is already defined (Line 13)
-- No changes needed!
+The tool GUID needs to be moved from the main project:
+
+**From:** Find in main project (likely in `AiStudio4\Core\ToolGuids.cs` or similar)
+```csharp
+public const string AZURE_DEV_OPS_SEARCH_WIKI_TOOL_GUID = "...some-guid-value...";
+```
+
+**To:** Add to `AiStudio4.Tools\Models\ToolGuids.cs`:
+```csharp
+public static class ToolGuids
+{
+    // YouTube Tools
+    public const string YOUTUBE_SEARCH_TOOL_GUID = "d1e2f3a4-b5c6-7890-1234-567890abcdef10";
+    
+    // Azure DevOps Tools
+    public const string AZURE_DEV_OPS_SEARCH_WIKI_TOOL_GUID = "...copy-from-original...";
+}
+```
 
 ### 8. Update Main Project References
 
