@@ -73,7 +73,6 @@
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Name:" Margin="0,2"/>
@@ -82,11 +81,6 @@
                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Port:" Margin="0,2"/>
                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding McpServerPort}" Margin="8,2"/>
                             
-                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Status:" Margin="0,2"/>
-                            <CheckBox Grid.Row="2" Grid.Column="1" 
-                                     Content="Enabled" 
-                                     IsChecked="{Binding SelectedServer.IsEnabled}"
-                                     Margin="8,2"/>
                         </Grid>
                     </StackPanel>
                 </Grid>
@@ -120,7 +114,7 @@
                                Margin="0,0,0,12"/>
                     
                     <StackPanel Grid.Row="2">
-                        <TextBlock Text="Authentication Details" 
+                        <TextBlock Text="OAuth Server Details" 
                                   FontWeight="SemiBold"
                                   Margin="0,0,0,8"/>
                         <Grid>
@@ -130,14 +124,10 @@
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             
                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Port:" Margin="0,2"/>
                             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding OAuthServerPort}" Margin="8,2"/>
-                            
-                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Type:" Margin="0,2"/>
-                            <TextBlock Grid.Row="1" Grid.Column="1" Text="OAuth 2.0" Margin="8,2"/>
                         </Grid>
                     </StackPanel>
                 </Grid>
@@ -164,13 +154,7 @@
                               Command="{Binding RestartServerCommand}"
                               Icon="{ui:SymbolIcon ArrowClockwise24}"
                               Appearance="Primary"
-                              Margin="0,0,8,0"
                               IsEnabled="{Binding IsMcpServerRunning}"/>
-                    
-                    <ui:Button Grid.Column="1"
-                              Content="View Logs" 
-                              Icon="{ui:SymbolIcon DocumentText24}"
-                              Margin="0,0,8,0"/>
                 </Grid>
                 
                 <!-- Restart notification -->

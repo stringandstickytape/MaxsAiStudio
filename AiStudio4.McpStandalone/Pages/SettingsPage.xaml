@@ -13,6 +13,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
             <!-- Page Header -->
@@ -29,41 +30,24 @@
 
             <!-- Settings Content -->
             <StackPanel Grid.Row="1">
-                <!-- Quick Actions -->
-                <ui:Card Margin="0,0,0,16">
-                    <Grid Margin="20">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Advanced Settings" 
-                                      FontSize="16" 
-                                      FontWeight="SemiBold"/>
-                            <TextBlock Text="Configure API keys, server ports, and other advanced options" 
-                                      FontSize="12" 
-                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                      Margin="0,4,0,0"/>
-                        </StackPanel>
-                        
-                        <ui:Button Grid.Column="1"
-                                  Content="Open Settings"
-                                  Icon="{ui:SymbolIcon Settings24}"
-                                  Click="OpenSettings_Click"
-                                  Appearance="Primary"
-                                  VerticalAlignment="Center"/>
-                    </Grid>
-                </ui:Card>
-
                 <!-- Server Configuration -->
-                <ui:Card Margin="0,0,0,16">
-                    <StackPanel Margin="20">
-                        <TextBlock Text="Server Configuration" 
-                                  FontSize="18" 
-                                  FontWeight="SemiBold"
-                                  Margin="0,0,0,16"/>
-                        
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Settings24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Server Configuration" FontWeight="SemiBold"/>
+                                <TextBlock Text="Basic server settings and ports" 
+                                          FontSize="12" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="150"/>
@@ -79,78 +63,165 @@
                             <TextBlock Grid.Row="0" Grid.Column="0" 
                                       Text="Server Name:" 
                                       VerticalAlignment="Center"
-                                      Margin="0,8"/>
+                                      Margin="0,0,0,8"/>
                             <ui:TextBox Grid.Row="0" Grid.Column="1" 
-                                       Text="{Binding SelectedServer.Name}"
+                                       Name="ServerNameBox"
                                        PlaceholderText="Enter server name"
-                                       Margin="0,4"/>
+                                       Icon="{ui:SymbolIcon Tag24}"
+                                       Margin="0,0,0,8"/>
                             
                             <TextBlock Grid.Row="1" Grid.Column="0" 
                                       Text="Description:" 
                                       VerticalAlignment="Center"
-                                      Margin="0,8"/>
+                                      Margin="0,0,0,8"/>
                             <ui:TextBox Grid.Row="1" Grid.Column="1" 
-                                       Text="{Binding SelectedServer.Description}"
+                                       Name="ServerDescriptionBox"
                                        PlaceholderText="Enter server description"
-                                       Margin="0,4"/>
+                                       Icon="{ui:SymbolIcon Info24}"
+                                       Margin="0,0,0,8"/>
                             
                             <TextBlock Grid.Row="2" Grid.Column="0" 
                                       Text="MCP Port:" 
                                       VerticalAlignment="Center"
-                                      Margin="0,8"/>
+                                      Margin="0,0,0,8"/>
                             <ui:NumberBox Grid.Row="2" Grid.Column="1" 
-                                         Value="{Binding McpServerPort}"
+                                         Name="McpPortBox"
+                                         PlaceholderText="7071"
                                          Minimum="1024"
                                          Maximum="65535"
                                          SpinButtonPlacementMode="Inline"
-                                         Margin="0,4"
+                                         Icon="{ui:SymbolIcon Globe24}"
                                          HorizontalAlignment="Left"
-                                         Width="150"/>
+                                         Width="200"
+                                         Margin="0,0,0,8"/>
                             
                             <TextBlock Grid.Row="3" Grid.Column="0" 
                                       Text="OAuth Port:" 
-                                      VerticalAlignment="Center"
-                                      Margin="0,8"/>
+                                      VerticalAlignment="Center"/>
                             <ui:NumberBox Grid.Row="3" Grid.Column="1" 
-                                         Value="{Binding OAuthServerPort}"
+                                         Name="OAuthPortBox"
+                                         PlaceholderText="5000"
                                          Minimum="1024"
                                          Maximum="65535"
                                          SpinButtonPlacementMode="Inline"
-                                         Margin="0,4"
+                                         Icon="{ui:SymbolIcon Shield24}"
                                          HorizontalAlignment="Left"
-                                         Width="150"/>
+                                         Width="200"/>
                         </Grid>
                     </StackPanel>
-                </ui:Card>
+                </ui:CardExpander>
+
+                <!-- API Keys -->
+                <ui:CardExpander IsExpanded="False" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Key24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="API Keys &amp; Tokens" FontWeight="SemiBold"/>
+                                <TextBlock Text="Configure authentication for various services" 
+                                          FontSize="12" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <!-- YouTube API Key -->
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="YouTube API Key" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <ui:PasswordBox Name="YouTubeApiKeyBox" 
+                                           PlaceholderText="Enter YouTube Data API v3 Key"
+                                           Icon="{ui:SymbolIcon Video24}"/>
+                        </StackPanel>
+                        
+                        <!-- Azure DevOps PAT -->
+                        <StackPanel Margin="0,0,0,12">
+                            <TextBlock Text="Azure DevOps PAT" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <ui:PasswordBox Name="AzureDevOpsPATBox" 
+                                           PlaceholderText="Enter Azure DevOps Personal Access Token"
+                                           Icon="{ui:SymbolIcon Cloud24}"/>
+                        </StackPanel>
+                        
+                        <!-- GitHub Token -->
+                        <StackPanel>
+                            <TextBlock Text="GitHub Token" FontWeight="SemiBold" Margin="0,0,0,4"/>
+                            <ui:PasswordBox Name="GitHubTokenBox" 
+                                           PlaceholderText="Enter GitHub Personal Access Token"
+                                           Icon="{ui:SymbolIcon Code24}"/>
+                        </StackPanel>
+                    </StackPanel>
+                </ui:CardExpander>
+
+                <!-- Working Directory -->
+                <ui:CardExpander IsExpanded="False" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Folder24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Working Directory" FontWeight="SemiBold"/>
+                                <TextBlock Text="Set the default project path" 
+                                          FontSize="12" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <StackPanel Margin="52,12,12,12">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:TextBox Grid.Column="0" 
+                                       Name="ProjectPathBox" 
+                                       PlaceholderText="Enter or browse for project path"
+                                       Icon="{ui:SymbolIcon FolderOpen24}"/>
+                            <ui:Button Grid.Column="1" 
+                                      Content="Browse" 
+                                      Click="Browse_Click" 
+                                      Margin="8,0,0,0"
+                                      Icon="{ui:SymbolIcon FolderOpen24}"/>
+                        </Grid>
+                    </StackPanel>
+                </ui:CardExpander>
 
                 <!-- Tool Selection -->
-                <ui:Card>
-                    <Grid>
+                <ui:CardExpander IsExpanded="True" Margin="0,0,0,16">
+                    <ui:CardExpander.Header>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <ui:SymbolIcon Grid.Column="0" Symbol="Apps24" Margin="0,0,12,0"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Available Tools" FontWeight="SemiBold"/>
+                                <TextBlock Text="Select which tools should be available in the MCP server" 
+                                          FontSize="12" 
+                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </ui:CardExpander.Header>
+                    <Grid Margin="52,12,12,12">
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         
-                        <StackPanel Grid.Row="0" Margin="20,20,20,12">
-                            <TextBlock Text="Available Tools" 
-                                      FontSize="18" 
-                                      FontWeight="SemiBold"/>
-                            <TextBlock Text="Select which tools should be available in the MCP server" 
-                                      FontSize="12" 
-                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"
-                                      Margin="0,4,0,0"/>
-                        </StackPanel>
-                        
-                        <ui:TextBox Grid.Row="1" 
+                        <ui:TextBox Grid.Row="0" 
                                    PlaceholderText="Search tools..." 
                                    Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                                    Icon="{ui:SymbolIcon Search24}"
-                                   Margin="20,0,20,12"/>
+                                   Margin="0,0,0,12"/>
                         
-                        <ItemsControl Grid.Row="2" 
+                        <ItemsControl Grid.Row="1" 
                                      ItemsSource="{Binding AvailableTools}" 
-                                     Margin="16,0,16,16"
                                      MaxHeight="300">
                             <ItemsControl.Template>
                                 <ControlTemplate>
@@ -198,8 +269,20 @@
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
                     </Grid>
-                </ui:Card>
+                </ui:CardExpander>
             </StackPanel>
+
+            <!-- Save Button -->
+            <ui:Card Grid.Row="2" Margin="0,24,0,0" Padding="20,16">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <ui:Button Content="Save Settings" 
+                              Width="150" 
+                              Height="40" 
+                              Click="Save_Click" 
+                              Appearance="Primary"
+                              Icon="{ui:SymbolIcon Save24}"/>
+                </StackPanel>
+            </ui:Card>
         </Grid>
     </ScrollViewer>
 </Page>
