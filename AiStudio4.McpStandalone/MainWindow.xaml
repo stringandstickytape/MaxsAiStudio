@@ -12,8 +12,7 @@
         WindowStartupLocation="CenterScreen"
         ExtendsContentIntoTitleBar="True"
         WindowBackdropType="Mica"
-        WindowCornerPreference="Round"
-        SizeChanged="Window_SizeChanged">
+        WindowCornerPreference="Round">
     
     <Grid>
         <Grid.RowDefinitions>
@@ -28,14 +27,14 @@
                     ShowMaximize="True"
                     CanMaximize="True"/>
 
-        <!-- Navigation View with Responsive Sidebar -->
+        <!-- Navigation View with Always Visible Sidebar -->
         <ui:NavigationView Grid.Row="1"
                           x:Name="RootNavigation"
                           PaneDisplayMode="Left"
                           IsPaneToggleVisible="False"
                           IsBackButtonVisible="Collapsed"
-                          OpenPaneLength="250"
-                          CompactPaneLength="48">
+                          IsPaneOpen="True"
+                          OpenPaneLength="250">
             
             <!-- Navigation Items -->
             <ui:NavigationView.MenuItems>

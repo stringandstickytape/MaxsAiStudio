@@ -25,7 +25,6 @@ public partial class MainWindow : FluentWindow
     private readonly IServiceProvider _serviceProvider;
     private readonly StandaloneSettingsService _settingsService;
     private readonly MainViewModel _viewModel;
-    private const double RESPONSIVE_WIDTH_THRESHOLD = 900; // Below this width, sidebar collapses
     
     public MainWindow(MainViewModel viewModel, IServiceProvider serviceProvider, StandaloneSettingsService settingsService)
     {
@@ -42,33 +41,6 @@ public partial class MainWindow : FluentWindow
         if (RootNavigation.ContentOverlay is System.Windows.Controls.Frame frame)
         {
             frame.Navigate(new ServerPage() { DataContext = _viewModel });
-        }
-        
-        // Set initial responsive state
-        UpdateNavigationViewMode();
-    }
-
-    private void Window_SizeChanged(object sender, SizeChangedEventArgs e)
-    {
-        UpdateNavigationViewMode();
-    }
-    
-    private void UpdateNavigationViewMode()
-    {
-        if (ActualWidth < RESPONSIVE_WIDTH_THRESHOLD)
-        {
-            // Narrow width - show hamburger, compact mode
-            RootNavigation.PaneDisplayMode = NavigationViewPaneDisplayMode.LeftFluent;
-            RootNavigation.IsPaneToggleVisible = true;
-            RootNavigation.IsPaneOpen = false;
-            RootNavigation.CompactPaneLength = 48;
-        }
-        else
-        {
-            // Wide width - always show sidebar, no hamburger
-            RootNavigation.PaneDisplayMode = NavigationViewPaneDisplayMode.Left;
-            RootNavigation.IsPaneToggleVisible = false;
-            RootNavigation.IsPaneOpen = true;
         }
     }
 
@@ -88,13 +60,6 @@ public partial class MainWindow : FluentWindow
         {
             var tag = navigationItem.Tag?.ToString();
             NavigateToPage(tag);
-            
-            // In compact mode, close the pane after selection
-            if (RootNavigation.PaneDisplayMode == NavigationViewPaneDisplayMode.LeftFluent && 
-                RootNavigation.IsPaneOpen)
-            {
-                RootNavigation.IsPaneOpen = false;
-            }
         }
     }
     
