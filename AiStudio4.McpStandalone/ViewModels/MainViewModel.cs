@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Reflection;
 using System;
+using Wpf.Ui.Controls;
 
 namespace AiStudio4.McpStandalone.ViewModels
 {
@@ -41,6 +42,18 @@ namespace AiStudio4.McpStandalone.ViewModels
 
         [ObservableProperty]
         private string claudeInstallCommand = "claude mcp add --transport http McpStandalone http://localhost:7071/";
+        
+        [ObservableProperty]
+        private ObservableCollection<NavigationViewItem> navigationItems = new();
+        
+        [ObservableProperty]
+        private ObservableCollection<NavigationViewItem> footerNavigationItems = new();
+        
+        [ObservableProperty]
+        private int mcpServerPort;
+        
+        [ObservableProperty]
+        private int oAuthServerPort;
 
         public MainViewModel(IAutoStartOAuthServerService oauthServerService, ISimpleMcpServerService mcpServerService, StandaloneSettingsService settingsService, ILogger<MainViewModel> logger)
         {
@@ -53,6 +66,8 @@ namespace AiStudio4.McpStandalone.ViewModels
             UpdateOAuthServerStatus();
             UpdateMcpServerStatus();
             UpdateClaudeInstallCommand();
+            McpServerPort = _settingsService.GetMcpServerPort();
+            OAuthServerPort = _settingsService.GetOAuthServerPort();
         }
 
         [ObservableProperty]
@@ -242,6 +257,33 @@ namespace AiStudio4.McpStandalone.ViewModels
         {
             var port = _settingsService.GetMcpServerPort();
             ClaudeInstallCommand = $"claude mcp add --transport http McpStandalone http://localhost:{port}/";
+        }
+        
+        public void InitializeNavigation()
+        {
+            NavigationItems = new ObservableCollection<NavigationViewItem>
+            {
+                new NavigationViewItem
+                {
+                    Content = "Server",
+                    Icon = new SymbolIcon { Symbol = SymbolRegular.Server24 },
+                    Tag = "Server"
+                },
+                new NavigationViewItem
+                {
+                    Content = "Settings",
+                    Icon = new SymbolIcon { Symbol = SymbolRegular.Settings24 },
+                    Tag = "Settings"
+                },
+                new NavigationViewItem
+                {
+                    Content = "Legacy",
+                    Icon = new SymbolIcon { Symbol = SymbolRegular.History24 },
+                    Tag = "Legacy"
+                }
+            };
+            
+            FooterNavigationItems = new ObservableCollection<NavigationViewItem>();
         }
     }
 }

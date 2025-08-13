@@ -20,6 +20,8 @@ public partial class App : Application
     private readonly IHost _host;
     private IAutoStartOAuthServerService? _oauthServerService;
     private ISimpleMcpServerService? _mcpServerService;
+    
+    public IServiceProvider? ServiceProvider => _host?.Services;
 
     public App()
     {

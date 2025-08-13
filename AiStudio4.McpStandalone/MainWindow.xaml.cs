@@ -12,6 +12,7 @@ using Wpf.Ui.Controls;
 using AiStudio4.McpStandalone.ViewModels;
 using AiStudio4.McpStandalone.Views;
 using AiStudio4.McpStandalone.Services;
+using AiStudio4.McpStandalone.Pages;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace AiStudio4.McpStandalone;
@@ -23,27 +24,57 @@ public partial class MainWindow : FluentWindow
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly StandaloneSettingsService _settingsService;
+    private readonly MainViewModel _viewModel;
     
     public MainWindow(MainViewModel viewModel, IServiceProvider serviceProvider, StandaloneSettingsService settingsService)
     {
         InitializeComponent();
         DataContext = viewModel;
+        _viewModel = viewModel;
         _serviceProvider = serviceProvider;
         _settingsService = settingsService;
+        
+        // Initialize navigation items in the view model
+        _viewModel.InitializeNavigation();
+        
+        // Subscribe to NavigationView events
+        RootNavigation.SelectionChanged += NavigationView_SelectionChanged;
+        
+        // Navigate to the first page (Server page)
+        if (RootNavigation.ContentOverlay is System.Windows.Controls.Frame frame)
+        {
+            frame.Navigate(new ServerPage() { DataContext = _viewModel });
+        }
+        
+        // The first item will be selected automatically when set as MenuItemsSource
     }
 
-    private void CopyClaudeCommand_Click(object sender, RoutedEventArgs e)
+    private void NavigationView_SelectionChanged(object sender, RoutedEventArgs e)
     {
-        try
+        if (sender is NavigationView navigationView && 
+            navigationView.SelectedItem is NavigationViewItem navigationItem)
         {
-            var port = _settingsService.GetMcpServerPort();
-            Clipboard.SetText($"claude mcp add --transport http McpStandalone http://localhost:{port}/");
-            // Optionally show a snackbar or notification that it was copied
+            var tag = navigationItem.Tag?.ToString();
+            NavigateToPage(tag);
         }
-        catch (Exception ex)
+    }
+    
+    private void NavigateToPage(string pageTag)
+    {
+        if (RootNavigation.ContentOverlay is System.Windows.Controls.Frame frame)
         {
-            System.Windows.MessageBox.Show($"Failed to copy to clipboard: {ex.Message}", "Copy Error", 
-                System.Windows.MessageBoxButton.OK, MessageBoxImage.Error);
+            switch (pageTag)
+            {
+                case "Server":
+                    frame.Navigate(new ServerPage() { DataContext = _viewModel });
+                    break;
+                case "Settings":
+                    frame.Navigate(new SettingsPage() { DataContext = _viewModel });
+                    break;
+                case "Legacy":
+                    frame.Navigate(new LegacyPage() { DataContext = _viewModel });
+                    break;
+            }
         }
     }
     

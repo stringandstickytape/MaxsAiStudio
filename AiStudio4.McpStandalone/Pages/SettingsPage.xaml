@@ -1,0 +1,204 @@
+﻿<Page x:Class="AiStudio4.McpStandalone.Pages.SettingsPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+      xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+      mc:Ignorable="d" 
+      d:DesignHeight="600" d:DesignWidth="1000"
+      Title="Settings">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid Margin="24">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Page Header -->
+            <StackPanel Grid.Row="0" Margin="0,0,0,24">
+                <TextBlock Text="Settings" 
+                          FontSize="28" 
+                          FontWeight="Bold"/>
+                <TextBlock Text="Configure your MCP server and tools" 
+                          FontSize="14" 
+                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                          Margin="0,4,0,0"/>
+            </StackPanel>
+
+            <!-- Settings Content -->
+            <StackPanel Grid.Row="1">
+                <!-- Quick Actions -->
+                <ui:Card Margin="0,0,0,16">
+                    <Grid Margin="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Advanced Settings" 
+                                      FontSize="16" 
+                                      FontWeight="SemiBold"/>
+                            <TextBlock Text="Configure API keys, server ports, and other advanced options" 
+                                      FontSize="12" 
+                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <ui:Button Grid.Column="1"
+                                  Content="Open Settings"
+                                  Icon="{ui:SymbolIcon Settings24}"
+                                  Click="OpenSettings_Click"
+                                  Appearance="Primary"
+                                  VerticalAlignment="Center"/>
+                    </Grid>
+                </ui:Card>
+
+                <!-- Server Configuration -->
+                <ui:Card Margin="0,0,0,16">
+                    <StackPanel Margin="20">
+                        <TextBlock Text="Server Configuration" 
+                                  FontSize="18" 
+                                  FontWeight="SemiBold"
+                                  Margin="0,0,0,16"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="150"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" 
+                                      Text="Server Name:" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,8"/>
+                            <ui:TextBox Grid.Row="0" Grid.Column="1" 
+                                       Text="{Binding SelectedServer.Name}"
+                                       PlaceholderText="Enter server name"
+                                       Margin="0,4"/>
+                            
+                            <TextBlock Grid.Row="1" Grid.Column="0" 
+                                      Text="Description:" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,8"/>
+                            <ui:TextBox Grid.Row="1" Grid.Column="1" 
+                                       Text="{Binding SelectedServer.Description}"
+                                       PlaceholderText="Enter server description"
+                                       Margin="0,4"/>
+                            
+                            <TextBlock Grid.Row="2" Grid.Column="0" 
+                                      Text="MCP Port:" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,8"/>
+                            <ui:NumberBox Grid.Row="2" Grid.Column="1" 
+                                         Value="{Binding McpServerPort}"
+                                         Minimum="1024"
+                                         Maximum="65535"
+                                         SpinButtonPlacementMode="Inline"
+                                         Margin="0,4"
+                                         HorizontalAlignment="Left"
+                                         Width="150"/>
+                            
+                            <TextBlock Grid.Row="3" Grid.Column="0" 
+                                      Text="OAuth Port:" 
+                                      VerticalAlignment="Center"
+                                      Margin="0,8"/>
+                            <ui:NumberBox Grid.Row="3" Grid.Column="1" 
+                                         Value="{Binding OAuthServerPort}"
+                                         Minimum="1024"
+                                         Maximum="65535"
+                                         SpinButtonPlacementMode="Inline"
+                                         Margin="0,4"
+                                         HorizontalAlignment="Left"
+                                         Width="150"/>
+                        </Grid>
+                    </StackPanel>
+                </ui:Card>
+
+                <!-- Tool Selection -->
+                <ui:Card>
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        
+                        <StackPanel Grid.Row="0" Margin="20,20,20,12">
+                            <TextBlock Text="Available Tools" 
+                                      FontSize="18" 
+                                      FontWeight="SemiBold"/>
+                            <TextBlock Text="Select which tools should be available in the MCP server" 
+                                      FontSize="12" 
+                                      Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                      Margin="0,4,0,0"/>
+                        </StackPanel>
+                        
+                        <ui:TextBox Grid.Row="1" 
+                                   PlaceholderText="Search tools..." 
+                                   Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                   Icon="{ui:SymbolIcon Search24}"
+                                   Margin="20,0,20,12"/>
+                        
+                        <ItemsControl Grid.Row="2" 
+                                     ItemsSource="{Binding AvailableTools}" 
+                                     Margin="16,0,16,16"
+                                     MaxHeight="300">
+                            <ItemsControl.Template>
+                                <ControlTemplate>
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </ControlTemplate>
+                            </ItemsControl.Template>
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <ui:CardAction Margin="4,2" IsChevronVisible="False">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <ui:ToggleSwitch Grid.Column="0" 
+                                                           IsChecked="{Binding IsSelected}"
+                                                           VerticalAlignment="Center"
+                                                           Margin="8,0,12,0"/>
+                                            
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" 
+                                                          FontWeight="SemiBold"/>
+                                                <TextBlock Text="{Binding Description}" 
+                                                          FontSize="11" 
+                                                          Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                                                          TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                            
+                                            <ui:Badge Grid.Column="2" 
+                                                     Content="{Binding Category}"
+                                                     Appearance="Secondary"
+                                                     Margin="8,0"/>
+                                        </Grid>
+                                    </ui:CardAction>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Grid>
+                </ui:Card>
+            </StackPanel>
+        </Grid>
+    </ScrollViewer>
+</Page>
