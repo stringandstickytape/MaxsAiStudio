@@ -21,6 +21,8 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private McpServerConfiguration selectedServer = new();
 
+        private ObservableCollection<McpTool> _allTools = new();
+        
         [ObservableProperty]
         private ObservableCollection<McpTool> availableTools = new();
 
@@ -127,6 +129,7 @@ namespace AiStudio4.McpStandalone.ViewModels
                                 }
                             };
                             
+                            _allTools.Add(mcpTool);
                             AvailableTools.Add(mcpTool);
                             _logger.LogInformation("Discovered tool: {ToolName} ({ToolId})", mcpTool.Name, mcpTool.ToolId);
                         }
@@ -205,11 +208,27 @@ namespace AiStudio4.McpStandalone.ViewModels
 
         private void FilterTools(string searchText)
         {
+            AvailableTools.Clear();
+            
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                foreach (var tool in AvailableTools)
+                // Show all tools
+                foreach (var tool in _allTools)
                 {
-                    tool.IsSelected = tool.IsSelected;
+                    AvailableTools.Add(tool);
+                }
+            }
+            else
+            {
+                // Filter tools based on search text
+                var filtered = _allTools.Where(t => 
+                    t.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    t.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    t.Category.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+                
+                foreach (var tool in filtered)
+                {
+                    AvailableTools.Add(tool);
                 }
             }
         }
