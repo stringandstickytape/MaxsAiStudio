@@ -233,46 +233,31 @@ namespace AiStudio4.McpStandalone.Services
 
                 _logger.LogInformation("Stopping MCP server...");
 
-                // Request cancellation
+                // Request cancellation first
                 _cancellationTokenSource.Cancel();
 
-                // Stop the application with a timeout
+                // Don't wait for graceful shutdown, just dispose immediately
                 if (_app != null)
                 {
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(3));
-                    try
-                    {
-                        await _app.StopAsync(cts.Token);
-                    }
-                    catch (OperationCanceledException)
-                    {
-                        _logger.LogWarning("MCP server stop timed out, forcing shutdown");
-                    }
+                    // Fire and forget the stop - don't wait
+                    var stopTask = _app.StopAsync();
                     
+                    // Give it just 1 second to stop gracefully
+                    await Task.WhenAny(stopTask, Task.Delay(1000));
+                    
+                    // Dispose immediately regardless
                     try
                     {
-                        await _app.DisposeAsync();
+                        // not a thing:
+                        //_app.Dispose();
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, "Error disposing MCP server app");
-                    }
+                    catch { }
+                    
                     _app = null;
                 }
 
-                // Wait for the running task to complete
-                if (_runningTask != null)
-                {
-                    try
-                    {
-                        await _runningTask.WaitAsync(TimeSpan.FromSeconds(2));
-                    }
-                    catch (TimeoutException)
-                    {
-                        _logger.LogWarning("MCP server background task did not stop within timeout");
-                    }
-                    _runningTask = null;
-                }
+                // Don't wait for the background task
+                _runningTask = null;
 
                 _logger.LogInformation("MCP server stopped");
             }

@@ -218,17 +218,32 @@
                     <TextBlock Text="{Binding McpServerStatus}" FontWeight="SemiBold"/>
                 </StackPanel>
                 
-                <!-- Restart notification and button -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" 
-                           Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}">
-                    <TextBlock Text="{Binding RestartMessage}" 
-                              VerticalAlignment="Center"
-                              Foreground="{DynamicResource SystemFillColorCautionBrush}"
-                              Margin="0,0,8,0"/>
-                    <ui:Button Content="Restart Server" 
-                              Command="{Binding RestartServerCommand}"
-                              Appearance="Primary"
-                              Height="32"/>
+                <!-- Restart notification and button OR Reconnect info -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal">
+                    <!-- Restart needed -->
+                    <StackPanel Orientation="Horizontal" 
+                               Visibility="{Binding NeedsRestart, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="{Binding RestartMessage}" 
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                                  Margin="0,0,8,0"/>
+                        <ui:Button Content="Restart Server" 
+                                  Command="{Binding RestartServerCommand}"
+                                  Appearance="Primary"
+                                  Height="32"/>
+                    </StackPanel>
+                    
+                    <!-- Reconnect info after restart -->
+                    <StackPanel Orientation="Horizontal"
+                               Visibility="{Binding ShowReconnectInfo, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <ui:SymbolIcon Symbol="Info16" 
+                                      Foreground="{DynamicResource SystemFillColorSuccessBrush}"
+                                      Margin="0,0,4,0"
+                                      VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding ReconnectInfoMessage}" 
+                                  VerticalAlignment="Center"
+                                  Foreground="{DynamicResource SystemFillColorSuccessBrush}"/>
+                    </StackPanel>
                 </StackPanel>
 
             </Grid>

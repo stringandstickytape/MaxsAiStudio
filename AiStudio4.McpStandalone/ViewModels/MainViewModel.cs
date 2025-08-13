@@ -7,6 +7,8 @@ using System.Windows.Input;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Collections.Generic;
+using System.Reflection;
+using System;
 
 namespace AiStudio4.McpStandalone.ViewModels
 {
@@ -47,7 +49,7 @@ namespace AiStudio4.McpStandalone.ViewModels
             _settingsService = settingsService;
             _logger = logger;
 
-            LoadSampleData();
+            LoadAvailableTools();
             UpdateOAuthServerStatus();
             UpdateMcpServerStatus();
             UpdateClaudeInstallCommand();
@@ -59,7 +61,7 @@ namespace AiStudio4.McpStandalone.ViewModels
         [ObservableProperty]
         private string restartMessage = string.Empty;
         
-        private void LoadSampleData()
+        private void LoadAvailableTools()
         {
             SelectedServer = new McpServerConfiguration
             {
@@ -68,38 +70,77 @@ namespace AiStudio4.McpStandalone.ViewModels
                 IsEnabled = true
             };
 
-            // Load the real YouTube Search Tool
+            // Discover all available MCP tools from the Tools assembly
             var enabledTools = _settingsService.GetEnabledTools();
-            var youtubeSearchTool = new McpTool 
-            { 
-                Name = "YouTube Search", 
-                Description = "Search YouTube for videos, channels, and playlists",
-                Category = "Web APIs",
-                IsSelected = enabledTools.Contains("YouTubeSearchTool"),
-                ToolId = "YouTubeSearchTool"
-            };
+            var toolsAssembly = typeof(AiStudio4.Tools.Interfaces.ITool).Assembly;
             
-            // Subscribe to property changes to persist selection and update server
-            youtubeSearchTool.PropertyChanged += (sender, e) => 
+            var toolTypes = toolsAssembly.GetTypes()
+                .Where(t => typeof(AiStudio4.Tools.Interfaces.ITool).IsAssignableFrom(t) 
+                    && !t.IsInterface 
+                    && !t.IsAbstract
+                    && t.GetCustomAttribute<ModelContextProtocol.Server.McpServerToolTypeAttribute>() != null)
+                .ToList();
+            
+            foreach (var toolType in toolTypes)
             {
-                if (e.PropertyName == nameof(McpTool.IsSelected) && sender is McpTool tool)
+                try
                 {
-                    SaveToolSelection();
-                    // Update the tool state in the running server
-                    _mcpServerService.UpdateToolState(tool.ToolId, tool.IsSelected);
-                    _logger.LogInformation("Updated tool state: {ToolId} = {IsSelected}", tool.ToolId, tool.IsSelected);
+                    // Create an instance to get the tool definition
+                    var toolInstance = Activator.CreateInstance(toolType, 
+                        new object?[] { null, _settingsService, null }) as AiStudio4.Tools.Interfaces.ITool;
                     
-                    // Show restart needed message
-                    NeedsRestart = true;
-                    RestartMessage = "Tool selection changed. Restart the MCP server to apply changes.";
+                    if (toolInstance != null)
+                    {
+                        var toolDef = toolInstance.GetToolDefinition();
+                        if (toolDef != null)
+                        {
+                            var mcpTool = new McpTool
+                            {
+                                Name = toolDef.Name,
+                                Description = toolDef.Description ?? string.Empty,
+                                Category = toolDef.Categories?.FirstOrDefault() ?? "Tools",
+                                IsSelected = enabledTools.Contains(toolType.Name),
+                                ToolId = toolType.Name
+                            };
+                            
+                            // Subscribe to property changes to persist selection and update server
+                            mcpTool.PropertyChanged += (sender, e) =>
+                            {
+                                if (e.PropertyName == nameof(McpTool.IsSelected) && sender is McpTool tool)
+                                {
+                                    SaveToolSelection();
+                                    // Update the tool state in the running server
+                                    _mcpServerService.UpdateToolState(tool.ToolId, tool.IsSelected);
+                                    _logger.LogInformation("Updated tool state: {ToolId} = {IsSelected}", tool.ToolId, tool.IsSelected);
+                                    
+                                    // Show restart needed message
+                                    NeedsRestart = true;
+                                    RestartMessage = "Tool selection changed. Restart the MCP server to apply changes.";
+                                }
+                            };
+                            
+                            AvailableTools.Add(mcpTool);
+                            _logger.LogInformation("Discovered tool: {ToolName} ({ToolId})", mcpTool.Name, mcpTool.ToolId);
+                        }
+                    }
                 }
-            };
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load tool {ToolType}", toolType.Name);
+                }
+            }
             
-            AvailableTools.Add(youtubeSearchTool);
+            _logger.LogInformation("Loaded {Count} available tools", AvailableTools.Count);
         }
         
         [ObservableProperty]
         private bool isRestarting = false;
+        
+        [ObservableProperty]
+        private bool showReconnectInfo = false;
+        
+        [ObservableProperty]
+        private string reconnectInfoMessage = string.Empty;
         
         [RelayCommand]
         private async Task RestartServer()
@@ -108,6 +149,7 @@ namespace AiStudio4.McpStandalone.ViewModels
             {
                 IsRestarting = true;
                 RestartMessage = "Restarting server...";
+                ShowReconnectInfo = false;
                 
                 await _mcpServerService.RestartServerAsync();
                 
@@ -115,7 +157,19 @@ namespace AiStudio4.McpStandalone.ViewModels
                 RestartMessage = string.Empty;
                 IsRestarting = false;
                 UpdateMcpServerStatus();
+                
+                // Show reconnect info
+                ShowReconnectInfo = true;
+                ReconnectInfoMessage = "Server restarted. In Claude, use: /mcp → McpStandalone → Reconnect";
+                
                 _logger.LogInformation("MCP server restarted successfully");
+                
+                // Auto-hide the message after 10 seconds
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(10000);
+                    ShowReconnectInfo = false;
+                });
             }
             catch (Exception ex)
             {
