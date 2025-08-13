@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -604,10 +605,53 @@ The tool automatically handles:
             public string Description { get; set; }
         }
 
-        [McpServerTool, Description("Create or update Azure DevOps wiki pages using local git repository operations for efficient partial updates")]
-        public async Task<string> AzureDevOpsCreateOrUpdateWikiPageViaLocal([Description("JSON parameters for AzureDevOpsCreateOrUpdateWikiPageViaLocal")] string parameters = "{}")
+        // Public class for MCP parameter binding
+        public class WikiChangeInput
         {
-            return await ExecuteWithExtraProperties(parameters);
+            [Description("Content to find and replace (empty string for append)")]
+            public string oldContent { get; set; } = "";
+            
+            [Description("New content to replace with")]
+            [Required]
+            public string newContent { get; set; } = "";
+            
+            [Description("Description of this change")]
+            public string? description { get; set; }
+        }
+
+        [McpServerTool, Description("Create or update Azure DevOps wiki pages using local git repository operations for efficient partial updates")]
+        public async Task<string> AzureDevOpsCreateOrUpdateWikiPageViaLocal(
+            [Description("Azure DevOps organization name"), Required] string organization,
+            [Description("Azure DevOps project name"), Required] string project,
+            [Description("The ID or name of the wiki"), Required] string wiki_id,
+            [Description("Path to the wiki page (e.g., '/Home', '/Documentation/API')"), Required] string path,
+            [Description("List of changes to apply to the wiki page"), Required] WikiChangeInput[] changes,
+            [Description("Commit message (optional)")] string? comment = null,
+            [Description("Automatically pull latest changes before editing (default: true)")] bool auto_pull = true)
+        {
+            // Convert WikiChangeInput[] to the format ProcessAsync expects
+            var changesForProcessing = changes.Select(c => new 
+            {
+                oldContent = c.oldContent,
+                newContent = c.newContent,
+                description = c.description
+            }).ToArray();
+            
+            // Build the JSON parameters object that ProcessAsync expects
+            // Note: ProcessAsync expects 'wiki_name' internally, so we map wiki_id to wiki_name
+            var parametersObj = new
+            {
+                organization = organization,
+                project = project,
+                wiki_name = wiki_id,  // Map wiki_id to wiki_name for internal processing
+                path = path,
+                changes = changesForProcessing,
+                comment = comment,
+                auto_pull = auto_pull
+            };
+            
+            string jsonParameters = JsonConvert.SerializeObject(parametersObj);
+            return await ExecuteWithExtraProperties(jsonParameters);
         }
     }
 }
