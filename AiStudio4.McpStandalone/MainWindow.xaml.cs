@@ -34,9 +34,6 @@ public partial class MainWindow : FluentWindow
         _serviceProvider = serviceProvider;
         _settingsService = settingsService;
         
-        // Initialize navigation items in the view model
-        _viewModel.InitializeNavigation();
-        
         // Subscribe to NavigationView events
         RootNavigation.SelectionChanged += NavigationView_SelectionChanged;
         
@@ -45,8 +42,6 @@ public partial class MainWindow : FluentWindow
         {
             frame.Navigate(new ServerPage() { DataContext = _viewModel });
         }
-        
-        // The first item will be selected automatically when set as MenuItemsSource
     }
 
     private void NavigationView_SelectionChanged(object sender, RoutedEventArgs e)
@@ -59,7 +54,16 @@ public partial class MainWindow : FluentWindow
         }
     }
     
-    private void NavigateToPage(string pageTag)
+    private void NavigationItem_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is NavigationViewItem navigationItem)
+        {
+            var tag = navigationItem.Tag?.ToString();
+            NavigateToPage(tag);
+        }
+    }
+    
+    private void NavigateToPage(string? pageTag)
     {
         if (RootNavigation.ContentOverlay is System.Windows.Controls.Frame frame)
         {

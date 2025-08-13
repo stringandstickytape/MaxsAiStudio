@@ -35,10 +35,24 @@
                           IsBackButtonVisible="Collapsed"
                           OpenPaneLength="250"
                           CompactPaneLength="48"
-                          PaneTitle="Navigation"
-                          MenuItemsSource="{Binding NavigationItems}"
-                          FooterMenuItemsSource="{Binding FooterNavigationItems}">
+                          PaneTitle="Navigation">
             
+            <!-- Navigation Items -->
+            <ui:NavigationView.MenuItems>
+                <ui:NavigationViewItem Content="Server" 
+                                      Tag="Server"
+                                      Icon="{ui:SymbolIcon Server24}"
+                                      Click="NavigationItem_Click"/>
+                <ui:NavigationViewItem Content="Settings" 
+                                      Tag="Settings"
+                                      Icon="{ui:SymbolIcon Settings24}"
+                                      Click="NavigationItem_Click"/>
+                <ui:NavigationViewItem Content="Legacy" 
+                                      Tag="Legacy"
+                                      Icon="{ui:SymbolIcon History24}"
+                                      Click="NavigationItem_Click"/>
+            </ui:NavigationView.MenuItems>
+
             <!-- Navigation View Header -->
             <ui:NavigationView.AutoSuggestBox>
                 <ui:AutoSuggestBox PlaceholderText="Search..." 
